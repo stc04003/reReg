@@ -1,0 +1,22 @@
+2018-05-29 Sy Han Chiou <schiou@utdallas.edu>
+	* Version 1.1.4
+	* Rebuild with oxygen
+2018-05-23 Sy Han Chiou <schiou@utdallas.edu>
+	* Version 1.1-3
+	* Removed plotEvent function and add its features to plot.reSurv
+	* Updated reSurv so it split out tibble df
+2018-04-17 Sy Han Chiou <schiou@utdallas.edu>	
+	* Version 1.1-2
+	* Fixed bugs reported in CRAN regarding r-devel
+2017-11-03 Sy Han Chiou <schiou@utdallas.edu>
+	* Major make over
+	* Cleaned the R codes
+	* New data structure: Time, id, event, status
+	* Added cox.LWYY and generalized scale model
+	* Added nonparametric methods
+	* Added event plot
+	* updated maintainer contact
+2015-10-30 Sy Han Chiou <schiou@hsph.harvard.edu>
+	* Version updated to published version. 
+	
+	
