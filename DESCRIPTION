@@ -12,6 +12,8 @@ Depends: R (>= 3.4.0)
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
+URL: http://github.com/stc04003/reReg
+BugReports: http://github.com/stc04003/reReg/issues
 Imports: BB (>= 2014.10.1), nleqslv (>= 3.3.1), SQUAREM (>= 2017.10.1),
         survival (>= 2.41.3), plyr (>= 1.8.4), ggplot2 (>= 2.2.1),
         purrr (>= 0.2.4), dplyr (>= 0.7.4), tidyr (>= 0.8.0), MASS (>=
