@@ -64,3 +64,8 @@ require(gridExtra)
 plot1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat)
 plot2 <- plot(simuMcf, legendName = "Treatment & Gender")
 grid.arrange(plot1, plot2, ncol = 1)
+
+
+simuDat0 <- subset(simuDat, ID <= 4)
+plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0, onePanel=T)
+plotCMF(reSurv(time, ID, event) ~ group + gender, data = simuDat0, onePanel=T)

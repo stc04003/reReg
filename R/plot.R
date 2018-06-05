@@ -257,10 +257,15 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, contro
             names(dat1) <- c(names(dat1)[1:5], sapply(2:nX, function(x) paste0(formula[[3]][[x]], collapse = "")))
         }
     }
-    rText <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time) %>% ",
-                   "group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")
-    dat0 <- eval(parse(text = rText))
-    dat0 <- dat0 %>% mutate(mu = n / n(), CMF = cumsum(mu)) %>% filter(recType > 0) 
+    ## rText <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time) %>% ",
+    ##                "group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")
+    ## dat0 <- eval(parse(text = rText))
+    ## dat0 <- dat0 %>% mutate(mu = n / n(), CMF = cumsum(mu)) %>% filter(recType > 0)
+    rText1 <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time)")
+    rText2 <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),")")
+    tmp1 <- eval(parse(text = rText1))
+    tmp2 <- eval(parse(text = rText2))
+    dat0 <- left_join(tmp1, tmp2, by = paste(names(dat1)[5:ncol(dat1)])) %>% mutate(mu = n.x / n.y, CMF = cumsum(mu)) %>% filter(recType > 0)
     k <- length(unique(unlist(dat0$recType)))
     if (k == 1) dat0$recType <- factor(dat0$recType, label = ctrl$recurrent.name)
     if (k > 1 & is.null(ctrl$recurrent.type))
