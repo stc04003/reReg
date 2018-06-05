@@ -216,7 +216,7 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' @keywords plot.reSurv
 #' @export
 #'
-#' @importFrom dplyr n
+#' @importFrom dplyr summarise
 #' 
 #' @examples
 #' data(readmission)
@@ -262,12 +262,17 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, contro
     ## dat0 <- eval(parse(text = rText))
     ## dat0 <- dat0 %>% mutate(mu = n / n(), CMF = cumsum(mu)) %>% filter(recType > 0)
     rText1 <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time)")
-    rText2 <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),")")
     tmp1 <- eval(parse(text = rText1))
-    tmp2 <- eval(parse(text = rText2))
-    dat0 <- left_join(tmp1, tmp2, by = paste(names(dat1)[5:ncol(dat1)])) %>% mutate(mu = n.x / n.y) #, CMF = cumsum(mu)) %>% filter(recType > 0)
-    dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")))
-    dat0 <- dat0 %>% mutate(CMF = cumsum(mu)) %>% filter(recType > 0)
+    if (ncol(dat1) > 5) {
+        rText2 <- paste("dat1 %>% group_by(", paste(names(dat1)[6:ncol(dat1)], collapse = ","),")",
+                        "%>% summarise(n = length(unique(id)))")
+        tmp2 <- eval(parse(text = rText2))
+        dat0 <- left_join(tmp1, tmp2, by = paste(names(dat1)[6:ncol(dat1)])) %>% mutate(mu = n.x / n.y) #, CMF = cumsum(mu)) %>% filter(recType > 0)
+        dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")))
+        dat0 <- dat0 %>% mutate(CMF = cumsum(mu)) %>% filter(recType > 0)
+    } else {
+        dat0 <- tmp1 %>% mutate(mu = n / length(unique(dat1$id), CMF = cumsum(mu))) %>% filter(recType > 0)
+    }
     k <- length(unique(unlist(dat0$recType)))
     if (k == 1) dat0$recType <- factor(dat0$recType, label = ctrl$recurrent.name)
     if (k > 1 & is.null(ctrl$recurrent.type))
