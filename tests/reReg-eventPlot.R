@@ -69,6 +69,21 @@ library(reda)
 library(gridExtra)
 data(simuDat)
 
+simuDat0 <- subset(simuDat, ID <= 5)
+simuMcf <- mcf(Survr(ID, time, event) ~ 1, data = simuDat0)
+p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0)
+p2 <- plot(simuMcf)
+grid.arrange(p1, p2, ncol = 1)
+
+
+simuDat0 <- subset(simuDat, ID <= 5)
+simuMcf <- mcf(Survr(ID, time, event) ~ 1, data = simuDat0, subset = event == 1)
+p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0)
+p2 <- plot(simuMcf)
+grid.arrange(p1, p2, ncol = 1)
+
+
+
 simuMcf <- mcf(Survr(ID, time, event) ~ group + gender, data = simuDat)
 
 
@@ -86,17 +101,5 @@ plot1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat)
 plot2 <- plot(simuMcf, legendName = "Treatment & Gender")
 grid.arrange(plot1, plot2, ncol = 1)
 
-
-simuDat0 <- subset(simuDat, ID <= 4)
-simuDat0 <- subset(simuDat, ID <= 5)
-
-simuMcf <- mcf(Survr(ID, time, event) ~ 1, data = simuDat0)
-p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0)
-p2 <- plot(simuMcf)
-grid.arrange(p1, p2, ncol = 1)
-
 subset(simuDat0, event == 1)
 dim(subset(simuDat0, event == 1))
-
-library(survival)
-data(rats)
