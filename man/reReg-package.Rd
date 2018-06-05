@@ -27,6 +27,14 @@ Ghosh, D. and D.Y. Lin (2003). Semiparametric Analysis of Recurrent Events Data 
 Huang, C.Y. and Wang, M.C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 \emph{Journal of the American Statistical Association} \bold{99}(468), 1153--1165.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{http://github.com/stc04003/reReg}
+  \item Report bugs at \url{http://github.com/stc04003/reReg/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Sy Han (Steven) Chiou \email{schiou@utdallas.edu}
 

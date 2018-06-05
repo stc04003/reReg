@@ -6,7 +6,7 @@
 \alias{is.reSurv}
 \title{Create an \code{reSurv} Object}
 \usage{
-reSurv(time1, time2, event, status, id)
+reSurv(time1, time2, id, event, status)
 
 is.reSurv(x)
 }
@@ -16,11 +16,11 @@ In the absence of "time2", this is the observation time of recurrence on calenda
 
 \item{time2}{an optional vector for ending time for the gap time between two successive recurrent events.}
 
+\item{id}{observation subject's id}
+
 \item{event}{a binary vector used as the recurrent event indicator.}
 
 \item{status}{a binary vector used as the status indicator for the terminal event.}
-
-\item{id}{observation subject's id}
 
 \item{x}{an \code{reSurv} object.}
 }

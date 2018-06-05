@@ -216,6 +216,8 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' @keywords plot.reSurv
 #' @export
 #'
+#' @importFrom dplyr n
+#' 
 #' @examples
 #' data(readmission)
 #' plotCMF(reSurv(t.stop, event, death, id) ~ 1, data = readmission)
@@ -255,10 +257,10 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, contro
             names(dat1) <- c(names(dat1)[1:5], sapply(2:nX, function(x) paste0(formula[[3]][[x]], collapse = "")))
         }
     }
-    rText <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time)")
+    rText <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time) %>% ",
+                   "group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")
     dat0 <- eval(parse(text = rText))
-    dat0 <- dat0 %>% mutate(mu = n / length(unique(dat1$id))) %>% filter(recType > 0) %>%
-        group_by(recType) %>% mutate(CMF = cumsum(mu))
+    dat0 <- dat0 %>% mutate(mu = n / n(), CMF = cumsum(mu)) %>% filter(recType > 0) 
     k <- length(unique(unlist(dat0$recType)))
     if (k == 1) dat0$recType <- factor(dat0$recType, label = ctrl$recurrent.name)
     if (k > 1 & is.null(ctrl$recurrent.type))
@@ -273,11 +275,11 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, contro
     }
     if (!onePanel) {
     gg <- ggplot(data = dat0, aes(x = Time, y = CMF)) +
-        geom_step(aes(color = recType), direction = "hv", size = 1.2)
+        geom_step(aes(color = recType), direction = "hv")
     } else {
         rText <- paste("geom_step(aes(color = interaction(",
                        paste(names(dat0)[5:ncol(dat1) - 4], collapse = ","),
-                       ")), direction = \"hv\", size = 1.2)")
+                       ")), direction = \"hv\")")
         gg <- ggplot(data = dat0, aes(x = Time, y = CMF)) +
             eval(parse(text = rText))
     }

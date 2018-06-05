@@ -19,19 +19,20 @@ NULL
 #' data(readmission)
 #' with(readmission, reSurv(t.stop, event, death, id))
 #' with(readmission, reSurv(t.start, t.stop, event, death, id))
-reSurv <- function(time1, time2, event, status, id) {
+reSurv <- function(time1, time2, id, event, status) {
     if (missing(time1)) stop("Must have a time argument.")
     if (!is.numeric(time1)) stop("Time argument (time1) must be numeric.")
     if (any(time1 < 0)) stop("Time argument (time1) must be positive.")
     if (any(missing(time2), missing(event), missing(status), missing(id))) {
-        if (missing(event)) stop("Recurrent event indicator (event) is missing.")
-        if (missing(status)) stop("Censoring indicator (status) is missing.")
-        if (missing(id)) {
-            id <- status
-            status <- event
-            event <- time2
+        if (missing(status)) {
+            if (missing(event)) status <- rep(0, length(id))
+            else status <- event
+            event <- id
+            id <- time2
             time2 <- NULL
         }
+        if (missing(event)) stop("Recurrent event indicator (event) is missing.")
+        if (missing(status)) stop("Censoring indicator (status) is missing.")
     } 
     if (!is.numeric(time2) & !is.null(time2)) stop("Time argument (time2) must be numeric.")
     if (any(time2 < 0) & !is.null(time2)) stop("Time argument (time2) must be positive.")
