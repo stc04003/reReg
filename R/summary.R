@@ -1,7 +1,9 @@
+#' @export
 print.reSurv <- function(x, ...) {
    print(x$reTb)
 }
 
+#' @export
 print.reReg <- function(x, ...) {
     if (!is.reReg(x))
         stop("Must be a reReg x")
@@ -40,6 +42,7 @@ print.reReg <- function(x, ...) {
     }
 }
 
+#' @export
 summary.reReg <- function(object, ...) {
     if (!is.reReg(object)) stop("Must be a reReg x")
     if (all(!is.na(object$alpha))) {
@@ -79,6 +82,7 @@ summary.reReg <- function(object, ...) {
     out
 }
 
+#' @export
 print.summary.reReg <- function(x, ...) {
     cat("Call: ")
     print(x$call)
@@ -133,6 +137,7 @@ print.summary.reReg <- function(x, ...) {
     cat("\n")
 }
 
+#' @export
 coef.reReg <- function(object, ...) {
     as.numeric(c(object$alpha, object$beta))
 }

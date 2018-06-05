@@ -17,23 +17,70 @@ NULL
 #' @export
 #' @examples
 #' data(readmission)
-#' with(readmission, reSurv(t.stop, event, death, id))
-#' with(readmission, reSurv(t.start, t.stop, event, death, id))
+#' with(readmission, reSurv(t.stop, id, event, death))
+#' with(readmission, reSurv(t.start, t.stop, id, event, death))
 reSurv <- function(time1, time2, id, event, status) {
     if (missing(time1)) stop("Must have a time argument.")
     if (!is.numeric(time1)) stop("Time argument (time1) must be numeric.")
     if (any(time1 < 0)) stop("Time argument (time1) must be positive.")
-    if (any(missing(time2), missing(event), missing(status), missing(id))) {
-        if (missing(status)) {
-            if (missing(event)) status <- rep(0, length(id))
-            else status <- event
+    msArg <- sum(missing(time2), missing(event), missing(status), missing(id))
+    n <- length(time1)
+    if (msArg == 4) {
+        eval(parse(text = default.reSurv(c("time2", "id", "event", "status"))))
+    }
+    if (msArg == 3) {
+        if (missing(time2) & !missing(id)) 
+            eval(parse(text = default.reSurv(c("time2", "event", "status"))))
+        if (missing(time2) & !missing(event)) 
+            eval(parse(text = default.reSurv(c("time2", "id", "status"))))
+        if (missing(time2) & !missing(status)) 
+            eval(parse(text = default.reSurv(c("time2", "id", "status"))))
+        if (!missing(time2) & all(time2 >= time1)) 
+            eval(parse(text = default.reSurv(c("event", "id", "status"))))
+        if (!missing(time2) & !all(time2 >= time1)) {
+            id <- time2
+            eval(parse(text = default.reSurv(c("time2", "event", "status"))))
+        }
+    }
+    if (msArg == 2) {
+        if (missing(time2) & missing(id)) 
+            eval(parse(text = default.reSurv(c("time2", "id"))))
+        if (missing(time2) & missing(event)) 
+            eval(parse(text = default.reSurv(c("time2", "event"))))
+        if (missing(time2) & missing(status)) 
+            eval(parse(text = default.reSurv(c("time2", "status"))))
+        if (!missing(time2) & all(time2 >= time1)) {
+            if (!missing(id))
+                eval(parse(text = default.reSurv(c("event", "status"))))
+            else if (!missing(event))
+                eval(parse(text = default.reSurv(c("event", "id"))))
+            else if (!missing(status))
+                eval(parse(text = default.reSurv(c("id", "status"))))
+        }
+        if (!missing(time2) & !all(time2 >= time1)) {
+            event <- id
+            id <- time2
+            eval(parse(text = default.reSurv(c("time2", "status"))))
+        }
+    }
+    if (msArg == 1) {
+        if (missing(status) & all(time2 >= time1)) {
+            if (missing(id))
+                eval(parse(text = default.reSurv(c("id"))))
+            else if (missing(event))
+                eval(parse(text = default.reSurv(c("event"))))
+            else if (missing(status))
+                eval(parse(text = default.reSurv(c("status"))))
+        }
+        if (missing(status) & !all(time2 >= time1)) {
+            status <- event
             event <- id
             id <- time2
             time2 <- NULL
         }
         if (missing(event)) stop("Recurrent event indicator (event) is missing.")
         if (missing(status)) stop("Censoring indicator (status) is missing.")
-    } 
+    }
     if (!is.numeric(time2) & !is.null(time2)) stop("Time argument (time2) must be numeric.")
     if (any(time2 < 0) & !is.null(time2)) stop("Time argument (time2) must be positive.")
     if (!is.null(time2) & any(time1 > time2)) stop("Stop time (time2) must be > start time (time1).")
@@ -80,3 +127,13 @@ is.reSurv <- function(x) inherits(x, "reSurv")
 
 is.reReg <- function(x) inherits(x, "reReg")
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
+
+
+default.reSurv <- function(x) {
+    text <- NULL
+    if ("time2" %in% x) text <- c(text, "time2 <- NULL")
+    if ("id" %in% x) text <- c(text, "id <- 1:n")
+    if ("event" %in% x) text <- c(text, "event <- rep(1, n)")
+    if ("status" %in% x) text <- c(text, "status <- rep(0, n)")
+    text
+}

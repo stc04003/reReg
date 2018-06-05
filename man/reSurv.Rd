@@ -29,6 +29,6 @@ Create a recurrent event survival object, used as a response variable in reReg m
 }
 \examples{
 data(readmission)
-with(readmission, reSurv(t.stop, event, death, id))
-with(readmission, reSurv(t.start, t.stop, event, death, id))
+with(readmission, reSurv(t.stop, id, event, death))
+with(readmission, reSurv(t.start, t.stop, id, event, death))
 }

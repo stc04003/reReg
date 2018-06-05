@@ -269,9 +269,9 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, contro
         tmp2 <- eval(parse(text = rText2))
         dat0 <- left_join(tmp1, tmp2, by = paste(names(dat1)[6:ncol(dat1)])) %>% mutate(mu = n.x / n.y) #, CMF = cumsum(mu)) %>% filter(recType > 0)
         dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")))
-        dat0 <- dat0 %>% mutate(CMF = cumsum(mu)) %>% filter(recType > 0)
+        dat0 <- dat0 %>% filter(recType > 0) %>% mutate(CMF = cumsum(mu))
     } else {
-        dat0 <- tmp1 %>% mutate(mu = n / length(unique(dat1$id), CMF = cumsum(mu))) %>% filter(recType > 0)
+        dat0 <- tmp1 %>% filter(recType > 0) %>% mutate(mu = n / length(unique(dat1$id)), CMF = cumsum(mu))
     }
     k <- length(unique(unlist(dat0$recType)))
     if (k == 1) dat0$recType <- factor(dat0$recType, label = ctrl$recurrent.name)
