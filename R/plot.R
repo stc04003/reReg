@@ -209,6 +209,8 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
 #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
 #' @param return.grob an optional logical value. If "TRUE", a \code{ggplot2} plot grob will be returned.
+#' @param adjrisk an optional logical value. If "TRUE", event times with \code{event == 0} will be treated as
+#' (independent) censoring time, and risk set sizes are adjusted accordingly. 
 #' @param onePanel an optinoal logical value. If "TRUE", only one graphical panel will be displayed.
 #' @param control a list of control parameters.
 #' @param ... for future developments.
@@ -216,12 +218,12 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' @keywords plot.reSurv
 #' @export
 #'
-#' @importFrom dplyr summarise
+#' @importFrom dplyr summarise rowwise
 #' 
 #' @examples
 #' data(readmission)
 #' plotCMF(reSurv(t.stop, event, death, id) ~ 1, data = readmission)
-plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, control = list(), ...) {
+plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, adjrisk = TRUE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -232,7 +234,7 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, contro
     if (!("ylab" %in% namc)) ctrl$ylab = "Cumulative mean"
     call <- match.call()
     nX <- 0
-    if (is.reSurv(formula)) {
+    if(is.reSurv(formula)) {
         dat1 <- formula$reDF
     } else {
         if (missing(data)) obj <- eval(formula[[2]], parent.frame())
@@ -257,21 +259,36 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, contro
             names(dat1) <- c(names(dat1)[1:5], sapply(2:nX, function(x) paste0(formula[[3]][[x]], collapse = "")))
         }
     }
-    ## rText <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time) %>% ",
-    ##                "group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")
-    ## dat0 <- eval(parse(text = rText))
-    ## dat0 <- dat0 %>% mutate(mu = n / n(), CMF = cumsum(mu)) %>% filter(recType > 0)
     rText1 <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time)")
     tmp1 <- eval(parse(text = rText1))
-    if (ncol(dat1) > 5) {
+    if (ncol(dat1) > 5) { ## any covariates?
         rText2 <- paste("dat1 %>% group_by(", paste(names(dat1)[6:ncol(dat1)], collapse = ","),")",
                         "%>% summarise(n = length(unique(id)))")
         tmp2 <- eval(parse(text = rText2))
-        dat0 <- left_join(tmp1, tmp2, by = paste(names(dat1)[6:ncol(dat1)])) %>% mutate(mu = n.x / n.y) #, CMF = cumsum(mu)) %>% filter(recType > 0)
-        dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")))
-        dat0 <- dat0 %>% filter(recType > 0) %>% mutate(CMF = cumsum(mu))
+        tmp1 <- left_join(tmp1, tmp2, by = paste(names(dat1)[6:ncol(dat1)])) %>%
+            mutate(GrpInd = as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":")))))
+        rec0 <- tmp1 %>% filter(recType == 0)
+        dat0 <- tmp1 %>% filter(recType > 0) %>% rowwise() %>%
+            mutate(adjrisk = n.y - sum(rec0$n.x[Time > rec0$Time & rec0$GrpInd == GrpInd])) %>% unrowwise
+        if (adjrisk) {
+            dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")"))) %>%
+                mutate(mu = n.x / adjrisk, CMF = cumsum(mu))
+        } else {
+            dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")"))) %>%
+                mutate(mu = n.x / n.y, CMF = cumsum(mu))
+        }
+        ## dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")))
+        ## dat0 <- dat0 %>% filter(recType > 0) %>% mutate(CMF = cumsum(mu))
     } else {
-        dat0 <- tmp1 %>% filter(recType > 0) %>% mutate(mu = n / length(unique(dat1$id)), CMF = cumsum(mu))
+        rec0 <- tmp1 %>% filter(recType == 0)
+        dat0 <- tmp1 %>% filter(recType > 0) %>% rowwise() %>%
+            mutate(n.y = length(unique(dat1$id)), adjrisk = n.y - sum(rec0$n[Time > rec0$Time]))  %>%
+            unrowwise
+        if (adjrisk) {
+            dat0 <- dat0 %>% mutate(mu = n / adjrisk, CMF = cumsum(mu))
+        } else {
+            dat0 <- dat0 %>% mutate(mu = n / n.y, CMF = cumsum(mu))
+        }
     }
     k <- length(unique(unlist(dat0$recType)))
     if (k == 1) dat0$recType <- factor(dat0$recType, label = ctrl$recurrent.name)
@@ -511,4 +528,9 @@ plotHaz <- function(x, control = list(), ...) {
         title(ylab = expression(hat(Lambda)[0](t)), xlab = ctrl$xlab, line = 2.2)
     else title(ylab = ctrl$ylab, xlab = ctrl$xlab, line = 2.2)
     options(warn = 0)
+}
+
+unrowwise <- function(x) {
+  class(x) <- c( "tbl_df", "data.frame")
+  x
 }
