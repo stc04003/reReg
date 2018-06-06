@@ -109,6 +109,11 @@ grid.arrange(p3, p2, ncol = 1)
 data(simuDat)
 head(simuDat)
 
+## adjust for riskset will give the same plot as in reda; the minor differrences are
+## 1. reda can start from the origin (0, 0)
+## 2. reda extends the right tail to the maximum censoring time
+## 3. reda can 'mark' the censoring times
+
 simuDat0 <- subset(simuDat, ID <= 5)
 simuMcf <- mcf(Survr(ID, time, event) ~ 1, data = simuDat0)
 p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0)
@@ -117,20 +122,19 @@ grid.arrange(p1, p2, ncol = 1)
 
 
 simuDat0 <- subset(simuDat, ID <= 5)
-simuMcf <- mcf(Survr(ID, time, event) ~ 1, data = simuDat0, subset = event == 1)
+
+
 p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0)
-p2 <- plot(simuMcf)
+p2 <- plot(mcf(Survr(ID, time, event) ~ 1, data = simuDat0))
 grid.arrange(p1, p2, ncol = 1)
 
 
-
-simuMcf <- mcf(Survr(ID, time, event) ~ group + gender, data = simuDat)
-plotCMF(reSurv(time, ID, event) ~ group + gender, data = simuDat, onePanel=T)
-plot(simuMcf, lty = 1 : 4, legendName = "Treatment & Gender")
-
+p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0, adjrisk = FALSE)
+p3 <- plotCMF(reSurv(time, ID, event) ~ 1, data = subset(simuDat0, event == 1))
+grid.arrange(p1, p3, ncol = 1)
 
 plot1 <- plotCMF(reSurv(time, ID, event) ~ group + gender, data = simuDat, onePanel=T)
-plot2 <- plot(simuMcf, legendName = "Treatment & Gender")
+plot2 <- plot(mcf(Survr(ID, time, event) ~ group + gender, data = simuDat))
 grid.arrange(plot1, plot2, ncol = 1)
 
 simuMcf <- mcf(Survr(ID, time, event) ~ 1, data = simuDat)
