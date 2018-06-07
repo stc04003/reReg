@@ -18,7 +18,6 @@ reSurv(t.start, t.stop, id)
 reSurv(t.start, t.stop, id, event)
 reSurv(t.start, t.stop, id, event, death)
 
-
 reSurv(t.stop)$reDF
 reSurv(t.start, t.stop)$reDF
 identical(reSurv(t.stop)$reTb, reSurv(t.start, t.stop)$reTb) # FALSE

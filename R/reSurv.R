@@ -4,12 +4,17 @@
 #'
 #' @description Create a recurrent event survival object, used as a response variable in reReg model formula.
 #'
-#' @param time1 when "time2" is provided, this vector is treated as the starting time for the gap time between two successive recurrent events.
-#' In the absence of "time2", this is the observation time of recurrence on calendar time scale, in which, the time corresponds to the time since entry/inclusion in the study.
+#' @param time1 when "\code{time2}" is provided, this vector is treated as the starting time for the gap time between two successive recurrent events.
+#' In the absence of "\code{time2}", this is the observation time of recurrence on calendar time scale, in which, the time corresponds to the time since entry/inclusion in the study.
 #' @param time2 an optional vector for ending time for the gap time between two successive recurrent events.
 #' @param event a binary vector used as the recurrent event indicator.
 #' @param status a binary vector used as the status indicator for the terminal event.
 #' @param id observation subject's id
+#' @param origin a numerical vector indicating the time origin of subjects.
+#' When \code{origin} is a scalar, \code{reSurv} assumes all subjects have the same origin.
+#' Otherwise, \code{origin} needs to be a numerical vector, with length equals to the number of subjects.
+#' In this case, each element corresponds to different origins for different subjects.
+#' This argument is only needed when "\code{time2}" is missing.
 #' @param x an \code{reSurv} object.
 NULL
 
@@ -19,7 +24,7 @@ NULL
 #' data(readmission)
 #' with(readmission, reSurv(t.stop, id, event, death))
 #' with(readmission, reSurv(t.start, t.stop, id, event, death))
-reSurv <- function(time1, time2, id, event, status) {
+reSurv <- function(time1, time2, id, event, status, origin = 0) {
     if (missing(time1)) stop("Must have a time argument.")
     if (!is.numeric(time1)) stop("Time argument (time1) must be numeric.")
     if (any(time1 < 0)) stop("Time argument (time1) must be positive.")
@@ -104,8 +109,8 @@ reSurv <- function(time1, time2, id, event, status) {
     else stop("Status must be logical or numeric")
     ## Prepare DF
     if (is.null(time2))
-        tab <- tibble(id = id, Time = time1, event = event, status = status, recType = event2)
-    else tab <- tibble(id = id, Time = unlist(lapply(split(time2 - time1, id), cumsum)),
+        tab <- tibble(id = id, Time = time1 - origin, event = event, status = status, recType = event2)
+    else tab <- tibble(id = id, Time = unlist(lapply(split(time2 - time1, id), cumsum)) - origin,
                            event = event, status = status, recType = event2)
     rownames(tab) <- NULL
     ## construct tibby

@@ -6,13 +6,13 @@
 \alias{is.reSurv}
 \title{Create an \code{reSurv} Object}
 \usage{
-reSurv(time1, time2, id, event, status)
+reSurv(time1, time2, id, event, status, origin = 0)
 
 is.reSurv(x)
 }
 \arguments{
-\item{time1}{when "time2" is provided, this vector is treated as the starting time for the gap time between two successive recurrent events.
-In the absence of "time2", this is the observation time of recurrence on calendar time scale, in which, the time corresponds to the time since entry/inclusion in the study.}
+\item{time1}{when "\code{time2}" is provided, this vector is treated as the starting time for the gap time between two successive recurrent events.
+In the absence of "\code{time2}", this is the observation time of recurrence on calendar time scale, in which, the time corresponds to the time since entry/inclusion in the study.}
 
 \item{time2}{an optional vector for ending time for the gap time between two successive recurrent events.}
 
@@ -21,6 +21,12 @@ In the absence of "time2", this is the observation time of recurrence on calenda
 \item{event}{a binary vector used as the recurrent event indicator.}
 
 \item{status}{a binary vector used as the status indicator for the terminal event.}
+
+\item{origin}{a numerical vector indicating the time origin of subjects.
+When \code{origin} is a scalar, \code{reSurv} assumes all subjects have the same origin.
+Otherwise, \code{origin} needs to be a numerical vector, with length equals to the number of subjects.
+In this case, each element corresponds to different origins for different subjects.
+This argument is only needed when "\code{time2}" is missing.}
 
 \item{x}{an \code{reSurv} object.}
 }
