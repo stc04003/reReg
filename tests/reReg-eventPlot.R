@@ -1,7 +1,7 @@
 library(reReg)
 library(reda)
 library(gridExtra)
-data(readmission)
+data(readmission, package = "frailtypack")
 head(readmission)
 
 ## ------------------------------------------------------------------------------------------

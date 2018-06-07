@@ -1,4 +1,4 @@
-1#' reReg: Recurrent Event Regression
+#' reReg: Recurrent Event Regression
 #'
 #' Recurrent event data arise frequently in various fields such as biomedical sciences, public health, engineering, and social sciences.
 #' In many instances, the observation of the recurrent event process can be stopped by the occurrence of a correlated failure event,
