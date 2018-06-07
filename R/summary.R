@@ -1,6 +1,6 @@
 #' @export
 print.reSurv <- function(x, ...) {
-   print(x$reTb)
+    x$reTb %>% print(n = 5)
 }
 
 #' @export
