@@ -42,7 +42,7 @@ The argument \code{control} consists of options with argument defaults to a list
 }
 \examples{
 data(readmission, package = "frailtypack")
-reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, event, death, id))
+reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, id, event, death))
 ## Default labels
 plot(reObj)
 plot(reObj, order = FALSE)
@@ -51,12 +51,12 @@ plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", title = "User
 
 ## With multiple hypothetical event types
 set.seed(1)
-reObj2 <- with(readmission, reSurv(t.stop, event * sample(1:3, 861, TRUE), death, id))
+reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 plot(reObj2)
 
 ## With multiple hypothetical event types
 set.seed(1)
-reObj2 <- with(readmission, reSurv(t.stop, event * sample(1:3, 861, TRUE), death, id))
+reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 plot(reObj2)
 }
 \seealso{

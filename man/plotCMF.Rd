@@ -41,7 +41,7 @@ The argument \code{control} consists of options with argument defaults to a list
 }
 \examples{
 data(readmission, package = "frailtypack")
-plotCMF(reSurv(t.stop, event, death, id) ~ 1, data = readmission)
+plotCMF(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
 }
 \seealso{
 \code{\link{reSurv}}, \code{\link{plot.reSurv}}

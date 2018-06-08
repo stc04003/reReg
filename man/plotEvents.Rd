@@ -38,16 +38,16 @@ The argument \code{control} consists of options with argument defaults to a list
 }
 \examples{
 data(readmission, package = "frailtypack")
-plotEvents(reSurv(t.stop, event, death, id) ~ 1, data = readmission)
+plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
 
 ## Separate plots by gender
-plotEvents(reSurv(t.stop, event, death, id) ~ sex, data = readmission)
+plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
 
 ## Separate plots by gender and chemo type
-plotEvents(reSurv(t.stop, event, death, id) ~ sex + chemo, data = readmission)
+plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
 
 ## With multiple hypothetical event types
-plotEvents(reSurv(t.stop, event * sample(1:3, 861, TRUE), death, id) ~
+plotEvents(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
   sex + chemo, data = readmission)
 }
 \seealso{

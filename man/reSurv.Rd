@@ -35,6 +35,8 @@ Create a recurrent event survival object, used as a response variable in reReg m
 }
 \examples{
 data(readmission, package = "frailtypack")
-with(readmission, reSurv(t.stop, id, event, death))
-with(readmission, reSurv(t.start, t.stop, id, event, death))
+attach(readmission)
+reSurv(t.stop, id, event, death)
+reSurv(t.start, t.stop, id, event, death)
+detach(readmission)
 }

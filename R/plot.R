@@ -1,4 +1,4 @@
-globalVariables(c("Time", "Yi", "id", "recType", "status", "tij"))
+globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd", "n.x", "mu", "n", "CMF"))
 
 #' Produce Event Plots
 #'
@@ -30,7 +30,7 @@ globalVariables(c("Time", "Yi", "id", "recType", "status", "tij"))
 #' 
 #' @examples
 #' data(readmission, package = "frailtypack")
-#' reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, event, death, id))
+#' reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, id, event, death))
 #' ## Default labels
 #' plot(reObj)
 #' plot(reObj, order = FALSE)
@@ -39,12 +39,12 @@ globalVariables(c("Time", "Yi", "id", "recType", "status", "tij"))
 #'
 #' ## With multiple hypothetical event types
 #' set.seed(1)
-#' reObj2 <- with(readmission, reSurv(t.stop, event * sample(1:3, 861, TRUE), death, id))
+#' reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 #' plot(reObj2)
 #'
 #' ## With multiple hypothetical event types
 #' set.seed(1)
-#' reObj2 <- with(readmission, reSurv(t.stop, event * sample(1:3, 861, TRUE), death, id))
+#' reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 #' plot(reObj2)
 plot.reSurv <- function(x, data, CMF = FALSE, order = TRUE, onePanel = FALSE, return.grob = FALSE, control = list(), ...) {
     if (!CMF)
@@ -81,16 +81,16 @@ plot.reSurv <- function(x, data, CMF = FALSE, order = TRUE, onePanel = FALSE, re
 #' 
 #' @examples
 #' data(readmission, package = "frailtypack")
-#' plotEvents(reSurv(t.stop, event, death, id) ~ 1, data = readmission)
+#' plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
 #'
 #' ## Separate plots by gender
-#' plotEvents(reSurv(t.stop, event, death, id) ~ sex, data = readmission)
+#' plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
 #'
 #' ## Separate plots by gender and chemo type
-#' plotEvents(reSurv(t.stop, event, death, id) ~ sex + chemo, data = readmission)
+#' plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
 #'
 #' ## With multiple hypothetical event types
-#' plotEvents(reSurv(t.stop, event * sample(1:3, 861, TRUE), death, id) ~
+#' plotEvents(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
 #'   sex + chemo, data = readmission)
 plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control = list(), ...) {
     ctrl <- plotEvents.control()
@@ -222,7 +222,7 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' 
 #' @examples
 #' data(readmission, package = "frailtypack")
-#' plotCMF(reSurv(t.stop, event, death, id) ~ 1, data = readmission)
+#' plotCMF(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
 plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, adjrisk = TRUE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
@@ -354,7 +354,7 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #' @keywords plot.reReg
 #' @examples
 #' data(readmission, package = "frailtypack")
-#' fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
+#' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
 #'              data = subset(readmission, id < 50),
 #'              method = "am.XCHWY", se = "resampling", B = 20)
 #' plot(fit)
@@ -428,7 +428,7 @@ plot.reReg <- function(x, ...) {
 #' ## readmission data
 #' data(readmission, package = "frailtypack")
 #' set.seed(123)
-#' fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
+#' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
 #'                    data = subset(readmission, id < 50),
 #'                    method = "am.XCHWY", se = "resampling", B = 20)
 #' ## Plot both the baseline cumulative rate and hazard function
@@ -490,7 +490,7 @@ plotRate <- function(x, control = list(), ...) {
 #' ## readmission data
 #' data(readmission, package = "frailtypack")
 #' set.seed(123)
-#' fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
+#' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
 #'              data = subset(readmission, id < 50),
 #'              method = "am.XCHWY", se = "resampling", B = 20)
 #' ## Plot both the baseline cumulative rate and hazard function

@@ -28,7 +28,7 @@ The argument \code{control} consists of options with argument defaults to a list
 ## readmission data
 data(readmission, package = "frailtypack")
 set.seed(123)
-fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
+fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
              data = subset(readmission, id < 50),
              method = "am.XCHWY", se = "resampling", B = 20)
 ## Plot both the baseline cumulative rate and hazard function
