@@ -23,3 +23,5 @@ NeedsCompilation: yes
 Packaged: 2018-06-03 00:41:51 UTC; schiou
 Author: Sy Han (Steven) Chiou [aut, cre]
 Maintainer: Sy Han (Steven) Chiou <schiou@utdallas.edu>
+Suggests: frailtypack,
+    reda
