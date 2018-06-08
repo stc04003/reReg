@@ -291,15 +291,15 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, adjris
         }
     }
     k <- length(unique(unlist(dat0$recType)))
-    if (k == 1) dat0$recType <- factor(dat0$recType, label = ctrl$recurrent.name)
+    if (k == 1) dat0$recType <- factor(dat0$recType, labels = ctrl$recurrent.name)
     if (k > 1 & is.null(ctrl$recurrent.type))
-        dat0$recType <- factor(dat0$recType, label = paste(ctrl$recurrent.name, 1:k))
+        dat0$recType <- factor(dat0$recType, labels = paste(ctrl$recurrent.name, 1:k))
     if (k > 1 & !is.null(ctrl$recurrent.type)) {
         if (length(ctrl$recurrent.type) == k) {
-            dat0$recType <- factor(dat0$recType, label = ctrl$recurrent.type)
+            dat0$recType <- factor(dat0$recType, labels = ctrl$recurrent.type)
         } else {
             cat('The length of "recurrent.type" mismatched, default names are used.\n')
-            dat0$recType <- factor(recType, label = paste(ctrl$recurrent.name, 1:k))
+            dat0$recType <- factor(recType, labels = paste(ctrl$recurrent.name, 1:k))
         }
     }
     if (!onePanel) {
