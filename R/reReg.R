@@ -641,14 +641,14 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #' data(readmission, package = "frailtypack")
 #' set.seed(123)
 #' ## Acceralted Mean Model
-#' (fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
+#' (fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
 #'               data = subset(readmission, id < 50),
 #'               method = "am.XCHWY", se = "resampling", B = 20))
 #' summary(fit)
 #'
 #' ## Generalized Scale-Change Model
 #' set.seed(123)
-#' (fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
+#' (fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
 #'               data = subset(readmission, id < 50),
 #'               method = "sc.XCYH", se = "resampling", B = 20))
 #' summary(fit)
@@ -690,7 +690,7 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #' }
 #' set.seed(2017)
 #' dat <- simDat(200, c(0, 0), c(0, 0), TRUE) ## generate data under informative censoring
-#' fm <- reSurv(Time, event, status, ID) ~ X1 + X2
+#' fm <- reSurv(Time, ID, event, status) ~ X1 + X2
 #' fit.HW <- reReg(fm, data = dat, method = "cox.HW", B = 5)
 #' }
 reReg <- function(formula, data, B = 200, 
