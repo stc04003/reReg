@@ -21,7 +21,7 @@ NULL
 #' @rdname reSurv
 #' @export
 #' @examples
-#' data(readmission)
+#' data(readmission, package = "frailtypack")
 #' with(readmission, reSurv(t.stop, id, event, death))
 #' with(readmission, reSurv(t.start, t.stop, id, event, death))
 reSurv <- function(time1, time2, id, event, status, origin = 0) {

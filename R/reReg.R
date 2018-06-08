@@ -638,7 +638,7 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #'
 #' @examples
 #' ## readmission data
-#' data(readmission)
+#' data(readmission, package = "frailtypack")
 #' set.seed(123)
 #' ## Acceralted Mean Model
 #' (fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,

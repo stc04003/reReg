@@ -26,7 +26,7 @@ The argument \code{control} consists of options with argument defaults to a list
 }
 \examples{
 ## readmission data
-data(readmission)
+data(readmission, package = "frailtypack")
 set.seed(123)
 fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
                    data = subset(readmission, id < 50),

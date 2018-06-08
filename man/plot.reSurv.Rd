@@ -41,7 +41,7 @@ The argument \code{control} consists of options with argument defaults to a list
 }
 }
 \examples{
-data(readmission)
+data(readmission, package = "frailtypack")
 reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, event, death, id))
 ## Default labels
 plot(reObj)

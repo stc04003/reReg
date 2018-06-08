@@ -34,7 +34,7 @@ This argument is only needed when "\code{time2}" is missing.}
 Create a recurrent event survival object, used as a response variable in reReg model formula.
 }
 \examples{
-data(readmission)
+data(readmission, package = "frailtypack")
 with(readmission, reSurv(t.stop, id, event, death))
 with(readmission, reSurv(t.start, t.stop, id, event, death))
 }

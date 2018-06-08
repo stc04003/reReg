@@ -69,7 +69,7 @@ For available method for standard errors estimation are:
 }
 \examples{
 ## readmission data
-data(readmission)
+data(readmission, package = "frailtypack")
 set.seed(123)
 ## Acceralted Mean Model
 (fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,

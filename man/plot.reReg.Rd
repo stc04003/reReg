@@ -15,7 +15,7 @@
 Plot the estimated baseline cumulative rate function and harzard function if available.
 }
 \examples{
-data(readmission)
+data(readmission, package = "frailtypack")
 fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
              data = subset(readmission, id < 50),
              method = "am.XCHWY", se = "resampling", B = 20)

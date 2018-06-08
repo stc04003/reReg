@@ -29,7 +29,7 @@ globalVariables(c("Time", "Yi", "id", "recType", "status", "tij"))
 #' @export
 #' 
 #' @examples
-#' data(readmission)
+#' data(readmission, package = "frailtypack")
 #' reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, event, death, id))
 #' ## Default labels
 #' plot(reObj)
@@ -80,7 +80,7 @@ plot.reSurv <- function(x, data, CMF = FALSE, order = TRUE, onePanel = FALSE, re
 #' @export
 #' 
 #' @examples
-#' data(readmission)
+#' data(readmission, package = "frailtypack")
 #' plotEvents(reSurv(t.stop, event, death, id) ~ 1, data = readmission)
 #'
 #' ## Separate plots by gender
@@ -221,7 +221,7 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' @importFrom dplyr summarise rowwise
 #' 
 #' @examples
-#' data(readmission)
+#' data(readmission, package = "frailtypack")
 #' plotCMF(reSurv(t.stop, event, death, id) ~ 1, data = readmission)
 plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, adjrisk = TRUE, control = list(), ...) {
     ctrl <- plotEvents.control()
@@ -353,7 +353,7 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #' @export
 #' @keywords plot.reReg
 #' @examples
-#' data(readmission)
+#' data(readmission, package = "frailtypack")
 #' fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
 #'              data = subset(readmission, id < 50),
 #'              method = "am.XCHWY", se = "resampling", B = 20)
@@ -426,7 +426,7 @@ plot.reReg <- function(x, ...) {
 #'
 #' @examples
 #' ## readmission data
-#' data(readmission)
+#' data(readmission, package = "frailtypack")
 #' set.seed(123)
 #' fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
 #'                    data = subset(readmission, id < 50),
@@ -488,7 +488,7 @@ plotRate <- function(x, control = list(), ...) {
 #'
 #' @examples
 #' ## readmission data
-#' data(readmission)
+#' data(readmission, package = "frailtypack")
 #' set.seed(123)
 #' fit <- reReg(reSurv(t.stop, event, death, id) ~ sex + chemo,
 #'              data = subset(readmission, id < 50),
