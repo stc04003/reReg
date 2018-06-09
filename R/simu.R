@@ -4,8 +4,8 @@
 
 Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa / 2
 Lam0 <- function(t) log(1 + t) / 2
-invLam <- function(t, z, exa, exb) exp(2 * t * exb / exa / z) / exa
-invHaz <- function(t, z, exa, exb) exp(4 * t * exb / exa / z) / exa
+invLam <- function(t, z, exa, exb) (exp(2 * t * exa / exb / z) - 1) / exa
+invHaz <- function(t, z, exa, exb) (exp(4 * t * exa / exb / z) - 1) / exa
 
 #' Function to generate simulated data
 #'
@@ -49,7 +49,8 @@ invHaz <- function(t, z, exa, exb) exp(4 * t * exb / exa / z) / exa
 #' @param tau a numeric value specifying the maximum observation time.
 #'
 #' @export
-#' 
+#'
+#' @importFrom tibble as_tibble
 simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60) {
     type <- match.arg(type)
     if (length(a) != 2L) stop("Require length(a) = 2.")
@@ -57,15 +58,15 @@ simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60
     simOne <- function(id) {
         z <- ifelse(indCen, 1, rgamma(1, 4, 4))
         x <- rnorm(2)
-        exa <- exp(x %*% a)
-        exb <- exp(x %*% b)
+        exa <- c(exp(x %*% a))
+        exb <- c(exp(x %*% b))
         cen <- rexp(1, z * exa / 60)
         if (type == "cox") D <- invHaz(runif(1), z, 1, exb)
         if (type == "am") D <- invHaz(runif(1), z, exb, exb)
         if (type == "sc") D <- tau
         y <- min(cen, tau, D) 
         status <- 1 * (y == D)
-        m <- 0
+        m <- -1
         tij <- NULL
         if (type == "cox") up <- Lam(y, z, 1, exa)
         if (type == "am") up <- Lam(y, z, exa, exa)
@@ -83,8 +84,8 @@ simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60
                               Z = z, m = m, X1 = x[1], X2 = x[2]))
         } else {
             return(data.frame(id = id, Time = y, event = 0, status = status,
-                              Z = z, m = m, X1 = x[1], X2 = x[2]))
+                              Z = z, m = m, x1 = x[1], x2 = x[2]))
         }
     }
-    tibble(do.call(rbind, lapply(1:n, simOne)))
+    as_tibble(do.call(rbind, lapply(1:n, simOne)))
 }
