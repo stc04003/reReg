@@ -60,17 +60,24 @@ simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60
         exa <- exp(x %*% a)
         exb <- exp(x %*% b)
         cen <- rexp(1, z * exa / 60)
-        D <- invHaz(runif(1), z, exa, exb)
+        if (type == "cox") D <- invHaz(runif(1), z, 1, exb)
+        if (type == "am") D <- invHaz(runif(1), z, exb, exb)
+        if (type == "sc") D <- tau
         y <- min(cen, tau, D) 
         status <- 1 * (y == D)
         m <- 0
         tij <- NULL
-        while(sum(tij) < Lam(y, z, exa, exb)) {
+        if (type == "cox") up <- Lam(y, z, 1, exa)
+        if (type == "am") up <- Lam(y, z, exa, exa)
+        if (type == "sc") up <- Lam(y, z, exa, exb)
+        while(sum(tij) < up) {
             tij <- c(tij, rexp(1))
             m <- m + 1
         }
         if (m > 0) {
-            tij <- invLam(cumsum(tij[1:m]), z, exa, exb)
+            if (type == "cox") tij <- invLam(cumsum(tij[1:m]), z, 1, exa)
+            if (type == "am") tij <- invLam(cumsum(tij[1:m]), z, exa, exa)
+            if (type == "sc") tij <- invLam(cumsum(tij[1:m]), z, exa, exb)
             return(data.frame(id = id, Time = c(sort(tij), y),
                               event = c(rep(1, m), 0), status = c(rep(0, m), status),
                               Z = z, m = m, X1 = x[1], X2 = x[2]))
