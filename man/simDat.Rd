@@ -4,7 +4,8 @@
 \alias{simDat}
 \title{Function to generate simulated data}
 \usage{
-simDat(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60)
+simDat(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60,
+  summary = FALSE)
 }
 \arguments{
 \item{n}{number of observation.}
@@ -21,6 +22,8 @@ Otherwise, \eqn{Z} is generated from a gamma distribution with mean 1 and varian
 \item{type}{a character string specifying the underlying model. See \code{Details}.}
 
 \item{tau}{a numeric value specifying the maximum observation time.}
+
+\item{summary}{a logical value indicating whether a brief data summary will be printed. Default is FALSE.}
 }
 \description{
 The function \code{simDat} generates simulated recurrent event data from either

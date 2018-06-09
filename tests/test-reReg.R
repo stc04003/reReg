@@ -29,12 +29,26 @@ do <- function(n = 200, a = c(1, 1), b = c(1, 1), type = "cox", indCen = TRUE) {
       coef(reReg(fm, data = dat, method = "sc.XCYH")))    
 }
 
+set.seed(1527) 
+do(a = c(-1, -1), b = c(1, 1), indCen = TRUE, type = "sc")
+set.seed(1526)  ## and 1527
+dat <- simDat(200, a = c(-1, -1), b = c(1, 1), indCen = TRUE, type = "sc")
+coef(reReg(fm, data = dat)) ## ok
+coef(reReg(fm, data = dat, method = "cox.HW")) ## ok
+## coef(reReg(fm, data = dat, method = "am.GL"))
+coef(reReg(fm, data = dat, method = "am.XCHWY")) ## errors
+coef(reReg(fm, data = dat, method = "sc.XCYH")) ## ok
+
+
+
+
 do(type = "am")
 
 foo <- matrix(NA, 500, 16)
 for (i in 1:500) {
     set.seed(i + 1500)
-    foo[i,] <- do(indCen = TRUE, type = "am")
+    ## foo[i,] <- do(indCen = TRUE, type = "am")
+    foo[i,] <- do(a = c(-1, -1), b = c(1, 1), indCen = TRUE, type = "sc")
     print(i)
 }
 

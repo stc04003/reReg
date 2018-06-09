@@ -47,11 +47,12 @@ invHaz <- function(t, z, exa, exb) (exp(4 * t * exa / exb / z) - 1) / exa
 #' (e.g., \code{rgamma(1, 4, 4)}).
 #' @param type a character string specifying the underlying model. See \code{Details}.
 #' @param tau a numeric value specifying the maximum observation time.
-#'
+#' @param summary a logical value indicating whether a brief data summary will be printed. Default is FALSE.
+#' 
 #' @export
 #'
 #' @importFrom tibble as_tibble
-simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60) {
+simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60, summary = FALSE) {
     type <- match.arg(type)
     if (length(a) != 2L) stop("Require length(a) = 2.")
     if (length(b) != 2L) stop("Require length(b) = 2.")
@@ -87,5 +88,9 @@ simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60
                               Z = z, m = m, x1 = x[1], x2 = x[2]))
         }
     }
-    as_tibble(do.call(rbind, lapply(1:n, simOne)))
+    dat <- as_tibble(do.call(rbind, lapply(1:n, simOne)))
+    if (summary) {
+        cat(table(status))
+    }
+    return(dat)
 }
