@@ -81,7 +81,7 @@ simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60
             if (type == "sc") tij <- invLam(cumsum(tij[1:m]), z, exa, exb)
             return(data.frame(id = id, Time = c(sort(tij), y),
                               event = c(rep(1, m), 0), status = c(rep(0, m), status),
-                              Z = z, m = m, X1 = x[1], X2 = x[2]))
+                              Z = z, m = m, x1 = x[1], x2 = x[2]))
         } else {
             return(data.frame(id = id, Time = y, event = 0, status = status,
                               Z = z, m = m, x1 = x[1], x2 = x[2]))

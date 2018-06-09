@@ -13,7 +13,9 @@ simDat(200, c(1, 1), c(1, 1), indCen = FALSE)
 simDat(200, c(1, 1), c(1, 1), type = "am", indCen = FALSE)
 simDat(200, c(1, 1), c(1, 1), type = "sc", indCen = FALSE)
 
-
+dat <- simDat(200, c(1, 1), c(1, 1))
+fm <- reSurv(Time, id, event, status) ~ x1 + x2
+reReg(fm, data = dat)
 
 e
 
