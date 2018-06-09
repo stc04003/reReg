@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 
 #### Installation
 
-You can install and load R/spef from CRAN using
+You can install and load **reReg** from CRAN using
 
 ```{r cran-installation, eval = FALSE}
 install.packages("reReg")
