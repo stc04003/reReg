@@ -61,8 +61,8 @@ simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60
         exa <- c(exp(x %*% a))
         exb <- c(exp(x %*% b))
         cen <- rexp(1, z * exa / 60)
-        if (type == "cox") D <- invHaz(runif(1), z, 1, exb)
-        if (type == "am") D <- invHaz(runif(1), z, exb, exb)
+        if (type == "cox") D <- invHaz(rexp(1), z, 1, exb)
+        if (type == "am") D <- invHaz(rexp(1), z, exb, exb)
         if (type == "sc") D <- tau
         y <- min(cen, tau, D) 
         status <- 1 * (y == D)
