@@ -40,29 +40,32 @@ doREFit.am.XCHWY <- function(DF, DF0, engine, stdErr) {
 }
 
 doREFit.am.GL <- function(DF, DF0, engine, stdErr) {
+    p <- ncol(DF0)
+    alpha <- beta <- gamma <- rep(0, p)
+    aSE <- bSE <- da <- va <- db <- vb <- NA
+    ## Obtaining AFT estimator first
+    log.est <- function(b) {
+        Y <- log(subset(DF, event == 0)$Time)
+        X <- DF0
+        status <- subset(DF, event == 0)$status
+        n <- nrow(DF0)
+        .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
+           as.integer(rep(1, n)), as.integer(n), as.integer(p), as.integer(n),
+           as.double(rep(1, n)), as.double(rep(1, n)), 
+           double(p), PACKAGE = "reReg")[[11]]
+    }
+    suppressWarnings(outB <- dfsane(double(p), log.est, alertConvergence = FALSE, quiet = TRUE,
+                                   control = list(trace = FALSE)))
     id <- DF$id
     event <- DF$event
     status <- DF$status
     X <- as.matrix(DF[,-c(1:4)])    
     n <- length(unique(id))
-    p <- ncol(X)
     T <- DF$Time
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))  
-    ## Reset PE and SE
-    alpha <- beta <- gamma <- rep(0, p)
-    aSE <- bSE <- da <- va <- db <- vb <- NA
-    ## Start cox.GL
-    log.est <- function(b) {
-        .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
-           as.integer(rep(1, n)), as.integer(n), as.integer(p), as.integer(n), as.double(rep(1, n)), as.double(rep(1, n)), 
-           double(p), PACKAGE = "reReg")[[11]]
-    }
-    suppressWarnings(fit <- dfsane(double(p), log.est, alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE)))
-    ## outB <- aftgee::aftsrr(Surv(Y, status) ~ X, subset = event == 0, B = 0,
-    ##                        rankWeights = "logrank", method = "nonsm")
-    outA <- dfsane(alpha, ghoshU2, beta = outB$beta, T = ifelse(T == Y, 1e5, T),
+    outA <- dfsane(alpha, ghoshU2, beta = outB$par, T = ifelse(T == Y, 1e5, T),
                    Y = Y[event == 0], X = as.matrix(X[event == 0, ]),
                    cl = mt + 1, ## unlist(lapply(split(id, id), length)),
                    alertConvergence = FALSE, quiet = TRUE, 

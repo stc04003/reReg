@@ -2,9 +2,9 @@
 ## Codes to generate simulated data
 ###################################################################################
 
-Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa / 2
-Lam0 <- function(t) log(1 + t) / 2
-invLam <- function(t, z, exa, exb) (exp(2 * t * exa / exb / z) - 1) / exa
+Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa ## / 2
+Lam0 <- function(t) log(1 + t) ## / 2
+invLam <- function(t, z, exa, exb) (exp(1 * t * exa / exb / z) - 1) / exa
 invHaz <- function(t, z, exa, exb) (exp(4 * t * exa / exb / z) - 1) / exa
 
 #' Function to generate simulated data
@@ -58,13 +58,14 @@ simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60
     if (length(b) != 2L) stop("Require length(b) = 2.")
     simOne <- function(id) {
         z <- ifelse(indCen, 1, rgamma(1, 4, 4))
-        x <- rnorm(2)
+        ## x <- rnorm(2)
+        x <- c(sample(0:1, 1), rnorm(1))
         exa <- c(exp(x %*% a))
         exb <- c(exp(x %*% b))
         cen <- rexp(1, z * exa / 60)
         if (type == "cox") D <- invHaz(rexp(1), z, 1, exb)
         if (type == "am") D <- invHaz(rexp(1), z, exb, exb)
-        if (type == "sc") D <- tau
+        if (type == "sc") D <- cen
         y <- min(cen, tau, D) 
         status <- 1 * (y == D)
         m <- -1
@@ -90,7 +91,22 @@ simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60
     }
     dat <- as_tibble(do.call(rbind, lapply(1:n, simOne)))
     if (summary) {
-        cat(table(status))
+        cat("\n")
+        cat("Summary results for number of recurrent event per subject:\n")
+        base <- dat %>% group_by(id) %>% summarize(m = unique(m), d = max(status),
+                                                   x1 = unique(x1), x2 = unique(x2))
+        d <- base$d
+        x1 <- base$x1
+        print(summary(base$m))
+        cat("\n")
+        cat(paste("Number of failures: ", sum(d), " (", 100 * sum(d) / length(d), "%); ",
+                  "Number of censored events: ", sum(d < 1), " (", 100 * sum(d < 1) / length(d), "%)\n",
+                  sep = ""))
+        cat(paste("Number of x1 == 1: ", sum(x1), " (", 100 * sum(x1) / length(x1), "%); ",
+                  "Number of x1 == 0: ", sum(x1 < 1), " (", 100 * sum(x1 < 1) / length(x1), "%)\n", sep = ""))
+        cat("\nSummary results for x2:\n")
+        print(summary(base$x2))
+        cat("\n\n")
     }
-    return(dat)
+    return(dat %>% select(-m, -Z))
 }
