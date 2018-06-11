@@ -7,7 +7,7 @@ print.reSurv <- function(x, ...) {
 print.reReg <- function(x, ...) {
     if (!is.reReg(x))
         stop("Must be a reReg x")
-    cat("Call:\n")
+    cat("Call: ")
     print(x$call)
     if (all(!is.na(x$alpha))) {
         if (x$method != "cox.LWYY") {

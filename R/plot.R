@@ -437,36 +437,53 @@ plot.reReg <- function(x, ...) {
 #' plotRate(fit)
 #' ## Plot with user-specified labels
 #' plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title")) 
-plotRate <- function(x, control = list(), ...) {
-    if (x$method == "sc.XCYH") stop("Rate function plot is not yet available for method = sc.XCYH") 
+plotRate <- function(x, smooth = FALSE, control = list(), ...) {
+    if (x$method == "sc.XCYH") stop("Rate function plot is not yet available for method = sc.XCYH") ## end
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
-    if (ctrl$title == "Recurrent event plot") # default value
-        ctrl$title <- "Baseline Cumulative Rate Function"
-    if (!is.reReg(x)) stop("Response must be a reReg class")
-    options(warn = -1)
-    t0 <- x$t0
-    ly <- x$lam
-    lyU <- x$lamU
-    lyL <- x$lamL
-    hy <- x$haz
-    hyU <- x$hazU
-    hyL <- x$hazL
-    win.ly <- max(ly, lyU, lyL, na.rm = TRUE)
-    plot(t0, ly, type = "s",  xlab = "", ylab = "", ylim = c(0, win.ly),
-         main = ctrl$title)
-    if (any(!is.na(x$lamU))) {
-        lines(t0, lyU, col = 2, lty = 2, "s")
-        lines(t0, lyL, col = 2, lty = 2, "s")
+
+    if (is.null(x$rate0.lower)) {
+        dat <- as_tibble(x$DF) %>%
+            mutate(R0 = fit$rate0(Time), H0 = fit$haz0(Time))
+    } else {
+        dat <- as_tibble(x$DF) %>%
+            mutate(R0 = fit$rate0(Time),
+                   R0.upper = fit$rate0.upper(Time),
+                   R0.lower = fit$rate0.lower(Time),
+                   H0 = fit$haz0(Time),
+                   H0.upper = fit$haz0.upper(Time),
+                   H0.lower = fit$haz0.lower(Time))
     }
-    if (ctrl$ylab == "Subject") #default value 
-        title(ylab = expression(hat(Lambda)[0](t)), xlab = ctrl$xlab, line = 2.2)
-    else title(ylab = ctrl$ylab, xlab = ctrl$xlab, line = 2.2)
-    options(warn = 0)
+    g <- ggplot(data = dat, aes(x = Time, y = R0))
+    if (smooth) g <- g + geom_smooth(se = FALSE, color = 1)
+    else g <- g + geom_line()
 }
+## if (ctrl$title == "Recurrent event plot") # default value
+##     ctrl$title <- "Baseline Cumulative Rate Function"
+## if (!is.reReg(x)) stop("Response must be a reReg class")
+## options(warn = -1)
+## t0 <- x$t0
+## ly <- x$lam
+## lyU <- x$lamU
+## lyL <- x$lamL
+## hy <- x$haz
+## hyU <- x$hazU
+## hyL <- x$hazL
+## win.ly <- max(ly, lyU, lyL, na.rm = TRUE)
+## plot(t0, ly, type = "s",  xlab = "", ylab = "", ylim = c(0, win.ly),
+##      main = ctrl$title)
+## if (any(!is.na(x$lamU))) {
+##     lines(t0, lyU, col = 2, lty = 2, "s")
+##     lines(t0, lyL, col = 2, lty = 2, "s")
+## }
+## if (ctrl$ylab == "Subject") #default value 
+##     title(ylab = expression(hat(Lambda)[0](t)), xlab = ctrl$xlab, line = 2.2)
+## else title(ylab = ctrl$ylab, xlab = ctrl$xlab, line = 2.2)
+## options(warn = 0)
+## }
 
 #' Plotting the baseline hazard function
 #'

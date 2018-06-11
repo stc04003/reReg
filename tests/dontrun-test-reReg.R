@@ -35,18 +35,19 @@ e
 set.seed(1527) 
 do(a = c(-1, -1), b = c(1, 1), indCen = TRUE, type = "sc")
 set.seed(1526)  ## and 1527
-dat <- simDat(200, a = c(-1, -1), b = c(1, 1), indCen = TRUE, type = "sc")
+
+dat <- simDat(200, a = c(1, 2), b = c(2, 1), indCen = TRUE, type = "sc", summary = TRUE)
 coef(reReg(fm, data = dat)) ## ok
-coef(reReg(fm, data = dat, method = "cox.HW")) ## ok
-## coef(reReg(fm, data = dat, method = "am.GL"))
-coef(reReg(fm, data = dat, method = "am.XCHWY")) ## errors
-coef(reReg(fm, data = dat, method = "sc.XCYH")) ## ok
+coef(reReg(fm, data = dat, method = "cox.HW")) 
+coef(reReg(fm, data = dat, method = "am.GL"))
+coef(reReg(fm, data = dat, method = "am.XCHWY")) 
+coef(reReg(fm, data = dat, method = "sc.XCYH"))
 
 
 
 rp <- 100
 f1 <- f2 <- f3 <- f4 <- f5 <- f6 <- matrix(NA, rp, 20)
-for (i in 1:rp) {
+for (i in 10:rp) {
     set.seed(i)
     f1[i,] <- do(200, c(1, 1), c(1, 1), indCen = TRUE)
     set.seed(i)

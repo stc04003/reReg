@@ -35,8 +35,10 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
                     sum(alphaEq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
                     control = list(trace = FALSE))))
     alpha <- outA$par
-    Ystar <- log(Y) + X %*% alpha
-    Tstar <- log(T) + X %*% alpha
+    ## Ystar <- log(Y) + X %*% alpha
+    ## Tstar <- log(T) + X %*% alpha
+    Ystar <- Y * exp(X %*% alpha)
+    Tstar <- T * exp(X %*% alpha)
     lambda <- npMLE(Ystar[event == 0], Tstar, Ystar)
     zHat <- as.numeric(mt * npMLE(log(max(Y)), Tstar, Ystar) / lambda)
     zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
@@ -420,8 +422,10 @@ doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     Yb <- Yb[which(cluster == 1)]
     hy <- sapply(t0, function(z) baseHaz(z, exp(Yb), zHat / muZ, status[event == 0]))
     win.hy <- max(hy)
-    list(t0 = t0, lam = ly * muZ, lamU = rep(NA, ng), lamL = rep(NA, ng), 
-         haz = hy, hazU = rep(NA, ng), hazL = rep(NA, ng))
+    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
+         rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
+         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
+         haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
 }
 
 doNonpara.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
@@ -469,8 +473,14 @@ doNonpara.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
         hyU <- -log(with(survfit(tmp), approx(time, upper, t0)$y))
         hyL <- -log(with(survfit(tmp), approx(time, lower, t0)$y))
     }
-    list(t0 = t0, lam = ly, lamU = lyU, lamL = lyL,
-         haz = hy, hazU = hyU, hazL = hyL)
+    list(rate0 = approxfun(t0, ly, yleft = 0, yright = max(ly), method = "constant"),
+         rate0.lower = approxfun(t0, lyL, yleft = 0, yright = max(lyL), method = "constant"),
+         rate0.upper = approxfun(t0, lyU, yleft = 0, yright = max(lyU), method = "constant"),
+         t0.rate = t0, 
+         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
+         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL), method = "constant"),
+         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU), method = "constant"),
+         t0.haz = t0)
 }
 
 ## doNonpara.SE.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
@@ -533,8 +543,10 @@ doNonpara.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
                                          exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ,
                                          status[event == 0]))
     win.hy <- max(hy)
-    list(t0 = t0, lam = ly * muZ, lamU = rep(NA, ng), lamL = rep(NA, ng), 
-         haz = hy, hazU = rep(NA, ng), hazL = rep(NA, ng))
+    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
+         rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
+         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
+         haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
 }
 
 doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
@@ -551,7 +563,6 @@ doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     Y <- rep(DF$Time[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     t0 <- sort(unique(T, Y))
-    ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
     ng <- length(t0)
     ## Ya <- log(Y) + X %*% alpha
     ## Ta <- log(T) + X %*% alpha
@@ -577,7 +588,14 @@ doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
             baseHaz(y, exp(Yb), zHat / muZ, status[event == 0], z)))
     hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
     hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
-    list(t0 = t0, lam = ly * muZ, lamU = lyU * muZ, lamL = lyL * muZ, haz = hy, hazU = hyU, hazL = hyL)
+    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
+         rate0.lower = approxfun(t0, lyL * muZ, yleft = 0, yright = max(lyL * muZ), method = "constant"),
+         rate0.upper = approxfun(t0, lyU * muZ, yleft = 0, yright = max(lyU * muZ), method = "constant"),
+         t0.rate = t0,
+         haz0 = approx(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
+         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL), method = "constant"),
+         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU), method = "constant"),
+         t0.haz = t0)
 }
 
 doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
@@ -623,8 +641,14 @@ doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
                     status[event == 0], z)))
     hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
     hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
-    list(t0 = t0, lam = ly * muZ, lamU = lyU * muZ, lamL = lyL * muZ,
-         haz = hy, hazU = hyU, hazL = hyL)
+    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
+         rate0.lower = approxfun(t0, lyL * muZ, yleft = 0, yright = max(lyL * muZ), method = "constant"),
+         rate0.upper = approxfun(t0, lyU * muZ, yleft = 0, yright = max(lyU * muZ), method = "constant"),
+         t0.rate = t0,
+         haz0 = approx(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
+         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL), method = "constant"),
+         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU), method = "constant"),
+         t0.haz = t0)
 }
 
 ##############################################################################
@@ -670,9 +694,9 @@ setMethod("doREFit", signature(engine="am.XCHWY", stdErr="resampling"),
 setMethod("doREFit", signature(engine="sc.XCYH", stdErr="resampling"),
           doREFit.sc.XCYH.resampling)
 
-## --------------------------------------------------------------------------------------------------------
-## Non-parametric 
-## --------------------------------------------------------------------------------------------------------
+##############################################################################
+## Non-parametric
+##############################################################################
 setGeneric("doNonpara", function(DF, alpha, beta, engine, stdErr) {standardGeneric("doNonpara")})
 setMethod("doNonpara", signature(engine = "cox.LWYY", stdErr = "NULL"), doNonpara.cox.NA)
 setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "NULL"), doNonpara.cox.HW)
@@ -863,11 +887,9 @@ reReg <- function(formula, data, B = 200,
             stdErr.np.control <- control[names(control) %in% names(attr(getClass("bootstrap"), "slots"))]
             stdErr.np <- do.call("new", c(list(Class = "bootstrap"), stdErr.np.control))
             stdErr.np@B <- B
-            fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta,
-                                    engine = engine, stdErr = stdErr.np))
+            fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0, engine = engine, stdErr = stdErr.np))
         } else {
-            fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0,
-                                    engine = engine, stdErr = stdErr))
+            fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0, engine = engine, stdErr = stdErr))
         }
     } else {
         fit <- doREFit(DF = DF, engine = engine, stdErr = stdErr)
@@ -886,6 +908,7 @@ reReg <- function(formula, data, B = 200,
             
     }
     class(fit) <- "reReg"
+    fit$reTb <- obj$reTb
     fit$DF <- DF
     fit$call <- Call
     fit$varNames <- names(DF)[-(1:4)]
@@ -895,6 +918,8 @@ reReg <- function(formula, data, B = 200,
 }
 
 ##############################################################################
+## Background functions...
+## Probably need to clean these up someday
 ##############################################################################
 
 npMLE <- function(t, tij, yi, weights = NULL) {
@@ -904,8 +929,6 @@ npMLE <- function(t, tij, yi, weights = NULL) {
     ord <- order(ttmp)
     sl <- unique(ttmp[ord])
     l <- ifelse(min(t) < max(sl), which(sl > min(t))[1], length(sl))
-    ## res <- vector("double", 1)
-    ## tmp <- sl[l:length(sl)]
     tmp <- sl[l:length(sl)]
     tmp <- rev(tmp)
     tij <- rev(tij)
@@ -927,8 +950,6 @@ baseHaz <- function(t, Y, zHat, delta, weights  = NULL) {
         weights <- rep(1, length(Y))
     ind <- which(delta == 1 & Y <= t)
     temp2 <- tmp <- weights[order(Y)]
-    ## temp2 <- c(tmp[1], diff(cumsum(tmp)))
-    ## temp2[order(Y)] <- temp2
     temp2[order(Y)] <- tmp
     if (length(ind) > 0) {
         out <- sapply(ind, function(x) temp2[x] / sum(zHat * weights * (Y >= Y[x])))
@@ -943,10 +964,8 @@ alphaEq <- function(alpha, X, Y, T, cluster, mt, weights = NULL) {
     if (is.null(weights))
         weights <- rep(1, n)
     p <- ncol(X)
-    Ystar <- Y * exp(X %*% alpha)
-    Tstar <- T * exp(X %*% alpha)
-    ## Ystar <- log(Y) + X %*% alpha
-    ## Tstar <- log(T) + X %*% alpha
+    Ystar <- log(Y) + X %*% alpha
+    Tstar <- log(T) + X %*% alpha
     Lambda <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar,
                     weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
     res <- vector("double", p * length(weights) %/% n)
@@ -974,7 +993,6 @@ betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weight
     Y <- log(Y) + X %*% beta
     Y <- Y[which(cluster == 1)]
     X <- X[which(cluster == 1), ]
-    ## delta <- delta[which(cluster == 1)]
     res <- vector("double", p * length(weights) %/% n)
     res <- .C("betaEst", as.double(Y), as.double(X), as.double(delta), as.double(zHat),
               as.double(weights), as.integer(n), as.integer(p),
@@ -983,18 +1001,6 @@ betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weight
     res / n
 }
 
-## ghoshU2 <- function(alpha, beta, T, Y, X, cl) {
-##     ## dim(X) = n by p, dim(Y) = n by 1, dim(T) > n by 1
-##     d <- max(X %*% (alpha - beta), 0)
-##     TT <- log(T) - rep(X %*% alpha, cl)
-##     TY <- log(Y) - X %*% beta - d
-##     p <- ncol(X)
-##     .C("ghosh", as.double(TT), as.double(TY), as.double(X), as.integer(cl),
-##        as.integer(c(0, cumsum(cl)[-length(cl)])),
-##        as.integer(nrow(X)), as.integer(p), 
-##        out = as.double(double(p)), PACKAGE = "reReg")$out
-## }
-
 LWYYeq <- function(beta, X, Y, T, cl) {
     p <- ncol(X)
     res <- vector("double", p)
@@ -1002,57 +1008,6 @@ LWYYeq <- function(beta, X, Y, T, cl) {
     .C("lwyy", as.double(T), as.double(Y), as.double(X), as.double(wgt), as.integer(cl),
        as.integer(c(0, cumsum(cl)[-length(cl)])), as.integer(nrow(X)), as.integer(p),        
        out = as.double(double(p)), PACKAGE = "reReg")$out       
-}
-
-
-##########################################################################################
-## Paper 2: More general models
-##########################################################################################
-
-sarm <- function(X, Y, T, id, cluster, method, B = 200) {
-    n <- sum(cluster == 1)
-    mt <- unlist(lapply(split(cluster, id), length)) - 1
-    p <- ncol(X)
-    alpha <- beta <- gamma <- rep(0, p)
-    muZ <- NULL
-    if (method == "M1") {
-        gamma <- c(0, gamma)
-        out <- BBsolve(gamma, coefEq, alpha = alpha, X = X, Y = Y, T = T,
-                       cluster = cluster, mt = mt, weights = NULL,
-                       quiet = TRUE, control = list(M = c(1, 10)))
-        muZ <- out$par[1]
-        alpha <- out$par[-1]
-    }
-    if (method == "M3") {
-        alpha <- BBsolve(alpha, M1eq, X = X, Y = Y, T = T, cluster = cluster, weights = NULL,
-                         quiet = TRUE, control = list(M = c(1, 10)))$par
-        gamma <- c(0, gamma)
-        if (alpha %*% alpha > 100) {
-            beta <- c(0, alpha)
-        }
-        else {
-            out <- BBsolve(gamma, coefEq, alpha = alpha, X = X, Y = Y, T = T,
-                           cluster = cluster, mt = mt, weights = NULL,
-                           quiet = TRUE, control = list(M = c(1, 10)))
-            muZ <- out$par[1]
-            beta <- out$par[-1] + alpha
-        }
-    }
-    if (method == "M2") {
-        ## gamma <- c(0, gamma)
-        ## out <- BBsolve(gamma, coefEq, alpha = NULL, X = X, Y = Y, T = T,
-        ##                cluster = cluster, mt = mt, weights = NULL,
-        ##                quiet = TRUE, control = list(M = c(1, 10)))
-        ## muZ <- out$par[1]
-        ## alpha <- out$par[-1]
-        ## out <- dfsane(alpha, M1eq, X = X, Y = Y, T = T,
-        ##                 cluster = cluster, weights = NULL,
-        ##                 control = list(NM = TRUE, M = 1, noimp = 50, trace = FALSE))
-        out <- BBsolve(alpha, M1eq, X = X, Y = Y, T = T, cluster = cluster, weights = NULL,
-                       quiet = TRUE, control = list(M = c(1, 10)))
-        alpha <- out$par
-    }
-    list(alpha = alpha, beta = beta, muZ = muZ)
 }
 
 HWeq <-function(gamma, X, Y, T, cluster, mt) {
@@ -1097,34 +1052,6 @@ coefEq <- function(alpha, gamma, X, Y, T, cluster, mt, weights = NULL) {
     res / n    
 }
 
-
-## Martingal approach
-M1eq <- function(alpha, X, Y, T, cluster, weights = NULL) {
-    n <- sum(cluster == 1)
-    ## mi <- unlist(lapply(split(cluster, id), length)) - 1
-    if (is.null(weights))
-        weights <- rep(1, n)
-    p <- ncol(X)
-    Ytmp <- log(Y) + X %*% alpha
-    Ttmp <- log(T) + X %*% alpha
-    ## Ytmp <- Y * exp(X %*% alpha)
-    ## Ttmp <- T * exp(X %*% alpha)
-    ind <- which(T != Y)
-    Ttmp <- Ttmp[ind]
-    Ytmp <- Ytmp[ind]
-    X <- X[ind,]
-    res <- vector("double", p * length(weights) %/% n)
-    res <- .C("sarm2", as.double(X), as.double(Ttmp), as.double(Ytmp), as.double(weights), 
-              as.integer(length(Ttmp)), as.integer(p), as.integer(length(weights) %/% n),
-              out = as.double(res), PACKAGE = "reReg")$out
-    res
-}
-
-## Method 1: Z\lambda(t)e^xa  CY's 2004 JASA
-## Method 2: Z\lambda(te^xa)
-## Method 3: Z\lambda(te^xa)e^xb
-## Method 4: Z\lambda(te^xa)e^xa
-
 #########################################################
 ## General modes in R, need to move this to C sometimes
 #########################################################
@@ -1134,16 +1061,6 @@ sarmRV <- function(id, Tij, Yi, X, M, lamEva = NULL, engine) {
     X <- as.matrix(X)
     p <- ncol(X)
     mm <- matrix((M > 0), nrow(X), ncol(X))
-    ## U1RV <- function(a) {
-    ##     tx <- as.vector(log(Tij) + X %*% a)
-    ##     yx <- as.vector(log(Yi) + X %*% a)
-    ##     tx2 <-  outer(tx, tx,">=")
-    ##     txy <-  outer(tx, yx, "<=")
-    ##     A <- (tx2 * txy) %*% (X * mm)
-    ##     B <- (tx2 * txy) %*% mm
-    ##     B[B == 0] <- 1e10
-    ##     colSums((X - A / B) * mm) 
-    ## }
     index <- c(1, cumsum(tabulate(id))[-n] + 1)
     U1RV <- function(a) {
         tx <- as.vector(log(Tij) + X %*% a)
@@ -1223,7 +1140,6 @@ varOut <- function(dat, na.rm = TRUE) {
     var(dat, na.rm = na.rm)
 }
 
-
 sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, engine) {
   n <- length(unique(id))
   X <- as.matrix(X)
@@ -1232,37 +1148,6 @@ sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, 
   clut <- as.numeric(unlist(lapply(split(id, id), length)))
   tmpE <- matrix(rexp(n * Bootstrap), ncol = n)
   tmpN <- matrix(rnorm((2 * p + 1) * Bootstrap), ncol = 2 * p + 1)
-  ## Sn <- function(a, b, e) {
-  ##     ## Part S1
-  ##     e1 <- rep(e, clut)
-  ##     tx <- as.vector(Tij * exp(X %*% a))
-  ##     yx <- as.vector(Yi * exp(X %*% a))
-  ##     ee1 <- matrix(e1, nrow(X), ncol(X))
-  ##     tx2 <-  outer(tx, tx,">=")
-  ##     txy <-  outer(tx, yx, "<=")
-  ##     A <- (tx2 * txy) %*% (X * mm * ee1)
-  ##     B <- (tx2 * txy) %*% (mm * ee1)
-  ##     B[B == 0] <- 1e15
-  ##     if (engine@eqType %in% c("Logrank", "logrank"))
-  ##         s1 <- colSums((X - A / B) * (mm * ee1)) / n
-  ##     if (engine@eqType %in% c("Gehan", "gehan"))
-  ##         s1 <- colSums((X * B- A) * (mm * ee1)) / n^2
-  ##     ## lambda
-  ##     vv <- matrix((M > 0), nrow(X), n)
-  ##     yx0 <- as.numeric(unlist(lapply(split(yx, id), unique)))
-  ##     txy0 <- outer(tx, yx0, ">=")
-  ##     Rn <- (tx2 * txy) %*% (e1 * (M > 0))
-  ##     Rn[Rn == 0] <- 1e15
-  ##     ## Lam <- apply(1 - (txy0 * vv * e1) / matrix(Rn, nrow(X), n), 2, prod)
-  ##     Lam <- exp(-colSums((txy0 * vv * e1) / matrix(Rn, nrow(X), n)))
-  ##     Lam[Lam == 0] <- 1e15
-  ##     ind <- cumsum(unlist(lapply(split(id, id), length)))
-  ##     ee2 <- matrix(e, nrow(X[ind,]), ncol(X) + 1)
-  ##     s2 <- as.numeric(t(cbind(1, X[ind,]) * ee2) %*%
-  ##                      (M[ind] / Lam - exp(cbind(1, X[ind,]) %*% b))) / n
-  ##     ## list(s1 = s1, s2 = s2)
-  ##     return(c(s1, s2))
-  ## }
   index <- c(1, cumsum(tabulate(id))[-n] + 1)
   Sn <- function(a, b, e) {
       ## Part S1
@@ -1271,14 +1156,8 @@ sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, 
       yx <- as.vector(log(Yi) + X %*% a)
       tx <- ifelse(tx == -Inf, -1e10, tx)
       yx <- ifelse(yx == -Inf, -1e10, yx)
-      ## tx <- as.vector(Tij * exp(X %*% a))
-      ## yx <- as.vector(Yi * exp(X %*% a))
-      ## ee1 <- matrix(e1, nrow(X), ncol(X))
       tx2 <-  outer(tx, tx,">=")
       txy <-  outer(tx, yx, "<=")
-      ## A <- (tx2 * txy) %*% (X * mm * ee1)
-      ## B <- (tx2 * txy) %*% (mm * ee1)
-      ## B[B == 0] <- 1e15
       if (engine@eqType %in% c("Logrank", "logrank")) {
           s1 <- .C("scaleChangeLog", as.integer(n), as.integer(p), as.integer(index - 1),
                    as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]), as.double(e),
@@ -1292,17 +1171,14 @@ sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, 
       txy0 <- outer(tx, yx0, ">=")
       Rn <- (tx2 * txy) %*% (e1 * (M > 0))
       Rn[Rn == 0] <- 1e15
-      ## Lam <- apply(1 - (txy0 * vv * e1) / matrix(Rn, nrow(X), n), 2, prod)
       Lam <- exp(-colSums((txy0 * vv * e1) / matrix(Rn, nrow(X), n)))
       Lam[Lam == 0] <- 1e15
       ind <- cumsum(unlist(lapply(split(id, id), length)))
       ee2 <- matrix(e, nrow(X[ind,]), ncol(X) + 1)
       s2 <- as.numeric(t(cbind(1, X[ind,]) * ee2) %*%
                        (M[ind] / Lam - exp(cbind(1, X[ind,]) %*% b))) / n
-      ## list(s1 = s1, s2 = s2)
       return(c(s1, s2))
   }
-  ## V <- varOut(t(apply(tmpE, 1, function(x) Sn(a, b, x)))) ## / sqrt(n)
   V <- var(t(apply(tmpE, 1, function(x) Sn(a, b, x)))) ## / sqrt(n)
   tmp <- t(apply(tmpN, 1, function(x)
                  sqrt(n) * Sn(a + x[1:p] / sqrt(n), b + x[-(1:p)] / sqrt(n), rep(1, n))))
@@ -1317,5 +1193,5 @@ sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, 
   list(ase = ase, J = J, V = V,
        alphaSE = sqrt(diag(J0 %*% V[1:p, 1:p] %*% t(J0))),## sqrt(diag(ase)[1:p]),
        betaSE = sqrt(diag(ase[1:p, 1:p] + ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)] +
-         2 * ase[1:p, (p + 2):(2 * p + 1)])))
+                          2 * ase[1:p, (p + 2):(2 * p + 1)])))
 }
