@@ -12,6 +12,8 @@
 /* .C calls */
 extern void alphaEqC(void *, void *, void *, void *, void *, void *);
 extern void betaEst(void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void glHaz(void *, void *, void *, void *, void *, void *);
+extern void glRate(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void glU2(void *, void *, void *, void *, void *, void *, void *, void *);
 extern void HWb(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void log_ns_est(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
@@ -25,6 +27,8 @@ extern void scaleChangeLog(void *, void *, void *, void *, void *, void *, void 
 static const R_CMethodDef CEntries[] = {
     {"alphaEqC",         (DL_FUNC) &alphaEqC,          6},
     {"betaEst",          (DL_FUNC) &betaEst,           9},
+    {"glHaz",            (DL_FUNC) &glHaz,             6},
+    {"glRate",           (DL_FUNC) &glRate,           10},
     {"glU2",             (DL_FUNC) &glU2,              8},
     {"HWb",              (DL_FUNC) &HWb,               9},
     {"log_ns_est",       (DL_FUNC) &log_ns_est,       11},

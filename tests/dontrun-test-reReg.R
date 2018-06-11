@@ -88,14 +88,8 @@ coef(reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat, method = "am.G
 debug(reReg)
 debug(doREFit.am.GL)
 doREFit.am.GL(DF = DF, engine = engine, stdErr = stdErr)
-
-List of 5
- $ alpha: num [1:2] 3741 -3166
- $ aconv: num 0
- $ beta : num [1:2] 2.44 1.74
- $ bconv: num 5
-$ muZ  : logi NA
-
+debug(doNonpara.am.GL)
+doNonpara.am.GL(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = NULL)
 e
 
 ## Testing results

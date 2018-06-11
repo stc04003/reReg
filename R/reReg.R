@@ -305,7 +305,35 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
 # Nonparametric (~1)
 ##############################################################################
 
-doNonpara.am.XCHWY <- function(DF, alpha, beta, formula, engine, stdErr) {
+doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
+    ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
+    DF0 <- subset(DF, event == 0)
+    p <- ncol(DF0) - 4
+    Y <- log(DF0$Time)
+    X <- as.matrix(DF0[,-(1:4)])
+    status <- DF0$status
+    n <- nrow(DF0)
+    d <- max(X %*% (alpha - beta), 0)
+    tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
+    tij <- tij[DF$event == 1]
+    yi <- Y - X %*% beta
+    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    index <- c(1, cumsum(m)[-n] + 1)
+    t0.rate <- unique(sort(tij)) # log scale
+    t0.haz <- unique(sort(yi))
+    rate <- .C("glRate", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
+               as.integer(length(t0.rate)),
+               as.double(yi - d), as.double(tij), as.double(X), as.double(t0.rate), 
+               result = double(length(t0.rate)), 
+               PACKAGE = "reReg")$result
+    haz <- .C("glHaz", as.integer(n), as.integer(status), as.integer(length(t0.haz)),
+              as.double(yi), as.double(t0.haz), result = double(n),
+              PACKAGE = "reReg")$result
+    
+              
+}
+
+doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
     event <- DF$event
@@ -339,7 +367,7 @@ doNonpara.am.XCHWY <- function(DF, alpha, beta, formula, engine, stdErr) {
          haz = hy, hazU = rep(NA, ng), hazL = rep(NA, ng))
 }
 
-doNonpara.cox.NA <- function(DF, alpha, beta, formula, engine, stdErr) {
+doNonpara.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
     ## t0 <- seq(0, max(DF$Time), length.out = 5 * nrow(DF))
     T <- DF$Time
     id <- DF$id
@@ -419,7 +447,7 @@ doNonpara.cox.NA <- function(DF, alpha, beta, formula, engine, stdErr) {
 ##     list(t0 = t0, ly = ly, lyU = lyU, lyL = lyL, hy = hy, hyU = hyU, hyL = hyL)
 ## }
 
-doNonpara.cox.HW <- function(DF, alpha, beta, formula, engine, stdErr) {
+doNonpara.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
     T <- DF$Time
@@ -452,7 +480,7 @@ doNonpara.cox.HW <- function(DF, alpha, beta, formula, engine, stdErr) {
          haz = hy, hazU = rep(NA, ng), hazL = rep(NA, ng))
 }
 
-doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, formula, engine, stdErr) {
+doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     B <- stdErr@B
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
@@ -495,7 +523,7 @@ doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, formula, engine, stdErr) {
     list(t0 = t0, lam = ly * muZ, lamU = lyU * muZ, lamL = lyL * muZ, haz = hy, hazU = hyU, hazL = hyL)
 }
 
-doNonpara.SE.cox.HW <- function(DF, alpha, beta, formula, engine, stdErr) {
+doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     B <- stdErr@B
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
@@ -586,7 +614,7 @@ setMethod("doREFit", signature(engine="sc.XCYH", stdErr="resampling"),
 ## --------------------------------------------------------------------------------------------------------
 ## Non-parametric 
 ## --------------------------------------------------------------------------------------------------------
-setGeneric("doNonpara", function(DF, alpha, beta, formula, engine, stdErr) {standardGeneric("doNonpara")})
+setGeneric("doNonpara", function(DF, alpha, beta, engine, stdErr) {standardGeneric("doNonpara")})
 setMethod("doNonpara", signature(engine = "cox.LWYY", stdErr = "NULL"), doNonpara.cox.NA)
 setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "NULL"), doNonpara.cox.HW)
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "NULL"), doNonpara.am.XCHWY)
@@ -598,7 +626,7 @@ setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "bootstrap"), doN
 
 ## GL method?
 setMethod("doNonpara", signature(engine = "am.GL", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
-setMethod("doNonpara", signature(engine = "am.GL", stdErr = "NULL"), doNonpara.am.XCHWY)
+setMethod("doNonpara", signature(engine = "am.GL", stdErr = "NULL"), doNonpara.am.GL)
 
 ## general model
 setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
@@ -776,10 +804,10 @@ reReg <- function(formula, data, B = 200,
             stdErr.np.control <- control[names(control) %in% names(attr(getClass("bootstrap"), "slots"))]
             stdErr.np <- do.call("new", c(list(Class = "bootstrap"), stdErr.np.control))
             stdErr.np@B <- B
-            fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, formula = formula, 
+            fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta,
                                     engine = engine, stdErr = stdErr.np))
         } else {
-            fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0, formula = formula,
+            fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0,
                                     engine = engine, stdErr = stdErr))
         }
     } else {
@@ -789,10 +817,10 @@ reReg <- function(formula, data, B = 200,
                 stdErr.np.control <- control[names(control) %in% names(attr(getClass("bootstrap"), "slots"))]
                 stdErr.np <- do.call("new", c(list(Class = "bootstrap"), stdErr.np.control))
                 stdErr.np@B <- B
-            fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, formula = formula,
+            fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta,
                                     engine = engine, stdErr = stdErr.np))
             } else {
-                fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, formula = formula,
+                fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, 
                                         engine = engine, stdErr = NULL))
             }
         }
@@ -1122,7 +1150,7 @@ sarmRV <- function(id, Tij, Yi, X, M, lamEva = NULL, engine) {
     if (engine@solver == "optim") {
         suppressWarnings(fit.g <- do.call(engine@solver, list(par = engine@b0, fn = function(x) sum(U2RV(x)^2), control = list(trace = FALSE))))
         g.value <- fit.g$value
-    }    
+    }
     ghat <- fit.g$par
     y0 <- exp(yx[ind])
     list(ahat = ahat, bhat = ghat[-1] + ahat, ghat = ghat, LamTau = ghat[1],
