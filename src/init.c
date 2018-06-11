@@ -12,7 +12,7 @@
 /* .C calls */
 extern void alphaEqC(void *, void *, void *, void *, void *, void *);
 extern void betaEst(void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void ghosh(void *, void *, void *, void *, void *, void *, void *, void *);
+extern void glU2(void *, void *, void *, void *, void *, void *, void *, void *);
 extern void HWb(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void log_ns_est(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void lwyy(void *, void *, void *, void *, void *, void *, void *, void *, void *);
@@ -25,7 +25,7 @@ extern void scaleChangeLog(void *, void *, void *, void *, void *, void *, void 
 static const R_CMethodDef CEntries[] = {
     {"alphaEqC",         (DL_FUNC) &alphaEqC,          6},
     {"betaEst",          (DL_FUNC) &betaEst,           9},
-    {"ghosh",            (DL_FUNC) &ghosh,             8},
+    {"glU2",             (DL_FUNC) &glU2,              8},
     {"HWb",              (DL_FUNC) &HWb,               9},
     {"log_ns_est",       (DL_FUNC) &log_ns_est,       11},
     {"lwyy",             (DL_FUNC) &lwyy,              9},
@@ -40,5 +40,5 @@ static const R_CMethodDef CEntries[] = {
 void R_init_reReg(DllInfo *dll)
 {
     R_registerRoutines(dll, CEntries, NULL, NULL, NULL);
-    R_useDynamicSymbols(dll, TRUE);
+    R_useDynamicSymbols(dll, FALSE);
 }

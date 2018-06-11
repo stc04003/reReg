@@ -4,7 +4,7 @@
 ##        bootstrap otherwise
 ##############################################################################
 
-doREFit.am.XCHWY <- function(DF, DF0, engine, stdErr) {
+doREFit.am.XCHWY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -39,44 +39,77 @@ doREFit.am.XCHWY <- function(DF, DF0, engine, stdErr) {
          muZ = mean(zHat), zHat = zHat)
 }
 
-doREFit.am.GL <- function(DF, DF0, engine, stdErr) {
-    p <- ncol(DF0)
+doREFit.am.GL <- function(DF, engine, stdErr) {
+    DF0 <- subset(DF, event == 0)
+    p <- ncol(DF0) - 4
     alpha <- beta <- gamma <- rep(0, p)
     aSE <- bSE <- da <- va <- db <- vb <- NA
+    Y <- log(DF0$Time)
+    X <- as.matrix(DF0[,-(1:4)])
+    status <- DF0$status
+    n <- nrow(DF0)
     ## Obtaining AFT estimator first
     log.est <- function(b) {
-        Y <- log(subset(DF, event == 0)$Time)
-        X <- DF0
-        status <- subset(DF, event == 0)$status
-        n <- nrow(DF0)
         .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
            as.integer(rep(1, n)), as.integer(n), as.integer(p), as.integer(n),
            as.double(rep(1, n)), as.double(rep(1, n)), 
            double(p), PACKAGE = "reReg")[[11]]
     }
-    suppressWarnings(outB <- dfsane(double(p), log.est, alertConvergence = FALSE, quiet = TRUE,
-                                   control = list(trace = FALSE)))
-    id <- DF$id
-    event <- DF$event
-    status <- DF$status
-    X <- as.matrix(DF[,-c(1:4)])    
-    n <- length(unique(id))
-    T <- DF$Time
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
-    cluster <- unlist(sapply(mt + 1, function(x) 1:x))  
-    outA <- dfsane(alpha, ghoshU2, beta = outB$par, T = ifelse(T == Y, 1e5, T),
-                   Y = Y[event == 0], X = as.matrix(X[event == 0, ]),
-                   cl = mt + 1, ## unlist(lapply(split(id, id), length)),
-                   alertConvergence = FALSE, quiet = TRUE, 
-                   control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
-    outB$par <- -1 * outB$par
-    outA$par <- -1 * outA$par
-    list(alpha = outA$par, aconv = outA$convergence,
-         beta = outB$par, bconv = outB$convergence, muZ = NA)
+    if (engine@solver %in% c("dfsane", "BBsolve")) {    
+        suppressWarnings(
+            fit.b <- do.call(
+                engine@solver, list(par = engine@b0, fn = log.est, quiet = TRUE,
+                                    control = list(trace = FALSE))))
+    }
+    if (engine@solver == "BBoptim") {
+        suppressWarnings(
+            fit.b <- do.call(
+                engine@solver, list(par = engine@b0, fn = function(x)
+                    sum(log.est(x)^2), quiet = TRUE, control = list(trace = FALSE))))
+    }
+    if (engine@solver == "optim") {
+        suppressWarnings(
+            fit.b <- do.call(
+                engine@solver, list(par = engine@b0, fn = function(x)
+                    sum(log.est(x)^2), control = list(trace = FALSE))))
+    }
+    bhat <- fit.b$par
+    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    index <- c(1, cumsum(m)[-n] + 1)
+    ghoshU2 <- function(a) {
+        d <- max(X %*% (a - bhat), 0)
+        tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
+        tij <- tij[DF$event == 1]
+        yi <- Y - X %*% bhat - d
+        .C("glU2", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
+           as.double(yi), as.double(tij), as.double(X), result = double(p),
+           PACKAGE = "reReg")$result
+    }
+    if (engine@solver %in% c("dfsane", "BBsolve")) {
+        suppressWarnings(
+            fit.a <- do.call(
+                engine@solver, list(par = engine@a0, fn = ghoshU2, quiet = TRUE,
+                                    control = list(trace = FALSE))))
+    }
+    if (engine@solver == "BBoptim") {
+        suppressWarnings(
+            fit.a <- do.call(
+                engine@solver, list(par = engine@a0, fn = function(x)
+                    sum(log.est(x)^2), quiet = TRUE, control = list(trace = FALSE))))
+    }
+    if (engine@solver == "optim"){
+        suppressWarnings(
+            fit.a <- do.call(
+                engine@solver, list(par = engine@a0, fn = function(x)
+                    sum(log.est(x)^2), control = list(trace = FALSE))))
+    }
+    fit.b$par <- -fit.b$par
+    fit.a$par <- -fit.a$par
+    list(alpha = fit.a$par, aconv = fit.a$convergence,
+         beta = fit.b$par, bconv = fit.b$convergence, muZ = NA)
 }
 
-doREFit.cox.HW <- function(DF, DF0, engine, stdErr) {
+doREFit.cox.HW <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -108,7 +141,7 @@ doREFit.cox.HW <- function(DF, DF0, engine, stdErr) {
          beta = outB$par, bconv = outB$convergence, muZ = muZ)
 }
 
-doREFit.cox.LWYY <- function(DF, DF0, engine, stdErr) {
+doREFit.cox.LWYY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -127,7 +160,7 @@ doREFit.cox.LWYY <- function(DF, DF0, engine, stdErr) {
     list(alpha = out$par, beta = rep(0, p), muZ = NA)
 }
 
-doREFit.sc.XCYH <- function(DF, DF0, engine, stdErr) {
+doREFit.sc.XCYH <- function(DF, engine, stdErr) {
     id <- DF$id
     clsz <- unlist(lapply(split(id, id), length))
     ind <- cumsum(clsz)
@@ -151,8 +184,8 @@ doREFit.sc.XCYH <- function(DF, DF0, engine, stdErr) {
 ##############################################################################
 # Variance estimation 
 ##############################################################################
-doREFit.Engine.Bootstrap <- function(DF, DF0, engine, stdErr) {
-    res <- doREFit(DF, DF0, engine, NULL)
+doREFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
+    res <- doREFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -173,7 +206,7 @@ doREFit.Engine.Bootstrap <- function(DF, DF0, engine, stdErr) {
         ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
         DF2 <- DF[ind,]
         DF2$id <- rep(1:n, clsz[sampled.id])
-        betaMatrix[i,] <- with(doREFit(DF2, DF0, engine, NULL), c(alpha, beta))
+        betaMatrix[i,] <- with(doREFit(DF2, engine, NULL), c(alpha, beta))
         convergence[i] <- 1 * (betaMatrix[i,] %*% betaMatrix[i,] >
                                1e3 * with(res, c(alpha, beta) %*% c(alpha, beta)))
     }
@@ -201,8 +234,8 @@ sdOut <- function(dat) {
     sd(dat, na.rm = TRUE)
 }
 
-doREFit.am.XCHWY.resampling <- function(DF, DF0, engine, stdErr) {
-    res <- doREFit(DF, DF0, engine, NULL)
+doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
+    res <- doREFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -242,7 +275,7 @@ doREFit.am.XCHWY.resampling <- function(DF, DF0, engine, stdErr) {
     c(res, list(alphaSE = aSE, betaSE = bSE, da = da, va = va, db = db, vb = vb, B = stdErr@B))
 }
 
-doREFit.sc.XCYH.resampling <- function(DF, DF0, engine, stdErr) {
+doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
     id <- DF$id
     clsz <- unlist(lapply(split(id, id), length))
     ind <- cumsum(clsz)
@@ -519,7 +552,8 @@ setClass("Engine", representation(tol = "numeric", a0 = "numeric", b0 = "numeric
 setClass("cox.LWYY", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
-setClass("am.GL", contains = "Engine")
+setClass("am.GL", representation(solver = "character"),
+         prototype(solver = "dfsane"), contains = "Engine")
 setClass("sc.XCYH", representation(solver = "character", eqType = "character"),
          prototype(solver = "dfsane", eqType = "Logrank"), contains = "Engine")
 
@@ -533,7 +567,7 @@ setClass("resampling", representation(B = "numeric"),
 ##############################################################################
 # Method Dispatch
 ##############################################################################
-setGeneric("doREFit", function(DF, DF0, engine, stdErr) {standardGeneric("doREFit")})
+setGeneric("doREFit", function(DF, engine, stdErr) {standardGeneric("doREFit")})
 
 setMethod("doREFit", signature(engine = "cox.LWYY", stdErr = "NULL"), doREFit.cox.LWYY)
 setMethod("doREFit", signature(engine = "cox.HW", stdErr = "NULL"), doREFit.cox.HW)
@@ -717,9 +751,7 @@ reReg <- function(formula, data, B = 200,
     }
     DF <- DF[order(DF$id, DF$Time), ]
     ## reset ID
-    idTmp <- with(DF, as.numeric(unlist(lapply(split(id, id), length))))
-    DF$id <- rep(1:length(idTmp), idTmp)
-    DF0 <- as.matrix(ddply(DF, "id", head, n=1)[, -c(1:4)])
+    DF$id <- rep(1:length(unique(DF$id)), table(DF$id))
     engine.control <- control[names(control) %in% names(attr(getClass(method), "slots"))]
     engine <- do.call("new", c(list(Class=method), engine.control))
     if (se == "NULL")
@@ -731,8 +763,11 @@ reReg <- function(formula, data, B = 200,
     }
     p <- ncol(DF) - 4
     if (length(engine@a0) == 1) engine@a0 <- rep(engine@a0, p)
-    if (length(engine@b0) == 1) engine@b0 <- rep(engine@b0, p + 1)
-    if (length(engine@b0) == p) engine@b0 <- c(0, engine@b0)
+    if (length(engine@b0) == 1) engine@b0 <- rep(engine@b0, p)
+    if (method %in% c("cox.HW", "sc.XCYH")) {
+        if (length(engine@b0) == 1) engine@b0 <- rep(engine@b0, p + 1)
+        if (length(engine@b0) == p) engine@b0 <- c(0, engine@b0)
+    }
     if (formula == ~1) {
         fit <- NULL
         fit$alpha <- fit$beta <- rep(NA, p)
@@ -748,7 +783,7 @@ reReg <- function(formula, data, B = 200,
                                     engine = engine, stdErr = stdErr))
         }
     } else {
-        fit <- doREFit(DF = DF, DF0 = DF0, engine = engine, stdErr = stdErr)
+        fit <- doREFit(DF = DF, engine = engine, stdErr = stdErr)
         if (method != "sc.XCYH") {
             if (plot.ci) {
                 stdErr.np.control <- control[names(control) %in% names(attr(getClass("bootstrap"), "slots"))]
@@ -861,17 +896,17 @@ betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weight
     res / n
 }
 
-ghoshU2 <- function(alpha, beta, T, Y, X, cl) {
-    ## dim(X) = n by p, dim(Y) = n by 1, dim(T) > n by 1
-    d <- max(X %*% (alpha - beta), 0)
-    TT <- log(T) - rep(X %*% alpha, cl)
-    TY <- log(Y) - X %*% beta - d
-    p <- ncol(X)
-    .C("ghosh", as.double(TT), as.double(TY), as.double(X), as.integer(cl),
-       as.integer(c(0, cumsum(cl)[-length(cl)])),
-       as.integer(nrow(X)), as.integer(p), 
-       out = as.double(double(p)), PACKAGE = "reReg")$out
-}
+## ghoshU2 <- function(alpha, beta, T, Y, X, cl) {
+##     ## dim(X) = n by p, dim(Y) = n by 1, dim(T) > n by 1
+##     d <- max(X %*% (alpha - beta), 0)
+##     TT <- log(T) - rep(X %*% alpha, cl)
+##     TY <- log(Y) - X %*% beta - d
+##     p <- ncol(X)
+##     .C("ghosh", as.double(TT), as.double(TY), as.double(X), as.integer(cl),
+##        as.integer(c(0, cumsum(cl)[-length(cl)])),
+##        as.integer(nrow(X)), as.integer(p), 
+##        out = as.double(double(p)), PACKAGE = "reReg")$out
+## }
 
 LWYYeq <- function(beta, X, Y, T, cl) {
     p <- ncol(X)
@@ -1040,7 +1075,9 @@ sarmRV <- function(id, Tij, Yi, X, M, lamEva = NULL, engine) {
                       result = double(p), PACKAGE = "reReg")$result / n)
     }
     if (engine@solver %in% c("dfsane", "BBsolve")) {
-        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = U1RV, quiet = TRUE, control = list(trace = FALSE))))
+        suppressWarnings(
+            fit.a <- do.call(engine@solver, list(par = engine@a0, fn = U1RV,
+                                                 quiet = TRUE, control = list(trace = FALSE))))
         a.value <- fit.a$residual
     }
     if (engine@solver == "BBoptim") {

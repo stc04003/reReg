@@ -7,28 +7,12 @@ library(reReg)
 args(simDat)
 fm <- reSurv(Time, id, event, status) ~ x1 + x2
 
-simDat(200, c(1, 1), c(1, 1))
-simDat(200, c(1, 1), c(1, 1), type = "am")
-simDat(200, c(1, 1), c(1, 1), type = "sc")
-
-simDat(200, c(1, 1), c(1, 1), indCen = FALSE)
-simDat(200, c(1, 1), c(1, 1), type = "am", indCen = FALSE)
-simDat(200, c(1, 1), c(1, 1), type = "sc", indCen = FALSE)
-
-
-dat <- simDat(200, c(1, 1), c(1, 1))
-dat
-with(dat, reSurv(Time, id, event, status)$reDF)
-with(dat, reSurv(Time, id, event, status)$reTb)
-
-coef(reReg(fm, data = dat))
-
-
 do <- function(n = 200, a = c(1, 1), b = c(1, 1), type = "cox", indCen = TRUE) {
     dat <- simDat(n, a, b, indCen, type)
     c1 <- coef(reReg(fm, data = dat))
     c2 <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    c3 <- coef(reReg(fm, data = dat, method = "am.GL"))
+    c3 <- tryCatch(coef(reReg(fm, data = dat, method = "am.GL")),
+                   error = function(e) rep(NA, 4))
     c4 <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
     c5 <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
     c(c1, c2, c3, c4, c5)
@@ -37,8 +21,15 @@ do <- function(n = 200, a = c(1, 1), b = c(1, 1), type = "cox", indCen = TRUE) {
 set.seed(1)
 do(a = c(-1, -1), b = c(1, 1), indCen = TRUE, type = "cox")
 
-e
+foo <- replicate(50, do(a = c(-1, 1), b = c(-1, 1), indCen = TRUE, type = "am"))
+matrix(apply(foo, 1, mean, na.rm = TRUE), 4)
+matrix(apply(foo, 1, median, na.rm = TRUE), 4)
 
+
+set.seed(2)
+do(a = c(-1, 1), b = c(-1, 1), indCen = TRUE, type = "am")
+
+e
 
 
 set.seed(1527) 
@@ -85,7 +76,25 @@ matrix(colMeans(f5), 4)
 matrix(colMeans(f6), 4)
 
 set.seed(15)
-do(200, c(1, 1), c(1, 1), indCen = TRUE)
+dat <- simDat(200, c(1, 1), c(1, 1), indCen = TRUE)
+coef(reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat, method = "am.GL"))
+coef(reReg(reSurv(Time, id, event, status) ~ 1, data = dat, method = "am.GL"))
+
+set.seed(1)
+dat <- simDat(200, c(-1, 1), c(-1, 1), indCen = TRUE, type = "am")
+coef(reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat, method = "am.GL"))
+
+
+debug(reReg)
+debug(doREFit.am.GL)
+doREFit.am.GL(DF = DF, engine = engine, stdErr = stdErr)
+
+List of 5
+ $ alpha: num [1:2] 3741 -3166
+ $ aconv: num 0
+ $ beta : num [1:2] 2.44 1.74
+ $ bconv: num 5
+$ muZ  : logi NA
 
 e
 

@@ -228,7 +228,8 @@ void HWb(double *Y, double *X, double *delta, double *z, double *weights,
 }
 
 
-void scaleChangeLog(int*n, int *p, int *start, int *M, double *y, double *tij, double *X, double *W, double *result) {
+void scaleChangeLog(int *n, int *p, int *start, int *M,
+		    double *y, double *tij, double *X, double *W, double *result) {
   int i, j, k, l, r;
   double de;
   double *nu = Calloc(*p, double);
@@ -254,7 +255,8 @@ void scaleChangeLog(int*n, int *p, int *start, int *M, double *y, double *tij, d
   Free(nu);
 }
 
-void scaleChangeGehan(int*n, int *p, int *start, int *M, double *y, double *tij, double *X, double *W, double *result) {
+void scaleChangeGehan(int*n, int *p, int *start, int *M, double *y,
+		      double *tij, double *X, double *W, double *result) {
   int i, j, k, l, r;
   for (i = 0; i < n[0]; i++) {
     for (j = 0; j < M[i]; j++) {
