@@ -15,26 +15,55 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    ## Start am.xc
-    outA <- dfsane(engine@a0, alphaEq, X = X, Y = Y, T = T, cluster = cluster, mt = mt,
-                   weights = NULL, alertConvergence = FALSE, quiet = TRUE, 
-                   control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
+    if (engine@solver %in% c("dfsane", "BBsolve")) 
+        suppressWarnings(
+            outA <- do.call(
+                engine@solver, list(par = engine@a0, fn = alphaEq,
+                                    X = X, Y = Y, T = T, cluster = cluster, mt = mt,
+                                    weights = NULL, alertConvergence = FALSE, quiet = TRUE,
+                                    control = list(trace = FALSE))))
+    if (engine@solver == "BBoptim")
+        suppressWarnings(
+            outA <- do.call(
+                engine@solver, list(par = engine@a0, fn = function(x)
+                    sum(alphaEq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
+                    quiet = TRUE, control = list(trace = FALSE))))
+    if (engine@solver == "optim")
+        suppressWarnings(
+            outA <- do.call(
+                engine@solver, list(par = engine@a0, fn = function(x)
+                    sum(alphaEq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
+                    control = list(trace = FALSE))))
     alpha <- outA$par
-    ## Ystar <- log(Y) + X %*% alpha
-    ## Tstar <- log(T) + X %*% alpha
-    Ystar <- Y * exp(X %*% alpha)
-    Tstar <- T * exp(X %*% alpha)
+    Ystar <- log(Y) + X %*% alpha
+    Tstar <- log(T) + X %*% alpha
     lambda <- npMLE(Ystar[event == 0], Tstar, Ystar)
     zHat <- as.numeric(mt * npMLE(log(max(Y)), Tstar, Ystar) / lambda)
     zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    ## outB <- dfsane(beta, betaEq, X = X, Y = Y, T = T, cluster = cluster,
-    ##                delta = status[event == 0], mt = mt,
-    ##                alpha = outA$par, zHat = zHat, weights = NULL,
-    ##                alertConvergence = FALSE, quiet = TRUE, 
-    ##                control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
-    outB <- BBsolve(engine@a0, betaEq, X = X, Y = Y, T = T, cluster = cluster,
-                   delta = status[event == 0], mt = mt,
-                   alpha = outA$par, zHat = zHat, weights = NULL, quiet = TRUE)
+    if (engine@solver %in% c("dfsane", "BBsolve")) 
+        suppressWarnings(
+            outB <- do.call(
+                engine@solver, list(par = engine@b0, fn = betaEq,
+                                    X = X, Y = Y, T = T, cluster = cluster,                                    
+                                    delta = status[event == 0], mt = mt,
+                                    alpha = outA$par, zHat = zHat, weights = NULL,
+                                    quiet = TRUE, control = list(trace = FALSE))))
+    if (engine@solver == "BBoptim")
+        suppressWarnings(
+            outB <- do.call(
+                engine@solver, list(par = engine@b0, fn = function(x)
+                    sum(betaEq(x, X = X, Y = Y, T = T, cluster = cluster,
+                               delta = status[event == 0], mt = mt,
+                               alpha = outA$par, zHat = zHat, weights = NULL)^2),
+                    quiet = TRUE, control = list(trace = FALSE))))
+    if (engine@solver == "optim") 
+        suppressWarnings(
+            outB <- do.call(
+                engine@solver, list(par = engine@b0, fn = function(x)
+                    sum(betaEq(x, X = X, Y = Y, T = T, cluster = cluster,
+                               delta = status[event == 0], mt = mt,
+                               alpha = outA$par, zHat = zHat, weights = NULL)^2),
+                    control = list(trace = FALSE))))
     list(alpha = outA$par, aconv = outA$convergence, beta = outB$par, bconv = outB$convergence,
          muZ = mean(zHat), zHat = zHat)
 }
@@ -330,7 +359,35 @@ doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
               PACKAGE = "reReg")$result
     rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
     haz0 <- approxfun(exp(t0.haz), haz, yleft = 0, yright = max(rate), method = "constant")
-    list(rate0 = rate0, haz0 = haz0, rate0.lower = NULL, rate0.upper = NULL, haz0.lower = NULL, haz0.upper = NULL)        
+    list(rate0 = rate0, rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
+         haz0 = haz0, haz0.lower = NULL, haz0.upper = NULL, t0.haz = exp(t0.haz))
+}
+
+doNonpara.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
+    id <- subset(DF, event == 0)$id
+    B <- stdErr@B
+    PE <- doNonpara.am.GL(DF, alpha, beta, engine, NULL)
+    rateMat <- matrix(NA, B, length(PE$t0.rate))
+    hazMat <- matrix(NA, B, length(PE$t0.haz))
+    for (i in 1:B) {
+        sampled.id <- sample(id, length(id), TRUE)
+        ind <- unlist(sapply(sampled.id, function(x) which(DF$id == x)))
+        DF2 <- DF[ind,]
+        DF2$id <- rep(1:length(id), table(DF$id)[sampled.id])
+        tmp <- doNonpara.am.GL(DF2, alpha, beta, engine, NULL)
+        rateMat[i,] <- tmp$rate0(PE$t0.rate)
+        hazMat[i,] <- tmp$haz0(PE$t0.rate)
+    }
+    rlower <- apply(rateMat, 2, quantile, prob = .025)
+    rupper <- apply(rateMat, 2, quantile, prob = .975)
+    hlower <- apply(hazMat, 2, quantile, prob = .025)
+    hupper <- apply(hazMat, 2, quantile, prob = .975)
+    list(rate0 = PE$rate0,
+         rate0.lower = approxfun(PE$t0.rate, rlower, yleft = 0, yright = max(rlower), method = "constant"),
+         rate0.upper = approxfun(PE$t0.rate, rupper, yleft = 0, yright = max(rupper), method = "constant"),
+         haz0 = PE$haz0,
+         haz0.lower = approxfun(PE$t0.haz, hlower, yleft = 0, yright = max(hlower), method = "constant"),
+         haz0.upper = approxfun(PE$t0.haz, hupper, yleft = 0, yright = max(hupper), method = "constant"))         
 }
 
 doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
@@ -574,16 +631,18 @@ doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
 # Class Definition
 ##############################################################################
 
-setClass("Engine", representation(tol = "numeric", a0 = "numeric", b0 = "numeric"),
-         prototype(tol = 1e-7, a0 = 0, b0 = 0), contains="VIRTUAL")
+setClass("Engine",
+         representation(tol = "numeric", a0 = "numeric", b0 = "numeric", solver = "character"),
+         prototype(tol = 1e-7, a0 = 0, b0 = 0, solver = "dfsane"),
+         contains="VIRTUAL")
 
 setClass("cox.LWYY", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
-setClass("am.GL", representation(solver = "character"),
-         prototype(solver = "dfsane"), contains = "Engine")
-setClass("sc.XCYH", representation(solver = "character", eqType = "character"),
-         prototype(solver = "dfsane", eqType = "Logrank"), contains = "Engine")
+setClass("am.GL", contains = "Engine")
+setClass("sc.XCYH",
+         representation(eqType = "character"),
+         prototype(eqType = "Logrank"), contains = "Engine")
 
 setClass("stdErr")
 setClass("bootstrap", representation(B = "numeric"),
@@ -625,7 +684,7 @@ setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "resampling"), do
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
 
 ## GL method?
-setMethod("doNonpara", signature(engine = "am.GL", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
+setMethod("doNonpara", signature(engine = "am.GL", stdErr = "bootstrap"), doNonpara.SE.am.GL)
 setMethod("doNonpara", signature(engine = "am.GL", stdErr = "NULL"), doNonpara.am.GL)
 
 ## general model
