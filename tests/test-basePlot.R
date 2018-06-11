@@ -32,6 +32,8 @@ ggplot(data = dat, aes(x = Time, y = H0)) + geom_line() +
     geom_line(aes(x = Time, y = H0.lower)) +
     geom_line(aes(x = Time, y = H0.upper))
 
+ggplot(data = dat, aes(x = Time, y = H0)) + geom_line() 
+ggplot(data = dat, aes(x = Time, y = H0)) + geom_smooth(se = FALSE, color = 1) 
 
 str(fit)
 
