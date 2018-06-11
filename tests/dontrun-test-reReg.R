@@ -54,7 +54,7 @@ coef(reReg(fm, data = dat, method = "sc.XCYH")) ## ok
 
 
 rp <- 100
-f1 <- f2 <- f3 <- f4 <- f5 <- f6 <- matrix(NA, rp, 16)
+f1 <- f2 <- f3 <- f4 <- f5 <- f6 <- matrix(NA, rp, 20)
 for (i in 1:rp) {
     set.seed(i)
     f1[i,] <- do(200, c(1, 1), c(1, 1), indCen = TRUE)
@@ -83,6 +83,11 @@ matrix(colMeans(f3), 4)
 matrix(colMeans(f4), 4)
 matrix(colMeans(f5), 4)
 matrix(colMeans(f6), 4)
+
+set.seed(15)
+do(200, c(1, 1), c(1, 1), indCen = TRUE)
+
+e
 
 ## Testing results
 ## do(200, c(1, 1), c(1, 1), indCen = TRUE)
