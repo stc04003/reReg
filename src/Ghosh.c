@@ -62,7 +62,7 @@ void glRate(int *n, int *p, int *start, int *M, int *nt0,
 	  de = 0;
 	}
 	result[r] += nu;
-      }
+      } // end k
       nu = 0;
     }
   }
@@ -75,17 +75,19 @@ void glRate(int *n, int *p, int *start, int *M, int *nt0,
 // notations similar to glRate
 void glHaz(int *n, int *status, int *ny0, double *yi, double *y0, double *result) {
   int i, j, r;
-  int de = 0;
+  double de = 0, nu = 0;
   for (r = 0; r < *ny0; r++) {
     for (i = 0; i < *n; i++) {
       if (status[i] > 0 && yi[i] <= y0[r]) {
 	for (j = 0; j < *n; j++) {
 	  if (yi[j] >= yi[i]) de += 1;
 	}
-	if (de > 0) result[r] = 1 / de;
+	nu += 1 / de;
+	de = 0;
       }
-      de = 0;
-    }
+      result[r] += nu;
+      nu = 0;
+    } // end i
   }
 }
 

@@ -306,7 +306,6 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
 ##############################################################################
 
 doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
-    ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF0) - 4
     Y <- log(DF0$Time)
@@ -327,10 +326,11 @@ doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
                result = double(length(t0.rate)), 
                PACKAGE = "reReg")$result
     haz <- .C("glHaz", as.integer(n), as.integer(status), as.integer(length(t0.haz)),
-              as.double(yi), as.double(t0.haz), result = double(n),
+              as.double(yi), as.double(t0.haz), result = double(length(t0.haz)), 
               PACKAGE = "reReg")$result
-    
-              
+    rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
+    haz0 <- approxfun(exp(t0.haz), haz, yleft = 0, yright = max(rate), method = "constant")
+    list(rate0 = rate0, haz0 = haz0, rate0.lower = NULL, rate0.upper = NULL, haz0.lower = NULL, haz0.upper = NULL)        
 }
 
 doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {

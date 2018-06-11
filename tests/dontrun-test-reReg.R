@@ -84,10 +84,10 @@ set.seed(1)
 dat <- simDat(200, c(-1, 1), c(-1, 1), indCen = TRUE, type = "am")
 coef(reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat, method = "am.GL"))
 
-
 debug(reReg)
 debug(doREFit.am.GL)
 doREFit.am.GL(DF = DF, engine = engine, stdErr = stdErr)
+
 debug(doNonpara.am.GL)
 doNonpara.am.GL(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = NULL)
 e
