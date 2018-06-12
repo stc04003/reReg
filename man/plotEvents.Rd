@@ -8,14 +8,17 @@ plotEvents(formula, data, order = TRUE, return.grob = FALSE,
   control = list(), ...)
 }
 \arguments{
-\item{formula}{a formula object, with the response on the left of a "~" operator, and the terms on the right.
+\item{formula}{a formula object, with the response on the left of a "~" operator,
+and the terms on the right.
 The response must be a recurrent event survival object as returned by function \code{reSurv}.}
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "formula".}
 
-\item{order}{an optional logical value. If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.}
+\item{order}{an optional logical value.
+If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.}
 
-\item{return.grob}{an optional logical value. If "TRUE", a \code{ggplot2} plot grob will be returned.}
+\item{return.grob}{an optional logical value.
+If "TRUE", a \code{ggplot2} plot grob will be returned.}
 
 \item{control}{a list of control parameters.}
 
@@ -25,13 +28,15 @@ The response must be a recurrent event survival object as returned by function \
 Plot the event plot for an \code{reSurv} object, with more flexible options.
 }
 \details{
-The argument \code{control} consists of options with argument defaults to a list with the following values:
+The argument \code{control} consists of options with argument defaults to a
+list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
   \item{title}{customizable title, default value is "Recurrent event plot".}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-  \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
+  \item{recurrent.name}{customizable label for recurrent event,
+default value is "Recurrent event plot".}
   \item{recurrent.types}{customizable label for recurrent event type, default value is NULL.}
   \item{alpha}{controls the transparency of points.}
 }

@@ -15,9 +15,11 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{onePanel}{an optinoal logical value. If "TRUE", only one graphical panel will be displayed.}
 
-\item{return.grob}{an optional logical value. If "TRUE", a \code{ggplot2} plot grob will be returned.}
+\item{return.grob}{an optional logical value.
+If "TRUE", a \code{ggplot2} plot grob will be returned.}
 
-\item{adjrisk}{an optional logical value. If "TRUE", event times with \code{event == 0} will be treated as
+\item{adjrisk}{an optional logical value.
+If "TRUE", event times with \code{event == 0} will be treated as
 (independent) censoring time, and risk set sizes are adjusted accordingly.}
 
 \item{control}{a list of control parameters.}

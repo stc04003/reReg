@@ -4,10 +4,16 @@
 \alias{plot.reReg}
 \title{Plotting Estimated Baseline Cumulative Rate Functions}
 \usage{
-\method{plot}{reReg}(x, ...)
+\method{plot}{reReg}(x, smooth = FALSE, return.grob = FALSE,
+  control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
+
+\item{smooth}{an optional logical value whether loess smoothing will be applied.}
+
+\item{return.grob}{an optional logical value.
+If "TRUE", a \code{ggplot2} plot grob will be returned.}
 
 \item{...}{for future methods.}
 }

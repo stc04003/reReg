@@ -4,10 +4,15 @@
 \alias{plotHaz}
 \title{Plotting the baseline hazard function}
 \usage{
-plotHaz(x, control = list(), ...)
+plotHaz(x, smooth = FALSE, return.grob = FALSE, control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
+
+\item{smooth}{an optional logical value whether loess smoothing will be applied.}
+
+\item{return.grob}{an optional logical value.
+If "TRUE", a \code{ggplot2} plot grob will be returned.}
 
 \item{control}{a list of control parameters.}
 
@@ -17,7 +22,8 @@ plotHaz(x, control = list(), ...)
 Plot the baseline hazard function after fitting \code{reReg}.
 }
 \details{
-The argument \code{control} consists of options with argument defaults to a list with the following values:
+The argument \code{control} consists of options with argument
+defaults to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}

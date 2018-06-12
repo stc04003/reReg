@@ -17,11 +17,14 @@ globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd
 #' 
 #' @param x an object of class \code{reSurv}, usually returned by the \code{reSurv} function.
 #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
-#' @param order an optional logical value. If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.
-#' @param return.grob an optional logical value. If "TRUE", a \code{ggplot2} plot grob will be returned.
+#' @param order an optional logical value.
+#' If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.
+#' @param return.grob an optional logical value.
+#' If "TRUE", a \code{ggplot2} plot grob will be returned.
 #' @param onePanel an optinoal logical value. If "TRUE", only one graphical panel will be displayed.
 #' @param control a list of control parameters.
-#' @param CMF an optional logical value. If "TRUE", the cumulative sample mean function will be plotted.
+#' @param CMF an optional logical value.
+#' If "TRUE", the cumulative sample mean function will be plotted.
 #' If "FALSE", the event plot will be plotted. The default is \code{CMF = FALSE}.
 #' @param ... for future developments.
 #' @seealso \code{\link{reSurv}}
@@ -46,7 +49,8 @@ globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd
 #' set.seed(1)
 #' reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 #' plot(reObj2)
-plot.reSurv <- function(x, data, CMF = FALSE, order = TRUE, onePanel = FALSE, return.grob = FALSE, control = list(), ...) {
+plot.reSurv <- function(x, data, CMF = FALSE, order = TRUE,
+                        onePanel = FALSE, return.grob = FALSE, control = list(), ...) {
     if (!CMF)
         return(plotEvents(x, data, order = order, return.grob = return.grob, control = control))
     if (CMF)
@@ -57,22 +61,27 @@ plot.reSurv <- function(x, data, CMF = FALSE, order = TRUE, onePanel = FALSE, re
 #'
 #' Plot the event plot for an \code{reSurv} object, with more flexible options.
 #'
-#' The argument \code{control} consists of options with argument defaults to a list with the following values:
+#' The argument \code{control} consists of options with argument defaults to a
+#' list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
 #'   \item{title}{customizable title, default value is "Recurrent event plot".}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-#'   \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
+#'   \item{recurrent.name}{customizable label for recurrent event,
+#' default value is "Recurrent event plot".}
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is NULL.}
 #'   \item{alpha}{controls the transparency of points.}
 #' }
 #' 
-#' @param formula  a formula object, with the response on the left of a "~" operator, and the terms on the right.
+#' @param formula  a formula object, with the response on the left of a "~" operator,
+#' and the terms on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
 #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
-#' @param order an optional logical value. If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.
-#' @param return.grob an optional logical value. If "TRUE", a \code{ggplot2} plot grob will be returned.
+#' @param order an optional logical value.
+#' If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.
+#' @param return.grob an optional logical value.
+#' If "TRUE", a \code{ggplot2} plot grob will be returned.
 #' @param control a list of control parameters.
 #' @param ... for future developments.
 #' @seealso \code{\link{reSurv}}, \code{\link{plot.reSurv}}
@@ -182,7 +191,7 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
                               scales = "free", space = "free", switch = "both")
     if (!return.grob) {
         gg + theme(panel.background = element_blank(),
-                   axis.line = element_line(colour = "black"),
+                   axis.line = element_line(color = "black"),
                    legend.key = element_rect(fill = "white", color = "white")) +
             scale_x_continuous(expand = c(0, 1)) +
             ggtitle(ctrl$title) + labs(x = ctrl$ylab, y = ctrl$xlab) +
@@ -208,8 +217,10 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' @param formula  a formula object, with the response on the left of a "~" operator, and the terms on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
 #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
-#' @param return.grob an optional logical value. If "TRUE", a \code{ggplot2} plot grob will be returned.
-#' @param adjrisk an optional logical value. If "TRUE", event times with \code{event == 0} will be treated as
+#' @param return.grob an optional logical value.
+#' If "TRUE", a \code{ggplot2} plot grob will be returned.
+#' @param adjrisk an optional logical value.
+#' If "TRUE", event times with \code{event == 0} will be treated as
 #' (independent) censoring time, and risk set sizes are adjusted accordingly. 
 #' @param onePanel an optinoal logical value. If "TRUE", only one graphical panel will be displayed.
 #' @param control a list of control parameters.
@@ -223,7 +234,8 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' @examples
 #' data(readmission, package = "frailtypack")
 #' plotCMF(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
-plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, adjrisk = TRUE, control = list(), ...) {
+plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE,
+                    adjrisk = TRUE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -323,7 +335,7 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE, adjris
     if (onePanel & k > 1)
         gg <- gg + scale_color_discrete(name = "")
     if (!return.grob) {
-        gg +  theme(axis.line = element_line(colour = "black"),
+        gg +  theme(axis.line = element_line(color = "black"),
                     legend.key = element_rect(fill = "white", color = "white")) +
             ## scale_color_discrete(name = "") +
             ## scale_y_continuous(expand = c(0, 1)) +
@@ -347,70 +359,76 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #' Plot the estimated baseline cumulative rate function and harzard function if available.
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
+#' @param smooth an optional logical value whether loess smoothing will be applied.
+#' @param return.grob an optional logical value.
+#' If "TRUE", a \code{ggplot2} plot grob will be returned.
 #' @param ... for future methods.
 #'
 #' @seealso \code{\link{reReg}}
 #' @export
 #' @keywords plot.reReg
+#' @importFrom dplyr bind_rows
+#' @importFrom ggplot2 geom_smooth geom_step
 #' @examples
 #' data(readmission, package = "frailtypack")
 #' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
 #'              data = subset(readmission, id < 50),
 #'              method = "am.XCHWY", se = "resampling", B = 20)
 #' plot(fit)
-plot.reReg <- function(x, ...) {
-    options(warn = -1)
+plot.reReg <- function(x, smooth = FALSE, return.grob = FALSE, control = list(), ...) {
+    ctrl <- plotEvents.control()
+    namc <- names(control)
+    if (!all(namc %in% names(ctrl))) 
+        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+    ctrl[namc] <- control
+    if (!("title" %in% namc)) ctrl$title = "Baseline cumulative rate and hazard functions"
+    if (!("xlab" %in% namc)) ctrl$xlab = "Time"
+    if (!("ylab" %in% namc)) ctrl$ylab = ""
     if (!is.reReg(x)) stop("Response must be a reReg class")
-    if (x$method == "sc.XCYH") stop("Rate function plot is not yet available for method = sc.XCYH") 
-    par(mfrow = c(2, 1))
-    t0 <- x$t0
-    ly <- x$lam
-    lyU <- x$lamU
-    lyL <- x$lamL
-    hy <- x$haz
-    hyU <- x$hazU
-    hyL <- x$hazL
-    win.ly <- max(ly, lyU, lyL, na.rm = TRUE)
-    win.hy <- max(hy, hyU, hyL, na.rm = TRUE)
-    plot(t0, ly, type = "s",  xlab = "", ylab = "", ylim = c(0, win.ly),
-         main = "Baseline Cumulative Rate Function")
-    if (any(!is.na(x$lamU))) {
-        lines(t0, lyU, col = 2)
-        lines(t0, lyL, col = 2)
+    ## if (x$method == "sc.XCYH") stop("Rate function plot is not yet available for method = sc.XCYH") 
+    if (is.null(x$rate0.upper)) {
+        dat1 <- as_tibble(x$DF) %>% mutate(Y = x$rate0(Time)) %>% select(Time, Y)
+        dat2 <- as_tibble(x$DF) %>% mutate(Y = x$haz0(Time)) %>% select(Time, Y)
+    } else {
+        dat1 <- as_tibble(x$DF) %>%
+            mutate(Y = x$rate0(Time), Y.upper = x$rate0.upper(Time), Y.lower = x$rate0.lower(Time)) %>%
+            select(Time, Y, Y.upper, Y.lower)
+        dat2 <- as_tibble(x$DF) %>%
+            mutate(Y = x$haz0(Time), Y.upper = x$haz0.upper(Time), Y.lower = x$haz0.lower(Time)) %>%
+            select(Time, Y, Y.upper, Y.lower)
     }
-    title(ylab = expression(hat(Lambda)[0](t)), xlab = "Time", line = 2.2)
-    ##     title(xlab = "time", line = 1.6, cex.lab = 0.8)
-    ## axis(1, at = seq(0, round(max(t), 1), length.out = 11), 
-    ##      cex.axis = 0.8, tck = -0.015, mgp = c(3, .3, 0))
-    ## axis(2, at = seq(0, round(win.ly, 2), length.out = 11),
-    ##      las = 2, cex.axis = 0.8, tck = -0.015, mgp = c(3, .4, 0))
-    ## op <- par(ask=TRUE)
-    ## plot(t, hy, type = "l", xlab = "", ylab = "", xaxt = "n", yaxt = "n", ylim = c(0, win.hy),
-    ##      main = "Baseline Cumulative Hazard Function")
-    plot(t0, hy, type = "s",  xlab = "", ylab = "", ylim = c(0, win.hy),
-         main = "Baseline Cumulative Hazard Function")
-    if (any(!is.na(x$hazU))) {
-        lines(t0, hyU, col = 2, lty = 2)
-        lines(t0, hyL, col = 2, lty = 2)
+    dat <- bind_rows(dat1, dat2, .id = "group") %>%
+        mutate(group = ifelse(group == 1, "Baseline cumulative rate", "Baseline cumulative hazard"))
+    gg <- ggplot(data = dat, aes(x = Time, y = Y)) +
+        facet_grid(group ~ ., scale = "free") +
+        theme(axis.line = element_line(color = "black"),
+              strip.text = element_text(face = "bold", size = 12))   
+    if (smooth) {
+        gg <- gg + geom_smooth(se = FALSE, method = "loess", col = 1)
+        if (!is.null(x$rate0.upper))
+            gg <- gg + geom_smooth(aes(x = Time, y = Y.upper),
+                                   col = 1, se = FALSE, method = "loess", lty = 2) +
+                geom_smooth(aes(x = Time, y = Y.lower),
+                            col = 1, se = FALSE, method = "loess", lty = 2)
+    } else {
+        gg <- gg + geom_step()
+        if (!is.null(x$rate0.upper))
+            gg <- gg + geom_step(aes(x = Time, y = Y.upper), lty = 2)+ 
+                geom_step(aes(x = Time, y = Y.lower), lty = 2)
     }
-    title(ylab = expression(hat(H)[0](t)), xlab = "Time", line = 2.2)
-    ## title(xlab = "time", line = 1.6, cex.lab = 0.8)
-    ## axis(1, at = seq(0, round(max(t), 1), length.out = 11), 
-    ##      cex.axis = 0.8, tck = -0.015, mgp = c(3, .3, 0))
-    ## axis(2, at = seq(0, round(win.hy, 2), length.out = 11),
-    ##      las = 2, cex.axis = 0.8, tck = -0.015, mgp = c(3, .4, 0))
-    ## par(op)
-    par(mfrow = c(1, 1))
-    out <- c(x, list(t0 = t0, lam = ly, lamU = lyU, lamL = lyL, haz = hy, hazU = hyU, hazL = hyL))
-    options(warn = 0)
-    invisible(out)
+    if (!return.grob) {
+        gg + ggtitle(ctrl$title) + labs(y = ctrl$ylab, x = ctrl$xlab)
+    } else {
+        return(ggplotGrob(gg))
+    }
 }
 
 #' Plotting the baseline rate function
 #'
 #' Plot the baseline rate function after fitting \code{reReg}.
 #' 
-#' The argument \code{control} consists of options with argument defaults to a list with the following values:
+#' The argument \code{control} consists of options with argument defaults
+#' to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
@@ -419,6 +437,9 @@ plot.reReg <- function(x, ...) {
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param control a list of control parameters.
+#' @param smooth an optional logical value whether loess smoothing will be applied.
+#' @param return.grob an optional logical value.
+#' If "TRUE", a \code{ggplot2} plot grob will be returned.
 #' @param ... for future developments.
 #'
 #' @seealso \code{\link{reReg}}
@@ -437,59 +458,47 @@ plot.reReg <- function(x, ...) {
 #' plotRate(fit)
 #' ## Plot with user-specified labels
 #' plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title")) 
-plotRate <- function(x, smooth = FALSE, control = list(), ...) {
-    if (x$method == "sc.XCYH") stop("Rate function plot is not yet available for method = sc.XCYH") ## end
+plotRate <- function(x, smooth = FALSE, return.grob = FALSE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
-
-    if (is.null(x$rate0.lower)) {
-        dat <- as_tibble(x$DF) %>%
-            mutate(R0 = fit$rate0(Time), H0 = fit$haz0(Time))
+    if (!("title" %in% namc)) ctrl$title = "Baseline cumulative rate function"
+    if (!("xlab" %in% namc)) ctrl$xlab = "Time"
+    if (!("ylab" %in% namc)) ctrl$ylab = "Baseline cumulative rate"
+    if (!is.reReg(x)) stop("Response must be a reReg class")
+    if (is.null(x$rate0.upper)) {
+        dat <- as_tibble(x$DF) %>% mutate(Y = x$rate0(Time)) %>% select(Time, Y)
     } else {
         dat <- as_tibble(x$DF) %>%
-            mutate(R0 = fit$rate0(Time),
-                   R0.upper = fit$rate0.upper(Time),
-                   R0.lower = fit$rate0.lower(Time),
-                   H0 = fit$haz0(Time),
-                   H0.upper = fit$haz0.upper(Time),
-                   H0.lower = fit$haz0.lower(Time))
+            mutate(Y = x$rate0(Time), Y.upper = x$rate0.upper(Time), Y.lower = x$rate0.lower(Time)) %>%
+            select(Time, Y, Y.upper, Y.lower)
     }
-    g <- ggplot(data = dat, aes(x = Time, y = R0))
-    if (smooth) g <- g + geom_smooth(se = FALSE, color = 1)
-    else g <- g + geom_line()
+    gg <- ggplot(data = dat, aes(x = Time, y = Y)) +
+        theme(axis.line = element_line(color = "black"))
+    if (smooth) {
+        gg <- gg + geom_smooth(se = FALSE, method = "loess", col = 1)
+        if (!is.null(x$rate0.upper))
+            gg <- gg + geom_smooth(aes(x = Time,  y = Y.upper),
+                                   col = 1, se = FALSE, method = "loess", lty = 2) +
+                geom_smooth(aes(x = Time,  y = Y.lower),
+                            col = 1, se = FALSE, method = "loess", lty = 2) 
+    } else {
+        gg <- gg + geom_step()
+        if (!is.null(x$rate0.upper))
+            gg <- gg + geom_step(aes(x = Time,  y = Y.upper), lty = 2) +
+                geom_step(aes(x = Time,  y = Y.lower), lty = 2)
+    }
+    if (!return.grob) gg + ggtitle(ctrl$title) + labs(x = ctrl$xlab, y = ctrl$ylab)
+    else ggplotGrob(gg)
 }
-## if (ctrl$title == "Recurrent event plot") # default value
-##     ctrl$title <- "Baseline Cumulative Rate Function"
-## if (!is.reReg(x)) stop("Response must be a reReg class")
-## options(warn = -1)
-## t0 <- x$t0
-## ly <- x$lam
-## lyU <- x$lamU
-## lyL <- x$lamL
-## hy <- x$haz
-## hyU <- x$hazU
-## hyL <- x$hazL
-## win.ly <- max(ly, lyU, lyL, na.rm = TRUE)
-## plot(t0, ly, type = "s",  xlab = "", ylab = "", ylim = c(0, win.ly),
-##      main = ctrl$title)
-## if (any(!is.na(x$lamU))) {
-##     lines(t0, lyU, col = 2, lty = 2, "s")
-##     lines(t0, lyL, col = 2, lty = 2, "s")
-## }
-## if (ctrl$ylab == "Subject") #default value 
-##     title(ylab = expression(hat(Lambda)[0](t)), xlab = ctrl$xlab, line = 2.2)
-## else title(ylab = ctrl$ylab, xlab = ctrl$xlab, line = 2.2)
-## options(warn = 0)
-## }
-
 #' Plotting the baseline hazard function
 #'
 #' Plot the baseline hazard function after fitting \code{reReg}.
 #'
-#' The argument \code{control} consists of options with argument defaults to a list with the following values:
+#' The argument \code{control} consists of options with argument
+#' defaults to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
@@ -497,6 +506,9 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' }
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
+#' @param smooth an optional logical value whether loess smoothing will be applied.
+#' @param return.grob an optional logical value.
+#' If "TRUE", a \code{ggplot2} plot grob will be returned.
 #' @param control a list of control parameters.
 #' @param ... for future developments.
 #' 
@@ -516,35 +528,40 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' plotHaz(fit)
 #' ## Plot with user-specified labels
 #' plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))  
-plotHaz <- function(x, control = list(), ...) {
-    if (x$method == "sc.XCYH") stop("Rate function plot is not yet available for method = sc.XCYH")
+plotHaz <- function(x, smooth = FALSE, return.grob = FALSE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
-    if (ctrl$title == "Recurrent event plot") # default value
-        ctrl$title <- "Baseline Cumulative Hazard Function"
+    if (!("title" %in% namc)) ctrl$title = "Baseline cumulative hazard function"
+    if (!("xlab" %in% namc)) ctrl$xlab = "Time"
+    if (!("ylab" %in% namc)) ctrl$ylab = "Baseline cumulative hazard"
     if (!is.reReg(x)) stop("Response must be a reReg class")
-    options(warn = -1)
-    t0 <- x$t0
-    ly <- x$lam
-    lyU <- x$lamU
-    lyL <- x$lamL
-    hy <- x$haz
-    hyU <- x$hazU
-    hyL <- x$hazL
-    win.hy <- max(hy, hyU, hyL, na.rm = TRUE)
-    plot(t0, hy, type = "s",  xlab = "", ylab = "", ylim = c(0, win.hy),
-         main = ctrl$title)
-    if (any(!is.na(x$hazU))) {
-        lines(t0, hyU, col = 2, lty = 2, "s")
-        lines(t0, hyL, col = 2, lty = 2, "s")
+    if (is.null(x$haz0.upper)) {
+        dat <- as_tibble(x$DF) %>% mutate(Y = x$haz0(Time)) %>% select(Time, Y)
+    } else {
+        dat <- as_tibble(x$DF) %>%
+            mutate(Y = x$haz0(Time), Y.upper = x$haz0.upper(Time), Y.lower = x$haz0.lower(Time)) %>%
+            select(Time, Y, Y.upper, Y.lower)
     }
-    if (ctrl$ylab == "Subject") #default value 
-        title(ylab = expression(hat(Lambda)[0](t)), xlab = ctrl$xlab, line = 2.2)
-    else title(ylab = ctrl$ylab, xlab = ctrl$xlab, line = 2.2)
-    options(warn = 0)
+    gg <- ggplot(data = dat, aes(x = Time, y = Y)) +
+        theme(axis.line = element_line(color = "black"))
+    if (smooth) {
+        gg <- gg + geom_smooth(se = FALSE, method = "loess", col = 1)
+        if (!is.null(x$rate0.upper))
+            gg <- gg + geom_smooth(aes(x = Time,  y = Y.upper),
+                                   col = 1, se = FALSE, method = "loess", lty = 2) +
+                geom_smooth(aes(x = Time,  y = Y.lower),
+                            col = 1, se = FALSE, method = "loess", lty = 2) 
+    } else {
+        gg <- gg + geom_step()
+        if (!is.null(x$rate0.upper))
+            gg <- gg + geom_step(aes(x = Time,  y = Y.upper), lty = 2) +
+                geom_step(aes(x = Time,  y = Y.lower), lty = 2)
+    }
+    if (!return.grob) gg + ggtitle(ctrl$title) + labs(x = ctrl$xlab, y = ctrl$ylab)
+    else ggplotGrob(gg)
 }
 
 unrowwise <- function(x) {

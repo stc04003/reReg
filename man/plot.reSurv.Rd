@@ -12,14 +12,17 @@
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "formula".}
 
-\item{CMF}{an optional logical value. If "TRUE", the cumulative sample mean function will be plotted.
+\item{CMF}{an optional logical value.
+If "TRUE", the cumulative sample mean function will be plotted.
 If "FALSE", the event plot will be plotted. The default is \code{CMF = FALSE}.}
 
-\item{order}{an optional logical value. If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.}
+\item{order}{an optional logical value.
+If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.}
 
 \item{onePanel}{an optinoal logical value. If "TRUE", only one graphical panel will be displayed.}
 
-\item{return.grob}{an optional logical value. If "TRUE", a \code{ggplot2} plot grob will be returned.}
+\item{return.grob}{an optional logical value.
+If "TRUE", a \code{ggplot2} plot grob will be returned.}
 
 \item{control}{a list of control parameters.}
 
