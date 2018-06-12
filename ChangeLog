@@ -1,6 +1,8 @@
 2018-06-11 Sy Han Chiou <schiou@utdallas.edu>
 	* Version 1.1.5
-	* Cleaning codes
+	* Cleaned reSurv and am.GL codes
+	* updated event plot, baseline function plots
+	* added CMF plot
 2018-05-29 Sy Han Chiou <schiou@utdallas.edu>
 	* Version 1.1.4
 	* Rebuild with oxygen
