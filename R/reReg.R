@@ -108,7 +108,8 @@ doREFit.am.GL <- function(DF, engine, stdErr) {
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
     ghoshU2 <- function(a) {
-        d <- max(X %*% (a - bhat), 0)
+        ## d <- max(X %*% (a - bhat), 0)
+        d <- max(X %*% (a - bhat))
         tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
         tij <- tij[DF$event == 1]
         yi <- Y - X %*% bhat - d
@@ -337,13 +338,16 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
 ##############################################################################
 
 doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
+    alpha <- -alpha
+    beta <- -beta
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF0) - 4
     Y <- log(DF0$Time)
     X <- as.matrix(DF0[,-(1:4)])
     status <- DF0$status
     n <- nrow(DF0)
-    d <- max(X %*% (alpha - beta), 0)
+    ## d <- max(X %*% (alpha - beta), 0)
+    d <- max(X %*% (alpha - beta))
     tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
     tij <- tij[DF$event == 1]
     yi <- Y - X %*% beta
@@ -360,7 +364,7 @@ doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
               as.double(yi), as.double(t0.haz), result = double(length(t0.haz)), 
               PACKAGE = "reReg")$result
     rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
-    haz0 <- approxfun(exp(t0.haz), haz, yleft = 0, yright = max(rate), method = "constant")
+    haz0 <- approxfun(exp(t0.haz), haz, yleft = 0, yright = max(haz), method = "constant")
     list(rate0 = rate0, rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
          haz0 = haz0, haz0.lower = NULL, haz0.upper = NULL, t0.haz = exp(t0.haz))
 }
@@ -473,13 +477,13 @@ doNonpara.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
         hyU <- -log(with(survfit(tmp), approx(time, upper, t0)$y))
         hyL <- -log(with(survfit(tmp), approx(time, lower, t0)$y))
     }
-    list(rate0 = approxfun(t0, ly, yleft = 0, yright = max(ly), method = "constant"),
-         rate0.lower = approxfun(t0, lyL, yleft = 0, yright = max(lyL), method = "constant"),
-         rate0.upper = approxfun(t0, lyU, yleft = 0, yright = max(lyU), method = "constant"),
+    list(rate0 = approxfun(t0, ly, yleft = 0, yright = max(ly, na.rm = TRUE), method = "constant"),
+         rate0.lower = approxfun(t0, lyL, yleft = 0, yright = max(lyL, na.rm = TRUE), method = "constant"),
+         rate0.upper = approxfun(t0, lyU, yleft = 0, yright = max(lyU, na.rm = TRUE), method = "constant"),
          t0.rate = t0, 
-         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
-         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL), method = "constant"),
-         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU), method = "constant"),
+         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
+         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
+         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
          t0.haz = t0)
 }
 
@@ -543,9 +547,9 @@ doNonpara.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
                                          exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ,
                                          status[event == 0]))
     win.hy <- max(hy)
-    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
+    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
          rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
-         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
+         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
          haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
 }
 
@@ -588,13 +592,17 @@ doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
             baseHaz(y, exp(Yb), zHat / muZ, status[event == 0], z)))
     hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
     hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
-    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
-         rate0.lower = approxfun(t0, lyL * muZ, yleft = 0, yright = max(lyL * muZ), method = "constant"),
-         rate0.upper = approxfun(t0, lyU * muZ, yleft = 0, yright = max(lyU * muZ), method = "constant"),
+    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
+         rate0.lower = approxfun(t0, lyL * muZ,
+                                 yleft = 0, yright = max(lyL * muZ, na.rm = TRUE), method = "constant"),
+         rate0.upper = approxfun(t0, lyU * muZ,
+                                 yleft = 0, yright = max(lyU * muZ, na.rm = TRUE), method = "constant"),
          t0.rate = t0,
-         haz0 = approx(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
-         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL), method = "constant"),
-         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU), method = "constant"),
+         haz0 = approx(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
+         haz0.lower = approxfun(t0, hyL,
+                                yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
+         haz0.upper = approxfun(t0, hyU,
+                                yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
          t0.haz = t0)
 }
 
@@ -641,13 +649,15 @@ doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
                     status[event == 0], z)))
     hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
     hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
-    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
-         rate0.lower = approxfun(t0, lyL * muZ, yleft = 0, yright = max(lyL * muZ), method = "constant"),
-         rate0.upper = approxfun(t0, lyU * muZ, yleft = 0, yright = max(lyU * muZ), method = "constant"),
+    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
+         rate0.lower = approxfun(t0, lyL * muZ,
+                                 yleft = 0, yright = max(lyL * muZ, na.rm = TRUE), method = "constant"),
+         rate0.upper = approxfun(t0, lyU * muZ,
+                                 yleft = 0, yright = max(lyU * muZ, na.rm = TRUE), method = "constant"),
          t0.rate = t0,
-         haz0 = approx(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
-         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL), method = "constant"),
-         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU), method = "constant"),
+         haz0 = approx(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
+         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
+         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
          t0.haz = t0)
 }
 
