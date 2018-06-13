@@ -396,7 +396,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
         print(plotRate(x, smooth = smooth, return.grob = return.grob, control = control))
     }
     if (baseline == "both" & x$method != "sc.XCYH") {
-         if (is.null(x$rate0.upper)) {
+        if (is.null(x$rate0.upper)) {
             dat1 <- as_tibble(x$DF) %>% mutate(Y = x$rate0(Time)) %>% select(Time, Y)
             dat2 <- as_tibble(x$DF) %>% mutate(Y = x$haz0(Time)) %>% select(Time, Y)
         } else {
@@ -408,7 +408,8 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                 select(Time, Y, Y.upper, Y.lower)
         }
         dat <- bind_rows(dat1, dat2, .id = "group") %>%
-            mutate(group = ifelse(group == 1, "Baseline cumulative rate", "Baseline cumulative hazard"))
+            mutate(group = factor(group, level = 1:2, labels = c("Baseline cumulative rate", "Baseline cumulative hazard")))
+        ## mutate(group = ifelse(group == 1, "Baseline cumulative rate", "Baseline cumulative hazard"))
         gg <- ggplot(data = dat, aes(x = Time, y = Y)) +
             facet_grid(group ~ ., scales = "free") +
             theme(axis.line = element_line(color = "black"),

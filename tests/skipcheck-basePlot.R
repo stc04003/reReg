@@ -6,6 +6,10 @@ fm <- reSurv(Time, id, event, status) ~ x1 + x2
 R0 <- function(x) log(1 + x)
 H0 <- function(x) log(1 + x) / 4
 
+## non-parametric
+set.seed(1)
+fit <- reReg(reSurv(Time, id, event, status) ~ 1, method = "cox.HW", data = dat)
+
 ## Cox type
 dat <- simDat(200, c(1, 1), c(1, 1), type = "cox", indCen = TRUE)
 fit <- reReg(fm, data = dat)
