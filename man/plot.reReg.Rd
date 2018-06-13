@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot.reReg}
 \alias{plot.reReg}
-\title{Plotting Estimated Baseline Cumulative Rate Functions}
+\title{Plotting Baseline Cumulative Rate Function and Baseline Cumulative Hazard Function}
 \usage{
 \method{plot}{reReg}(x, baseline = c("both", "rate", "hazard"),
   smooth = FALSE, return.grob = FALSE, control = list(), ...)
@@ -11,25 +11,34 @@
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
 
 \item{baseline}{a character string specifying which baseline function to plot.
-If "both", both the baseline cumulative rate and hazard function will be plotted in one panel;
-If "rate", the baseline cumulative rate function will be plotted;
-If "hazard", the baseline cumulative hazard function will be plotted.}
+If "\code{both}", both the baseline cumulative rate and baseline cumulative hazard function will be plotted in the same display;
+If "\code{rate}", the baseline cumulative rate function will be plotted;
+If "\code{hazard}", the baseline cumulative hazard function will be plotted.}
 
-\item{smooth}{an optional logical value whether loess smoothing will be applied.}
+\item{smooth}{an optional logical value indicating whether the loess smoothing will be applied.}
 
-\item{return.grob}{an optional logical value.
-If "TRUE", a \code{ggplot2} plot grob will be returned.}
+\item{return.grob}{an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.}
+
+\item{control}{a list of control parameters. See Details.}
 
 \item{...}{for future methods.}
 }
 \description{
-Plot the estimated baseline cumulative rate function and harzard function if available.
+Plot the baseline cumulative rate function and the baseline cumulative harzard function
+(if applicable) for an \code{reReg} object.
+}
+\details{
+The argument \code{control} consists of options with argument defaults to a list with the following values:
+\describe{
+  \item{xlab}{customizable x-label, default value is "Time".}
+  \item{ylab}{customizable y-label, default value is "Subject".}
+  \item{title}{customizable title, default value is "Recurrent event plot".}
+}
 }
 \examples{
 data(readmission, package = "frailtypack")
 fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
-             data = subset(readmission, id < 50),
-             method = "am.XCHWY", se = "resampling", B = 20)
+             data = subset(readmission, id < 50))
 plot(fit)
 }
 \seealso{

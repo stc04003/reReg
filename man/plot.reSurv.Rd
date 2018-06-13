@@ -2,29 +2,22 @@
 % Please edit documentation in R/plot.R
 \name{plot.reSurv}
 \alias{plot.reSurv}
-\title{Produce Event Plots}
+\title{Produce Event Plot or Cumulative Sample Mean Function Plot}
 \usage{
-\method{plot}{reSurv}(x, data, CMF = FALSE, order = TRUE,
-  onePanel = FALSE, return.grob = FALSE, control = list(), ...)
+\method{plot}{reSurv}(x, CSM = FALSE, order = TRUE, return.grob = FALSE,
+  control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reSurv}, usually returned by the \code{reSurv} function.}
 
-\item{data}{an optional data frame in which to interpret the variables occurring in the "formula".}
+\item{CSM}{an optional logical value indicating whether the cumulative sample mean (CSM) function will
+be plotted instead of the defaulted event plot.}
 
-\item{CMF}{an optional logical value.
-If "TRUE", the cumulative sample mean function will be plotted.
-If "FALSE", the event plot will be plotted. The default is \code{CMF = FALSE}.}
+\item{order}{an optional logical value indicating whether the event plot (if \code{CSM = FALSE}) will be sorted by the terminal times.}
 
-\item{order}{an optional logical value.
-If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.}
+\item{return.grob}{an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.}
 
-\item{onePanel}{an optinoal logical value. If "TRUE", only one graphical panel will be displayed.}
-
-\item{return.grob}{an optional logical value.
-If "TRUE", a \code{ggplot2} plot grob will be returned.}
-
-\item{control}{a list of control parameters.}
+\item{control}{a list of control parameters. See Details.}
 
 \item{...}{for future developments.}
 }
@@ -39,8 +32,8 @@ The argument \code{control} consists of options with argument defaults to a list
   \item{title}{customizable title, default value is "Recurrent event plot".}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
   \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
-  \item{recurrent.types}{customizable label for recurrent event type, default value is NULL.}
-  \item{alpha}{controls the transparency of points.}
+  \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
+  \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
 }
 \examples{
@@ -51,11 +44,6 @@ plot(reObj)
 plot(reObj, order = FALSE)
 ## User specified labels
 plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))
-
-## With multiple hypothetical event types
-set.seed(1)
-reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
-plot(reObj2)
 
 ## With multiple hypothetical event types
 set.seed(1)

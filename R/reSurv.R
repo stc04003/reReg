@@ -2,14 +2,14 @@
 #' @rdname reSurv
 #' @title Create an \code{reSurv} Object
 #'
-#' @description Create a recurrent event survival object, used as a response variable in reReg model formula.
+#' @description Create a recurrent event object, used as a response variable in \code{reReg}.
 #'
 #' @param time1 when "\code{time2}" is provided, this vector is treated as the starting time for the gap time between two successive recurrent events.
 #' In the absence of "\code{time2}", this is the observation time of recurrence on calendar time scale, in which, the time corresponds to the time since entry/inclusion in the study.
 #' @param time2 an optional vector for ending time for the gap time between two successive recurrent events.
-#' @param event a binary vector used as the recurrent event indicator.
-#' @param status a binary vector used as the status indicator for the terminal event.
-#' @param id observation subject's id
+#' @param event a binary vector used as the recurrent event indicator. \code{event = 1} for recurrent times.
+#' @param status a binary vector used as the status indicator for the terminal event. \code{status = 0} for censored times.
+#' @param id subject's id
 #' @param origin a numerical vector indicating the time origin of subjects.
 #' When \code{origin} is a scalar, \code{reSurv} assumes all subjects have the same origin.
 #' Otherwise, \code{origin} needs to be a numerical vector, with length equals to the number of subjects.

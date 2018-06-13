@@ -16,11 +16,11 @@ In the absence of "\code{time2}", this is the observation time of recurrence on 
 
 \item{time2}{an optional vector for ending time for the gap time between two successive recurrent events.}
 
-\item{id}{observation subject's id}
+\item{id}{subject's id}
 
-\item{event}{a binary vector used as the recurrent event indicator.}
+\item{event}{a binary vector used as the recurrent event indicator. \code{event = 1} for recurrent times.}
 
-\item{status}{a binary vector used as the status indicator for the terminal event.}
+\item{status}{a binary vector used as the status indicator for the terminal event. \code{status = 0} for censored times.}
 
 \item{origin}{a numerical vector indicating the time origin of subjects.
 When \code{origin} is a scalar, \code{reSurv} assumes all subjects have the same origin.
@@ -31,7 +31,7 @@ This argument is only needed when "\code{time2}" is missing.}
 \item{x}{an \code{reSurv} object.}
 }
 \description{
-Create a recurrent event survival object, used as a response variable in reReg model formula.
+Create a recurrent event object, used as a response variable in \code{reReg}.
 }
 \examples{
 data(readmission, package = "frailtypack")

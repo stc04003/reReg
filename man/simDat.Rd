@@ -14,45 +14,43 @@ simDat(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60,
 
 \item{b}{a numeric vector of parameter of length 2.}
 
-\item{indCen}{a logical value indicating whether independent censoring assumption is imposed.
+\item{indCen}{a logical value indicating whether the censoring assumption is imposed.
 When \code{indCen = TRUE}, we set \eqn{Z = 1}.
 Otherwise, \eqn{Z} is generated from a gamma distribution with mean 1 and variance 0.25
-(e.g., \code{rgamma(1, 4, 4)}).}
+(e.g., \code{rgamma(1, 4, 4)}). See Details.}
 
-\item{type}{a character string specifying the underlying model. See \code{Details}.}
+\item{type}{a character string specifying the underlying model. See Details.}
 
 \item{tau}{a numeric value specifying the maximum observation time.}
 
-\item{summary}{a logical value indicating whether a brief data summary will be printed. Default is FALSE.}
+\item{summary}{a logical value indicating whether a brief data summary will be printed.}
 }
 \description{
 The function \code{simDat} generates simulated recurrent event data from either
 a Cox-type model, an accelerated mean model, or a scale-change model.
-The censoring time could be either independent or informative.
-The simulated data is used for illustraction.
+The censoring time could be either independent (given covariates) or informative.
+The simulated data is used for illustration.
 }
 \details{
 The function \code{simDat} generates simulated recurrent event data under different
 scenarios based on the following assumptions.
-Suppose the recurrent event process and the failure events are observed in the time
-interval \eqn{t\in[0,\tau]}, for some constant \eqn{\tau}.
-Let ...
-
-When \code{type == "cox"}, we assume the rate function of the counting process takes the form
-\deqn{\lambda(t) = Z \lambda_0(t) X^\top\alpha},
-and the hazard function of the failure time satisfies
-\deqn{h(t) = Z h_0(t) X^\top\alpha}.
-
-When \code{type == "am"}, we assume the rate function and the hazard function are
-\deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) X^\top\beta},
-and
-\deqn{h(t) = Z h_0(te^{X^\top\alpha}) X^\top\beta},
-
-When \code{type = "sc"}, we assume the rate function has the form
-\deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) X^\top\beta},
-and ...
-
-For all three types, we assume
-\deqn{\lambda_0(t) = \frac{1}{2 (1 + t)}}.
-For illustration, we generate \eqn{X} from a uncorrelated bivariate standard normal distribution.
+See the Details section in \code{\link{reReg}} for a more complete model assumptions.
+\describe{
+  \item{\code{type == "cox"}}{generates recurrent event data from a Cox-type model with
+\deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top a}, h(t) = Zh_0(t)e^{X^\top b}.}}
+  \item{\code{type == "am"}}{generates recurrent event data from an accelerated mean model with
+\deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top a}, h(t) = Zh_0(te^{X^\top b})e^{X^\top b}.}}
+  \item{\code{type == "sc"}}{generates recurrent event data from a generalized scale-change model with
+\deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top b}, h(t) = Zh_0(te^{X^\top a})e^{X^\top b}.}}
+}
+Let \eqn{D} be the informative failure time with the above hazard function.
+An non-informative failure time, \eqn{C}, is generated separately from an exponential distribution with
+mean 60. The observed follow-up time is then taken to be \eqn{min(D, C, \tau)}.
+We further assume
+\deqn{\lambda_0(t) = \frac{1}{1 + t}, h_0(t) = \frac{1}{4(1 + t)}}.
+Two covariates are considered; \code{x1} follows a Bernoulli distribution
+with probability 0.5 and \code{x2} follows a standard normal distribution.
+}
+\seealso{
+\code{\link{reReg}}
 }

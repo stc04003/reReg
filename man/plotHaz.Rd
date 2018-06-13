@@ -2,24 +2,23 @@
 % Please edit documentation in R/plot.R
 \name{plotHaz}
 \alias{plotHaz}
-\title{Plotting the baseline hazard function}
+\title{Plotting the Baseline Cumulative Hazard Function for the Censoring Time}
 \usage{
 plotHaz(x, smooth = FALSE, return.grob = FALSE, control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
 
-\item{smooth}{an optional logical value whether loess smoothing will be applied.}
+\item{smooth}{an optional logical value indicating whether the loess smoothing will be applied.}
 
-\item{return.grob}{an optional logical value.
-If "TRUE", a \code{ggplot2} plot grob will be returned.}
+\item{return.grob}{an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.}
 
 \item{control}{a list of control parameters.}
 
 \item{...}{for future developments.}
 }
 \description{
-Plot the baseline hazard function after fitting \code{reReg}.
+Plot the baseline cumulative hazard function for an \code{reReg} object.
 }
 \details{
 The argument \code{control} consists of options with argument
@@ -45,5 +44,5 @@ plotHaz(fit)
 plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))  
 }
 \seealso{
-\code{\link{reReg}}
+\code{\link{reReg}} \code{\link{plot.reReg}}
 }

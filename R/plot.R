@@ -1,6 +1,7 @@
-globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd", "n.x", "mu", "n", "CMF"))
+globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd", "n.x", "mu", "n", "CSM"))
+globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for plot.reReg
 
-#' Produce Event Plots
+#' Produce Event Plot or Cumulative Sample Mean Function Plot
 #'
 #' Plot the event plot for an \code{reSurv} object.
 #'
@@ -11,21 +12,17 @@ globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd
 #'   \item{title}{customizable title, default value is "Recurrent event plot".}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
 #'   \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
-#'   \item{recurrent.types}{customizable label for recurrent event type, default value is NULL.}
-#'   \item{alpha}{controls the transparency of points.}
+#'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
+#'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
 #' 
 #' @param x an object of class \code{reSurv}, usually returned by the \code{reSurv} function.
-#' @param data an optional data frame in which to interpret the variables occurring in the "formula".
-#' @param order an optional logical value.
-#' If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.
-#' @param return.grob an optional logical value.
-#' If "TRUE", a \code{ggplot2} plot grob will be returned.
-#' @param onePanel an optinoal logical value. If "TRUE", only one graphical panel will be displayed.
-#' @param control a list of control parameters.
-#' @param CMF an optional logical value.
-#' If "TRUE", the cumulative sample mean function will be plotted.
-#' If "FALSE", the event plot will be plotted. The default is \code{CMF = FALSE}.
+## #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
+#' @param order an optional logical value indicating whether the event plot (if \code{CSM = FALSE}) will be sorted by the terminal times.
+#' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.
+#' @param control a list of control parameters. See Details.
+#' @param CSM an optional logical value indicating whether the cumulative sample mean (CSM) function will
+#' be plotted instead of the defaulted event plot.
 #' @param ... for future developments.
 #' @seealso \code{\link{reSurv}}
 #' @keywords plot.reSurv
@@ -44,17 +41,13 @@ globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd
 #' set.seed(1)
 #' reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 #' plot(reObj2)
-#'
-#' ## With multiple hypothetical event types
-#' set.seed(1)
-#' reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
-#' plot(reObj2)
-plot.reSurv <- function(x, data, CMF = FALSE, order = TRUE,
-                        onePanel = FALSE, return.grob = FALSE, control = list(), ...) {
-    if (!CMF)
-        return(plotEvents(x, data, order = order, return.grob = return.grob, control = control))
-    if (CMF)
-        return(plotCMF(x, data, onePanel = onePanel, return.grob = return.grob, control = control))
+plot.reSurv <- function(x, CSM = FALSE, order = TRUE,
+                        return.grob = FALSE, control = list(), ...) {
+    if (!is.reSurv(x)) stop("Response must be a reSurv class")
+    if (!CSM)
+        return(plotEvents(x, order = order, return.grob = return.grob, control = control))
+    if (CSM)
+        return(plotCSM(x, onePanel = TRUE, return.grob = return.grob, control = control))
 }
 
 #' Produce Event Plots
@@ -68,20 +61,17 @@ plot.reSurv <- function(x, data, CMF = FALSE, order = TRUE,
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
 #'   \item{title}{customizable title, default value is "Recurrent event plot".}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-#'   \item{recurrent.name}{customizable label for recurrent event,
-#' default value is "Recurrent event plot".}
-#'   \item{recurrent.types}{customizable label for recurrent event type, default value is NULL.}
-#'   \item{alpha}{controls the transparency of points.}
+#'   \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
+#'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
+#'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator,
-#' and the terms on the right.
+#' and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
-#' @param data an optional data frame in which to interpret the variables occurring in the "formula".
-#' @param order an optional logical value.
-#' If "TRUE", the event plot is sorted by the terminal times; the default value is TRUE.
-#' @param return.grob an optional logical value.
-#' If "TRUE", a \code{ggplot2} plot grob will be returned.
+#' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
+#' @param order an optional logical value indicating whether the event plot will be sorted by the terminal times.
+#' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.
 #' @param control a list of control parameters.
 #' @param ... for future developments.
 #' @seealso \code{\link{reSurv}}, \code{\link{plot.reSurv}}
@@ -199,9 +189,9 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
     } else {return(ggplotGrob(gg))}
 }
 
-#' Produce Cumulative Sample Mean Function Plot
+#' Produce Cumulative Sample Mean Function Plots
 #'
-#' Plot the cumulative sample mean function for an \code{reSurv} object, with more flexible options.
+#' Plot the cumulative sample mean function (CSM) for an \code{reSurv} object, with more flexible options.
 #'
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
@@ -210,19 +200,17 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #'   \item{title}{customizable title, default value is "Recurrent event plot".}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
 #'   \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
-#'   \item{recurrent.types}{customizable label for recurrent event type, default value is NULL.}
-#'   \item{alpha}{controls the transparency of points.}
+#'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
+#'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
 #' 
-#' @param formula  a formula object, with the response on the left of a "~" operator, and the terms on the right.
+#' @param formula  a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
-#' @param data an optional data frame in which to interpret the variables occurring in the "formula".
-#' @param return.grob an optional logical value.
-#' If "TRUE", a \code{ggplot2} plot grob will be returned.
-#' @param adjrisk an optional logical value.
-#' If "TRUE", event times with \code{event == 0} will be treated as
-#' (independent) censoring time, and risk set sizes are adjusted accordingly. 
-#' @param onePanel an optinoal logical value. If "TRUE", only one graphical panel will be displayed.
+#' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
+#' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.
+#' @param adjrisk an optional logical value indicating whether risk set will be adjusted. See Details.
+#' @param onePanel an optional logical value indicating whether cumulative sample means (CSM) will be plotted in the same panel.
+#' This is useful when comparing CSM from different groups.
 #' @param control a list of control parameters.
 #' @param ... for future developments.
 #' @seealso \code{\link{reSurv}}, \code{\link{plot.reSurv}}
@@ -233,8 +221,10 @@ plotEvents <- function(formula, data, order = TRUE, return.grob = FALSE, control
 #' 
 #' @examples
 #' data(readmission, package = "frailtypack")
-#' plotCMF(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
-plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE,
+#' plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
+#' plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
+#' plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE)
+plotCSM <- function(formula, data, onePanel = FALSE, return.grob = FALSE,
                     adjrisk = TRUE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
@@ -284,22 +274,20 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE,
             mutate(adjrisk = n.y - sum(rec0$n.x[Time > rec0$Time & rec0$GrpInd == GrpInd])) %>% unrowwise
         if (adjrisk) {
             dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")"))) %>%
-                mutate(mu = n.x / adjrisk, CMF = cumsum(mu))
+                mutate(mu = n.x / adjrisk, CSM = cumsum(mu))
         } else {
             dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")"))) %>%
-                mutate(mu = n.x / n.y, CMF = cumsum(mu))
+                mutate(mu = n.x / n.y, CSM = cumsum(mu))
         }
-        ## dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")")))
-        ## dat0 <- dat0 %>% filter(recType > 0) %>% mutate(CMF = cumsum(mu))
     } else {
         rec0 <- tmp1 %>% filter(recType == 0)
         dat0 <- tmp1 %>% filter(recType > 0) %>% rowwise() %>%
             mutate(n.y = length(unique(dat1$id)), adjrisk = n.y - sum(rec0$n[Time > rec0$Time]))  %>%
             unrowwise
         if (adjrisk) {
-            dat0 <- dat0 %>% mutate(mu = n / adjrisk, CMF = cumsum(mu))
+            dat0 <- dat0 %>% mutate(mu = n / adjrisk, CSM = cumsum(mu))
         } else {
-            dat0 <- dat0 %>% mutate(mu = n / n.y, CMF = cumsum(mu))
+            dat0 <- dat0 %>% mutate(mu = n / n.y, CSM = cumsum(mu))
         }
     }
     k <- length(unique(unlist(dat0$recType)))
@@ -315,13 +303,13 @@ plotCMF <- function(formula, data, onePanel = FALSE, return.grob = FALSE,
         }
     }
     if (!onePanel) {
-    gg <- ggplot(data = dat0, aes(x = Time, y = CMF)) +
+    gg <- ggplot(data = dat0, aes(x = Time, y = CSM)) +
         geom_step(aes(color = recType), direction = "hv")
     } else {
         rText <- paste("geom_step(aes(color = interaction(",
                        paste(names(dat0)[5:ncol(dat1) - 4], collapse = ","),
                        ")), direction = \"hv\")")
-        gg <- ggplot(data = dat0, aes(x = Time, y = CMF)) +
+        gg <- ggplot(data = dat0, aes(x = Time, y = CSM)) +
             eval(parse(text = rText))
     }
     if (!onePanel && nX > 0 && formula[[3]] != 1) 
@@ -354,18 +342,26 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
          recurrent.type = recurrent.type, alpha = alpha)
 }
 
-#' Plotting Estimated Baseline Cumulative Rate Functions
+#' Plotting Baseline Cumulative Rate Function and Baseline Cumulative Hazard Function
 #'
-#' Plot the estimated baseline cumulative rate function and harzard function if available.
+#' Plot the baseline cumulative rate function and the baseline cumulative harzard function
+#' (if applicable) for an \code{reReg} object.
 #'
+#' The argument \code{control} consists of options with argument defaults to a list with the following values:
+#' \describe{
+#'   \item{xlab}{customizable x-label, default value is "Time".}
+#'   \item{ylab}{customizable y-label, default value is "Subject".}
+#'   \item{title}{customizable title, default value is "Recurrent event plot".}
+#' }
+#' 
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
-#' @param smooth an optional logical value whether loess smoothing will be applied.
-#' @param return.grob an optional logical value.
-#' If "TRUE", a \code{ggplot2} plot grob will be returned.
+#' @param smooth an optional logical value indicating whether the loess smoothing will be applied.
+#' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.
 #' @param baseline a character string specifying which baseline function to plot.
-#' If "both", both the baseline cumulative rate and hazard function will be plotted in one panel;
-#' If "rate", the baseline cumulative rate function will be plotted;
-#' If "hazard", the baseline cumulative hazard function will be plotted.
+#' If "\code{both}", both the baseline cumulative rate and baseline cumulative hazard function will be plotted in the same display;
+#' If "\code{rate}", the baseline cumulative rate function will be plotted;
+#' If "\code{hazard}", the baseline cumulative hazard function will be plotted.
+#' @param control a list of control parameters. See Details.
 #' @param ... for future methods.
 #' 
 #' @seealso \code{\link{reReg}}
@@ -377,8 +373,7 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #' @examples
 #' data(readmission, package = "frailtypack")
 #' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
-#'              data = subset(readmission, id < 50),
-#'              method = "am.XCHWY", se = "resampling", B = 20)
+#'              data = subset(readmission, id < 50))
 #' plot(fit)
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                        smooth = FALSE, return.grob = FALSE, control = list(), ...) {
@@ -415,7 +410,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
         dat <- bind_rows(dat1, dat2, .id = "group") %>%
             mutate(group = ifelse(group == 1, "Baseline cumulative rate", "Baseline cumulative hazard"))
         gg <- ggplot(data = dat, aes(x = Time, y = Y)) +
-            facet_grid(group ~ ., scale = "free") +
+            facet_grid(group ~ ., scales = "free") +
             theme(axis.line = element_line(color = "black"),
                   strip.text = element_text(face = "bold", size = 12))   
         if (smooth) {
@@ -439,9 +434,9 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
     }
 }
 
-#' Plotting the baseline rate function
+#' Plotting the Baseline Cumulative Rate Function for the Recurrent Event Process
 #'
-#' Plot the baseline rate function after fitting \code{reReg}.
+#' Plot the baseline rate function for an \code{reReg} object.
 #' 
 #' The argument \code{control} consists of options with argument defaults
 #' to a list with the following values:
@@ -452,13 +447,12 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' }
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
+#' @param smooth an optional logical value indicating whether the loess smoothing will be applied.
+#' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned. 
 #' @param control a list of control parameters.
-#' @param smooth an optional logical value whether loess smoothing will be applied.
-#' @param return.grob an optional logical value.
-#' If "TRUE", a \code{ggplot2} plot grob will be returned.
 #' @param ... for future developments.
 #'
-#' @seealso \code{\link{reReg}}
+#' @seealso \code{\link{reReg}} \code{\link{plot.reReg}}
 #' @export
 #'
 #' @examples
@@ -509,9 +503,10 @@ plotRate <- function(x, smooth = FALSE, return.grob = FALSE, control = list(), .
     if (!return.grob) gg + ggtitle(ctrl$title) + labs(x = ctrl$xlab, y = ctrl$ylab)
     else ggplotGrob(gg)
 }
-#' Plotting the baseline hazard function
+
+#' Plotting the Baseline Cumulative Hazard Function for the Censoring Time
 #'
-#' Plot the baseline hazard function after fitting \code{reReg}.
+#' Plot the baseline cumulative hazard function for an \code{reReg} object.
 #'
 #' The argument \code{control} consists of options with argument
 #' defaults to a list with the following values:
@@ -522,13 +517,12 @@ plotRate <- function(x, smooth = FALSE, return.grob = FALSE, control = list(), .
 #' }
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
-#' @param smooth an optional logical value whether loess smoothing will be applied.
-#' @param return.grob an optional logical value.
-#' If "TRUE", a \code{ggplot2} plot grob will be returned.
+#' @param smooth an optional logical value indicating whether the loess smoothing will be applied.
+#' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.
 #' @param control a list of control parameters.
 #' @param ... for future developments.
 #' 
-#' @seealso \code{\link{reReg}}
+#' @seealso \code{\link{reReg}} \code{\link{plot.reReg}}
 #' @export
 #'
 #' @examples
