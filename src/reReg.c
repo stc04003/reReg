@@ -273,48 +273,29 @@ void scaleChangeGehan(int*n, int *p, int *start, int *M, double *y,
   }
 }
 
-// from aftsrr
 
-// log-rank type estimating function (non-smooth); old name = ulognsfun
-void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
-		int *n, int *p, int *N, double *weights, double *gw, double *sn) {
-  int i, j, k, l, ik_idx = 0, jl_idx, r;
-  double *e = Calloc(*N, double), *nu = Calloc(*p, double);
-  double de = 0.0;
-  for (i = 0; i < *N; i++) {
-    e[i] = 0.0;
-    for (j = 0; j < *p; j++) {
-      e[i] += X[j * *N + i] * beta[j];
-    }
-    e[i] = Y[i] - e[i];
-  }
-  for (i = 0; i < *n; i++) {
-    for (k = 0; k < clsize[i]; k++) {
-      if (delta[ik_idx] != 0) {
-	/* reset nu */
-	for ( r = 0; r < *p; r++) {
-	  nu[r] = 0.0;
-	}
-	de = 0.0;
-	jl_idx = 0;
-	for (j = 0; j < *n; j++) {
-	  for (l = 0; l < clsize[j]; l++) {
-	    if (e[ik_idx] - e[jl_idx] <= 0) {
-	      for ( r = 0; r < *p; r++) {
-		nu[r] += X[jl_idx + r * *N] * weights[jl_idx];
-	      }
-	      de += weights[jl_idx];
+// \code{scRate} gives rates for the scale-change model (method = sc.XCYH)
+// From the paper, this is
+// \hat{H}_n(t; \hat\alpha) = \int_t^\tau \frac{\sum_{i=1}^n dN*....}{\sum_{i=1}^nR_i^*...}
+//
+// notations are defined similarly as that in glRate
+void scRate(int *n, int *start, int *M, int *nt0, double *W, 
+	    double *yi, double *tij, double *t0, double *result) {
+  int i, j, k, l, r;
+  double de = 0;
+  for (r = 0; r < *nt0; r++) {
+    for (i = 0; i < *n; i++) {
+      for (k = 0; k < M[i]; k++) {
+	if (tij[start[i] + k] >= t0[r] && tij[start[i] + k] <= yi[i]) {
+	  for (j = 0; j < *n; j++) {
+	    for (l = 0; l < M[j]; l++) {
+	      if (tij[start[j] + l] <= tij[start[i] + k] && tij[start[i] + k] <= yi[j]) de += W[j];
 	    }
-	    jl_idx++;
 	  }
-	}  // end jl
-	for (r =  0; r < *p; r++) {
-	  sn[r] += weights[ik_idx] * gw[ik_idx] * (X[ik_idx + r * *N] - nu[r] / de);
+	  if (de > 0) result[r] += W[i] / de;
+	  de = 0;
 	}
       }
-      ik_idx++;
     }
   }
-  Free(nu);
-  Free(e);
 }

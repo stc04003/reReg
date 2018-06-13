@@ -208,7 +208,7 @@ doREFit.sc.XCYH <- function(DF, engine, stdErr) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
-    out <- with(df, sarmRV(id, Time, y, df[,-(1:4)], m, seq(0, max(Time), length.out = 100), engine))
+    out <- with(df, sarmRV(id, Time, y, df[,-(1:4)], m, engine))
     list(alpha = out$ahat, beta = out$bhat, log.muZ = out$LamTau, lam0 = out$lamY,
          values = c(out$a.value, out$g.value))
 }
@@ -324,7 +324,7 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
-    out <- with(df, sarmRV(id, Time, y, df[,-(1:4)], m, seq(0, max(Time), length.out = 100), engine))
+    out <- with(df, sarmRV(id, Time, y, df[,-(1:4)], m, engine))
     outSE <- with(df, sarmRV.sand(id, Time, y, df[,-(1:4)], m,
                                   a = out$ahat, b = out$ghat, Bootstrap = stdErr@B, engine))
     list(alpha = out$ahat, beta = out$bhat, alphaSE = outSE$alphaSE, betaSE = outSE$betaSE,
@@ -336,13 +336,68 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
 ##############################################################################
 # Nonparametric (~1)
 ##############################################################################
+doNonpara.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
+    DF0 <- subset(DF, event == 0)
+    p <- ncol(DF) - 4
+    X <- as.matrix(DF0[,-(1:4)])
+    yi <- log(DF0$Time) - X %*% alpha
+    n <- nrow(DF0)
+    tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
+    tij <- tij[DF$event == 1]
+    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    index <- c(1, cumsum(m)[-n] + 1)
+    t0.rate <- unique(sort(tij)) ## log scale
+    rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
+               as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
+               as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
+               PACKAGE = "reReg")$result
+    rate <- exp(-rate)
+    rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
+    list(rate0 = rate0,  rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
+         haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
+}
+
+doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
+    DF0 <- subset(DF, event == 0)
+    p <- ncol(DF) - 4
+    X <- as.matrix(DF0[,-(1:4)])
+    yi <- log(DF0$Time) - X %*% alpha
+    n <- nrow(DF0)
+    tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
+    tij <- tij[DF$event == 1]
+    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    index <- c(1, cumsum(m)[-n] + 1)
+    t0.rate <- unique(sort(tij)) ## log scale
+    rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
+               as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
+               as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
+               PACKAGE = "reReg")$result
+    rate <- exp(-rate)
+    rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
+    B <- stdErr@B
+    rateMat <- matrix(NA, B, length(t0.rate))
+    for (i in 1:B) {
+        W <- rexp(n)
+        rateMat[i,] <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
+                          as.integer(length(t0.rate)), as.double(W), as.double(yi),
+                          as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
+                          PACKAGE = "reReg")$result
+        rateMat[i,] <- exp(-rateMat[i,])
+    }
+    rl <- apply(rateMat, 2, quantile, prob = .025)
+    ru <- apply(rateMat, 2, quantile, prob = .975)
+    list(rate0 = rate0,
+         rate0.lower = approxfun(exp(t0.rate), rl, yleft = 0, yright = max(rl), method = "constant"),
+         rate0.upper = approxfun(exp(t0.rate), ru, yleft = 0, yright = max(ru), method = "constant"),
+         t0.rate = exp(t0.rate),
+         haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
+}
 
 doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     alpha <- -alpha
     beta <- -beta
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF0) - 4
-    Y <- log(DF0$Time)
     X <- as.matrix(DF0[,-(1:4)])
     status <- DF0$status
     n <- nrow(DF0)
@@ -350,14 +405,14 @@ doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     d <- max(X %*% (alpha - beta))
     tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
     tij <- tij[DF$event == 1]
-    yi <- Y - X %*% beta
+    yi <- log(DF0$Time) - X %*% beta
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
     t0.rate <- unique(sort(tij)) # log scale
     t0.haz <- unique(sort(yi))
-    rate <- .C("glRate", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
+    rate <- .C("glRate", as.integer(n), as.integer(index - 1), as.integer(m),
                as.integer(length(t0.rate)),
-               as.double(yi - d), as.double(tij), as.double(X), as.double(t0.rate), 
+               as.double(yi - d), as.double(tij), as.double(t0.rate), 
                result = double(length(t0.rate)), 
                PACKAGE = "reReg")$result
     haz <- .C("glHaz", as.integer(n), as.integer(status), as.integer(length(t0.haz)),
@@ -384,16 +439,16 @@ doNonpara.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
         rateMat[i,] <- tmp$rate0(PE$t0.rate)
         hazMat[i,] <- tmp$haz0(PE$t0.rate)
     }
-    rlower <- apply(rateMat, 2, quantile, prob = .025)
-    rupper <- apply(rateMat, 2, quantile, prob = .975)
-    hlower <- apply(hazMat, 2, quantile, prob = .025)
-    hupper <- apply(hazMat, 2, quantile, prob = .975)
+    rl <- apply(rateMat, 2, quantile, prob = .025)
+    ru <- apply(rateMat, 2, quantile, prob = .975)
+    hl <- apply(hazMat, 2, quantile, prob = .025)
+    hu <- apply(hazMat, 2, quantile, prob = .975)
     list(rate0 = PE$rate0,
-         rate0.lower = approxfun(PE$t0.rate, rlower, yleft = 0, yright = max(rlower), method = "constant"),
-         rate0.upper = approxfun(PE$t0.rate, rupper, yleft = 0, yright = max(rupper), method = "constant"),
+         rate0.lower = approxfun(PE$t0.rate, rl, yleft = 0, yright = max(rl), method = "constant"),
+         rate0.upper = approxfun(PE$t0.rate, ru, yleft = 0, yright = max(ru), method = "constant"),
          haz0 = PE$haz0,
-         haz0.lower = approxfun(PE$t0.haz, hlower, yleft = 0, yright = max(hlower), method = "constant"),
-         haz0.upper = approxfun(PE$t0.haz, hupper, yleft = 0, yright = max(hupper), method = "constant"))         
+         haz0.lower = approxfun(PE$t0.haz, hl, yleft = 0, yright = max(hl), method = "constant"),
+         haz0.upper = approxfun(PE$t0.haz, hu, yleft = 0, yright = max(hu), method = "constant"))
 }
 
 doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
@@ -722,8 +777,9 @@ setMethod("doNonpara", signature(engine = "am.GL", stdErr = "bootstrap"), doNonp
 setMethod("doNonpara", signature(engine = "am.GL", stdErr = "NULL"), doNonpara.am.GL)
 
 ## general model
-setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
-setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara.SE.am.XCHWY)
+setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "bootstrap"), doNonpara.SE.sc.XCYH)
+setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "resampling"), doNonpara.SE.sc.XCYH)
+setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara.sc.XCYH)
 
 ##############################################################################
 ## User's Main Function
@@ -874,12 +930,12 @@ reReg <- function(formula, data, B = 200,
     ## reset ID
     DF$id <- rep(1:length(unique(DF$id)), table(DF$id))
     engine.control <- control[names(control) %in% names(attr(getClass(method), "slots"))]
-    engine <- do.call("new", c(list(Class=method), engine.control))
+    engine <- do.call("new", c(list(Class = method), engine.control))
     if (se == "NULL")
         stdErr <- NULL
     else {
         stdErr.control <- control[names(control) %in% names(attr(getClass(se), "slots"))]
-        stdErr <- do.call("new", c(list(Class=se), stdErr.control))
+        stdErr <- do.call("new", c(list(Class = se), stdErr.control))
         stdErr@B <- B
     }
     p <- ncol(DF) - 4
@@ -903,19 +959,16 @@ reReg <- function(formula, data, B = 200,
         }
     } else {
         fit <- doREFit(DF = DF, engine = engine, stdErr = stdErr)
-        if (method != "sc.XCYH") {
-            if (plot.ci) {
-                stdErr.np.control <- control[names(control) %in% names(attr(getClass("bootstrap"), "slots"))]
-                stdErr.np <- do.call("new", c(list(Class = "bootstrap"), stdErr.np.control))
-                stdErr.np@B <- B
+        if (plot.ci) {
+            stdErr.np.control <- control[names(control) %in% names(attr(getClass("bootstrap"), "slots"))]
+            stdErr.np <- do.call("new", c(list(Class = "bootstrap"), stdErr.np.control))
+            stdErr.np@B <- B
             fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta,
                                     engine = engine, stdErr = stdErr.np))
-            } else {
-                fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, 
-                                        engine = engine, stdErr = NULL))
-            }
+        } else {
+            fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, 
+                                    engine = engine, stdErr = NULL))
         }
-            
     }
     class(fit) <- "reReg"
     fit$reTb <- obj$reTb
@@ -1066,7 +1119,7 @@ coefEq <- function(alpha, gamma, X, Y, T, cluster, mt, weights = NULL) {
 ## General modes in R, need to move this to C sometimes
 #########################################################
 
-sarmRV <- function(id, Tij, Yi, X, M, lamEva = NULL, engine) {
+sarmRV <- function(id, Tij, Yi, X, M, engine) {
     n <- length(unique(id))
     X <- as.matrix(X)
     p <- ncol(X)

@@ -362,11 +362,16 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #' @param smooth an optional logical value whether loess smoothing will be applied.
 #' @param return.grob an optional logical value.
 #' If "TRUE", a \code{ggplot2} plot grob will be returned.
+#' @param baseline a character string specifying which baseline function to plot.
+#' If "both", both the baseline cumulative rate and hazard function will be plotted in one panel;
+#' If "rate", the baseline cumulative rate function will be plotted;
+#' If "hazard", the baseline cumulative hazard function will be plotted.
 #' @param ... for future methods.
-#'
+#' 
 #' @seealso \code{\link{reReg}}
 #' @export
 #' @keywords plot.reReg
+#' 
 #' @importFrom dplyr bind_rows
 #' @importFrom ggplot2 geom_smooth geom_step
 #' @examples
@@ -375,7 +380,8 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #'              data = subset(readmission, id < 50),
 #'              method = "am.XCHWY", se = "resampling", B = 20)
 #' plot(fit)
-plot.reReg <- function(x, smooth = FALSE, return.grob = FALSE, control = list(), ...) {
+plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
+                       smooth = FALSE, return.grob = FALSE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -385,41 +391,51 @@ plot.reReg <- function(x, smooth = FALSE, return.grob = FALSE, control = list(),
     if (!("xlab" %in% namc)) ctrl$xlab = "Time"
     if (!("ylab" %in% namc)) ctrl$ylab = ""
     if (!is.reReg(x)) stop("Response must be a reReg class")
-    ## if (x$method == "sc.XCYH") stop("Rate function plot is not yet available for method = sc.XCYH") 
-    if (is.null(x$rate0.upper)) {
-        dat1 <- as_tibble(x$DF) %>% mutate(Y = x$rate0(Time)) %>% select(Time, Y)
-        dat2 <- as_tibble(x$DF) %>% mutate(Y = x$haz0(Time)) %>% select(Time, Y)
-    } else {
-        dat1 <- as_tibble(x$DF) %>%
-            mutate(Y = x$rate0(Time), Y.upper = x$rate0.upper(Time), Y.lower = x$rate0.lower(Time)) %>%
-            select(Time, Y, Y.upper, Y.lower)
-        dat2 <- as_tibble(x$DF) %>%
-            mutate(Y = x$haz0(Time), Y.upper = x$haz0.upper(Time), Y.lower = x$haz0.lower(Time)) %>%
-            select(Time, Y, Y.upper, Y.lower)
+    baseline <- match.arg(baseline)
+    if (baseline == "rate")
+        print(plotRate(x, smooth = smooth, return.grob = return.grob, control = control))
+    if (baseline == "hazard")
+        print(plotHaz(x, smooth = smooth, return.grob = return.grob, control = control))
+    if (baseline == "both" & x$method == "sc.XCYH") {
+        print('Warning: baseline cumulative hazard function is not available for method = "sc.XCYH".')
+        print(plotRate(x, smooth = smooth, return.grob = return.grob, control = control))
     }
-    dat <- bind_rows(dat1, dat2, .id = "group") %>%
-        mutate(group = ifelse(group == 1, "Baseline cumulative rate", "Baseline cumulative hazard"))
-    gg <- ggplot(data = dat, aes(x = Time, y = Y)) +
-        facet_grid(group ~ ., scale = "free") +
-        theme(axis.line = element_line(color = "black"),
-              strip.text = element_text(face = "bold", size = 12))   
-    if (smooth) {
-        gg <- gg + geom_smooth(se = FALSE, method = "loess", col = 1)
-        if (!is.null(x$rate0.upper))
-            gg <- gg + geom_smooth(aes(x = Time, y = Y.upper),
-                                   col = 1, se = FALSE, method = "loess", lty = 2) +
-                geom_smooth(aes(x = Time, y = Y.lower),
-                            col = 1, se = FALSE, method = "loess", lty = 2)
-    } else {
-        gg <- gg + geom_step()
-        if (!is.null(x$rate0.upper))
-            gg <- gg + geom_step(aes(x = Time, y = Y.upper), lty = 2)+ 
-                geom_step(aes(x = Time, y = Y.lower), lty = 2)
-    }
-    if (!return.grob) {
-        gg + ggtitle(ctrl$title) + labs(y = ctrl$ylab, x = ctrl$xlab)
-    } else {
-        return(ggplotGrob(gg))
+    if (baseline == "both" & x$method != "sc.XCYH") {
+         if (is.null(x$rate0.upper)) {
+            dat1 <- as_tibble(x$DF) %>% mutate(Y = x$rate0(Time)) %>% select(Time, Y)
+            dat2 <- as_tibble(x$DF) %>% mutate(Y = x$haz0(Time)) %>% select(Time, Y)
+        } else {
+            dat1 <- as_tibble(x$DF) %>%
+                mutate(Y = x$rate0(Time), Y.upper = x$rate0.upper(Time), Y.lower = x$rate0.lower(Time)) %>%
+                select(Time, Y, Y.upper, Y.lower)
+            dat2 <- as_tibble(x$DF) %>%
+                mutate(Y = x$haz0(Time), Y.upper = x$haz0.upper(Time), Y.lower = x$haz0.lower(Time)) %>%
+                select(Time, Y, Y.upper, Y.lower)
+        }
+        dat <- bind_rows(dat1, dat2, .id = "group") %>%
+            mutate(group = ifelse(group == 1, "Baseline cumulative rate", "Baseline cumulative hazard"))
+        gg <- ggplot(data = dat, aes(x = Time, y = Y)) +
+            facet_grid(group ~ ., scale = "free") +
+            theme(axis.line = element_line(color = "black"),
+                  strip.text = element_text(face = "bold", size = 12))   
+        if (smooth) {
+            gg <- gg + geom_smooth(se = FALSE, method = "loess", col = 1)
+            if (!is.null(x$rate0.upper))
+                gg <- gg + geom_smooth(aes(x = Time, y = Y.upper),
+                                       col = 1, se = FALSE, method = "loess", lty = 2) +
+                    geom_smooth(aes(x = Time, y = Y.lower),
+                                col = 1, se = FALSE, method = "loess", lty = 2)
+        } else {
+            gg <- gg + geom_step()
+            if (!is.null(x$rate0.upper))
+                gg <- gg + geom_step(aes(x = Time, y = Y.upper), lty = 2)+ 
+                    geom_step(aes(x = Time, y = Y.lower), lty = 2)
+        }
+        if (!return.grob) {
+            gg + ggtitle(ctrl$title) + labs(y = ctrl$ylab, x = ctrl$xlab)
+        } else {
+            return(ggplotGrob(gg))
+        }
     }
 }
 
@@ -529,6 +545,9 @@ plotRate <- function(x, smooth = FALSE, return.grob = FALSE, control = list(), .
 #' ## Plot with user-specified labels
 #' plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))  
 plotHaz <- function(x, smooth = FALSE, return.grob = FALSE, control = list(), ...) {
+    if (x$method== "sc.XCYH") {
+        stop('Warning: baseline cumulative hazard function is not available for method = sc.XCYH.')
+    }
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 

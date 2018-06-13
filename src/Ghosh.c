@@ -40,15 +40,14 @@ void glU2(int *n, int *p, int *start, int *M,
   Free(nu);
 }
 
-// \code{glRate} gives individual rates in GL (2003) [the integral term in \hat R_0].
+// \code{glRate} gives rates in GL (2003) [the integral term in \hat R_0].
 // From the paper, this is
 // \sum_{k = 1}^{m_i}\frac{I(...)}{\sum_{j = 1}^nI(...)}
 //
-// notations are defined similarly as in glU2,
+// notations are defined similarly as that in glU2,
 // except that *result returns a vector with length equals to all possible jumps, length(unique(tij))
-void glRate(int *n, int *p, int *start, int *M, int *nt0, 
-	    double *yi, double *tij, double *X, double *t0, 
-	    double *result) {
+void glRate(int *n, int *start, int *M, int *nt0, 
+	    double *yi, double *tij, double *t0, double *result) {
   int i, j, k, r;
   double de = 0;
   for (r = 0; r < *nt0; r++) {
@@ -66,11 +65,11 @@ void glRate(int *n, int *p, int *start, int *M, int *nt0,
   }
 }
 
-// \code{glHaz} gives individual hazard in GL (2003) [the integral term in \hat \Lambda]
+// \code{glHaz} gives hazard in GL (2003) [the integral term in \hat \Lambda]
 // From the paper, this is
 // \frac{\Delta_i}{\sum_{j = 1}^nI(...)}
 //
-// notations similar to glRate
+// notations similar to that in glRate
 void glHaz(int *n, int *status, int *ny0, double *yi, double *y0, double *result) {
   int i, j, r;
   double de = 0;
@@ -85,6 +84,53 @@ void glHaz(int *n, int *status, int *ny0, double *yi, double *y0, double *result
       }
     } // end i
   }
+}
+
+
+// from aftsrr
+// log-rank type estimating function (non-smooth)
+// used for regression with method = am.GL
+void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
+		int *n, int *p, int *N, double *weights, double *gw, double *sn) {
+  int i, j, k, l, ik_idx = 0, jl_idx, r;
+  double *e = Calloc(*N, double), *nu = Calloc(*p, double);
+  double de = 0.0;
+  for (i = 0; i < *N; i++) {
+    e[i] = 0.0;
+    for (j = 0; j < *p; j++) {
+      e[i] += X[j * *N + i] * beta[j];
+    }
+    e[i] = Y[i] - e[i];
+  }
+  for (i = 0; i < *n; i++) {
+    for (k = 0; k < clsize[i]; k++) {
+      if (delta[ik_idx] != 0) {
+	/* reset nu */
+	for ( r = 0; r < *p; r++) {
+	  nu[r] = 0.0;
+	}
+	de = 0.0;
+	jl_idx = 0;
+	for (j = 0; j < *n; j++) {
+	  for (l = 0; l < clsize[j]; l++) {
+	    if (e[ik_idx] - e[jl_idx] <= 0) {
+	      for ( r = 0; r < *p; r++) {
+		nu[r] += X[jl_idx + r * *N] * weights[jl_idx];
+	      }
+	      de += weights[jl_idx];
+	    }
+	    jl_idx++;
+	  }
+	}  // end jl
+	for (r =  0; r < *p; r++) {
+	  sn[r] += weights[ik_idx] * gw[ik_idx] * (X[ik_idx + r * *N] - nu[r] / de);
+	}
+      }
+      ik_idx++;
+    }
+  }
+  Free(nu);
+  Free(e);
 }
 
 void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz,
@@ -121,43 +167,5 @@ void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz,
   }
   Free(nu);
 }
-
-
-/* void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz, int *n, int *p, double *res) { */
-/*   int i, j, k, l, r;  */
-/*   double *nu = Calloc(*p, double);  */
-/*   double de; */
-/*   for (i = 0; i < *n; i++) { */
-/*     for (k = 0; k < cl[i]; k++) { */
-/*       //if (Y[i] >= Tik[clsz[i] + k]) { */
-/* 	de = 0.0; */
-/* 	for (r = 0; r < *p; r++) { */
-/* 	  nu[r] = 0; */
-/* 	}   */
-/* 	for (j = 0; j < *n; j++) { */
-/* 	  for (l = 0; l < cl[j]; l++) { */
-/* 	    if (Tik[clsz[j] + l] >= Tik[clsz[i] + k]) { */
-/* 	      for (r = 0; r < *p; r++) { */
-/* 		nu[r] += X[j + r * *n] * wgt[j]; */
-/* 	      } */
-/* 	      de += wgt[j]; */
-/* 	    } */
-/* 	  } */
-/* 	} */
-/* 	for (r = 0; r < *p; r++) { */
-/* 	  if (de > 0) { */
-/* 	    res[r] += X[i + r * *n] - (nu[r] / de); */
-/* 	  } */
-/* 	  if (de <= 0) { */
-/* 	    res[r] += X[i + r * *n]; */
-/* 	  }	   */
-/* 	  // nu[r] = 0; */
-/* 	} */
-/* 	//} */
-/*     } */
-/*   } */
-/*   Free(nu); */
-/*   res; */
-/* } */
 
 

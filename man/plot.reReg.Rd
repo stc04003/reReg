@@ -4,11 +4,16 @@
 \alias{plot.reReg}
 \title{Plotting Estimated Baseline Cumulative Rate Functions}
 \usage{
-\method{plot}{reReg}(x, smooth = FALSE, return.grob = FALSE,
-  control = list(), ...)
+\method{plot}{reReg}(x, baseline = c("both", "rate", "hazard"),
+  smooth = FALSE, return.grob = FALSE, control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
+
+\item{baseline}{a character string specifying which baseline function to plot.
+If "both", both the baseline cumulative rate and hazard function will be plotted in one panel;
+If "rate", the baseline cumulative rate function will be plotted;
+If "hazard", the baseline cumulative hazard function will be plotted.}
 
 \item{smooth}{an optional logical value whether loess smoothing will be applied.}
 
