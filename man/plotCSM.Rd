@@ -4,8 +4,8 @@
 \alias{plotCSM}
 \title{Produce Cumulative Sample Mean Function Plots}
 \usage{
-plotCSM(formula, data, onePanel = FALSE, return.grob = FALSE,
-  adjrisk = TRUE, control = list(), ...)
+plotCSM(formula, data, onePanel = FALSE, adjrisk = TRUE, control = list(),
+  ...)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
@@ -15,8 +15,6 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{onePanel}{an optional logical value indicating whether cumulative sample means (CSM) will be plotted in the same panel.
 This is useful when comparing CSM from different groups.}
-
-\item{return.grob}{an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.}
 
 \item{adjrisk}{an optional logical value indicating whether risk set will be adjusted. See Details.}
 

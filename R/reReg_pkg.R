@@ -28,7 +28,7 @@
 #' @importFrom BB BBsolve dfsane BBoptim
 #' @importFrom SQUAREM squarem
 #' @importFrom survival Surv basehaz coxph survfit
-#' @importFrom ggplot2 ggplot geom_point aes geom_line geom_bar ggtitle scale_color_manual scale_shape_manual theme element_text labs facet_grid theme_bw ggplotGrob coord_flip 
+#' @importFrom ggplot2 ggplot geom_point aes geom_line geom_bar ggtitle scale_color_manual scale_shape_manual theme element_text labs facet_grid theme_bw coord_flip 
 #' @importFrom ggplot2 element_blank element_line element_rect xlab ylab scale_x_continuous alpha guides guide_legend geom_step scale_color_discrete
 #' @importFrom tidyr unnest nest
 #' @importFrom purrr map_lgl

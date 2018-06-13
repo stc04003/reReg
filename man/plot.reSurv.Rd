@@ -4,8 +4,7 @@
 \alias{plot.reSurv}
 \title{Produce Event Plot or Cumulative Sample Mean Function Plot}
 \usage{
-\method{plot}{reSurv}(x, CSM = FALSE, order = TRUE, return.grob = FALSE,
-  control = list(), ...)
+\method{plot}{reSurv}(x, CSM = FALSE, order = TRUE, control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reSurv}, usually returned by the \code{reSurv} function.}
@@ -14,8 +13,6 @@
 be plotted instead of the defaulted event plot.}
 
 \item{order}{an optional logical value indicating whether the event plot (if \code{CSM = FALSE}) will be sorted by the terminal times.}
-
-\item{return.grob}{an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.}
 
 \item{control}{a list of control parameters. See Details.}
 

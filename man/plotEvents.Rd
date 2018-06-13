@@ -4,8 +4,7 @@
 \alias{plotEvents}
 \title{Produce Event Plots}
 \usage{
-plotEvents(formula, data, order = TRUE, return.grob = FALSE,
-  control = list(), ...)
+plotEvents(formula, data, order = TRUE, control = list(), ...)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator,
@@ -15,8 +14,6 @@ The response must be a recurrent event survival object as returned by function \
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
 \item{order}{an optional logical value indicating whether the event plot will be sorted by the terminal times.}
-
-\item{return.grob}{an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.}
 
 \item{control}{a list of control parameters.}
 

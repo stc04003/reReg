@@ -4,14 +4,12 @@
 \alias{plotHaz}
 \title{Plotting the Baseline Cumulative Hazard Function for the Censoring Time}
 \usage{
-plotHaz(x, smooth = FALSE, return.grob = FALSE, control = list(), ...)
+plotHaz(x, smooth = FALSE, control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
 
 \item{smooth}{an optional logical value indicating whether the loess smoothing will be applied.}
-
-\item{return.grob}{an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.}
 
 \item{control}{a list of control parameters.}
 

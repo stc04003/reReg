@@ -5,7 +5,7 @@
 \title{Plotting Baseline Cumulative Rate Function and Baseline Cumulative Hazard Function}
 \usage{
 \method{plot}{reReg}(x, baseline = c("both", "rate", "hazard"),
-  smooth = FALSE, return.grob = FALSE, control = list(), ...)
+  smooth = FALSE, control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
@@ -16,8 +16,6 @@ If "\code{rate}", the baseline cumulative rate function will be plotted;
 If "\code{hazard}", the baseline cumulative hazard function will be plotted.}
 
 \item{smooth}{an optional logical value indicating whether the loess smoothing will be applied.}
-
-\item{return.grob}{an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.}
 
 \item{control}{a list of control parameters. See Details.}
 
