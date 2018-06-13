@@ -47,7 +47,7 @@ Let \eqn{D} be the informative failure time with the above hazard function.
 An non-informative failure time, \eqn{C}, is generated separately from an exponential distribution with
 mean 60. The observed follow-up time is then taken to be \eqn{min(D, C, \tau)}.
 We further assume
-\deqn{\lambda_0(t) = \frac{1}{1 + t}, h_0(t) = \frac{1}{4(1 + t)}}.
+\deqn{\lambda_0(t) = \frac{1}{1 + t}, h_0(t) = \frac{1}{4(1 + t)}.}
 Two covariates are considered; \code{x1} follows a Bernoulli distribution
 with probability 0.5 and \code{x2} follows a standard normal distribution.
 }
