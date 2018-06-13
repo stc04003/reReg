@@ -6,7 +6,7 @@
 \usage{
 reReg(formula, data, B = 200, method = c("cox.LWYY", "cox.HW", "am.GL",
   "am.XCHWY", "sc.XCYH"), se = c("NULL", "bootstrap", "resampling"),
-  plot.ci = FALSE, contrasts = NULL, control = list())
+  contrasts = NULL, control = list())
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the terms on the right.
@@ -19,9 +19,7 @@ When B = 0, only the point estimates will be displayed.}
 
 \item{method}{a character string specifying the underlying model. See \code{Details}.}
 
-\item{se}{a character string specifying the method for standard error estimation. See \code{Details}.}
-
-\item{plot.ci}{a logical value indicating whether the 95% confidence interval for the estimated cumulative rate function
+\item{se}{a character string specifying the method for standard error estimation. See \code{Details}.
 and/or the estimated cumulative hazard function should be computed. Default is "FALSE".}
 
 \item{contrasts}{an optional list.}

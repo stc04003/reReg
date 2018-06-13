@@ -98,11 +98,11 @@ plot(fit)
 plot(fit, baseline = "rate")
 plot(fit, baseline = "haz")
 
-fit <- reReg(fm, data = dat, method = "sc.XCYH", plot.ci = TRUE)
-summary(fit)
-plot(fit)
-plot(fit, baseline = "rate")
-plot(fit, baseline = "haz")
+fit2 <- reReg(fm, data = dat, method = "sc.XCYH", se = "resampling")
+summary(fit2)
+plot(fit2)
+plot(fit2, baseline = "rate")
+plot(fit2, baseline = "haz")
 
 plotRate(fit)
 plotHaz(fit)
@@ -110,8 +110,26 @@ plotHaz(fit)
 names(fit)
 t0 <- seq(0, 80, .01)
 
-plot(t0, fit$rate0(t0) * fit$log.muZ, 's')
-## lines(t0, fit$rate0(t0) * exp(fit$log.muZ), 's')
-lines(t0, fit$lam0(t0), 's', col = 2)
-lines(t0, H0(t0), 's', col = 3)
-fit$log.muZ
+plot(t0, R0(t0), 's')
+lines(t0, fit$rate0(t0), 's', col = 2)
+
+fit <- reReg(fm, data = dat, method = "sc.XCYH")
+debug(doNonpara.sc.XCYH)
+doNonpara.sc.XCYH(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = stdErr)
+
+
+do <- function() {
+    dat <- simDat(200, c(-1, 1), c(-1, 1), type = "am", indCen = TRUE)
+    fit <- reReg(fm, data = dat, method = "sc.XCYH")
+    fit$rate0(t0)
+}
+
+t0 <- seq(0, 80, .01)
+rateMat <- matrix(NA, 100, length(t0))
+for (i in 1:100) rateMat[i,] <- do()
+
+plot(t0, R0(t0), 's')
+lines(t0, colMeans(rateMat), 's', col = 2)
+lines(t0, apply(rateMat, 2, median), 's', col = 3)
+lines(t0, fit$rate0(t0), col = 4, 's')
+lines(t0, fit$rate0(t0), col = 4, 's')

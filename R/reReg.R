@@ -209,7 +209,7 @@ doREFit.sc.XCYH <- function(DF, engine, stdErr) {
         engine@solver <- "dfsane"
     }
     out <- with(df, sarmRV(id, Time, y, df[,-(1:4)], m, engine))
-    list(alpha = out$ahat, beta = out$bhat, log.muZ = out$LamTau, lam0 = out$lamY,
+    list(alpha = out$ahat, beta = out$bhat, log.muZ = out$LamTau, ## lam0 = out$lamY,
          values = c(out$a.value, out$g.value))
 }
 
@@ -329,7 +329,7 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
                                   a = out$ahat, b = out$ghat, Bootstrap = stdErr@B, engine))
     list(alpha = out$ahat, beta = out$bhat, alphaSE = outSE$alphaSE, betaSE = outSE$betaSE,
          gamma = out$ghat, gammaSE = sqrt(diag(outSE$ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)])),
-         varMat = outSE$ase, log.muZ = out$LamTau, lam0 = out$lamY,
+         varMat = outSE$ase, log.muZ = out$LamTau, ## lam0 = out$lamY,
          values = c(out$a.value, out$g.value))
 }
 
@@ -340,9 +340,9 @@ doNonpara.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF) - 4
     X <- as.matrix(DF0[,-(1:4)])
-    yi <- log(DF0$Time) - X %*% alpha
+    yi <- log(DF0$Time) + X %*% alpha
     n <- nrow(DF0)
-    tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
+    tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% alpha
     tij <- tij[DF$event == 1]
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
@@ -351,7 +351,7 @@ doNonpara.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
                PACKAGE = "reReg")$result
-    rate <- exp(-rate)
+    rate <- exp(-rate) * engine@muZ
     rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
     list(rate0 = rate0,  rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
          haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
@@ -361,9 +361,9 @@ doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF) - 4
     X <- as.matrix(DF0[,-(1:4)])
-    yi <- log(DF0$Time) - X %*% alpha
+    yi <- log(DF0$Time) + X %*% alpha
     n <- nrow(DF0)
-    tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
+    tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% alpha
     tij <- tij[DF$event == 1]
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
@@ -372,7 +372,7 @@ doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
                PACKAGE = "reReg")$result
-    rate <- exp(-rate)
+    rate <- exp(-rate) * engine@muZ
     rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
     B <- stdErr@B
     rateMat <- matrix(NA, B, length(t0.rate))
@@ -382,7 +382,7 @@ doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
                           as.integer(length(t0.rate)), as.double(W), as.double(yi),
                           as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
                           PACKAGE = "reReg")$result
-        rateMat[i,] <- exp(-rateMat[i,])
+        rateMat[i,] <- exp(-rateMat[i,]) * engine@muZ
     }
     rl <- apply(rateMat, 2, quantile, prob = .025)
     ru <- apply(rateMat, 2, quantile, prob = .975)
@@ -730,8 +730,9 @@ setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
 setClass("am.GL", contains = "Engine")
 setClass("sc.XCYH",
-         representation(eqType = "character"),
-         prototype(eqType = "Logrank"), contains = "Engine")
+         representation(eqType = "character", muZ = "numeric"),
+         prototype(eqType = "Logrank", muZ = 1),
+         contains = "Engine")
 
 setClass("stdErr")
 setClass("bootstrap", representation(B = "numeric"),
@@ -831,7 +832,7 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #' When B = 0, only the point estimates will be displayed.
 #' @param method a character string specifying the underlying model. See \code{Details}.
 #' @param se a character string specifying the method for standard error estimation. See \code{Details}.
-#' @param plot.ci a logical value indicating whether the 95% confidence interval for the estimated cumulative rate function
+## #' @param plot.ci a logical value indicating whether the 95% confidence interval for the estimated cumulative rate function
 #' and/or the estimated cumulative hazard function should be computed. Default is "FALSE".
 #' @param contrasts an optional list.
 #' @param control a list of control parameters.
@@ -909,7 +910,7 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #' }
 reReg <- function(formula, data, B = 200, 
                   method = c("cox.LWYY", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"),
-                  se = c("NULL", "bootstrap", "resampling"), plot.ci = FALSE,
+                  se = c("NULL", "bootstrap", "resampling"), 
                   contrasts = NULL, control = list()) {
     method <- match.arg(method)
     se <- match.arg(se)
@@ -948,27 +949,11 @@ reReg <- function(formula, data, B = 200,
     if (formula == ~1) {
         fit <- NULL
         fit$alpha <- fit$beta <- rep(NA, p)
-        fit$muZ <- NA
-        if (plot.ci) {
-            stdErr.np.control <- control[names(control) %in% names(attr(getClass("bootstrap"), "slots"))]
-            stdErr.np <- do.call("new", c(list(Class = "bootstrap"), stdErr.np.control))
-            stdErr.np@B <- B
-            fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0, engine = engine, stdErr = stdErr.np))
-        } else {
-            fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0, engine = engine, stdErr = stdErr))
-        }
+        fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0, engine = engine, stdErr = stdErr))
     } else {
         fit <- doREFit(DF = DF, engine = engine, stdErr = stdErr)
-        if (plot.ci) {
-            stdErr.np.control <- control[names(control) %in% names(attr(getClass("bootstrap"), "slots"))]
-            stdErr.np <- do.call("new", c(list(Class = "bootstrap"), stdErr.np.control))
-            stdErr.np@B <- B
-            fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta,
-                                    engine = engine, stdErr = stdErr.np))
-        } else {
-            fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, 
-                                    engine = engine, stdErr = NULL))
-        }
+        if (method == "sc.XCYH") engine@muZ <- exp(fit$log.muZ)
+        fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = stdErr))
     }
     class(fit) <- "reReg"
     fit$reTb <- obj$reTb
@@ -1193,7 +1178,7 @@ sarmRV <- function(id, Tij, Yi, X, M, engine) {
     ghat <- fit.g$par
     y0 <- exp(yx[ind])
     list(ahat = ahat, bhat = ghat[-1] + ahat, ghat = ghat, LamTau = ghat[1],
-         lamY = stepfun(y0[order(y0)], c(0, Lam[order(y0)])),
+         ## lamY = stepfun(y0[order(y0)], c(0, Lam[order(y0)])),
          a.convergence = fit.a$convergence, a.value = a.value, g.convergence = fit.g$convergence, g.value = g.value)
 }
 
