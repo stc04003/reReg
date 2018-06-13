@@ -47,10 +47,13 @@ invHaz <- function(t, z, exa, exb) (exp(4 * t * exa / exb / z) - 1) / exa
 #' @param summary a logical value indicating whether a brief data summary will be printed.
 #'
 #' @seealso \code{\link{reReg}}
-
 #' @export
 #'
 #' @importFrom tibble as_tibble
+#'
+#' @examples
+#' set.seed(123)
+#' simDat(200, c(-1, 1), c(-1, 1), summary = TRUE)
 simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60, summary = FALSE) {
     type <- match.arg(type)
     if (length(a) != 2L) stop("Require length(a) = 2.")

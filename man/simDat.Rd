@@ -51,6 +51,10 @@ We further assume
 Two covariates are considered; \code{x1} follows a Bernoulli distribution
 with probability 0.5 and \code{x2} follows a standard normal distribution.
 }
+\examples{
+set.seed(123)
+simDat(200, c(-1, 1), c(-1, 1), summary = TRUE)
+}
 \seealso{
 \code{\link{reReg}}
 }
