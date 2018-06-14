@@ -198,3 +198,29 @@ plot(fit)
 plotRate(fit)
 
 plotCSM(with(dat, reSurv(Time, id, event, status)))
+
+## Baseline only
+
+
+
+rateMat <- matrix(NA, 100, length(t0) * 5)
+hazMat <- matrix(NA, 100, length(t0) * 4)
+fm <- reSurv(Time, id, event, status) ~ 1
+for (i in 1:100) {
+    set.seed(i)
+    dat <- simDat(200, c(0, 0), c(0, 0), type = "cox", indCen = TRUE)
+    fit1 <- reReg(fm, data = dat)
+    fit2 <- reReg(fm, data = dat, method = "cox.HW")
+    fit3 <- reReg(fm, data = dat, method = "am.GL")
+    fit4 <- reReg(fm, data = dat, method = "am.XCHWY")
+    fit5 <- reReg(fm, data = dat, method = "sc.XCYH")
+    rateMat[i,] <- c(fit1$rate0(t0), fit2$rate0(t0), fit3$rate0(t0), fit4$rate0(t0), fit5$rate0(t0))
+    hazMat[i,] <- c(fit1$rate0(t0), fit2$rate0(t0), fit1$haz0(t0), fit2$haz0(t0))
+}
+
+plot(t0, R0(t0), 's')
+lines(t0, colMeans(rateMat)[1:length(t0)], 's', col = 2)
+lines(t0, colMeans(rateMat)[1:length(t0) + length(t0)], 's', col = 3)
+lines(t0, colMeans(rateMat)[1:length(t0) + 2 * length(t0)], 's', col = 4)
+lines(t0, colMeans(rateMat)[1:length(t0) + 3 * length(t0)], 's', col = 5)
+lines(t0, colMeans(rateMat)[1:length(t0) + 4 * length(t0)], 's', col = 6) ## check this
