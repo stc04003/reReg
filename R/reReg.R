@@ -268,7 +268,7 @@ doREFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
         cl <- makeCluster(stdErr@parCl)
         clusterExport(cl = cl,
                       varlist = c("DF", "engine"),
-                      envir = enviroment())
+                      envir = environment())
         out <- parSapply(cl, 1:B, function(x) {
             sampled.id <- sample(unique(id), n, TRUE)
             ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
@@ -278,7 +278,7 @@ doREFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
         })
         stopCluster(cl)
         betaMatrix <- t(out)
-        convergence <- apply(betaMatris, 1, function(x)
+        convergence <- apply(betaMatrix, 1, function(x)
             1 * (x %*% x > 1e3 * with(res, c(alpha, beta) %*% c(alpha, beta))))
     } else {
         betaMatrix <- matrix(0, B, p * 2)
