@@ -187,4 +187,14 @@ plot(fit)
 ## Plot baseline cumulative hazard function
 plotHaz(fit)
 ## Plot with user-specified labels
-plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))  
+plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))
+
+set.seed(1)
+dat <- simDat(200, c(1, 1), c(1, 1), type = "cox", indCen = TRUE)
+fit <- reReg(reSurv(Time, id, event, status) ~ 1, method = "cox.HW", data = dat)
+
+fit <- reReg(reSurv(Time, id, event, status) ~ 1, data = dat)
+plot(fit)
+plotRate(fit)
+
+plotCSM(with(dat, reSurv(Time, id, event, status)))
