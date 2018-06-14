@@ -156,21 +156,52 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     aSE <- bSE <- da <- va <- db <- vb <- NA
     X <- cbind(1, X[event == 0,])
-    ## outA <- dfsane(gamma, HWeq, X = X, Y = Y, T = T, cluster = cluster, mt = mt,
-    ##                alertConvergence = FALSE,
-    ##                quiet = TRUE, control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
-    outA <- BBsolve(engine@b0, HWeq, X = X, Y = Y, T = T, cluster = cluster, mt = mt, quiet = TRUE)
+    engine@a0 <- c(0, engine@a0)
+    if (engine@solver %in% c("dfsane", "BBsolve")) 
+        suppressWarnings(
+            outA <- do.call(
+                engine@solver, list(par = engine@a0, fn = HWeq, 
+                                    X = X, Y = Y, T = T, cluster = cluster, mt = mt,
+                                    weights = NULL, quiet = TRUE, alertConvergence = FALSE,
+                                    control = list(trace = FALSE))))
+    if (engine@solver == "BBoptim")
+        suppressWarnings(
+            outA <- do.call(
+                engine@solver, list(par = engine@a0, fn = function(x)
+                    sum(HWeq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
+                    quiet = TRUE, control = list(trace = FALSE))))
+    if (engine@solver == "optim")
+        suppressWarnings(
+            outA <- do.call(
+                engine@solver, list(par = engine@a0, fn = function(x)
+                    sum(HWeq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
+                    control = list(trace = FALSE))))
     alpha <- outA$par <- outA$par[-1]
     muZ <- outA$par[1]
     lambda <- npMLE(Y[event == 0], T, Y)
-    ## zHat <- as.numeric(mt * npMLE(max(Y), T, Y) / (lambda * exp(X[, -1] %*% alpha)))
     zHat <- as.numeric(mt / (lambda * exp(as.matrix(X[, -1]) %*% alpha)))
     zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    ## muZ <- mean(zHat)
-    outB <- dfsane(engine@a0, HWeq2, X = as.matrix(X[,-1]), Y = Y[event == 0],
-                   delta = status[event == 0], zHat = zHat/muZ,
-                   alertConvergence = FALSE, quiet = TRUE,
-                   control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
+    if (engine@solver %in% c("dfsane", "BBsolve")) 
+        suppressWarnings(
+            outB <- do.call(
+                engine@solver, list(par = engine@b0, fn = HWeq2, X = as.matrix(X[,-1]),
+                                    Y = Y[event == 0], delta = status[event == 0], zHat = zHat/muZ,
+                                    weights = NULL, alertConvergence = FALSE, quiet = TRUE,
+                                    control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))))
+    if (engine@solver == "BBoptim")
+        suppressWarnings(
+            outB <- do.call(
+                engine@solver, list(par = engine@a0, fn = function(x)
+                    sum(HWeq2(x, X = as.matrix(X[,-1]), Y = Y[event == 0], delta = status[event == 0],
+                              zHat = zHat/muZ, weights = NULL)^2),
+                    quiet = TRUE, control = list(trace = FALSE))))
+    if (engine@solver == "optim")
+        suppressWarnings(
+            outB <- do.call(
+                engine@solver, list(par = engine@a0, fn = function(x)
+                    sum(HWeq2(x, X = as.matrix(X[,-1]), Y = Y[event == 0], delta = status[event == 0],
+                              zHat = zHat/muZ, weights = NULL)^2),
+                    control = list(trace = FALSE))))
     list(alpha = outA$par, aconv = outA$convergence,
          beta = outB$par, bconv = outB$convergence, muZ = muZ)
 }
@@ -232,17 +263,35 @@ doREFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     Y <- rep(DF$Time[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     B <- stdErr@B
-    betaMatrix <- matrix(0, B, p * 2)
-    convergence <- rep(0, B)
     uID <- unique(DF$ID)
-    for (i in 1:B) {
-        sampled.id <- sample(unique(id), n, TRUE)
-        ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
-        DF2 <- DF[ind,]
-        DF2$id <- rep(1:n, clsz[sampled.id])
-        betaMatrix[i,] <- with(doREFit(DF2, engine, NULL), c(alpha, beta))
-        convergence[i] <- 1 * (betaMatrix[i,] %*% betaMatrix[i,] >
-                               1e3 * with(res, c(alpha, beta) %*% c(alpha, beta)))
+    if (stdErr@parallel) {
+        cl <- makeCluster(stdErr@parCl)
+        clusterExport(cl = cl,
+                      varlist = c("DF", "engine"),
+                      envir = enviroment())
+        out <- parSapply(cl, 1:B, function(x) {
+            sampled.id <- sample(unique(id), n, TRUE)
+            ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
+            DF2 <- DF[ind,]
+            DF2$id <- rep(1:n, clsz[sampled.id])
+            with(doREFit(DF2, engine, NULL), c(alpha, beta))            
+        })
+        stopCluster(cl)
+        betaMatrix <- t(out)
+        convergence <- apply(betaMatris, 1, function(x)
+            1 * (x %*% x > 1e3 * with(res, c(alpha, beta) %*% c(alpha, beta))))
+    } else {
+        betaMatrix <- matrix(0, B, p * 2)
+        convergence <- rep(0, B)
+            for (i in 1:B) {
+            sampled.id <- sample(unique(id), n, TRUE)
+            ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
+            DF2 <- DF[ind,]
+            DF2$id <- rep(1:n, clsz[sampled.id])
+            betaMatrix[i,] <- with(doREFit(DF2, engine, NULL), c(alpha, beta))
+            convergence[i] <- 1 * (betaMatrix[i,] %*% betaMatrix[i,] >
+                                   1e3 * with(res, c(alpha, beta) %*% c(alpha, beta)))
+        }
     }
     converged <- which(convergence == 0)
     if (sum(convergence != 0) > 0) {
@@ -737,8 +786,9 @@ setClass("sc.XCYH",
          contains = "Engine")
 
 setClass("stdErr")
-setClass("bootstrap", representation(B = "numeric"),
-         prototype(B = 100), contains="stdErr")
+setClass("bootstrap", representation(B = "numeric", parallel = "logical", parCL = "integer"),
+         prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2),
+         contains="stdErr")
 setClass("resampling", representation(B = "numeric"),
          prototype(B = 100), contains="stdErr")
 
@@ -754,12 +804,12 @@ setMethod("doREFit", signature(engine = "am.XCHWY", stdErr = "NULL"), doREFit.am
 setMethod("doREFit", signature(engine = "am.GL", stdErr = "NULL"), doREFit.am.GL)
 setMethod("doREFit", signature(engine = "sc.XCYH", stdErr = "NULL"), doREFit.sc.XCYH)
 
-setMethod("doREFit", signature(engine="Engine", stdErr="bootstrap"),
+setMethod("doREFit", signature(engine = "Engine", stdErr = "bootstrap"),
           doREFit.Engine.Bootstrap)
 
-setMethod("doREFit", signature(engine="am.XCHWY", stdErr="resampling"),
+setMethod("doREFit", signature(engine = "am.XCHWY", stdErr = "resampling"),
           doREFit.am.XCHWY.resampling)
-setMethod("doREFit", signature(engine="sc.XCYH", stdErr="resampling"),
+setMethod("doREFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
           doREFit.sc.XCYH.resampling)
 
 ##############################################################################
@@ -843,6 +893,17 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #'   \item{\code{"resampling"}}{performs the efficient resampling-based sandwich estimator that works with methods \code{"am.XCHWY"} and \code{"sc.XCYH"}.}
 #'   \item{\code{"bootstrap"}}{works with all fitting methods.}
 #' }
+#'
+#' The \code{control} list consists of the following parameters:
+#' \describe{
+#'   \item{\code{tol}}{absolute error tolerance.}
+#'   \item{\code{a0, b0}}{initial guesses used for root search.}
+#'   \item{\code{solver}}{the equation solver used for root search.
+#' The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
+#'   \item{\code{parallel}}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.
+#'   \item{\code{parCl}}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
+#' The default value is half the CPU cores on the current host.}
+#' }
 #' 
 #' @param formula a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
@@ -920,7 +981,7 @@ reReg <- function(formula, data, B = 200,
     p <- ncol(DF) - 4
     if (length(engine@a0) == 1) engine@a0 <- rep(engine@a0, p)
     if (length(engine@b0) == 1) engine@b0 <- rep(engine@b0, p)
-    if (method %in% c("cox.HW", "sc.XCYH")) {
+    if (method %in% "sc.XCYH") {
         if (length(engine@b0) == 1) engine@b0 <- rep(engine@b0, p + 1)
         if (length(engine@b0) == p) engine@b0 <- c(0, engine@b0)
     }
@@ -1036,7 +1097,8 @@ LWYYeq <- function(beta, X, Y, T, cl) {
        out = as.double(double(p)), PACKAGE = "reReg")$out       
 }
 
-HWeq <-function(gamma, X, Y, T, cluster, mt) {
+HWeq <-function(gamma, X, Y, T, cluster, mt, weights = NULL) {
+    if (is.null(weights)) weights <- rep(1, length(T))
     n <- sum(cluster == 1)
     Lambda <- npMLE(Y[cluster == 1], T, Y)
     res <- vector("double", length(gamma))
@@ -1047,7 +1109,8 @@ HWeq <-function(gamma, X, Y, T, cluster, mt) {
 }
 
 
-HWeq2 <-function(beta, X, Y, delta, zHat) {
+HWeq2 <-function(beta, X, Y, delta, zHat, weights = NULL) {
+    if (is.null(weights)) weights <- rep(1, length(T))        
     n <- nrow(X)
     p <- ncol(X)
     res <- vector("double", p)

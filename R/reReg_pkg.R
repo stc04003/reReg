@@ -35,6 +35,7 @@
 #' @importFrom dplyr "%>%" group_by group_by_at filter summarize mutate full_join left_join arrange select tibble count bind_cols
 #' @importFrom plyr ddply 
 #' @importFrom grDevices hcl
+#' @importFrom parallel makeCluster clusterExport stopCluster detectCores parSapply
 #' 
 #' @docType package
 #' @useDynLib reReg, .registration = TRUE

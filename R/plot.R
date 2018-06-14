@@ -364,7 +364,8 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
 #'              data = subset(readmission, id < 50))
 #' plot(fit)
-plot.reReg <- function(x, baseline = c("both", "rate", "hazard"), smooth = FALSE, control = list(), ...) {
+plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
+                       smooth = FALSE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -396,8 +397,9 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"), smooth = FALSE
                 select(Time, Y, Y.upper, Y.lower)
         }
         dat <- bind_rows(dat1, dat2, .id = "group") %>%
-            mutate(group = factor(group, level = 1:2, labels = c("Baseline cumulative rate", "Baseline cumulative hazard")))
-        ## mutate(group = ifelse(group == 1, "Baseline cumulative rate", "Baseline cumulative hazard"))
+            mutate(group = factor(group, levels = 1:2,
+                                  labels = c("Baseline cumulative rate",
+                                             "Baseline cumulative hazard")))
         gg <- ggplot(data = dat, aes(x = Time, y = Y)) +
             facet_grid(group ~ ., scales = "free") +
             theme(axis.line = element_line(color = "black"),

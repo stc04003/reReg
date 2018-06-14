@@ -8,7 +8,26 @@ H0 <- function(x) log(1 + x) / 4
 
 ## non-parametric
 set.seed(1)
-fit <- reReg(reSurv(Time, id, event, status) ~ 1, method = "cox.HW", data = dat)
+dat <- simDat(200, c(1, 1), c(1, 1), type = "cox", indCen = TRUE)
+system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2,
+                         method = "cox.HW", se = "bootstrap", data = dat))
+## 87.268   0.000  87.282 
+summary(fit)
+## Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat, 
+##     method = "cox.HW", se = "bootstrap")
+## Method: Huang-Wang Model 
+## Coefficients (rate):
+##    Estimate StdErr z.value   p.value    
+## x1    1.064  0.204   5.205 < 2.2e-16 ***
+## x2    1.114  0.086  12.902 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Coefficients (hazard):
+##    Estimate StdErr z.value   p.value    
+## x1    1.143  0.233   4.906 < 2.2e-16 ***
+## x2    1.217  0.128   9.542 < 2.2e-16 ***
+## ---
+##     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 ## Cox type
 dat <- simDat(200, c(1, 1), c(1, 1), type = "cox", indCen = TRUE)
