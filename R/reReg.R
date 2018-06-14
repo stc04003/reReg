@@ -900,7 +900,7 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #'   \item{\code{a0, b0}}{initial guesses used for root search.}
 #'   \item{\code{solver}}{the equation solver used for root search.
 #' The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-#'   \item{\code{parallel}}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.
+#'   \item{\code{parallel}}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
 #'   \item{\code{parCl}}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
 #' The default value is half the CPU cores on the current host.}
 #' }

@@ -334,7 +334,7 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 
 #' Plotting Baseline Cumulative Rate Function and Baseline Cumulative Hazard Function
 #'
-#' Plot the baseline cumulative rate function and the baseline cumulative harzard function
+#' Plot the baseline cumulative rate function and the baseline cumulative hazard function
 #' (if applicable) for an \code{reReg} object.
 #'
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:

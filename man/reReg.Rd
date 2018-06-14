@@ -76,6 +76,17 @@ The available methods for variance estimation are:
   \item{\code{"resampling"}}{performs the efficient resampling-based sandwich estimator that works with methods \code{"am.XCHWY"} and \code{"sc.XCYH"}.}
   \item{\code{"bootstrap"}}{works with all fitting methods.}
 }
+
+The \code{control} list consists of the following parameters:
+\describe{
+  \item{\code{tol}}{absolute error tolerance.}
+  \item{\code{a0, b0}}{initial guesses used for root search.}
+  \item{\code{solver}}{the equation solver used for root search.
+The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
+  \item{\code{parallel}}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
+  \item{\code{parCl}}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
+The default value is half the CPU cores on the current host.}
+}
 }
 \examples{
 ## readmission data

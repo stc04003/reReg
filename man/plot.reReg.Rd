@@ -22,7 +22,7 @@ If "\code{hazard}", the baseline cumulative hazard function will be plotted.}
 \item{...}{for future methods.}
 }
 \description{
-Plot the baseline cumulative rate function and the baseline cumulative harzard function
+Plot the baseline cumulative rate function and the baseline cumulative hazard function
 (if applicable) for an \code{reReg} object.
 }
 \details{
