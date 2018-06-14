@@ -397,11 +397,14 @@ doNonpara.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     tij <- tij[DF$event == 1]
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
-    t0.rate <- unique(sort(tij)) ## log scale
+    t0.rate <- unique(sort(c(tij, yi))) ## log scale
     rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
                PACKAGE = "reReg")$result
+    if (is.null(engine@muZ)) 
+        engine@muZ <- sum(m / approx(t0.rate, exp(-rate), yi, yleft = 0, yright = max(rate),
+                                     method = "constant")$y, na.rm = TRUE) / n
     rate <- exp(-rate) * engine@muZ
     rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
     list(rate0 = rate0,  rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
@@ -418,11 +421,14 @@ doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     tij <- tij[DF$event == 1]
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
-    t0.rate <- unique(sort(tij)) ## log scale
+    t0.rate <- unique(sort(c(tij, yi))) ## log scale
     rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
                PACKAGE = "reReg")$result
+    if (is.null(engine@muZ))
+        engine@muZ <- sum(m / approx(t0.rate, exp(-rate), yi, yleft = 0, yright = max(rate),
+                                     method = "constant")$y, na.rm = TRUE) / n
     rate <- exp(-rate) * engine@muZ
     rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
     B <- stdErr@B
@@ -782,7 +788,7 @@ setClass("am.XCHWY", contains = "Engine")
 setClass("am.GL", contains = "Engine")
 setClass("sc.XCYH",
          representation(eqType = "character", muZ = "numeric"),
-         prototype(eqType = "Logrank", muZ = 1),
+         prototype(eqType = "Logrank", muZ = NULL),
          contains = "Engine")
 
 setClass("stdErr")
@@ -1174,11 +1180,13 @@ sarmRV <- function(id, Tij, Yi, X, M, engine) {
         a.value <- fit.a$residual
     }
     if (engine@solver == "BBoptim") {
-        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x) sum(U1RV(x)^2), quiet = TRUE, control = list(trace = FALSE))))
+        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
+            sum(U1RV(x)^2), quiet = TRUE, control = list(trace = FALSE))))
         a.value <- fit.a$value
     }
     if (engine@solver == "optim") {
-        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x) sum(U1RV(x)^2), control = list(trace = FALSE))))
+        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
+            sum(U1RV(x)^2), control = list(trace = FALSE))))
         a.value <- fit.a$value
     }
     ahat <- fit.a$par
@@ -1209,15 +1217,17 @@ sarmRV <- function(id, Tij, Yi, X, M, engine) {
         g.value <- fit.g$residual
     }
     if (engine@solver == "BBoptim") {
-        suppressWarnings(fit.g <- do.call(engine@solver, list(par = engine@b0, fn = function(x) sum(U2RV(x)^2), quiet = TRUE, control = list(trace = FALSE))))
+        suppressWarnings(fit.g <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
+            sum(U2RV(x)^2), quiet = TRUE, control = list(trace = FALSE))))
         g.value <- fit.g$value
     }
     if (engine@solver == "optim") {
-        suppressWarnings(fit.g <- do.call(engine@solver, list(par = engine@b0, fn = function(x) sum(U2RV(x)^2), control = list(trace = FALSE))))
+        suppressWarnings(fit.g <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
+            sum(U2RV(x)^2), control = list(trace = FALSE))))
         g.value <- fit.g$value
     }
     ghat <- fit.g$par
-    y0 <- exp(yx[ind])
+    ## y0 <- exp(yx[ind])
     list(ahat = ahat, bhat = ghat[-1] + ahat, ghat = ghat, LamTau = ghat[1],
          ## lamY = stepfun(y0[order(y0)], c(0, Lam[order(y0)])),
          a.convergence = fit.a$convergence, a.value = a.value, g.convergence = fit.g$convergence, g.value = g.value)
