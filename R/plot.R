@@ -384,12 +384,12 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
     if (!is.reReg(x)) stop("Response must be a reReg class")
     baseline <- match.arg(baseline)
     if (baseline == "rate")
-        print(plotRate(x, smooth = smooth, control = control))
+        return(plotRate(x, smooth = smooth, control = control))
     if (baseline == "hazard")
-        print(plotHaz(x, smooth = smooth, control = control))
+        return(plotHaz(x, smooth = smooth, control = control))
     if (baseline == "both" & x$method == "sc.XCYH") {
         print('Warning: baseline cumulative hazard function is not available for method = "sc.XCYH".')
-        print(plotRate(x, smooth = smooth, control = control))
+        return(plotRate(x, smooth = smooth, control = control))
     }
     if (baseline == "both" & x$method != "sc.XCYH") {
         if (is.null(x$rate0.upper)) {

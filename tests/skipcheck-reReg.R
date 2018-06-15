@@ -201,3 +201,4 @@ e
 ## -----------------------------------------------------------------------------------
 data(readmission, package = "frailtypack")
 fm <- reSurv(t.stop, id, event, death) ~ sex + chemo
+fit <- reReg(fm, data = readmission)
