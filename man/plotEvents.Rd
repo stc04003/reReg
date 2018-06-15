@@ -30,7 +30,7 @@ list with the following values:
   \item{ylab}{customizable y-label, default value is "Subject".}
   \item{title}{customizable title, default value is "Recurrent event plot".}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-  \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
+  \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }

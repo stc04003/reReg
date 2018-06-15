@@ -857,14 +857,14 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #'
 #' Suppose the recurrent event process and the failure events are observed in the time interval \eqn{t\in[0,\tau]},
 #' for some constant \eqn{\tau}.
-#' We formulate the rate function, \eqn{\lambda(t)} for the recurrent event process and
+#' We formulate the rate function, \eqn{\lambda(t)}, for the recurrent event process and
 #' the hazard function, \eqn{h(t)}, for the censoring time
-#' depending on the following model specifications:
+#' under the following model specifications:
 #' \describe{
 #'   \item{Cox-type model:}{
 #' \deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top\alpha}, h(t) = Z h_0(t)e^{X^\top\alpha},}}
 #'   \item{Accelerated mean model:}{
-#' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Z h_0(te^{X^\top\beta})e^{X^\top\alpha},}}
+#' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Z h_0(te^{X^\top\beta})e^{X^\top\beta},}}
 #'   \item{Scale-change model:}{
 #' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\beta},}}
 #' }
@@ -876,27 +876,27 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #' The \code{reReg} function fits models with the following available methods:
 #' \describe{
 #'   \item{\code{method == "cox.LWYY"}}{
-#' assumes the Cox-type model with \code{Z = 1}.
-#' This function returns results equivalent to that from \code{coxph}. See reference Lin et al. (2000).}
+#' assumes the Cox-type model with \code{Z = 1} and requires independent censoring. 
+#' The returned result is equivalent to that from \code{coxph}. See reference Lin et al. (2000).}
 #'   \item{\code{method == "cox.HW"}}{
 #' assumes the Cox-type model with unspecified \code{Z}, thus accommodate informative censoring.
-#' See the references See reference Wang, Qin and Chiang(2001) and Huang and Wang (2004).}
+#' See the references See reference Wang, Qin and Chiang (2001) and Huang and Wang (2004).}
 #'   \item{\code{method == "am.GL"}}{
-#' assumes the accelerated mean model with \code{Z = 1}.
+#' assumes the accelerated mean model with \code{Z = 1} and requires independent censoring. 
 #' See the reference Ghosh and Lin (2003).}
 #'   \item{\code{method == "am.XCHWY"}}{
 #' assumes the accelerated mean model with unspecified \code{Z}, thus accommodate informative censoring.
 #' See the reference Xu et al. (2017).}
 #'   \item{\code{method == "sc.XCYH"}}{
 #' assumes the generalized scale-change model, and includes the methods \code{"cox.HW"} and \code{"am.XCHWY"} as special cases.
-#' With the unspecified \code{Z}, informative censoring is accounted for. 
+#' Informative censoring is accounted for through the unspecified frailty variable \code{Z}.
 #' The methods also provide a hypothesis test of these submodels.}
 #' }
 #'
 #' The available methods for variance estimation are:
 #' \describe{
 #'   \item{\code{NULL}}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-#'   \item{\code{"resampling"}}{performs the efficient resampling-based sandwich estimator that works with methods \code{"am.XCHWY"} and \code{"sc.XCYH"}.}
+#'   \item{\code{"resampling"}}{performs the efficient resampling-based sandwich estimator that works with methods \code{"cox.HW"}, \code{"am.XCHWY"} and \code{"sc.XCYH"}.}
 #'   \item{\code{"bootstrap"}}{works with all fitting methods.}
 #' }
 #'
@@ -916,26 +916,26 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #' @param data  an optional data frame in which to interpret the variables occurring in the \code{"formula"}.
 #' @param B a numeric value specifies the number of resampling for variance estimation.
 #' When \code{B = 0}, variance estimation will not be performed.
-#' @param method a character string specifying the underlying model. See Details.
-#' @param se a character string specifying the method for standard error estimation. See Details.
+#' @param method a character string specifying the underlying model. See \bold{Details}.
+#' @param se a character string specifying the method for standard error estimation. See \bold{Details}.
 #' @param contrasts an optional list.
 #' @param control a list of control parameters.
 #'
 #' @export
-#' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
-#' \emph{Journal of the American Statistical Association} \bold{112}(518): 796-805.
+#' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
+#' \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
 #' @references Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
-#' \emph{Journal of the Royal Statistical Society: Series B (Methodological)}, \bold{62}: 711 -- 730.
+#' \emph{Journal of the Royal Statistical Society: Series B (Methodological)}, \bold{62}: 711--730.
 #' @references Wang, M.C., Qin, J., and Chiang, C.T. (2001). Analyzing Recurrent Event Data with Informative Censoring.
-#' \emph{Journal of the American Statistical Association} \bold{96}(455): 1057--1065.
+#' \emph{Journal of the American Statistical Association}, \bold{96}(455): 1057--1065.
 #' @references Ghosh, D. and Lin, D.Y. (2003). Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.
-#' \emph{Biometrics}, \bold{59}: 877 -- 885.
-#' @references Huang, C.Y. and Wang, M.C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
-#' \emph{Journal of the American Statistical Association} \bold{99}(468): 1153--1165.
+#' \emph{Biometrics}, \bold{59}: 877--885.
+#' @references Huang, C.-Y. and Wang, M.C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
+#' \emph{Journal of the American Statistical Association}, \bold{99}(468): 1153--1165.
 #'
 #' @importFrom stats approxfun
 #' 
-#' @seealso \code{\link{reSurv}}
+#' @seealso \code{\link{reSurv}} \code{\link{simDat}}
 #'
 #' @examples
 #' ## readmission data

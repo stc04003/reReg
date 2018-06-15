@@ -2,7 +2,7 @@ Package: reReg
 Title: Recurrent Event Regression
 Version: 1.1.5
 Authors@R: person("Sy Han (Steven)", "Chiou", email = "schiou@utdallas.edu", role = c("aut", "cre"))
-Description: A collection of regression models for recurrent event process and failure time.
+Description: A collection of regression models for recurrent event process and failure time data.
 	     Available methods include these from Xu et al. (2017) <doi:10.1080/01621459.2016.1173557>,
 	     Lin et al. (2000) <doi:10.1111/1467-9868.00259>,
 	     Wang et al. (2001) <doi:10.1198/016214501753209031>,
@@ -14,11 +14,8 @@ Encoding: UTF-8
 LazyData: true
 URL: http://github.com/stc04003/reReg
 BugReports: http://github.com/stc04003/reReg/issues
-Imports: BB (>= 2014.10.1), nleqslv (>= 3.3.1), SQUAREM (>= 2017.10.1),
-        survival (>= 2.41.3), plyr (>= 1.8.4), ggplot2 (>= 2.2.1),
-        purrr (>= 0.2.4), dplyr (>= 0.7.4), tidyr (>= 0.8.0), MASS (>=
-        7.3.49), methods,
-    tibble
+Imports: BB, nleqslv, SQUAREM, survival, plyr, ggplot2,
+        purrr, dplyr, tidyr, MASS, methods, tibble
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
 Packaged: 2018-06-03 00:41:51 UTC; schiou

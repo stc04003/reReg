@@ -12,23 +12,25 @@
 \item{CSM}{an optional logical value indicating whether the cumulative sample mean (CSM) function will
 be plotted instead of the defaulted event plot.}
 
-\item{order}{an optional logical value indicating whether the event plot (if \code{CSM = FALSE}) will be sorted by the terminal times.}
+\item{order}{an optional logical value indicating whether the event plot (when \code{CSM = FALSE})
+will be sorted by the terminal times.}
 
-\item{control}{a list of control parameters. See Details.}
+\item{control}{a list of control parameters. See \bold{Details}.}
 
 \item{...}{for future developments.}
 }
 \description{
-Plot the event plot for an \code{reSurv} object.
+Plot the event plot or the cumulative sample mean (CSM) function for an \code{reSurv} object.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
-  \item{title}{customizable title, default value is "Recurrent event plot".}
+  \item{title}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
+"Sample cumulative mean function plot" when \code{CSM = TRUE}.}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-  \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
+  \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }

@@ -16,7 +16,7 @@ The response must be a recurrent event survival object as returned by function \
 \item{onePanel}{an optional logical value indicating whether cumulative sample means (CSM) will be plotted in the same panel.
 This is useful when comparing CSM from different groups.}
 
-\item{adjrisk}{an optional logical value indicating whether risk set will be adjusted. See Details.}
+\item{adjrisk}{an optional logical value indicating whether risk set will be adjusted. See \bold{Details}.}
 
 \item{control}{a list of control parameters.}
 
@@ -30,10 +30,10 @@ The argument \code{control} consists of options with argument defaults to a list
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
-  \item{title}{customizable title, default value is "Recurrent event plot".}
+  \item{title}{customizable title, default value is "Sample cumulative mean function plot".}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-  \item{recurrent.name}{customizable label for recurrent event, default value is "Recurrent event plot".}
-  \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
+  \item{recurrent.name}{customizable legend title for recurrent events, default value is "Recurrent events".}
+  \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL} and .}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
 }

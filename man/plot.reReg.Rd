@@ -11,13 +11,13 @@
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
 
 \item{baseline}{a character string specifying which baseline function to plot.
-If "\code{both}", both the baseline cumulative rate and baseline cumulative hazard function will be plotted in the same display;
-If "\code{rate}", the baseline cumulative rate function will be plotted;
-If "\code{hazard}", the baseline cumulative hazard function will be plotted.}
+If \code{baseline = "both"} (default), both the baseline cumulative rate and baseline cumulative hazard function will be plotted in separate panels within the same display;
+If \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
+If \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.}
 
-\item{smooth}{an optional logical value indicating whether the loess smoothing will be applied.}
+\item{smooth}{an optional logical value indicating whether the \emph{loess} smoothing will be applied.}
 
-\item{control}{a list of control parameters. See Details.}
+\item{control}{a list of control parameters. See \bold{Details}.}
 
 \item{...}{for future methods.}
 }
@@ -30,7 +30,8 @@ The argument \code{control} consists of options with argument defaults to a list
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
-  \item{title}{customizable title, default value is "Recurrent event plot".}
+  \item{title}{customizable title, default value is "Baseline cumulative rate and hazard function" if \code{baseline = "both"},
+"Baseline cumulative rate function" if \code{baseline = "rate"}, and "Baseline cumulative hazard function" if \code{baseline = "hazard"}.}
 }
 }
 \examples{
@@ -38,6 +39,7 @@ data(readmission, package = "frailtypack")
 fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
              data = subset(readmission, id < 50))
 plot(fit)
+plot(fit, baseline = "rate")
 }
 \seealso{
 \code{\link{reReg}}

@@ -9,7 +9,7 @@ plotRate(x, smooth = FALSE, control = list(), ...)
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
 
-\item{smooth}{an optional logical value indicating whether the loess smoothing will be applied.}
+\item{smooth}{an optional logical value indicating whether the \emph{loess} smoothing will be applied.}
 
 \item{control}{a list of control parameters.}
 
@@ -24,7 +24,7 @@ to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
-  \item{title}{customizable title, default value is "Recurrent event plot".}
+  \item{title}{customizable title, default value is "Baseline cumulative rate function".}
 }
 }
 \examples{

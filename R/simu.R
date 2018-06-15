@@ -18,7 +18,7 @@ invHaz <- function(t, z, exa, exb) (exp(4 * t * exa / exb / z) - 1) / exa
 #'
 #' The function \code{simDat} generates simulated recurrent event data under different
 #' scenarios based on the following assumptions.
-#' See the Details section in \code{\link{reReg}} for a more complete model assumptions.
+#' See \bold{details} in \code{\link{reReg}} for a more complete model assumptions.
 #' \describe{
 #'   \item{\code{type == "cox"}}{generates recurrent event data from a Cox-type model with
 #' \deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top a}, h(t) = Zh_0(t)e^{X^\top b}.}}
@@ -41,8 +41,8 @@ invHaz <- function(t, z, exa, exb) (exp(4 * t * exa / exb / z) - 1) / exa
 #' @param indCen a logical value indicating whether the censoring assumption is imposed.
 #' When \code{indCen = TRUE}, we set \eqn{Z = 1}.
 #' Otherwise, \eqn{Z} is generated from a gamma distribution with mean 1 and variance 0.25
-#' (e.g., \code{rgamma(1, 4, 4)}). See Details.
-#' @param type a character string specifying the underlying model. See Details.
+#' (e.g., \code{rgamma(1, 4, 4)}). See \bold{Details}.
+#' @param type a character string specifying the underlying model. See \bold{Details}
 #' @param tau a numeric value specifying the maximum observation time.
 #' @param summary a logical value indicating whether a brief data summary will be printed.
 #'

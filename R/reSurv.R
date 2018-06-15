@@ -2,7 +2,7 @@
 #' @rdname reSurv
 #' @title Create an \code{reSurv} Object
 #'
-#' @description Create a recurrent event object, used as a response variable in \code{reReg}.
+#' @description Create a recurrent event survival object, used as a response variable in \code{reReg}.
 #'
 #' @param time1 when "\code{time2}" is provided, this vector is treated as the starting time for the gap time between two successive recurrent events.
 #' In the absence of "\code{time2}", this is the observation time of recurrence on calendar time scale, in which, the time corresponds to the time since entry/inclusion in the study.

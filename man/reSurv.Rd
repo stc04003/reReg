@@ -31,7 +31,7 @@ This argument is only needed when "\code{time2}" is missing.}
 \item{x}{an \code{reSurv} object.}
 }
 \description{
-Create a recurrent event object, used as a response variable in \code{reReg}.
+Create a recurrent event survival object, used as a response variable in \code{reReg}.
 }
 \examples{
 data(readmission, package = "frailtypack")

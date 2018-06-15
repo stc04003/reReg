@@ -34,6 +34,9 @@ detach(readmission)
 reObj <- with(readmission, reSurv(t.stop, id, event, death))
 plot(reObj)
 
+reObj <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
+plot(reObj)
+
 plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
 plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
 plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
@@ -42,64 +45,71 @@ plotEvents(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
 
 
 ## ------------------------------------------------------------------------------------------
-## plotCMF examples
+## plotCSM examples
 ## ------------------------------------------------------------------------------------------
 
-plot(reObj, CMF = TRUE)
+plot(reObj, CSM = TRUE)
 
-plotCMF(reObj)
-plotCMF(reObj ~ 1, data = readmission)
-plotCMF(reObj ~ sex, data = readmission)
-plotCMF(reObj ~ sex + chemo, data = readmission)
-plotCMF(reObj ~ sex + chemo, data = readmission, adjrisk = FALSE)
+plotCSM(reObj)
+plotCSM(reObj ~ 1, data = readmission)
+plotCSM(reObj ~ sex, data = readmission)
+plotCSM(reObj ~ sex + chemo, data = readmission)
+plotCSM(reObj ~ sex + chemo, data = readmission, adjrisk = FALSE)
 
 
-plotCMF(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
-plotCMF(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
-plotCMF(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
-plotCMF(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
+plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
+plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
+plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
+plotCSM(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
             sex + chemo, data = readmission)
-plotCMF(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
+plotCSM(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
             sex + chemo, data = readmission,
         control = list(recurrent.type = letters[1:3]))
-plotCMF(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission,
+plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission,
         control = list(title = "Some title"))
 
 
-plotCMF(reSurv(t.stop, id, event, death) ~ 1, data = readmission, adjrisk = FALSE)
-plotCMF(reSurv(t.stop, id, event, death) ~ sex, data = readmission, adjrisk = FALSE)
-plotCMF(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, adjrisk = FALSE)
-plotCMF(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
+plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission, adjrisk = FALSE)
+plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, adjrisk = FALSE)
+plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, adjrisk = FALSE)
+plotCSM(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
             sex + chemo, data = readmission, adjrisk = FALSE)
-plotCMF(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
+plotCSM(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
             sex + chemo, data = readmission, adjrisk = FALSE,
         control = list(recurrent.type = letters[1:3]))
-plotCMF(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, adjrisk = FALSE,
+plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, adjrisk = FALSE,
         control = list(title = "Some title"))
 
+plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
+plot(reReg(reSurv(t.stop, id, event, death) ~ 1, data = readmission), baseline = "rate")
+
+p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
+p2 <- plot(reReg(reSurv(t.stop, id, event, death) ~ 1, data = readmission), baseline = "rate")
+grid.arrange(p1, p2, ncol = 1)
+
 ## ------------------------------------------------------------------------------------------
-## Same CMF plot with collapse = TRUE
+## Same CSM plot with collapse = TRUE
 ## ------------------------------------------------------------------------------------------
 
-plotCMF(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE)
-plotCMF(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~ sex,
+plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE)
+plotCSM(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~ sex,
         data = readmission, onePanel = TRUE)
-plotCMF(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, onePanel = TRUE)
+plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, onePanel = TRUE)
 
-plotCMF(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE, adjrisk = FALSE)
-plotCMF(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~ sex,
+plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE, adjrisk = FALSE)
+plotCSM(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~ sex,
         data = readmission, onePanel = TRUE, adjrisk = FALSE)
-plotCMF(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, onePanel = TRUE, adjrisk = FALSE)
+plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, onePanel = TRUE, adjrisk = FALSE)
 
 ## ------------------------------------------------------------------------------------------
 ## Compare with reda
 ## ------------------------------------------------------------------------------------------
 
-p1 <- plotCMF(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, onePanel = TRUE)
+p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, onePanel = TRUE)
 p2 <- plot(mcf(Survr(id, t.stop, event) ~ sex + chemo, data = readmission))
 grid.arrange(p1, p2, ncol = 1)
 
-p3 <- plotCMF(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, onePanel = TRUE, adjrisk = FALSE)
+p3 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, onePanel = TRUE, adjrisk = FALSE)
 grid.arrange(p3, p2, ncol = 1)
 
 ## ------------------------------------------------------------------------------------------
@@ -115,7 +125,7 @@ head(simuDat)
 
 simuDat0 <- subset(simuDat, ID <= 5)
 simuMcf <- mcf(Survr(ID, time, event) ~ 1, data = simuDat0)
-p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0)
+p1 <- plotCSM(reSurv(time, ID, event) ~ 1, data = simuDat0)
 p2 <- plot(simuMcf)
 grid.arrange(p1, p2, ncol = 1)
 
@@ -123,22 +133,22 @@ grid.arrange(p1, p2, ncol = 1)
 simuDat0 <- subset(simuDat, ID <= 5)
 
 
-p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0)
+p1 <- plotCSM(reSurv(time, ID, event) ~ 1, data = simuDat0)
 p2 <- plot(mcf(Survr(ID, time, event) ~ 1, data = simuDat0))
 grid.arrange(p1, p2, ncol = 1)
 
 
-p1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat0, adjrisk = FALSE)
-p3 <- plotCMF(reSurv(time, ID, event) ~ 1, data = subset(simuDat0, event == 1))
+p1 <- plotCSM(reSurv(time, ID, event) ~ 1, data = simuDat0, adjrisk = FALSE)
+p3 <- plotCSM(reSurv(time, ID, event) ~ 1, data = subset(simuDat0, event == 1))
 grid.arrange(p1, p3, ncol = 1)
 
-plot1 <- plotCMF(reSurv(time, ID, event) ~ group + gender, data = simuDat, onePanel=T)
+plot1 <- plotCSM(reSurv(time, ID, event) ~ group + gender, data = simuDat, onePanel=T)
 plot2 <- plot(mcf(Survr(ID, time, event) ~ group + gender, data = simuDat))
 grid.arrange(plot1, plot2, ncol = 1)
 
 simuMcf <- mcf(Survr(ID, time, event) ~ 1, data = simuDat)
 
-plot1 <- plotCMF(reSurv(time, ID, event) ~ 1, data = simuDat)
+plot1 <- plotCSM(reSurv(time, ID, event) ~ 1, data = simuDat)
 plot2 <- plot(simuMcf, legendName = "Treatment & Gender")
 grid.arrange(plot1, plot2, ncol = 1)
 
