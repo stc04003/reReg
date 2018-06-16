@@ -16,7 +16,7 @@ In the absence of "\code{time2}", this is the observation time of recurrence on 
 
 \item{time2}{an optional vector for ending time for the gap time between two successive recurrent events.}
 
-\item{id}{subject's id}
+\item{id}{subject's id.}
 
 \item{event}{a binary vector used as the recurrent event indicator. \code{event = 1} for recurrent times.}
 

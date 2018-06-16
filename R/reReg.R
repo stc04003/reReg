@@ -863,7 +863,7 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #' under the following model specifications:
 #' \describe{
 #'   \item{Cox-type model:}{
-#' \deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top\alpha}, h(t) = Z h_0(t)e^{X^\top\alpha},}}
+#' \deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top\alpha}, h(t) = Z h_0(t)e^{X^\top\beta},}}
 #'   \item{Accelerated mean model:}{
 #' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Z h_0(te^{X^\top\beta})e^{X^\top\beta},}}
 #'   \item{Scale-change model:}{
@@ -876,19 +876,19 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #'
 #' The \code{reReg} function fits models with the following available methods:
 #' \describe{
-#'   \item{\code{method == "cox.LWYY"}}{
+#'   \item{\code{method = "cox.LWYY"}}{
 #' assumes the Cox-type model with \code{Z = 1} and requires independent censoring. 
 #' The returned result is equivalent to that from \code{coxph}. See reference Lin et al. (2000).}
-#'   \item{\code{method == "cox.HW"}}{
+#'   \item{\code{method = "cox.HW"}}{
 #' assumes the Cox-type model with unspecified \code{Z}, thus accommodate informative censoring.
 #' See the references See reference Wang, Qin and Chiang (2001) and Huang and Wang (2004).}
-#'   \item{\code{method == "am.GL"}}{
+#'   \item{\code{method = "am.GL"}}{
 #' assumes the accelerated mean model with \code{Z = 1} and requires independent censoring. 
 #' See the reference Ghosh and Lin (2003).}
-#'   \item{\code{method == "am.XCHWY"}}{
+#'   \item{\code{method = "am.XCHWY"}}{
 #' assumes the accelerated mean model with unspecified \code{Z}, thus accommodate informative censoring.
 #' See the reference Xu et al. (2017).}
-#'   \item{\code{method == "sc.XCYH"}}{
+#'   \item{\code{method = "sc.XCYH"}}{
 #' assumes the generalized scale-change model, and includes the methods \code{"cox.HW"} and \code{"am.XCHWY"} as special cases.
 #' Informative censoring is accounted for through the unspecified frailty variable \code{Z}.
 #' The methods also provide a hypothesis test of these submodels.}
@@ -936,7 +936,7 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #'
 #' @importFrom stats approxfun
 #' 
-#' @seealso \code{\link{reSurv}} \code{\link{simDat}}
+#' @seealso \code{\link{reSurv}}, \code{\link{simDat}}
 #'
 #' @examples
 #' ## readmission data

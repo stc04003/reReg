@@ -12,14 +12,15 @@
 
 \item{baseline}{a character string specifying which baseline function to plot.
 If \code{baseline = "both"} (default), both the baseline cumulative rate and baseline cumulative hazard function will be plotted in separate panels within the same display;
-If \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
-If \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.}
+if \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
+if \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.}
 
 \item{smooth}{an optional logical value indicating whether the \emph{loess} smoothing will be applied.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
-\item{...}{for future methods.}
+\item{...}{graphical parameters to be passed to methods.
+These include \code{xlab}, \code{ylab} and \code{main}.}
 }
 \value{
 A \code{ggplot} object.
@@ -33,10 +34,10 @@ The argument \code{control} consists of options with argument defaults to a list
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
-  \item{title}{customizable title, default value is "Baseline cumulative rate and hazard function" if \code{baseline = "both"},
-"Baseline cumulative rate function" if \code{baseline = "rate"}, and "Baseline cumulative hazard function" if \code{baseline = "hazard"}.}
+  \item{main}{customizable title, default value are "Baseline cumulative rate and hazard function" when \code{baseline = "both"},
+"Baseline cumulative rate function" when \code{baseline = "rate"}, and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 }
-These arguments can also be passed down without the \code{control} list. See \bold{examples}.
+These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
 data(readmission, package = "frailtypack")
@@ -48,4 +49,4 @@ plot(fit, baseline = "rate")
 \seealso{
 \code{\link{reReg}}
 }
-\keyword{plot.reReg}
+\keyword{Plots}

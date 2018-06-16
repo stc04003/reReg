@@ -17,7 +17,8 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{control}{a list of control parameters.}
 
-\item{...}{for future developments.}
+\item{...}{graphical parameters to be passed to methods.
+These include \code{xlab}, \code{ylab} and \code{main}.}
 }
 \value{
 A \code{ggplot} object.
@@ -31,13 +32,13 @@ list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
-  \item{title}{customizable title, default value is "Recurrent event plot".}
+  \item{main}{customizable title, default value is "Recurrent event plot".}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
-The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
+The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
 data(readmission, package = "frailtypack")
@@ -56,4 +57,4 @@ plotEvents(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
 \seealso{
 \code{\link{reSurv}}, \code{\link{plot.reSurv}}
 }
-\keyword{plot.reSurv}
+\keyword{Plots}

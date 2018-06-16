@@ -9,14 +9,14 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
-#'   \item{title}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
+#'   \item{main}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
 #' "Sample cumulative mean function plot" when \code{CSM = TRUE}.}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
 #'   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
-#' The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
+#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #' 
 #' @param x an object of class \code{reSurv}, usually returned by the \code{reSurv} function.
 ## #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
@@ -25,10 +25,13 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 ## #' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.
 #' @param control a list of control parameters. See \bold{Details}.
 #' @param CSM an optional logical value indicating whether the cumulative sample mean (CSM) function will
-#' be plotted instead of the defaulted event plot.
-#' @param ... for future developments.
+#' be plotted instead of the event plot (default).
+#' @param ... graphical parameters to be passed to methods.
+#' These include \code{xlab}, \code{ylab} and \code{main}.
+#' 
 #' @seealso \code{\link{reSurv}}
-#' @keywords plot.reSurv
+#' 
+#' @keywords Plots
 #' @export
 #'
 #' @return A \code{ggplot} object.
@@ -39,7 +42,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' plot(reObj)
 #' plot(reObj, order = FALSE)
 #' ## User specified labels
-#' plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))
+#' plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 #'
 #' ## With multiple hypothetical event types
 #' set.seed(1)
@@ -75,13 +78,13 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
-#'   \item{title}{customizable title, default value is "Recurrent event plot".}
+#'   \item{main}{customizable title, default value is "Recurrent event plot".}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
 #'   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
-#' The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
+#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator,
 #' and the predictors on the right.
@@ -89,9 +92,12 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
 #' @param order an optional logical value indicating whether the event plot will be sorted by the terminal times.
 #' @param control a list of control parameters.
-#' @param ... for future developments.
+#' @param ... graphical parameters to be passed to methods.
+#' These include \code{xlab}, \code{ylab} and \code{main}.
+#'
 #' @seealso \code{\link{reSurv}}, \code{\link{plot.reSurv}}
-#' @keywords plot.reSurv
+#' 
+#' @keywords Plots
 #' @export
 #' 
 #' @return A \code{ggplot} object.
@@ -206,25 +212,31 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
                axis.line = element_line(color = "black"),
                legend.key = element_rect(fill = "white", color = "white")) +
         scale_x_continuous(expand = c(0, 1)) +
-        ggtitle(ctrl$title) + labs(x = ctrl$ylab, y = ctrl$xlab) +
+        ggtitle(ctrl$main) + labs(x = ctrl$ylab, y = ctrl$xlab) +
         guides(shape = guide_legend(override.aes = list(size = 2.7)))
 }
 
 #' Produce Cumulative Sample Mean Function Plots
 #'
-#' Plot the cumulative sample mean function (CSM) for an \code{reSurv} object, with more flexible options.
+#' Plot the cumulative sample mean function (CSM) for an \code{reSurv} object,
+#' with more flexible options.
 #'
-#' The argument \code{control} consists of options with argument defaults to a list with the following values:
+#' When \code{adjrisk = TRUE}, the \code{plotCSM} is equivalent to
+#' the Nelson-Aalen estimator for the intensity function of the recurrent event process.
+#' When \code{adjrisk = FALSE}, the \code{plotCSM} does not adjust for the risk set and
+#' assumes all subjects remain at risk after the last observed recurrent event.
+#' The argument \code{control} consists of options with argument defaults
+#' to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
-#'   \item{title}{customizable title, default value is "Sample cumulative mean function plot".}
+#'   \item{main}{customizable title, default value is "Sample cumulative mean function plot".}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
 #'   \item{recurrent.name}{customizable legend title for recurrent events, default value is "Recurrent events".}
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL} and .}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
-#' The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
+#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
@@ -233,9 +245,11 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #' @param onePanel an optional logical value indicating whether cumulative sample means (CSM) will be plotted in the same panel.
 #' This is useful when comparing CSM from different groups.
 #' @param control a list of control parameters.
-#' @param ... for future developments.
+#' @param ... graphical parameters to be passed to methods.
+#' These include \code{xlab}, \code{ylab} and \code{main}.
+#' 
 #' @seealso \code{\link{reSurv}}, \code{\link{plot.reSurv}}
-#' @keywords plot.reSurv
+#' @keywords Plots
 #' @export
 #'
 #' @return A \code{ggplot} object.
@@ -353,7 +367,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
     
     gg + theme(axis.line = element_line(color = "black"),
                 legend.key = element_rect(fill = "white", color = "white")) +
-        ggtitle(ctrl$title) + labs(y = ctrl$ylab, x = ctrl$xlab)
+        ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
     ## scale_color_discrete(name = "") +
     ## scale_y_continuous(expand = c(0, 1)) +
 }
@@ -367,23 +381,24 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
-#'   \item{title}{customizable title, default value is "Baseline cumulative rate and hazard function" if \code{baseline = "both"},
-#' "Baseline cumulative rate function" if \code{baseline = "rate"}, and "Baseline cumulative hazard function" if \code{baseline = "hazard"}.}
+#'   \item{main}{customizable title, default value are "Baseline cumulative rate and hazard function" when \code{baseline = "both"},
+#' "Baseline cumulative rate function" when \code{baseline = "rate"}, and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 #' }
-#' These arguments can also be passed down without the \code{control} list. See \bold{examples}.
+#' These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #' 
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
 #' @param baseline a character string specifying which baseline function to plot.
 #' If \code{baseline = "both"} (default), both the baseline cumulative rate and baseline cumulative hazard function will be plotted in separate panels within the same display;
-#' If \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
-#' If \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.
+#' if \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
+#' if \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.
 #' @param control a list of control parameters. See \bold{Details}.
-#' @param ... for future methods.
+#' @param ... graphical parameters to be passed to methods.
+#' These include \code{xlab}, \code{ylab} and \code{main}.
 #' 
 #' @seealso \code{\link{reReg}}
 #' @export
-#' @keywords plot.reReg
+#' @keywords Plots
 #'
 #' @return A \code{ggplot} object.
 #' 
@@ -454,7 +469,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                 gg <- gg + geom_step(aes(x = Time, y = Y.upper), lty = 2)+ 
                     geom_step(aes(x = Time, y = Y.lower), lty = 2)
         }
-        gg + ggtitle(ctrl$title) + labs(y = ctrl$ylab, x = ctrl$xlab)
+        gg + ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
     }
 }
 
@@ -467,20 +482,23 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
-#'   \item{title}{customizable title, default value is "Baseline cumulative rate function".}
+#'   \item{main}{customizable title, default value is "Baseline cumulative rate function".}
 #' }
-#' These arguments can also be passed down without the \code{control} list. See \bold{examples}.
+#' These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
 #' @param control a list of control parameters.
-#' @param ... for future developments.
+#' @param ... graphical parameters to be passed to methods.
+#' These include \code{xlab}, \code{ylab} and \code{main}.
 #'
 #' @seealso \code{\link{reReg}} \code{\link{plot.reReg}}
 #' @export
 #'
 #' @return A \code{ggplot} object.
 #'
+#' @keywords Plots
+#' 
 #' @examples
 #' ## readmission data
 #' data(readmission, package = "frailtypack")
@@ -493,8 +511,8 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' ## Plot baseline cumulative rate function
 #' plotRate(fit)
 #' ## Plot with user-specified labels
-#' plotRate(fit, xlab = "User xlab", ylab = "User ylab", title = "User title")
-#' plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))
+#' plotRate(fit, xlab = "User xlab", ylab = "User ylab", main = "User title")
+#' plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 plotRate <- function(x, smooth = FALSE, control = list(), ...) {
     ctrl <- plotRate.control()
     namc <- names(control)
@@ -530,7 +548,7 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
             gg <- gg + geom_step(aes(x = Time,  y = Y.upper), lty = 2) +
                 geom_step(aes(x = Time,  y = Y.lower), lty = 2)
     }
-    gg + ggtitle(ctrl$title) + labs(x = ctrl$xlab, y = ctrl$ylab)
+    gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
 }
 
 #' Produce the Baseline Cumulative Hazard Function for the Censoring Time
@@ -542,19 +560,22 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
-#'   \item{title}{customizable title, default value is "Baseline cumulative hazard function".}
+#'   \item{main}{customizable title, default value is "Baseline cumulative hazard function".}
 #' }
-#' These arguments can also be passed down without the \code{control} list. See \bold{examples}.
+#' These arguments can also be passed down without specifying a \code{control} list.
+#' See \bold{Examples}.
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
 #' @param control a list of control parameters.
-#' @param ... for future developments.
+#' @param ... graphical parameters to be passed to methods.
+#' These include \code{xlab}, \code{ylab} and \code{main}.
 #' 
 #' @seealso \code{\link{reReg}} \code{\link{plot.reReg}}
 #' @export
 #'
 #' @return A \code{ggplot} object.
+#' @keywords Plots
 #' 
 #' @examples
 #' ## readmission data
@@ -568,7 +589,7 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' ## Plot baseline cumulative hazard function
 #' plotHaz(fit)
 #' ## Plot with user-specified labels
-#' plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))  
+#' plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))  
 plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
     if (x$method %in% c("cox.LWYY", "sc.XCYH")) {
         cat(paste("Baseline cumulative hazard function is not available for method = ", x$method, ".", sep = ""))
@@ -608,7 +629,7 @@ plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
             gg <- gg + geom_step(aes(x = Time,  y = Y.upper), lty = 2) +
                 geom_step(aes(x = Time,  y = Y.lower), lty = 2)
     }
-    gg + ggtitle(ctrl$title) + labs(x = ctrl$xlab, y = ctrl$ylab)
+    gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
 }
 
 unrowwise <- function(x) {
@@ -616,34 +637,34 @@ unrowwise <- function(x) {
   x
 }
 
-plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurrent event plot",
+plotEvents.control <- function(xlab = "Time", ylab = "Subject", main = "Recurrent event plot",
                                terminal.name = "Terminal event",
                                recurrent.name = "Recurrent events",
                                recurrent.type = NULL, alpha = .7) {
-    list(xlab = xlab, ylab = ylab, title = title, 
+    list(xlab = xlab, ylab = ylab, main = main, 
          terminal.name = terminal.name, recurrent.name = recurrent.name,
          recurrent.type = recurrent.type, alpha = alpha)
 }
 
 plotCSM.control <- function(xlab = "Time", ylab = "Cumulative mean",
-                            title = "Sample cumulative mean function plot",
+                            main = "Sample cumulative mean function plot",
                             terminal.name = "Terminal event",
                             recurrent.name = "Recurrent events",
                             recurrent.type = NULL) {
-    list(xlab = xlab, ylab = ylab, title = title,
+    list(xlab = xlab, ylab = ylab, main = main,
          terminal.name = terminal.name, recurrent.name = recurrent.name,
          recurrent.type = recurrent.type)         
 }
 
-plotHaz.control <- function(xlab = "Time", ylab = "", title = "Baseline cumulative hazard function") {
-    list(xlab = xlab, ylab = ylab, title = title)
+plotHaz.control <- function(xlab = "Time", ylab = "", main = "Baseline cumulative hazard function") {
+    list(xlab = xlab, ylab = ylab, main = main)
 }
 
-plotRate.control <- function(xlab = "Time", ylab = "", title = "Baseline cumulative rate function") {
-    list(xlab = xlab, ylab = ylab, title = title)
+plotRate.control <- function(xlab = "Time", ylab = "", main = "Baseline cumulative rate function") {
+    list(xlab = xlab, ylab = ylab, main = main)
 }
 
-plotRe.control <- function(xlab = "Time", ylab = "", title = "Baseline cumulative rate and hazard functions") {
-    list(xlab = xlab, ylab = ylab, title = title)
+plotRe.control <- function(xlab = "Time", ylab = "", main = "Baseline cumulative rate and hazard functions") {
+    list(xlab = xlab, ylab = ylab, main = main)
 }
 

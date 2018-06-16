@@ -10,14 +10,15 @@
 \item{x}{an object of class \code{reSurv}, usually returned by the \code{reSurv} function.}
 
 \item{CSM}{an optional logical value indicating whether the cumulative sample mean (CSM) function will
-be plotted instead of the defaulted event plot.}
+be plotted instead of the event plot (default).}
 
 \item{order}{an optional logical value indicating whether the event plot (when \code{CSM = FALSE})
 will be sorted by the terminal times.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
-\item{...}{for future developments.}
+\item{...}{graphical parameters to be passed to methods.
+These include \code{xlab}, \code{ylab} and \code{main}.}
 }
 \value{
 A \code{ggplot} object.
@@ -30,14 +31,14 @@ The argument \code{control} consists of options with argument defaults to a list
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
-  \item{title}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
+  \item{main}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
 "Sample cumulative mean function plot" when \code{CSM = TRUE}.}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
-The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
+The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
 data(readmission, package = "frailtypack")
@@ -46,7 +47,7 @@ reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, id, event, death))
 plot(reObj)
 plot(reObj, order = FALSE)
 ## User specified labels
-plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))
+plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 
 ## With multiple hypothetical event types
 set.seed(1)
@@ -56,4 +57,4 @@ plot(reObj2)
 \seealso{
 \code{\link{reSurv}}
 }
-\keyword{plot.reSurv}
+\keyword{Plots}

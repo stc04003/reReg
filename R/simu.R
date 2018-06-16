@@ -18,13 +18,13 @@ invHaz <- function(t, z, exa, exb) (exp(4 * t * exa / exb / z) - 1) / exa
 #'
 #' The function \code{simDat} generates simulated recurrent event data under different
 #' scenarios based on the following assumptions.
-#' See \bold{details} in \code{\link{reReg}} for a more complete model assumptions.
+#' See \bold{Details} in \code{\link{reReg}} for a more complete model assumptions.
 #' \describe{
-#'   \item{\code{type == "cox"}}{generates recurrent event data from a Cox-type model with
+#'   \item{\code{type = "cox"}}{generates recurrent event data from a Cox-type model with
 #' \deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top a}, h(t) = Zh_0(t)e^{X^\top b}.}}
-#'   \item{\code{type == "am"}}{generates recurrent event data from an accelerated mean model with
+#'   \item{\code{type = "am"}}{generates recurrent event data from an accelerated mean model with
 #' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top a}, h(t) = Zh_0(te^{X^\top b})e^{X^\top b}.}}
-#'   \item{\code{type == "sc"}}{generates recurrent event data from a generalized scale-change model with
+#'   \item{\code{type = "sc"}}{generates recurrent event data from a generalized scale-change model with
 #' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top b}, h(t) = Zh_0(te^{X^\top a})e^{X^\top b}.}}
 #' }
 #' Let \eqn{D} be the informative failure time with the above hazard function.

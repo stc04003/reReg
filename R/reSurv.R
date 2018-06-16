@@ -9,7 +9,7 @@
 #' @param time2 an optional vector for ending time for the gap time between two successive recurrent events.
 #' @param event a binary vector used as the recurrent event indicator. \code{event = 1} for recurrent times.
 #' @param status a binary vector used as the status indicator for the terminal event. \code{status = 0} for censored times.
-#' @param id subject's id
+#' @param id subject's id.
 #' @param origin a numerical vector indicating the time origin of subjects.
 #' When \code{origin} is a scalar, \code{reSurv} assumes all subjects have the same origin.
 #' Otherwise, \code{origin} needs to be a numerical vector, with length equals to the number of subjects.

@@ -13,7 +13,8 @@ plotRate(x, smooth = FALSE, control = list(), ...)
 
 \item{control}{a list of control parameters.}
 
-\item{...}{for future developments.}
+\item{...}{graphical parameters to be passed to methods.
+These include \code{xlab}, \code{ylab} and \code{main}.}
 }
 \value{
 A \code{ggplot} object.
@@ -27,9 +28,9 @@ to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
-  \item{title}{customizable title, default value is "Baseline cumulative rate function".}
+  \item{main}{customizable title, default value is "Baseline cumulative rate function".}
 }
-These arguments can also be passed down without the \code{control} list. See \bold{examples}.
+These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
 ## readmission data
@@ -43,9 +44,10 @@ plot(fit)
 ## Plot baseline cumulative rate function
 plotRate(fit)
 ## Plot with user-specified labels
-plotRate(fit, xlab = "User xlab", ylab = "User ylab", title = "User title")
-plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))
+plotRate(fit, xlab = "User xlab", ylab = "User ylab", main = "User title")
+plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 }
 \seealso{
 \code{\link{reReg}} \code{\link{plot.reReg}}
 }
+\keyword{Plots}
