@@ -16,6 +16,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
+#' The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
 #' 
 #' @param x an object of class \code{reSurv}, usually returned by the \code{reSurv} function.
 ## #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
@@ -29,7 +30,8 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' @seealso \code{\link{reSurv}}
 #' @keywords plot.reSurv
 #' @export
-#' 
+#'
+#' @return A \code{ggplot} object.
 #' @examples
 #' data(readmission, package = "frailtypack")
 #' reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, id, event, death))
@@ -45,10 +47,23 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' plot(reObj2)
 plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
     if (!is.reSurv(x)) stop("Response must be a reSurv class")
-    if (!CSM)
-        return(plotEvents(x, order = order, control = control))
+    if (!CSM) ctrl <- plotEvents.control()
+    if (CSM) ctrl <- plotCSM.control()
+    call <- match.call()
+    namc <- names(control)
+    if (!all(namc %in% names(ctrl))) 
+        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+    ctrl[namc] <- control
+    namp <- names(match.call())
+    if (any(namp %in% names(ctrl))) {
+        namp <- namp[namp %in% names(ctrl)]
+        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+    }
+    if (!CSM) {
+        return(plotEvents(x, order = order, control = ctrl))
+    }
     if (CSM)
-        return(plotCSM(x, onePanel = TRUE, control = control))
+        return(plotCSM(x, onePanel = TRUE, control = ctrl))
 }
 
 #' Produce Event Plots
@@ -66,6 +81,7 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
+#' The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator,
 #' and the predictors on the right.
@@ -77,6 +93,8 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 #' @seealso \code{\link{reSurv}}, \code{\link{plot.reSurv}}
 #' @keywords plot.reSurv
 #' @export
+#' 
+#' @return A \code{ggplot} object.
 #' 
 #' @examples
 #' data(readmission, package = "frailtypack")
@@ -98,6 +116,11 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
     call <- match.call()
+    namp <- names(match.call())
+    if (any(namp %in% names(ctrl))) {
+        namp <- namp[namp %in% names(ctrl)]
+        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+    }
     nX <- 0
     if (is.reSurv(formula)) {dat <- formula$reTb
     } else {
@@ -201,6 +224,7 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL} and .}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
+#' The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
@@ -214,7 +238,10 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #' @keywords plot.reSurv
 #' @export
 #'
+#' @return A \code{ggplot} object.
+#' 
 #' @importFrom dplyr summarise rowwise
+#' @importFrom ggplot2 guides guide_legend
 #' 
 #' @examples
 #' data(readmission, package = "frailtypack")
@@ -222,15 +249,17 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #' plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
 #' plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE)
 plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = list(), ...) {
-    ctrl <- plotEvents.control()
+    call <- match.call()
+    ctrl <- plotCSM.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
-    if (!("title" %in% namc)) ctrl$title = "Sample cumulative mean function plot"
-    if (!("xlab" %in% namc)) ctrl$xlab = "Time"
-    if (!("ylab" %in% namc)) ctrl$ylab = "Cumulative mean"
-    call <- match.call()
+    namp <- names(match.call())
+    if (any(namp %in% names(ctrl))) {
+        namp <- namp[namp %in% names(ctrl)]
+        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+    }
     nX <- 0
     if(is.reSurv(formula)) {
         dat1 <- formula$reDF
@@ -299,11 +328,12 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
         }
     }
     gg <- ggplot(data = dat0, aes(x = Time, y = CSM))
-    if (ncol(dat1) == 5 & sum(dat1$recType > 0) == 1) {
+    if (ncol(dat1) == 5 & length(unique(dat1$recType)) == 2) {
         gg <- gg + geom_step() 
     } else {
         if (!onePanel & length(unique(dat1$recType)) > 2) 
-            gg <- gg + geom_step(aes(color = recType), direction = "hv")
+            gg <- gg + geom_step(aes(color = recType), direction = "hv") +
+                guides(color = guide_legend(title = ctrl$recurrent.name))
         if (onePanel) {
             rText <- paste("geom_step(aes(color = interaction(",
                            paste(names(dat0)[5:ncol(dat1) - 4], collapse = ","),
@@ -328,15 +358,6 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
     ## scale_y_continuous(expand = c(0, 1)) +
 }
 
-plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurrent event plot",
-                               terminal.name = "Terminal event",
-                               recurrent.name = "Recurrent event",
-                               recurrent.type = NULL, alpha = .7) {
-    list(xlab = xlab, ylab = ylab, title = title, 
-         terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type, alpha = alpha)
-}
-
 #' Plotting Baseline Cumulative Rate Function and Baseline Cumulative Hazard Function
 #'
 #' Plot the baseline cumulative rate function and the baseline cumulative hazard function
@@ -349,6 +370,7 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #'   \item{title}{customizable title, default value is "Baseline cumulative rate and hazard function" if \code{baseline = "both"},
 #' "Baseline cumulative rate function" if \code{baseline = "rate"}, and "Baseline cumulative hazard function" if \code{baseline = "hazard"}.}
 #' }
+#' These arguments can also be passed down without the \code{control} list. See \bold{examples}.
 #' 
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
@@ -362,6 +384,8 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #' @seealso \code{\link{reReg}}
 #' @export
 #' @keywords plot.reReg
+#'
+#' @return A \code{ggplot} object.
 #' 
 #' @importFrom dplyr bind_rows
 #' @importFrom ggplot2 geom_smooth geom_step
@@ -373,25 +397,31 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurre
 #' plot(fit, baseline = "rate")
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                        smooth = FALSE, control = list(), ...) {
-    ctrl <- plotEvents.control()
+    baseline <- match.arg(baseline)
+    if (baseline == "both") ctrl <- plotRe.control()
+    if (baseline == "rate") ctrl <- plotRate.control()
+    if (baseline == "hazard") ctrl <- plotHaz.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
-    if (!("title" %in% namc)) ctrl$title = "Baseline cumulative rate and hazard functions"
-    if (!("xlab" %in% namc)) ctrl$xlab = "Time"
-    if (!("ylab" %in% namc)) ctrl$ylab = ""
-    if (!is.reReg(x)) stop("Response must be a reReg class")
-    baseline <- match.arg(baseline)
-    if (baseline == "rate")
-        return(plotRate(x, smooth = smooth, control = control))
-    if (baseline == "hazard")
-        return(plotHaz(x, smooth = smooth, control = control))
-    if (baseline == "both" & x$method == "sc.XCYH") {
-        print('Warning: baseline cumulative hazard function is not available for method = "sc.XCYH".')
-        return(plotRate(x, smooth = smooth, control = control))
+    call <- match.call()
+    namp <- names(match.call())
+    if (any(namp %in% names(ctrl))) {
+        namp <- namp[namp %in% names(ctrl)]
+        ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
-    if (baseline == "both" & x$method != "sc.XCYH") {
+    if (!is.reReg(x)) stop("Response must be a reReg class")
+    if (baseline == "rate")
+        return(plotRate(x, smooth = smooth, control = ctrl))
+    if (baseline == "hazard")
+        return(plotHaz(x, smooth = smooth, control = ctrl))
+    if (baseline == "both" & x$method %in% c("cox.LWYY", "sc.XCYH")) {
+        cat(paste("Baseline cumulative hazard function is not available for method = ", x$method, ".", sep = ""))
+        cat("\nOnly the baseline cumulative rate function is plotted.\n")
+        return(plotRate(x, smooth = smooth, control = ctrl))
+    }
+    if (baseline == "both" & !(x$method %in% c("cox.LWYY", "sc.XCYH"))) {
         if (is.null(x$rate0.upper)) {
             dat1 <- as_tibble(x$DF) %>% mutate(Y = x$rate0(Time)) %>% select(Time, Y)
             dat2 <- as_tibble(x$DF) %>% mutate(Y = x$haz0(Time)) %>% select(Time, Y)
@@ -439,6 +469,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
 #'   \item{title}{customizable title, default value is "Baseline cumulative rate function".}
 #' }
+#' These arguments can also be passed down without the \code{control} list. See \bold{examples}.
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
@@ -447,6 +478,8 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #'
 #' @seealso \code{\link{reReg}} \code{\link{plot.reReg}}
 #' @export
+#'
+#' @return A \code{ggplot} object.
 #'
 #' @examples
 #' ## readmission data
@@ -460,16 +493,20 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' ## Plot baseline cumulative rate function
 #' plotRate(fit)
 #' ## Plot with user-specified labels
-#' plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title")) 
+#' plotRate(fit, xlab = "User xlab", ylab = "User ylab", title = "User title")
+#' plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))
 plotRate <- function(x, smooth = FALSE, control = list(), ...) {
-    ctrl <- plotEvents.control()
+    ctrl <- plotRate.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
-    if (!("title" %in% namc)) ctrl$title = "Baseline cumulative rate function"
-    if (!("xlab" %in% namc)) ctrl$xlab = "Time"
-    if (!("ylab" %in% namc)) ctrl$ylab = "Baseline cumulative rate"
+    call <- match.call()
+    namp <- names(match.call())
+    if (any(namp %in% names(ctrl))) {
+        namp <- namp[namp %in% names(ctrl)]
+        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+    }
     if (!is.reReg(x)) stop("Response must be a reReg class")
     if (is.null(x$rate0.upper)) {
         dat <- as_tibble(x$DF) %>% mutate(Y = x$rate0(Time)) %>% select(Time, Y)
@@ -507,6 +544,7 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #'   \item{ylab}{customizable y-label, default value is "Subject".}
 #'   \item{title}{customizable title, default value is "Baseline cumulative hazard function".}
 #' }
+#' These arguments can also be passed down without the \code{control} list. See \bold{examples}.
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
@@ -516,6 +554,8 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' @seealso \code{\link{reReg}} \code{\link{plot.reReg}}
 #' @export
 #'
+#' @return A \code{ggplot} object.
+#' 
 #' @examples
 #' ## readmission data
 #' data(readmission, package = "frailtypack")
@@ -530,17 +570,21 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' ## Plot with user-specified labels
 #' plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))  
 plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
-    if (x$method== "sc.XCYH") {
-        stop('Warning: baseline cumulative hazard function is not available for method = sc.XCYH.')
+    if (x$method %in% c("cox.LWYY", "sc.XCYH")) {
+        cat(paste("Baseline cumulative hazard function is not available for method = ", x$method, ".", sep = ""))
+        return()
     }
     ctrl <- plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
-    if (!("title" %in% namc)) ctrl$title = "Baseline cumulative hazard function"
-    if (!("xlab" %in% namc)) ctrl$xlab = "Time"
-    if (!("ylab" %in% namc)) ctrl$ylab = "Baseline cumulative hazard"
+    call <- match.call()
+    namp <- names(match.call())
+    if (any(namp %in% names(ctrl))) {
+        namp <- namp[namp %in% names(ctrl)]
+        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+    }
     if (!is.reReg(x)) stop("Response must be a reReg class")
     if (is.null(x$haz0.upper)) {
         dat <- as_tibble(x$DF) %>% mutate(Y = x$haz0(Time)) %>% select(Time, Y)
@@ -571,3 +615,35 @@ unrowwise <- function(x) {
   class(x) <- c( "tbl_df", "data.frame")
   x
 }
+
+plotEvents.control <- function(xlab = "Time", ylab = "Subject", title = "Recurrent event plot",
+                               terminal.name = "Terminal event",
+                               recurrent.name = "Recurrent events",
+                               recurrent.type = NULL, alpha = .7) {
+    list(xlab = xlab, ylab = ylab, title = title, 
+         terminal.name = terminal.name, recurrent.name = recurrent.name,
+         recurrent.type = recurrent.type, alpha = alpha)
+}
+
+plotCSM.control <- function(xlab = "Time", ylab = "Cumulative mean",
+                            title = "Sample cumulative mean function plot",
+                            terminal.name = "Terminal event",
+                            recurrent.name = "Recurrent events",
+                            recurrent.type = NULL) {
+    list(xlab = xlab, ylab = ylab, title = title,
+         terminal.name = terminal.name, recurrent.name = recurrent.name,
+         recurrent.type = recurrent.type)         
+}
+
+plotHaz.control <- function(xlab = "Time", ylab = "", title = "Baseline cumulative hazard function") {
+    list(xlab = xlab, ylab = ylab, title = title)
+}
+
+plotRate.control <- function(xlab = "Time", ylab = "", title = "Baseline cumulative rate function") {
+    list(xlab = xlab, ylab = ylab, title = title)
+}
+
+plotRe.control <- function(xlab = "Time", ylab = "", title = "Baseline cumulative rate and hazard functions") {
+    list(xlab = xlab, ylab = ylab, title = title)
+}
+

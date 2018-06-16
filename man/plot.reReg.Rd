@@ -21,6 +21,9 @@ If \code{baseline = "hazard"}, only the baseline cumulative hazard function will
 
 \item{...}{for future methods.}
 }
+\value{
+A \code{ggplot} object.
+}
 \description{
 Plot the baseline cumulative rate function and the baseline cumulative hazard function
 (if applicable) for an \code{reReg} object.
@@ -33,6 +36,7 @@ The argument \code{control} consists of options with argument defaults to a list
   \item{title}{customizable title, default value is "Baseline cumulative rate and hazard function" if \code{baseline = "both"},
 "Baseline cumulative rate function" if \code{baseline = "rate"}, and "Baseline cumulative hazard function" if \code{baseline = "hazard"}.}
 }
+These arguments can also be passed down without the \code{control} list. See \bold{examples}.
 }
 \examples{
 data(readmission, package = "frailtypack")

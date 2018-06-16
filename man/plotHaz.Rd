@@ -15,6 +15,9 @@ plotHaz(x, smooth = FALSE, control = list(), ...)
 
 \item{...}{for future developments.}
 }
+\value{
+A \code{ggplot} object.
+}
 \description{
 Plot the baseline cumulative hazard function for an \code{reReg} object.
 }
@@ -26,6 +29,7 @@ defaults to a list with the following values:
   \item{ylab}{customizable y-label, default value is "Subject".}
   \item{title}{customizable title, default value is "Baseline cumulative hazard function".}
 }
+These arguments can also be passed down without the \code{control} list. See \bold{examples}.
 }
 \examples{
 ## readmission data

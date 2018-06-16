@@ -15,6 +15,9 @@ plotRate(x, smooth = FALSE, control = list(), ...)
 
 \item{...}{for future developments.}
 }
+\value{
+A \code{ggplot} object.
+}
 \description{
 Plot the baseline rate function for an \code{reReg} object.
 }
@@ -26,6 +29,7 @@ to a list with the following values:
   \item{ylab}{customizable y-label, default value is "Subject".}
   \item{title}{customizable title, default value is "Baseline cumulative rate function".}
 }
+These arguments can also be passed down without the \code{control} list. See \bold{examples}.
 }
 \examples{
 ## readmission data
@@ -39,7 +43,8 @@ plot(fit)
 ## Plot baseline cumulative rate function
 plotRate(fit)
 ## Plot with user-specified labels
-plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title")) 
+plotRate(fit, xlab = "User xlab", ylab = "User ylab", title = "User title")
+plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", title = "User title"))
 }
 \seealso{
 \code{\link{reReg}} \code{\link{plot.reReg}}

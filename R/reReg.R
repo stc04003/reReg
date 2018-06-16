@@ -574,28 +574,29 @@ doNonpara.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
         tmp <- coxph(as.formula(paste("Surv(Time, status)~",
                                       paste(colnames(DF)[-c(1:4, ncol(DF))], collapse = "+"))),
                      data = DF[event == 0,])
-        tmp0 <- survfit(tmp, newdata = base)
-        hy <- with(tmp0, approx(time, cumhaz, t0)$y)
-        hyU <- -log(with(tmp0, approx(time, upper, t0)$y))
-        hyL <- -log(with(tmp0, approx(time, lower, t0)$y))
+        ## tmp0 <- survfit(tmp, newdata = base)
+        ## hy <- with(tmp0, approx(time, cumhaz, t0)$y)
+        ## hyU <- -log(with(tmp0, approx(time, upper, t0)$y))
+        ## hyL <- -log(with(tmp0, approx(time, lower, t0)$y))
     }
     if (all(X == 0)) {
         tmp <- coxph(Surv(T0, Time, event) ~ 1, data = DF)
         ly <- with(basehaz(tmp), approx(time, hazard, t0)$y)
         lyU <- -log(with(survfit(tmp), approx(time, upper, t0)$y))
         lyL <- -log(with(survfit(tmp), approx(time, lower, t0)$y))
-        tmp <- coxph(Surv(Time, status) ~ 1, data = DF[event == 0,])
-        hy <- with(basehaz(tmp), approx(time, hazard, t0)$y)
-        hyU <- -log(with(survfit(tmp), approx(time, upper, t0)$y))
-        hyL <- -log(with(survfit(tmp), approx(time, lower, t0)$y))
+        ## tmp <- coxph(Surv(Time, status) ~ 1, data = DF[event == 0,])
+        ## hy <- with(basehaz(tmp), approx(time, hazard, t0)$y)
+        ## hyU <- -log(with(survfit(tmp), approx(time, upper, t0)$y))
+        ## hyL <- -log(with(survfit(tmp), approx(time, lower, t0)$y))
     }
     list(rate0 = approxfun(t0, ly, yleft = 0, yright = max(ly, na.rm = TRUE), method = "constant"),
          rate0.lower = approxfun(t0, lyL, yleft = 0, yright = max(lyL, na.rm = TRUE), method = "constant"),
          rate0.upper = approxfun(t0, lyU, yleft = 0, yright = max(lyU, na.rm = TRUE), method = "constant"),
-         t0.rate = t0, 
-         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
-         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
-         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
+         t0.rate = t0,
+         haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL,
+         ## haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
+         ## haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
+         ## haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
          t0.haz = t0)
 }
 

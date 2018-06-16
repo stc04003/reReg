@@ -22,6 +22,9 @@ This is useful when comparing CSM from different groups.}
 
 \item{...}{for future developments.}
 }
+\value{
+A \code{ggplot} object.
+}
 \description{
 Plot the cumulative sample mean function (CSM) for an \code{reSurv} object, with more flexible options.
 }
@@ -36,6 +39,7 @@ The argument \code{control} consists of options with argument defaults to a list
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL} and .}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
+The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
 }
 \examples{
 data(readmission, package = "frailtypack")

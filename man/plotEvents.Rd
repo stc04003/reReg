@@ -19,6 +19,9 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{...}{for future developments.}
 }
+\value{
+A \code{ggplot} object.
+}
 \description{
 Plot the event plot for an \code{reSurv} object, with more flexible options.
 }
@@ -34,6 +37,7 @@ list with the following values:
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
+The \code{xlab}, \code{ylab} and \code{title} can be passed down without the \code{control} list. See \bold{examples}.
 }
 \examples{
 data(readmission, package = "frailtypack")
