@@ -9,7 +9,9 @@ data(readmission, package = "frailtypack")
 
 R0 <- function(x) log(1 + x)
 H0 <- function(x) 4 * log(1 + x)
-    
+
+fm <- reSurv(Time, id, event, status) ~ x1 + x2    
+
 ## ------------------------------------------------------------------------------------------
 ## checking reSurv
 ## ------------------------------------------------------------------------------------------
@@ -505,3 +507,56 @@ sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, media
 ## ------------------------------------------------------------------------------------------
 ## checking variance estimation
 ## ------------------------------------------------------------------------------------------
+
+set.seed(1)
+dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
+summary(reReg(fm, data = dat, method = "cox.HW", se = "boot"))
+## Call: reReg(formula = fm, data = dat, method = "cox.HW", se = "boot")
+## Method: Huang-Wang Model 
+## Coefficients (rate):
+##    Estimate StdErr z.value   p.value    
+## x1    0.943  0.160   5.899 < 2.2e-16 ***
+## x2   -1.089  0.089 -12.228 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Coefficients (hazard):
+##    Estimate StdErr z.value   p.value    
+## x1    0.782  0.211   3.711 < 2.2e-16 ***
+## x2   -1.136  0.134  -8.458 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+summary(reReg(fm, data = dat, method = "cox.HW", se = "boot", control = list(parallel = TRUE)))
+## Method: Huang-Wang Model 
+## Coefficients (rate):
+##    Estimate StdErr z.value   p.value    
+## x1    0.943  0.165   5.713 < 2.2e-16 ***
+## x2   -1.089  0.091 -11.940 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Coefficients (hazard):
+##    Estimate StdErr z.value   p.value    
+## x1    0.782  0.221   3.547 < 2.2e-16 ***
+## x2   -1.136  0.137  -8.294 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+summary(reReg(fm, data = dat, method = "cox.HW", se = "resam"))
+
+
+debug(reReg)
+summary(reReg(fm, data = dat, method = "cox.HW", se = "resam"))
+
+debug(doREFit.cox.HW.resampling)
+doREFit.cox.HW.resampling(DF = DF, engine = engine, stdErr = stdErr)
+
+
+
+ub <- matrix(apply(Z, 2, function(x) HWeq2(res$beta + n^(-.5) * x, X = X[,-1], Y = Y[event == 0],
+                                           delta = status[event == 0], zHat = res$zHat)), p)
+db <- t(apply(ub, 1, function(x) lm(n^(.5) * x ~ t(Z))$coef[-1]))
+ub2 <- apply(E, 2, function(x) HWeq2(res$beta, X = X[,-1], Y = Y[event == 0], delta = status[event == 0],
+                                     zHat = res$zHat, weights = rep(x, mt + 1)))
+vb <- var(t(ub2))
+
+solve(db) %*% vb %*% t(solve(db))
+sqrt(diag(solve(db) %*% vb %*% t(solve(db))))

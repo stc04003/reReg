@@ -191,7 +191,7 @@ void betaEst(double *Y, double *X, double *delta, double *z, double *weights,
   Free(nu);
 }
 
-void HWb(double *Y, double *X, double *delta, double *z, double *weights,
+void HWb(double *Y, double *X, double *delta, double *z, double *xb, double *weights, 
 	     int *n, int *p, int *B, 
 	     // output
 	 double *res) {
@@ -208,17 +208,17 @@ void HWb(double *Y, double *X, double *delta, double *z, double *weights,
 	for (j = 0; j < *n; j++) {
 	  if (Y[i] <= Y[j]) {
 	    for (r = 0; r < *p; r++) {
-	      nu[r] += exp(weights[j + b * *n]) * z[j] * X[j + r * *n];
+	      nu[r] += weights[j] * exp(xb[j + b * *n]) * z[j] * X[j + r * *n];
 	    }
-	    de += exp(weights[j + b * *n]) * z[j];
+	    de += weights[j] * exp(xb[j + b * *n]) * z[j];
 	  }
 	}
 	for (r = 0; r < *p; r++) {
 	  if (de == 0) {
-	    res[r + b * *p] += X[i + r * *n];
+	    res[r + b * *p] += weights[i] * X[i + r * *n];
 	  }
 	  if (de != 0) {
-	    res[r + b * *p] += X[i + r * *n] - (nu[r] / de);
+	    res[r + b * *p] += weights[i] * (X[i + r * *n] - (nu[r] / de));
 	  }
 	}
       } // end delta

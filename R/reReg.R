@@ -154,7 +154,6 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    aSE <- bSE <- da <- va <- db <- vb <- NA
     X <- cbind(1, X[event == 0,])
     engine@a0 <- c(0, engine@a0)
     if (engine@solver %in% c("dfsane", "BBsolve")) 
@@ -176,8 +175,8 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
                 engine@solver, list(par = engine@a0, fn = function(x)
                     sum(HWeq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
                     control = list(trace = FALSE))))
-    alpha <- outA$par <- outA$par[-1]
     muZ <- outA$par[1]
+    alpha <- outA$par <- outA$par[-1]
     lambda <- npMLE(Y[event == 0], T, Y)
     zHat <- as.numeric(mt / (lambda * exp(as.matrix(X[, -1]) %*% alpha)))
     zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
@@ -203,7 +202,7 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
                               zHat = zHat/muZ, weights = NULL)^2),
                     control = list(trace = FALSE))))
     list(alpha = outA$par, aconv = outA$convergence,
-         beta = outB$par, bconv = outB$convergence, muZ = muZ)
+         beta = outB$par, bconv = outB$convergence, muZ = muZ, zHat = zHat / muZ)
 }
 
 doREFit.cox.LWYY <- function(DF, engine, stdErr) {
@@ -315,6 +314,43 @@ sdOut <- function(dat) {
     if (length(ol) > 0)
         dat <- dat[-which(dat %in% ol)]
     sd(dat, na.rm = TRUE)
+}
+
+doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
+    res <- doREFit(DF, engine, NULL)
+    id <- DF$id
+    event <- DF$event
+    status <- DF$status
+    X <- as.matrix(DF[,-c(1:4)])    
+    n <- length(unique(id))
+    p <- ncol(X)
+    T <- DF$Time
+    mt <- aggregate(event ~ id, data = DF, sum)$event
+    Y <- rep(DF$Time[event == 0], mt + 1)
+    cluster <- unlist(sapply(mt + 1, function(x) 1:x))
+    X <- cbind(1, X[event == 0,])
+    B <- stdErr@B
+    E <- matrix(rexp(n * B), nrow = n)
+    Z <- matrix(rnorm((p) * B), nrow = p)
+    ua <- matrix(apply(Z, 2, function(x) HWeq(c(res$muZ, res$alpha) + n^(-.5) * c(0, x), X = X, Y = Y, T = T, cluster = cluster, mt = mt)), nrow = p + 1) 
+    da <- t(apply(ua, 1, function(x) lm(n^(.5) * x ~ t(Z))$coef[-1]))
+    ua2 <- apply(E, 2, function(x) HWeq(c(res$muZ, res$alpha), X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = rep(x, mt + 1))) 
+    va <- var(t(ua2))
+    da <- da[-1,]
+    va <- va[-1, -1]
+    if (qr(da)$rank == p) aVar <- solve(da) %*% va %*% t(solve(da))
+    else aVar <- ginv(da) %*% va %*% t(ginv(da))
+    aSE <- sqrt(diag(aVar))
+    Z <- Z[1:p,]
+    ub <- matrix(apply(Z, 2, function(x) HWeq2(res$beta + n^(-.5) * x, X = X[,-1], Y = Y[event == 0], delta = status[event == 0], zHat = res$zHat)), p)
+    db <- t(apply(ub, 1, function(x) lm(n^(.5) * x ~ t(Z))$coef[-1]))
+    ub2 <- apply(E, 2, function(x) HWeq2(res$beta, X = X[,-1], Y = Y[event == 0], delta = status[event == 0], zHat = res$zHat, weights = rep(x, mt + 1)))
+    vb <- var(t(ub2))
+    if (qr(da)$rank == p) bVar <- solve(db) %*% vb %*% t(solve(db))
+    else bVar <- ginv(db) %*% vb %*% t(ginv(db))
+    bSE <- sqrt(diag(bVar))
+    c(res, list(alphaSE = aSE, betaSE = bSE))
+
 }
 
 doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
@@ -813,7 +849,8 @@ setMethod("doREFit", signature(engine = "sc.XCYH", stdErr = "NULL"), doREFit.sc.
 
 setMethod("doREFit", signature(engine = "Engine", stdErr = "bootstrap"),
           doREFit.Engine.Bootstrap)
-
+setMethod("doREFit", signature(engine = "cox.HW", stdErr = "resampling"),
+          doREFit.cox.HW.resampling)
 setMethod("doREFit", signature(engine = "am.XCHWY", stdErr = "resampling"),
           doREFit.am.XCHWY.resampling)
 setMethod("doREFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
@@ -829,6 +866,7 @@ setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "NULL"), doNonpar
 
 setMethod("doNonpara", signature(engine = "cox.LWYY", stdErr = "bootstrap"), doNonpara.cox.NA)
 setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "bootstrap"), doNonpara.SE.cox.HW)
+setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "resampling"), doNonpara.SE.cox.HW)
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "resampling"), doNonpara.SE.am.XCHWY)
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
 
@@ -1107,22 +1145,22 @@ LWYYeq <- function(beta, X, Y, T, cl) {
 HWeq <-function(gamma, X, Y, T, cluster, mt, weights = NULL) {
     if (is.null(weights)) weights <- rep(1, length(T))
     n <- sum(cluster == 1)
-    Lambda <- npMLE(Y[cluster == 1], T, Y)
+    Lambda <- npMLE(Y[cluster == 1], T, Y, weights)
     res <- vector("double", length(gamma))
     p <- ncol(X)
-    .C("sarm1", as.double(X), as.double(Lambda), as.double(rep(1, n)),
-       as.double(gamma), as.integer(mt), as.integer(n), as.integer(p), as.integer(1),
-       out = as.double(rep(0, p)), PACKAGE = "reReg")$out                            
+    .C("sarm1", as.double(X), as.double(Lambda), as.double(weights), as.double(gamma), 
+       as.integer(mt), as.integer(n), as.integer(p), as.integer(1),
+       res = double(p), PACKAGE = "reReg")$res / n
 }
 
 
 HWeq2 <-function(beta, X, Y, delta, zHat, weights = NULL) {
-    if (is.null(weights)) weights <- rep(1, length(T))        
+    if (is.null(weights)) weights <- rep(1, length(Y))        
     n <- nrow(X)
     p <- ncol(X)
     res <- vector("double", p)
     res <- .C("HWb", as.double(Y), as.double(X), as.double(delta), as.double(zHat),
-              as.double(X %*% beta), as.integer(n), as.integer(p), as.integer(1),
+              as.double(X %*% beta), as.double(weights), as.integer(n), as.integer(p), as.integer(1),
               out = as.double(res), PACKAGE = "reReg")$out
     res / n
 }

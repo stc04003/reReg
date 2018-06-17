@@ -15,7 +15,7 @@ extern void betaEst(void *, void *, void *, void *, void *, void *, void *, void
 extern void glHaz(void *, void *, void *, void *, void *, void *);
 extern void glRate(void *, void *, void *, void *, void *, void *, void *, void *);
 extern void glU2(void *, void *, void *, void *, void *, void *, void *, void *);
-extern void HWb(void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void HWb(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void log_ns_est(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void lwyy(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void plLambda(void *, void *, void *, void *, void *, void *, void *);
@@ -30,7 +30,7 @@ static const R_CMethodDef CEntries[] = {
     {"glHaz",            (DL_FUNC) &glHaz,             6},
     {"glRate",           (DL_FUNC) &glRate,            8},
     {"glU2",             (DL_FUNC) &glU2,              8},
-    {"HWb",              (DL_FUNC) &HWb,               9},
+    {"HWb",              (DL_FUNC) &HWb,              10},
     {"log_ns_est",       (DL_FUNC) &log_ns_est,       11},
     {"lwyy",             (DL_FUNC) &lwyy,              9},
     {"plLambda",         (DL_FUNC) &plLambda,          7},
