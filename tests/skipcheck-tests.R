@@ -558,3 +558,28 @@ summary(reReg(fm, data = dat, method = "cox.HW", se = "resam"))
 ## x2   -1.136  0.104 -10.903 < 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+set.seed(1)
+dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "cox", indCen = FALSE)
+fit1 <- reReg(fm, data = dat, se = "bootstrap")
+fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res")
+fit3 <- reReg(fm, data = dat, method = "am.GL", se = "boot")
+fit4 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
+fit5 <- reReg(fm, data = dat, method = "sc.XCYH", se = "resa")
+
+summary(fit1)
+summary(fit2)
+summary(fit3)
+summary(fit4)
+summary(fit5)
+
+do <- function() {
+    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
+    fit <- reReg(fm, data = dat, method = "cox.HW", se = "resam")
+    as.numeric(c(coef(fit), fit$alphaSE, fit$betaSE))
+}
+
+system.time(print(do()))
+
+foo <- replicate(200, do())

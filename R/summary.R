@@ -142,3 +142,7 @@ coef.reReg <- function(object, ...) {
     as.numeric(c(object$alpha, object$beta))
 }
 
+#' @export
+vcov.reReg <- function(object, ...) {
+    list(alpha.vcov = object$alphaVar, beta.vcov = object$betaVar)
+}

@@ -10,7 +10,7 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     status <- DF$status
-    X <- as.matrix(DF[,-c(1:4)])    
+    X <- as.matrix(DF[,-c(1:4)])
     n <- length(unique(id))
     p <- ncol(X)
     T <- DF$Time
@@ -76,7 +76,6 @@ doREFit.am.GL <- function(DF, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF0) - 4
     alpha <- beta <- gamma <- rep(0, p)
-    aSE <- bSE <- da <- va <- db <- vb <- NA
     Y <- log(DF0$Time)
     X <- as.matrix(DF0[,-(1:4)])
     status <- DF0$status
@@ -86,7 +85,7 @@ doREFit.am.GL <- function(DF, engine, stdErr) {
         .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
            as.integer(rep(1, n)), as.integer(n), as.integer(p), as.integer(n),
            as.double(rep(1, n)), as.double(rep(1, n)), 
-           double(p), PACKAGE = "reReg")[[11]]
+           result = double(p), PACKAGE = "reReg")$result
     }
     if (engine@solver %in% c("dfsane", "BBsolve")) {    
         suppressWarnings(
@@ -349,7 +348,7 @@ doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     if (qr(da)$rank == p) bVar <- solve(db) %*% vb %*% t(solve(db))
     else bVar <- ginv(db) %*% vb %*% t(ginv(db))
     bSE <- sqrt(diag(bVar))
-    c(res, list(alphaSE = aSE, betaSE = bSE))
+    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
 
 }
 
@@ -391,7 +390,8 @@ doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
     if (qr(db)$rank != p)
         bVar <- ginv(db) %*% vb %*% t(ginv(db))
     bSE <- sqrt(diag(bVar))
-    c(res, list(alphaSE = aSE, betaSE = bSE, da = da, va = va, db = db, vb = vb, B = stdErr@B))
+    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
+    ## c(res, list(alphaSE = aSE, betaSE = bSE, da = da, va = va, db = db, vb = vb, B = stdErr@B))
 }
 
 doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
@@ -416,8 +416,11 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
                                   a = out$ahat, b = out$ghat, Bootstrap = stdErr@B, engine))
     list(alpha = out$ahat, beta = out$bhat, alphaSE = outSE$alphaSE, betaSE = outSE$betaSE,
          gamma = out$ghat, gammaSE = sqrt(diag(outSE$ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)])),
-         varMat = outSE$ase, log.muZ = out$LamTau, ## lam0 = out$lamY,
-         values = c(out$a.value, out$g.value))
+         varMat = outSE$ase,
+         log.muZ = out$LamTau, ## lam0 = out$lamY,
+         values = c(out$a.value, out$g.value),
+         alphaVar = outSE$ase[1:p, 1:p],
+         betaVar = outSE$ase[1:p, 1:p] + outSE$ase[(p+2):(2*p+1), (p+2):(2*p+1)] + 2 * outSE$ase[1:p, (p+2):(2*p+1)])
 }
 
 ##############################################################################
@@ -530,7 +533,7 @@ doNonpara.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
         DF2$id <- rep(1:length(id), table(DF$id)[sampled.id])
         tmp <- doNonpara.am.GL(DF2, alpha, beta, engine, NULL)
         rateMat[i,] <- tmp$rate0(PE$t0.rate)
-        hazMat[i,] <- tmp$haz0(PE$t0.rate)
+        hazMat[i,] <- tmp$haz0(PE$t0.haz)
     }
     rl <- apply(rateMat, 2, quantile, prob = .025)
     ru <- apply(rateMat, 2, quantile, prob = .975)
@@ -1040,6 +1043,8 @@ reReg <- function(formula, data, B = 200,
     fit$varNames <- names(DF)[-(1:4)]
     fit$method <- method
     fit$se <- se
+    if (!is.null(fit$alphaVar)) rownames(fit$alphaVar) <- colnames(fit$alphaVar) <- fit$varNames
+    if (!is.null(fit$betaVar)) rownames(fit$betaVar) <- colnames(fit$betaVar) <- fit$varNames
     fit
 }
 
