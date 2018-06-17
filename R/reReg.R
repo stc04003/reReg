@@ -572,7 +572,7 @@ doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     Yb <- log(Y) + X %*% beta
     Yb <- Yb[which(cluster == 1)]
-    hy <- sapply(t0, function(z) baseHaz(z, exp(Yb), zHat / muZ, status[event == 0]))
+    hy <- baseHaz(t0, exp(Yb), zHat / muZ, status[event == 0])
     win.hy <- max(hy)
     list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
          rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
@@ -692,9 +692,10 @@ doNonpara.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     muZ <- mean(zHat)
     Yb <- log(Y) ## + X %*% beta
     Yb <- Yb[event == 0]
-    hy <- sapply(t0, function(z) baseHaz(z, exp(Yb),
-                                         exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ,
-                                         status[event == 0]))
+    ## hy <- sapply(t0, function(z) baseHaz(z, exp(Yb),
+    ##                                      exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ,
+    ##                                      status[event == 0]))
+    hy <- baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0])
     win.hy <- max(hy)
     list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
          rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
@@ -734,11 +735,10 @@ doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     Yb <- log(Y) + X %*% beta
     Yb <- Yb[event == 0]
     muZ <- mean(zHat)
-    hy <- sapply(t0, function(z) baseHaz(z, exp(Yb), zHat / muZ, status[event == 0]))
+    ## hy <- sapply(t0, function(z) baseHaz(z, exp(Yb), zHat / muZ, status[event == 0]))
+    hy <- baseHaz(t0, exp(Yb), zHat / muZ, status[event == 0])
     E <- matrix(rexp(n * B), nrow = n)
-    hytmp <- apply(E, 2, function(z)
-        sapply(t0, function(y)
-            baseHaz(y, exp(Yb), zHat / muZ, status[event == 0], z)))
+    hytmp <- apply(E, 2, function(z) baseHaz(t0, exp(Yb), zHat / muZ, status[event == 0], z))
     hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
     hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
     list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
@@ -770,7 +770,6 @@ doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     if (all(X == 0)) alpha <- beta <- 0
     delta <- DF$event
-    ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
     t0 <- sort(unique(T, Y))
     ng <- length(t0)
     Ya <- log(Y)
@@ -779,7 +778,7 @@ doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     ly <- npMLE(t0, exp(Ta), exp(Ya))
     zHat <- as.numeric(mt * max(ly) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha)))
     ly <- ly / max(ly)
-    E <- matrix(rexp(length(t0) * B), nrow = length(t0))
+    E <- matrix(rexp(ng * B), nrow = ng)
     lytmp <- apply(E, 2, function(x) npMLE(t0, exp(Ta), exp(Ya), x))
     lytmp <- apply(lytmp, 2, function(z) z / max(z))
     lyU <- apply(lytmp, 1, function(z) quantile(z, 0.975))
@@ -788,14 +787,9 @@ doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     Yb <- log(Y) ## + X %*% beta
     Yb <- Yb[event == 0]
     muZ <- mean(zHat)
-    hy <- sapply(t0, function(z) baseHaz(z, exp(Yb),
-                                         exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ,
-                                         status[event == 0]))
+    hy <- baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0])
     E <- matrix(rexp(n * B), nrow = n)
-    hytmp <- apply(E, 2, function(z)
-        sapply(t0, function(y)
-            baseHaz(y, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ,
-                    status[event == 0], z)))
+    hytmp <- apply(E, 2, function(z) baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0], z))
     hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
     hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
     list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
@@ -1055,8 +1049,7 @@ reReg <- function(formula, data, B = 200,
 ##############################################################################
 
 npMLE <- function(t, tij, yi, weights = NULL) {
-    if (is.null(weights))
-        weights <- rep(1, length(yi))
+    if (is.null(weights)) weights <- rep(1, length(yi))
     ttmp <- tij[tij != yi]
     ord <- order(ttmp)
     sl <- unique(ttmp[ord])
@@ -1065,8 +1058,6 @@ npMLE <- function(t, tij, yi, weights = NULL) {
     tmp <- rev(tmp)
     tij <- rev(tij)
     yi <- rev(yi)
-    ## yi <- ifelse(is.infinite(yi), max(yi[!is.infinite(yi)]), yi)
-    ## tij <- ifelse(is.infinite(tij), max(tij[!is.infinite(tij)]), tij)
     res <- vector("double", length(tmp)) + 1
     res <- .C("plLambda", as.double(tmp), as.double(tij), as.double(yi), as.double(weights), 
               as.integer(length(tmp)), as.integer(length(yi)),
@@ -1077,18 +1068,11 @@ npMLE <- function(t, tij, yi, weights = NULL) {
 }
 
 
-baseHaz <- function(t, Y, zHat, delta, weights  = NULL) {
-    if (is.null(weights)) 
-        weights <- rep(1, length(Y))
-    ind <- which(delta == 1 & Y <= t)
-    temp2 <- tmp <- weights[order(Y)]
-    temp2[order(Y)] <- tmp
-    if (length(ind) > 0) {
-        out <- sapply(ind, function(x) temp2[x] / sum(zHat * weights * (Y >= Y[x])))
-    }
-    if (length(ind) == 0)
-        out <- 0
-    sum(out)
+baseHaz <- function(t0, Y, zhat, delta, weights  = NULL) {
+    if (is.null(weights)) weights <- rep(1, length(Y))
+    .C("hwHaz", as.double(t0), as.double(Y), as.double(zhat), as.double(delta),
+       as.double(weights), as.integer(length(Y)), as.integer(length(t0)), 
+       out = double(length(t0)), PACKAGE = "reReg")$out
 }
 
 alphaEq <- function(alpha, X, Y, T, cluster, mt, weights = NULL) {

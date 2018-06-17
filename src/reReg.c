@@ -50,41 +50,6 @@ void sarm1(double *X, double *Lambda, double *weights, double *gamma,
   } // end b
 }
 
-// SARM 3
-/* void sarm2(double *X, double *T, double *Y, double *weights, double *lambda,  */
-/* 	   double *mt, int *n, int *p, int *B, */
-/* 	   double *res) { */
-/*   double *nu = Calloc(*p, double); */
-/*   int i, j, r, b; */
-/*   double de; */
-/*   for (b = 0; b < *B; b++) { */
-/*     for (i = 0; i < *n; i++) { */
-/*       for (r = 0; r < *p; r++) { */
-/* 	nu[r] = 0; */
-/*       } */
-/*       de = 0.0; */
-/*       for (j = 0; j < *n; j++) { */
-/* 	if (T[i] <= Y[j] & lambda[j] > 0) { */
-/* 	  for (r = 0; r < *p; r++) { */
-/* 	    // nu[r] += mt[j] * X[j + r * *n] / lambda[j]; */
-/* 	    nu[r] += X[j + r * *n] / lambda[j]; */
-/* 	  } */
-/* 	  // de += mt[j] / lambda[j]; */
-/* 	  de += 1 / lambda[j]; */
-/* 	} */
-/*       } */
-/*       for (r = 0; r < *p; r ++) { */
-/*       	res[r] += X[i + r * *n] - nu[r] / de; */
-/*       	// res[r] += (X[i + r * *n] - X[j + r * *n]) * de[r]; */
-/*       } */
-/*     } */
-/*     } */
-/*   Free(nu); */
-/*   res; */
-/* } */
-
-// SARM 2
-
 void sarm2(double *X, double *T, double *Y, double *weights, 
 	   int *n, int *p, int *B,
 	   double *res) {
@@ -113,28 +78,6 @@ void sarm2(double *X, double *T, double *Y, double *weights,
     }
   Free(nu);
 }
-
-/* void alphaEq1(double *X, double *Lambda, double *weights,  */
-/* 	      int *mt, int *n, int *p, int *B,  */
-/* 	      double *res) { */
-/*   int i, j, r, b, iId = 0, jId = 0;  */
-/*   for (b = 0; b < *B; b++) { */
-/*     for (i = 0; i < *n; i++) { */
-/*       for (j = 0; j < *n; j++) { */
-/* 	for (r = 0; r < *p; r++) { */
-/* 	  if (Lambda[i] != 0 && Lambda[j] != 0) */
-/* 	    res[r + b * *p] += X[i + r * *n] * weights[i + b * *n] * weights[j + b * *n] * (mt[i] / Lambda[i] -  mt[j] / Lambda[j]); */
-/* 	  if (Lambda[i] != 0 && Lambda[j] == 0) */
-/* 	    res[r + b * *p] += X[i + r * *n] * weights[i + b * *n] * weights[j + b * *n] * (mt[i] / Lambda[i]); */
-/* 	  if (Lambda[i] == 0 && Lambda[j] != 0) */
-/* 	    res[r + b * *p] += X[i + r * *n] * weights[i + b * *n] * weights[j + b * *n] * (0 - mt[j] / Lambda[j]); */
-/* 	} */
-/*       } */
-/*     } */
-/*   } */
-/*   res; */
-/* }		  */
-
 
 void alphaEqC(double *X, double *Lambda, int *mt, int *n, int *p, double *res) {
   int i, j, r; 
@@ -227,7 +170,6 @@ void HWb(double *Y, double *X, double *delta, double *z, double *xb, double *wei
   Free(nu);
 }
 
-
 void scaleChangeLog(int *n, int *p, int *start, int *M,
 		    double *y, double *tij, double *X, double *W, double *result) {
   int i, j, k, l, r;
@@ -296,6 +238,25 @@ void scRate(int *n, int *start, int *M, int *nt0, double *W,
 	  de = 0;
 	}
       }
+    }
+  }
+}
+
+// cumulative baseline function in cox.hw
+// zhat = Z_j * exp(X %*% beta)
+void hwHaz(double *t0, double *yi, double *zi, double *delta, double *wgt,
+	   int *n, int *nt0, double * result) {
+  int i, j, r;
+  double de = 0;
+  for (r = 0; r < *nt0; r++) {
+    for (i = 0; i < *n; i++) {
+      if (delta[i] > 0 && yi[i] <= t0[r]) {
+	for (j = 0; j < *n; j++) {
+	  de += zi[j] * wgt[j] * (yi[i] <= yi[j]);
+	}
+      }
+      if (de > 0) result[r] += wgt[i] / de;
+      de = 0;
     }
   }
 }
