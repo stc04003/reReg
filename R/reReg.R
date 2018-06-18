@@ -1283,8 +1283,12 @@ sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, 
       yx <- as.vector(log(Yi) + X %*% a)
       tx <- ifelse(tx == -Inf, -1e10, tx)
       yx <- ifelse(yx == -Inf, -1e10, yx)
-      tx2 <-  outer(tx, tx,">=")
-      txy <-  outer(tx, yx, "<=")
+      ntx <- length(tx)
+      nyx <- length(yx)
+      tx2 <- .C("outerC2", as.double(tx), as.double(tx), as.integer(ntx), as.integer(ntx), result = double(ntx * ntx))$result
+      txy <- .C("outerC1", as.double(tx), as.double(yx), as.integer(ntx), as.integer(nyx), result = double(ntx * nyx))$result
+      ## tx2 <-  outer(tx, tx,">=")
+      ## txy <-  outer(tx, yx, "<=")
       if (engine@eqType %in% c("Logrank", "logrank")) {
           s1 <- .C("scaleChangeLog", as.integer(n), as.integer(p), as.integer(index - 1),
                    as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]), as.double(e),
@@ -1293,12 +1297,14 @@ sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, 
           s1 <- .C("scaleChangeGehan", as.integer(n), as.integer(p), as.integer(index - 1),
                    as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]), as.double(e),
                    result = double(p), PACKAGE = "reReg")$result / n^2}
-      vv <- matrix((M > 0), nrow(X), n)
+      ## vv <- matrix((M > 0), nrow(X), n)
       yx0 <- as.numeric(unlist(lapply(split(yx, id), unique)))
-      txy0 <- outer(tx, yx0, ">=")
-      Rn <- (tx2 * txy) %*% (e1 * (M > 0))
+      ## txy0 <- outer(tx, yx0, ">=")
+      nyx0 <- length(yx0)
+      txy0 <- .C("outerC2", as.double(tx), as.double(yx0), as.integer(ntx), as.integer(nyx0), result = double(ntx * nyx0))$result
+      Rn <- matrix(tx2 * txy, ntx) %*% (e1 * (M > 0))
       Rn[Rn == 0] <- 1e15
-      Lam <- exp(-colSums((txy0 * vv * e1) / matrix(Rn, nrow(X), n)))
+      Lam <- exp(-colSums(matrix(txy0 * (M > 0) * e1 / as.numeric(Rn), nrow(X))))
       Lam[Lam == 0] <- 1e15
       ind <- cumsum(unlist(lapply(split(id, id), length)))
       ee2 <- matrix(e, nrow(X[ind,]), ncol(X) + 1)
@@ -1307,10 +1313,7 @@ sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, 
       return(c(s1, s2))
   }
   V <- var(t(apply(tmpE, 1, function(x) Sn(a, b, x)))) ## / sqrt(n)
-  tmp <- t(apply(tmpN, 1, function(x)
-                 sqrt(n) * Sn(a + x[1:p] / sqrt(n), b + x[-(1:p)] / sqrt(n), rep(1, n))))
-  ## J0 <- t(coef(lm(tmp[,1:p] ~ tmpN[,1:p] - 1)))
-  ## Jtmp <- t(coef(lm(tmp[,-c(1:p)] ~ tmpN - 1)))
+  tmp <- t(apply(tmpN, 1, function(x) sqrt(n) * Sn(a + x[1:p] / sqrt(n), b + x[-(1:p)] / sqrt(n), rep(1, n))))
   J0 <- t(coef(lm(tmp[,1:p] ~ tmpN[,1:p]))[-1,])
   Jtmp <- t(coef(lm(tmp[,-c(1:p)] ~ tmpN))[-1,])
   J <- rbind(cbind(J0, matrix(0, ncol = p + 1, nrow = nrow(J0))), cbind(Jtmp))

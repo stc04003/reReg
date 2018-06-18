@@ -221,31 +221,57 @@ void scaleChangeGehan(int*n, int *p, int *start, int *M, double *y,
 // \hat{H}_n(t; \hat\alpha) = \int_t^\tau \frac{\sum_{i=1}^n dN*....}{\sum_{i=1}^nR_i^*...}
 //
 // notations are defined similarly as that in glRate
-void scRate(int *n, int *start, int *M, int *nt0, double *W, 
+void scRate(int *n, int *start, int *M, int *nt0, double *W,
 	    double *yi, double *tij, double *t0, double *result) {
   int i, j, k, l, r;
-  double de = 0;
-  for (r = 0; r < *nt0; r++) {
-    for (i = 0; i < *n; i++) {
-      for (k = 0; k < M[i]; k++) {
-	if (tij[start[i] + k] >= t0[r] && tij[start[i] + k] <= yi[i]) {
-	  for (j = 0; j < *n; j++) {
-	    for (l = 0; l < M[j]; l++) {
-	      if (tij[start[j] + l] <= tij[start[i] + k] && tij[start[i] + k] <= yi[j]) de += W[j];
-	    }
-	  }
-	  if (de > 0) result[r] += W[i] / de;
-	  de = 0;
+  int nM = 0;
+  for (i = 0; i < *n; i++) nM += M[i];
+  double *risk = Calloc(nM, double);
+  for (i = 0; i < nM; i++) {
+    for (j = 0; j < *n; j++) {
+      if (tij[i] <= yi[j]) {
+	for (l = 0; l < M[j]; l++) {
+	  risk[i] += W[j] * (tij[start[j] + l] <= tij[i]);
 	}
       }
     }
   }
+  for (r = 0; r < *nt0; r++) {
+    for (i = 0; i < *n; i++) {
+      for (k = 0; k < M[i]; k++) {
+	if (tij[start[i] + k] >= t0[r] && risk[start[i] + k] > 0) result[r] += W[i] / risk[start[i] + k];
+      }
+    }
+  }
+  Free(risk);
 }
+
+/* void scRate(int *n, int *start, int *M, int *nt0, double *W, */
+/* 	    double *yi, double *tij, double *t0, double *result) { */
+/*   int i, j, k, l, r; */
+/*   double de = 0; */
+/*   for (r = 0; r < *nt0; r++) { */
+/*     for (i = 0; i < *n; i++) { */
+/*       for (k = 0; k < M[i]; k++) { */
+/* 	if (tij[start[i] + k] >= t0[r] && tij[start[i] + k] <= yi[i]) { */
+/* 	  for (j = 0; j < *n; j++) { */
+/* 	    for (l = 0; l < M[j]; l++) { */
+/* 	      if (tij[start[j] + l] <= tij[start[i] + k] && tij[start[i] + k] <= yi[j]) de += W[j]; */
+/* 	    } */
+/* 	  } */
+/* 	  if (de > 0) result[r] += W[i] / de; */
+/* 	  de = 0; */
+/* 	} */
+/*       } */
+/*     } */
+/*   } */
+/* } */
+
 
 // cumulative baseline function in cox.hw
 // zhat = Z_j * exp(X %*% beta)
 void hwHaz(double *t0, double *yi, double *zi, double *delta, double *wgt,
-	   int *n, int *nt0, double * result) {
+	   int *n, int *nt0, double *result) {
   int i, j, r;
   double de = 0;
   for (r = 0; r < *nt0; r++) {
@@ -259,4 +285,31 @@ void hwHaz(double *t0, double *yi, double *zi, double *delta, double *wgt,
       de = 0;
     }
   }
+}
+
+
+// C version of outer
+// This function minics R's outer(t1, t2, "<=") but returns a vecter.
+void outerC1(double *t1, double *t2, int *n1, int*n2, double *result) {
+  int i, j, ind;
+  ind = 0;
+  for (j = 0; j < *n2; j++) {
+    for (i = 0; i < *n1; i++) {
+      result[ind] = (t1[i] <= t2[j]);
+      ind += 1;
+    }
+  }  
+}
+
+// C version of outer
+// This function minics R's outer(t1, t2, ">=") but returns a vecter.
+void outerC2(double *t1, double *t2, int *n1, int*n2, double *result) {
+  int i, j, ind;
+  ind = 0;
+  for (j = 0; j < *n2; j++) {
+    for (i = 0; i < *n1; i++) {
+      result[ind] = (t1[i] >= t2[j]);
+      ind += 1;
+    }
+  }  
 }

@@ -19,6 +19,8 @@ extern void HWb(void *, void *, void *, void *, void *, void *, void *, void *, 
 extern void hwHaz(void *, void *, void *, void *, void *, void *, void *, void *);
 extern void log_ns_est(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void lwyy(void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void outerC1(void *, void *, void *, void *, void *);
+extern void outerC2(void *, void *, void *, void *, void *);
 extern void plLambda(void *, void *, void *, void *, void *, void *, void *);
 extern void sarm1(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void scaleChangeGehan(void *, void *, void *, void *, void *, void *, void *, void *, void *);
@@ -35,6 +37,8 @@ static const R_CMethodDef CEntries[] = {
     {"hwHaz",            (DL_FUNC) &hwHaz,             8},
     {"log_ns_est",       (DL_FUNC) &log_ns_est,       11},
     {"lwyy",             (DL_FUNC) &lwyy,              9},
+    {"outerC1",          (DL_FUNC) &outerC1,           5},
+    {"outerC2",          (DL_FUNC) &outerC2,           5},
     {"plLambda",         (DL_FUNC) &plLambda,          7},
     {"sarm1",            (DL_FUNC) &sarm1,             9},
     {"scaleChangeGehan", (DL_FUNC) &scaleChangeGehan,  9},

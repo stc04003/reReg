@@ -562,17 +562,72 @@ summary(reReg(fm, data = dat, method = "cox.HW", se = "resam"))
 
 set.seed(1)
 dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "cox", indCen = FALSE)
-fit1 <- reReg(fm, data = dat, se = "bootstrap")
-fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res")
-fit3 <- reReg(fm, data = dat, method = "am.GL", se = "boot")
-fit4 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
-fit5 <- reReg(fm, data = dat, method = "sc.XCYH", se = "resa")
+system.time(print(summary(reReg(fm, data = dat, method = "sc.XCYH", se = "resa"))))
+
+## Call: reReg(formula = fm, data = dat, method = "sc.XCYH", se = "resa")
+## Method: Generalized Scale-Change Model 
+## Scale-change effect:
+##    Estimate StdErr z.value p.value
+## x1    0.089  0.241   0.368   0.713
+## x2   -0.053  0.064  -0.827   0.408
+## Multiplicative coefficients:
+##    Estimate StdErr z.value   p.value    
+## x1    1.056  0.189   5.582 < 2.2e-16 ***
+## x2    1.075  0.096  11.163 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Hypothesis tests:
+## H0 Cox-type model:
+##      X-squared = 0.7121, df = 2, p-value = 0.7004
+## H0 Accelerated rate model:
+##      X-squared = 150.0657, df = 2, p-value = 0
+## H0 Accelerated mean model:
+##      X-squared = 184.2484, df = 2, p-value = 0
+
+set.seed(1)
+dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "am", indCen = FALSE)
+system.time(print(summary(reReg(fm, data = dat, method = "sc.XCYH", se = "resa"))))
+
+## Call: reReg(formula = fm, data = dat, method = "sc.XCYH", se = "resa")
+## Method: Generalized Scale-Change Model 
+## Scale-change effect:
+##    Estimate StdErr z.value p.value    
+## x1    0.551  0.302   1.824   0.068 .  
+## x2    0.767  0.209   3.664  <2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Multiplicative coefficients:
+##    Estimate StdErr z.value p.value  
+## x1    0.647  0.370   1.750    0.08 .
+## x2    0.630  0.360   1.751    0.08 .
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Hypothesis tests:
+## H0 Cox-type model:
+##      X-squared = 17.7746, df = 2, p-value = 1e-04
+## H0 Accelerated rate model:
+##      X-squared = 3.5778, df = 2, p-value = 0.1671
+## H0 Accelerated mean model:
+##      X-squared = 0.7962, df = 2, p-value = 0.6716
+
+
+system.time(fit1 <- reReg(fm, data = dat, se = "bootstrap"))
+system.time(fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res"))
+system.time(fit3 <- reReg(fm, data = dat, method = "am.GL", se = "boot"))
+system.time(fit4 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res"))
+system.time(fit5 <- reReg(fm, data = dat, method = "sc.XCYH", se = "resa"))
 
 summary(fit1)
 summary(fit2)
 summary(fit3)
 summary(fit4)
 summary(fit5)
+
+vcov(fit1)
+vcov(fit2)
+vcov(fit3)
+vcov(fit4)
+vcov(fit5)
 
 do <- function() {
     dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
