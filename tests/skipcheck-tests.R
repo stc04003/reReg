@@ -2,6 +2,7 @@
 ## load packages and data readmission
 #############################################################################################
 
+library(parallel)
 library(reReg)
 library(reda)
 library(gridExtra)
@@ -505,6 +506,8 @@ sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, media
 ## [3,]  0.000000 -1.274581 -2.7381195 -2.158546 -0.9409923
 ## [4,]  0.000000 -1.218858 -2.6801064 -2.443495 -0.9009280
 
+
+
 ## ------------------------------------------------------------------------------------------
 ## checking variance estimation
 ## ------------------------------------------------------------------------------------------
@@ -628,12 +631,28 @@ vcov(fit3)
 vcov(fit4)
 vcov(fit5)
 
-do <- function() {
-    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
-    fit <- reReg(fm, data = dat, method = "cox.HW", se = "resam")
-    as.numeric(c(coef(fit), fit$alphaSE, fit$betaSE))
+
+
+do <- function(n = 200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
+    dat <- simDat(n, a, b, type , indCen)
+    f1 <- reReg(fm, data = dat, se = "boot")
+    f2 <- reReg(fm, data = dat, method = "cox.HW", se = "resam")
+    invisible(capture.output(f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot")))
+    f4 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
+    f5 <- reReg(fm, data = dat, method = "sc.XCYH", se = "resam")
+    c(coef(f1), f1$alphaSE, f1$betaSE,
+      coef(f2), f2$alphaSE, f2$betaSE,
+      coef(f3), f3$alphaSE, f3$betaSE,
+      coef(f4), f4$alphaSE, f4$betaSE,
+      coef(f5), f5$alphaSE, f5$betaSE)
 }
 
-system.time(print(do()))
+system.time(foo <- do())
+foo
 
-foo <- replicate(200, do())
+cl <- makePSOCKcluster(8)
+setDefaultCluster(cl)
+clusterExport(NULL, c("do", "simDat", "fm"))
+clusterEvalQ(NULL, library(reReg))
+foo <- matrix(parSapply(NULL, 1:500, function(z) do()), 40)
+stopCluster(cl)
