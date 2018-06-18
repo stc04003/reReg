@@ -170,8 +170,13 @@ void HWb(double *Y, double *X, double *delta, double *z, double *xb, double *wei
   Free(nu);
 }
 
-void scaleChangeLog(int *n, int *p, int *start, int *M,
-		    double *y, double *tij, double *X, double *W, double *result) {
+// \code{sc1Log} gives the first estimating equation in the scale-change model Xu et al. (2018).
+// Equation 3.4:
+// S_n(a) = (1/n) * sum_i sum_k [X_i - \frac{sum_j sum_l X_j I(...)}{sum_j sum_l X_j I(...)}
+// This is in log-rank form.
+// Notations are similar to that in \code{scRate}.
+void sc1Log(int *n, int *p, int *start, int *M,
+	    double *y, double *tij, double *X, double *W, double *result) {
   int i, j, k, l, r;
   double de;
   double *nu = Calloc(*p, double);
@@ -179,7 +184,7 @@ void scaleChangeLog(int *n, int *p, int *start, int *M,
     for (j = 0; j < M[i]; j++) {
       for (k = 0; k < n[0]; k++) {
 	for (l = 0; l < M[k]; l++) {
-	  if (tij[start[k] + l] <= tij[start[i] + j] && tij[start[i] + j] <= y[start[k]]) {
+	  if (tij[start[k] + l] <= tij[start[i] + j] && tij[start[i] + j] <= y[k]) {
 	    de = de + W[k];
 	    for (r = 0; r < p[0]; r++) {
 	      nu[r] += W[k] * X[k + r * n[0]]; 
@@ -197,14 +202,19 @@ void scaleChangeLog(int *n, int *p, int *start, int *M,
   Free(nu);
 }
 
-void scaleChangeGehan(int*n, int *p, int *start, int *M, double *y,
+// \code{sc1Gehan} gives the first estimating equation in the scale-change model Xu et al. (2018).
+// Equation 3.4:
+// S_n(a) = (1/n) * sum_i sum_k sum_j sum_l (X_i - X_j) * I(...)
+// This is in Gehan form.
+// Notations are similar to that in \code{scRate}.
+void sc1Gehan(int*n, int *p, int *start, int *M, double *y,
 		      double *tij, double *X, double *W, double *result) {
   int i, j, k, l, r;
   for (i = 0; i < n[0]; i++) {
     for (j = 0; j < M[i]; j++) {
       for (k = 0; k < n[0]; k++) {
 	for (l = 0; l < M[k]; l++) {
-	  if (tij[start[k] + l] <= tij[start[i] + j] && tij[start[i] + j] <= y[start[k]]) {
+	  if (tij[start[k] + l] <= tij[start[i] + j] && tij[start[i] + j] <= y[k]) {
 	    for (r = 0; r < p[0]; r++) {
 	      result[r] += W[i] * W[k] * (X[i + r * n[0]] - X[k + r * n[0]]);
 	    }	    
@@ -215,6 +225,19 @@ void scaleChangeGehan(int*n, int *p, int *start, int *M, double *y,
   }
 }
 
+// \code{sc2} gives the 2nd estimating equation in the scale-change model Xu et al. (2018).
+// Equation 3.5
+// (1/n) sum_i \bar{X} [\frac{m_i}{\Lambda} - exp(\bar{X} \theta)
+// Notations similar to that in scRate
+void sc2(int *n, int *p, double *X, double *xb, 
+	 double *ratio, double *W, double *result) {
+  int i, r;
+  for (i = 0; i < *n; i++) {
+    for (r = 0; r < *p; r++) {
+      result[r] += W[i] * X[i + r * *n] * (ratio[i] - xb[i]);
+    }
+  }
+}
 
 // \code{scRate} gives rates for the scale-change model (method = sc.XCYH)
 // From the paper, this is

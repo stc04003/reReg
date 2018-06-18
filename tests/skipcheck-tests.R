@@ -121,7 +121,7 @@ e
 ## ------------------------------------------------------------------------------------------
 
 fm <- reSurv(Time, id, event, status) ~ x1 + x2
-B <- 200
+B <- 100
 
 ## -----------------------------------------
 ## Under Cox model; independent censoring
@@ -511,7 +511,6 @@ sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, media
 
 set.seed(1)
 dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
-
 summary(reReg(fm, data = dat, method = "cox.HW", se = "boot"))
 ## Call: reReg(formula = fm, data = dat, method = "cox.HW", se = "boot")
 ## Method: Huang-Wang Model 

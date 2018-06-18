@@ -37,10 +37,10 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
                     sum(alphaEq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
                     control = list(trace = FALSE))))
     alpha <- outA$par
-    ## Ystar <- log(Y) + X %*% alpha
-    ## Tstar <- log(T) + X %*% alpha
-    Ystar <- Y * exp(X %*% alpha)
-    Tstar <- T * exp(X %*% alpha)
+    Ystar <- log(Y) + X %*% alpha
+    Tstar <- log(T) + X %*% alpha
+    ## Ystar <- Y * exp(X %*% alpha)
+    ## Tstar <- T * exp(X %*% alpha)
     lambda <- npMLE(Ystar[event == 0], Tstar, Ystar)
     zHat <- as.numeric(mt * npMLE(log(max(Y)), Tstar, Ystar) / lambda)
     zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
@@ -48,7 +48,7 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
         suppressWarnings(
             outB <- do.call(
                 engine@solver, list(par = engine@b0, fn = betaEq,
-                                    X = X, Y = Y, T = T, cluster = cluster,                                    
+                                    X = X, Y = Y, T = T, cluster = cluster,
                                     delta = status[event == 0], mt = mt,
                                     alpha = outA$par, zHat = zHat, weights = NULL,
                                     quiet = TRUE, control = list(trace = FALSE))))
@@ -69,7 +69,7 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
                                alpha = outA$par, zHat = zHat, weights = NULL)^2),
                     control = list(trace = FALSE))))
     list(alpha = outA$par, aconv = outA$convergence, beta = outB$par, bconv = outB$convergence,
-         muZ = mean(zHat), zHat = zHat)
+         muZ = mean(zHat, na.rm = TRUE), zHat = zHat)
 }
 
 doREFit.am.GL <- function(DF, engine, stdErr) {
@@ -224,24 +224,86 @@ doREFit.cox.LWYY <- function(DF, engine, stdErr) {
 }
 
 doREFit.sc.XCYH <- function(DF, engine, stdErr) {
-    id <- DF$id
-    clsz <- unlist(lapply(split(id, id), length))
-    ind <- cumsum(clsz)
-    df <- DF
-    m <- rep(clsz, clsz) - 1
-    y <- rep(df$Time[ind], clsz)
-    rmv <- sort(unique(rep(ind, clsz) * (m > 0)))[-1]
-    df$Time <- df$Time * (m > 0)
-    df <- df[-rmv, ]
-    m <- m[-rmv]
-    y <- y[-rmv]
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
-    out <- with(df, sarmRV(id, Time, y, df[,-(1:4)], m, engine))
-    list(alpha = out$ahat, beta = out$bhat, log.muZ = out$LamTau, ## lam0 = out$lamY,
-         values = c(out$a.value, out$g.value))
+    DF0 <- subset(DF, event == 0)
+    p <- ncol(DF) - 4
+    X <- as.matrix(DF0[,-(1:4)])
+    n <- nrow(DF0)
+    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    index <- c(1, cumsum(m)[-n] + 1)
+    U1 <- function(a) {
+        yi <- log(DF0$Time) + X %*% a
+        tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% a
+        tij <- tij[DF$event == 1]
+        if (engine@eqType %in% c("Logrank", "logrank")) 
+            return(.C("sc1Log", as.integer(n), as.integer(p), as.integer(index - 1),
+                      as.integer(m), as.double(yi), as.double(tij), as.double(X),
+                      as.double(rep(1, length(index))), 
+                      result = double(p), PACKAGE = "reReg")$result)
+        if (engine@eqType %in% c("Gehan", "gehan"))
+            return(.C("sc1Gehan", as.integer(n), as.integer(p), as.integer(index - 1),
+                      as.integer(m), as.double(yi), as.double(tij), as.double(X),
+                      as.double(rep(1, length(index))), 
+                      result = double(p), PACKAGE = "reReg")$result / n)
+    }
+    if (engine@solver %in% c("dfsane", "BBsolve")) {
+        suppressWarnings(
+            fit.a <- do.call(engine@solver, list(par = engine@a0, fn = U1,
+                                                 quiet = TRUE, control = list(trace = FALSE))))
+        a.value <- fit.a$residual
+    }
+    if (engine@solver == "BBoptim") {
+        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
+            sum(U1(x)^2), quiet = TRUE, control = list(trace = FALSE))))
+        a.value <- fit.a$value
+    }
+    if (engine@solver == "optim") {
+        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
+            sum(U1(x)^2), control = list(trace = FALSE))))
+        a.value <- fit.a$value
+    }
+    ahat <- fit.a$par
+    yi <- log(DF0$Time) + X %*% ahat
+    tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% ahat
+    tij <- tij[DF$event == 1]
+    t0.rate <- unique(sort(c(tij, yi)))
+    rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
+               as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
+               as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
+               PACKAGE = "reReg")$result
+    Lam <- exp(-approx(t0.rate, rate, yi)$y)
+    U2 <- function(b) {
+        tmp <- m / Lam
+        tmp <- ifelse(tmp > 1e5, (m + .01) / (Lam + .01), tmp)
+        xb <- exp(cbind(1, X) %*% b)
+        xb <- ifelse(xb == Inf, 1e5, xb)
+        .C("sc2", as.integer(n), as.integer(p + 1), as.double(cbind(1, X)),
+           as.double(xb), as.double(tmp), as.double(rep(1, n)),
+           result = double(p + 1), PACKAGE = "reReg")$result / n
+    }
+    if (engine@solver %in% c("dfsane", "BBsolve")) {
+        suppressWarnings(
+            fit.b <- do.call(engine@solver, list(par = engine@b0, fn = U2,
+                                                 quiet = TRUE, control = list(trace = FALSE))))
+        b.value <- fit.b$residual
+    }
+    if (engine@solver == "BBoptim") {
+        suppressWarnings(fit.b <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
+            sum(U2(x)^2), quiet = TRUE, control = list(trace = FALSE))))
+        b.value <- fit.b$value
+    }
+    if (engine@solver == "optim") {
+        suppressWarnings(fit.b <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
+            sum(U2(x)^2), control = list(trace = FALSE))))
+        b.value <- fit.b$value
+    }    
+    list(alpha = fit.a$par, beta = fit.b$par[-1] + fit.a$par,
+         aconv = fit.a$convergence, bconv = fit.b$convergence,
+         log.muZ = fit.b$par[1],
+         values = c(fit.a$a.value, fit.b$b.value))
 }
 
 ##############################################################################
@@ -395,32 +457,66 @@ doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
 }
 
 doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
-    id <- DF$id
-    clsz <- unlist(lapply(split(id, id), length))
-    ind <- cumsum(clsz)
-    df <- DF
-    m <- rep(clsz, clsz) - 1
-    y <- rep(df$Time[ind], clsz)
-    rmv <- sort(unique(rep(ind, clsz) * (m > 0)))[-1]
-    df$Time <- df$Time * (m > 0)
-    df <- df[-rmv, ]
-    m <- as.numeric(m[-rmv])
-    y <- as.numeric(y[-rmv])
-    p <- ncol(df[,-(1:4)])
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
-    out <- with(df, sarmRV(id, Time, y, df[,-(1:4)], m, engine))
-    outSE <- with(df, sarmRV.sand(id, Time, y, df[,-(1:4)], m,
-                                  a = out$ahat, b = out$ghat, Bootstrap = stdErr@B, engine))
-    list(alpha = out$ahat, beta = out$bhat, alphaSE = outSE$alphaSE, betaSE = outSE$betaSE,
-         gamma = out$ghat, gammaSE = sqrt(diag(outSE$ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)])),
-         varMat = outSE$ase,
-         log.muZ = out$LamTau, ## lam0 = out$lamY,
-         values = c(out$a.value, out$g.value),
-         alphaVar = outSE$ase[1:p, 1:p],
-         betaVar = outSE$ase[1:p, 1:p] + outSE$ase[(p+2):(2*p+1), (p+2):(2*p+1)] + 2 * outSE$ase[1:p, (p+2):(2*p+1)])
+    res <- doREFit(DF, engine, NULL)
+    DF0 <- subset(DF, event == 0)
+    p <- ncol(DF) - 4
+    X <- as.matrix(DF0[,-(1:4)])
+    n <- nrow(DF0)
+    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    index <- c(1, cumsum(m)[-n] + 1)
+    B <- stdErr@B
+    E <- matrix(rexp(n * B), nrow = n)
+    Z <- matrix(rnorm((2 * p  + 1) * B), nrow = 2 * p + 1)
+    a <- res$alpha
+    b <- c(res$log.muZ, res$beta)
+    U12 <- function(a, b, w) {
+        yi <- log(DF0$Time) + X %*% a
+        tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% a
+        tij <- tij[DF$event == 1]
+        if (engine@eqType %in% c("Logrank", "logrank")) 
+            s1 <- .C("sc1Log", as.integer(n), as.integer(p), as.integer(index - 1),
+                     as.integer(m), as.double(yi), as.double(tij), as.double(X), as.double(w), 
+                     result = double(p), PACKAGE = "reReg")$result
+        if (engine@eqType %in% c("Gehan", "gehan"))
+            s2 <- .C("sc1Gehan", as.integer(n), as.integer(p), as.integer(index - 1),
+                     as.integer(m), as.double(yi), as.double(tij), as.double(X), as.double(w), 
+                     result = double(p), PACKAGE = "reReg")$result / n
+        t0.rate <- unique(sort(c(tij, yi)))
+        rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
+                   as.integer(length(t0.rate)), as.double(w), as.double(yi),
+                   as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
+                   PACKAGE = "reReg")$result
+        Lam <- exp(-approx(t0.rate, rate, yi)$y)
+        tmp <- m / Lam
+        tmp <- ifelse(tmp > 1e5, (m + .01) / (Lam + .01), tmp)
+        s2 <-  .C("sc2", as.integer(n), as.integer(p + 1), as.double(cbind(1, X)),
+                  as.double(exp(as.matrix(cbind(1, X)) %*% b)),
+                  as.double(tmp), as.double(w),
+                  result = double(p + 1), PACKAGE = "reReg")$result / n
+        return(c(s1, s2))
+    }
+    V <- var(t(apply(E, 2, function(x) U12(a, b, x))))
+    tmp <- t(apply(Z, 2, function(x) n^.5 * U12(a + x[1:p] * n^-.5, b + x[-(1:p)] * n^-.5, rep(1, n))))
+    J0 <- t(coef(lm(tmp[,1:p] ~ t(Z[1:p,])))[-1,])
+    Jtmp <- t(coef(lm(tmp[,-(1:p)] ~ t(Z)))[-1,])
+    J <- rbind(cbind(J0, matrix(0, ncol = p + 1, nrow = nrow(J0))), cbind(Jtmp))
+    if (qr(J)$rank == nrow(J)) J <- solve(J) else J <- ginv(J)
+    if (qr(J0)$rank == nrow(J0)) J0 <- solve(J0) else J0 <- ginv(J0)
+    ase <- J %*% V %*% t(J)    
+    list(alpha = a, beta = res$beta,
+         alphaSE = sqrt(diag(J0 %*% V[1:p, 1:p] %*% t(J0))),
+         betaSE = sqrt(diag(ase[1:p, 1:p] + ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)] +
+                            2 * ase[1:p, (p + 2):(2 * p + 1)])),
+         gamma = b,
+         varMat = ase,
+         log.muZ = res$log.muZ,
+         values = c(res$a.value, res$b.value),
+         alphaVar = ase[1:p, 1:p],
+         betaVar = ase[1:p, 1:p] + ase[(p+2):(2*p+1), (p+2):(2*p+1)] + 2 * ase[1:p, (p+2):(2*p+1)])
 }
 
 ##############################################################################
@@ -562,10 +658,10 @@ doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
     t0 <- sort(unique(T, Y))
     ng <- length(t0)
-    ## Ya <- log(Y) + X %*% alpha
-    ## Ta <- log(T) + X %*% alpha
-    Ya <- Y * exp(X %*% alpha)
-    Ta <- T * exp(X %*% alpha)
+    Ya <- log(Y) + X %*% alpha
+    Ta <- log(T) + X %*% alpha
+    ## Ya <- Y * exp(X %*% alpha)
+    ## Ta <- T * exp(X %*% alpha)
     lambda <- npMLE(Ya[which(event == 0)], Ta, Ya)
     ly <- npMLE(t0, Ta, Ya)
     zHat <- as.numeric(mt * max(ly) / lambda)
@@ -575,7 +671,7 @@ doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     Yb <- log(Y) + X %*% beta
     Yb <- Yb[which(cluster == 1)]
-    hy <- baseHaz(t0, exp(Yb), zHat / muZ, status[event == 0])
+    hy <- baseHaz(log(t0), Yb, zHat / muZ, status[event == 0])
     win.hy <- max(hy)
     list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
          rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
@@ -1179,149 +1275,66 @@ coefEq <- function(alpha, gamma, X, Y, T, cluster, mt, weights = NULL) {
 ## General modes in R, need to move this to C sometimes
 #########################################################
 
-sarmRV <- function(id, Tij, Yi, X, M, engine) {
-    n <- length(unique(id))
-    X <- as.matrix(X)
-    p <- ncol(X)
-    mm <- matrix((M > 0), nrow(X), ncol(X))
-    index <- c(1, cumsum(tabulate(id))[-n] + 1)
-    U1RV <- function(a) {
-        tx <- as.vector(log(Tij) + X %*% a)
-        yx <- as.vector(log(Yi) + X %*% a)
-        tx <- ifelse(tx == -Inf, -1e10, tx)
-        yx <- ifelse(yx == -Inf, -1e10, yx)
-        if (engine@eqType %in% c("Logrank", "logrank")) 
-            return(.C("scaleChangeLog", as.integer(n), as.integer(p), as.integer(index - 1),
-                      as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]),
-                      as.double(rep(1, length(index))), 
-                      result = double(p), PACKAGE = "reReg")$result)
-        if (engine@eqType %in% c("Gehan", "gehan"))
-            return(.C("scaleChangeGehan", as.integer(n), as.integer(p), as.integer(index - 1),
-                      as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]),
-                      as.double(rep(1, length(index))), 
-                      result = double(p), PACKAGE = "reReg")$result / n)
-    }
-    if (engine@solver %in% c("dfsane", "BBsolve")) {
-        suppressWarnings(
-            fit.a <- do.call(engine@solver, list(par = engine@a0, fn = U1RV,
-                                                 quiet = TRUE, control = list(trace = FALSE))))
-        a.value <- fit.a$residual
-    }
-    if (engine@solver == "BBoptim") {
-        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
-            sum(U1RV(x)^2), quiet = TRUE, control = list(trace = FALSE))))
-        a.value <- fit.a$value
-    }
-    if (engine@solver == "optim") {
-        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
-            sum(U1RV(x)^2), control = list(trace = FALSE))))
-        a.value <- fit.a$value
-    }
-    ahat <- fit.a$par
-    ## tx <- as.vector(Tij * exp(X %*% ahat))
-    ## yx <- as.vector(Yi * exp(X %*% ahat))
-    tx <- as.vector(log(Tij) + X %*% ahat)
-    yx <- as.vector(log(Yi) + X %*% ahat)
-    tx <- ifelse(tx == -Inf, 0, tx)
-    yx <- ifelse(yx == -Inf, 0, yx)
-    tx2 <- outer(tx, tx,">=")
-    txy <- outer(tx, yx, "<=")
-    vv <- matrix((M > 0), nrow(X), n)
-    yx0 <- as.numeric(unlist(lapply(split(yx, id), unique)))
-    txy0 <- outer(tx, yx0, ">=")
-    Rn <- (tx2 * txy) %*% (M > 0)
-    Rn[Rn == 0] <- 1e10
-    ## Lam <- apply(1 - (txy0 * vv) / matrix(Rn, nrow(X), n), 2, prod)
-    Lam <- exp(-colSums((txy0 * vv) / matrix(Rn, nrow(X), n))) ## gives \Lambda(Y_i)
-    Lam[Lam == 0] <- 1e10
-    ind <- cumsum(unlist(lapply(split(id, id), length)))
-    U2RV <- function(b) {
-        tmp <- ifelse(M[ind] / Lam > 1e5, (M[ind] + .01) / (Lam + .01), M[ind] / Lam)
-        as.numeric(t(cbind(1, X[ind,])) %*% (tmp - exp(cbind(1, X[ind,]) %*% b))) / n
-        ## as.numeric(t(cbind(1, X[ind,])) %*% (M[ind] / Lam - exp(cbind(1, X[ind,]) %*% b))) / n
-    }
-    if (engine@solver %in% c("dfsane", "BBsolve")) {
-        suppressWarnings(fit.g <- do.call(engine@solver, list(par = engine@b0, fn = U2RV, quiet = TRUE, control = list(trace = FALSE))))
-        g.value <- fit.g$residual
-    }
-    if (engine@solver == "BBoptim") {
-        suppressWarnings(fit.g <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
-            sum(U2RV(x)^2), quiet = TRUE, control = list(trace = FALSE))))
-        g.value <- fit.g$value
-    }
-    if (engine@solver == "optim") {
-        suppressWarnings(fit.g <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
-            sum(U2RV(x)^2), control = list(trace = FALSE))))
-        g.value <- fit.g$value
-    }
-    ghat <- fit.g$par
-    ## y0 <- exp(yx[ind])
-    list(ahat = ahat, bhat = ghat[-1] + ahat, ghat = ghat, LamTau = ghat[1],
-         ## lamY = stepfun(y0[order(y0)], c(0, Lam[order(y0)])),
-         a.convergence = fit.a$convergence, a.value = a.value, g.convergence = fit.g$convergence, g.value = g.value)
-}
-
 varOut <- function(dat, na.rm = TRUE) {
     dat[which(dat %in% boxplot(dat, plot = FALSE)$out)] <- NA
     dat <- dat[complete.cases(dat),]
     var(dat, na.rm = na.rm)
 }
 
-sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, engine) {
-  n <- length(unique(id))
-  X <- as.matrix(X)
-  p <- ncol(X)
-  mm <- matrix((M > 0), nrow(X), ncol(X))
-  clut <- as.numeric(unlist(lapply(split(id, id), length)))
-  tmpE <- matrix(rexp(n * Bootstrap), ncol = n)
-  tmpN <- matrix(rnorm((2 * p + 1) * Bootstrap), ncol = 2 * p + 1)
-  index <- c(1, cumsum(tabulate(id))[-n] + 1)
-  Sn <- function(a, b, e) {
-      ## Part S1
-      e1 <- rep(e, clut)
-      tx <- as.vector(log(Tij) + X %*% a)
-      yx <- as.vector(log(Yi) + X %*% a)
-      tx <- ifelse(tx == -Inf, -1e10, tx)
-      yx <- ifelse(yx == -Inf, -1e10, yx)
-      ntx <- length(tx)
-      nyx <- length(yx)
-      tx2 <- .C("outerC2", as.double(tx), as.double(tx), as.integer(ntx), as.integer(ntx), result = double(ntx * ntx))$result
-      txy <- .C("outerC1", as.double(tx), as.double(yx), as.integer(ntx), as.integer(nyx), result = double(ntx * nyx))$result
-      ## tx2 <-  outer(tx, tx,">=")
-      ## txy <-  outer(tx, yx, "<=")
-      if (engine@eqType %in% c("Logrank", "logrank")) {
-          s1 <- .C("scaleChangeLog", as.integer(n), as.integer(p), as.integer(index - 1),
-                   as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]), as.double(e),
-                   result = double(p), PACKAGE = "reReg")$result / n}
-      if (engine@eqType %in% c("Gehan", "gehan")) {
-          s1 <- .C("scaleChangeGehan", as.integer(n), as.integer(p), as.integer(index - 1),
-                   as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]), as.double(e),
-                   result = double(p), PACKAGE = "reReg")$result / n^2}
-      ## vv <- matrix((M > 0), nrow(X), n)
-      yx0 <- as.numeric(unlist(lapply(split(yx, id), unique)))
-      ## txy0 <- outer(tx, yx0, ">=")
-      nyx0 <- length(yx0)
-      txy0 <- .C("outerC2", as.double(tx), as.double(yx0), as.integer(ntx), as.integer(nyx0), result = double(ntx * nyx0))$result
-      Rn <- matrix(tx2 * txy, ntx) %*% (e1 * (M > 0))
-      Rn[Rn == 0] <- 1e15
-      Lam <- exp(-colSums(matrix(txy0 * (M > 0) * e1 / as.numeric(Rn), nrow(X))))
-      Lam[Lam == 0] <- 1e15
-      ind <- cumsum(unlist(lapply(split(id, id), length)))
-      ee2 <- matrix(e, nrow(X[ind,]), ncol(X) + 1)
-      s2 <- as.numeric(t(cbind(1, X[ind,]) * ee2) %*%
-                       (M[ind] / Lam - exp(cbind(1, X[ind,]) %*% b))) / n
-      return(c(s1, s2))
-  }
-  V <- var(t(apply(tmpE, 1, function(x) Sn(a, b, x)))) ## / sqrt(n)
-  tmp <- t(apply(tmpN, 1, function(x) sqrt(n) * Sn(a + x[1:p] / sqrt(n), b + x[-(1:p)] / sqrt(n), rep(1, n))))
-  J0 <- t(coef(lm(tmp[,1:p] ~ tmpN[,1:p]))[-1,])
-  Jtmp <- t(coef(lm(tmp[,-c(1:p)] ~ tmpN))[-1,])
-  J <- rbind(cbind(J0, matrix(0, ncol = p + 1, nrow = nrow(J0))), cbind(Jtmp))
-  if (qr(J)$rank == nrow(J)) J <- solve(J) else J <- ginv(J)
-  if (qr(J0)$rank == nrow(J0)) J0 <- solve(J0) else J0 <- ginv(J0)
-  ase <- J %*% V %*% t(J)
-  list(ase = ase, J = J, V = V,
-       alphaSE = sqrt(diag(J0 %*% V[1:p, 1:p] %*% t(J0))),## sqrt(diag(ase)[1:p]),
-       betaSE = sqrt(diag(ase[1:p, 1:p] + ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)] +
-                          2 * ase[1:p, (p + 2):(2 * p + 1)])))
-}
+## sarmRV.sand <- function(id, Tij, Yi, X, M, a = NULL, b = NULL, Bootstrap = 200, engine) {
+##   n <- length(unique(id))
+##   X <- as.matrix(X)
+##   p <- ncol(X)
+##   clut <- as.numeric(unlist(lapply(split(id, id), length)))
+##   tmpE <- matrix(rexp(n * Bootstrap), ncol = n)
+##   tmpN <- matrix(rnorm((2 * p + 1) * Bootstrap), ncol = 2 * p + 1)
+##   index <- c(1, cumsum(tabulate(id))[-n] + 1)
+##   Sn <- function(a, b, e) {
+##       ## Part S1
+##       e1 <- rep(e, clut)
+##       tx <- as.vector(log(Tij) + X %*% a)
+##       yx <- as.vector(log(Yi) + X %*% a)
+##       tx <- ifelse(tx == -Inf, -1e10, tx)
+##       yx <- ifelse(yx == -Inf, -1e10, yx)
+##       ntx <- length(tx)
+##       nyx <- length(yx)
+##       tx2 <- .C("outerC2", as.double(tx), as.double(tx), as.integer(ntx), as.integer(ntx), result = double(ntx * ntx))$result
+##       txy <- .C("outerC1", as.double(tx), as.double(yx), as.integer(ntx), as.integer(nyx), result = double(ntx * nyx))$result
+##       ## tx2 <-  outer(tx, tx,">=")
+##       ## txy <-  outer(tx, yx, "<=")
+##       if (engine@eqType %in% c("Logrank", "logrank")) {
+##           s1 <- .C("sc1Log", as.integer(n), as.integer(p), as.integer(index - 1),
+##                    as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]), as.double(e),
+##                    result = double(p), PACKAGE = "reReg")$result / n}
+##       if (engine@eqType %in% c("Gehan", "gehan")) {
+##           s1 <- .C("sc1Gehan", as.integer(n), as.integer(p), as.integer(index - 1),
+##                    as.integer(M[index]), as.double(yx), as.double(tx), as.double(X[index,]), as.double(e),
+##                    result = double(p), PACKAGE = "reReg")$result / n^2}
+##       ## vv <- matrix((M > 0), nrow(X), n)
+##       yx0 <- as.numeric(unlist(lapply(split(yx, id), unique)))
+##       ## txy0 <- outer(tx, yx0, ">=")
+##       nyx0 <- length(yx0)
+##       txy0 <- .C("outerC2", as.double(tx), as.double(yx0), as.integer(ntx), as.integer(nyx0), result = double(ntx * nyx0))$result
+##       Rn <- matrix(tx2 * txy, ntx) %*% (e1 * (M > 0))
+##       Rn[Rn == 0] <- 1e15
+##       Lam <- exp(-colSums(matrix(txy0 * (M > 0) * e1 / as.numeric(Rn), nrow(X))))
+##       Lam[Lam == 0] <- 1e15
+##       ind <- cumsum(unlist(lapply(split(id, id), length)))
+##       ee2 <- matrix(e, nrow(X[ind,]), ncol(X) + 1)
+##       s2 <- as.numeric(t(cbind(1, X[ind,]) * ee2) %*%
+##                        (M[ind] / Lam - exp(cbind(1, X[ind,]) %*% b))) / n
+##       return(c(s1, s2))
+##   }
+##   V <- var(t(apply(tmpE, 1, function(x) Sn(a, b, x)))) ## / sqrt(n)
+##   tmp <- t(apply(tmpN, 1, function(x) sqrt(n) * Sn(a + x[1:p] / sqrt(n), b + x[-(1:p)] / sqrt(n), rep(1, n))))
+##   J0 <- t(coef(lm(tmp[,1:p] ~ tmpN[,1:p]))[-1,])
+##   Jtmp <- t(coef(lm(tmp[,-c(1:p)] ~ tmpN))[-1,])
+##   J <- rbind(cbind(J0, matrix(0, ncol = p + 1, nrow = nrow(J0))), cbind(Jtmp))
+##   if (qr(J)$rank == nrow(J)) J <- solve(J) else J <- ginv(J)
+##   if (qr(J0)$rank == nrow(J0)) J0 <- solve(J0) else J0 <- ginv(J0)
+##   ase <- J %*% V %*% t(J)
+##   list(ase = ase, J = J, V = V,
+##        alphaSE = sqrt(diag(J0 %*% V[1:p, 1:p] %*% t(J0))),## sqrt(diag(ase)[1:p]),
+##        betaSE = sqrt(diag(ase[1:p, 1:p] + ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)] +
+##                           2 * ase[1:p, (p + 2):(2 * p + 1)])))
+## }

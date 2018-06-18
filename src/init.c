@@ -9,6 +9,7 @@
 /*   R_useDynamicSymbols(info, TRUE); */
 /* } */
 
+
 /* .C calls */
 extern void alphaEqC(void *, void *, void *, void *, void *, void *);
 extern void betaEst(void *, void *, void *, void *, void *, void *, void *, void *, void *);
@@ -23,27 +24,29 @@ extern void outerC1(void *, void *, void *, void *, void *);
 extern void outerC2(void *, void *, void *, void *, void *);
 extern void plLambda(void *, void *, void *, void *, void *, void *, void *);
 extern void sarm1(void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void scaleChangeGehan(void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void scaleChangeLog(void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void sc1Gehan(void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void sc1Log(void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void sc2(void *, void *, void *, void *, void *, void *, void *);
 extern void scRate(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CMethodDef CEntries[] = {
-    {"alphaEqC",         (DL_FUNC) &alphaEqC,          6},
-    {"betaEst",          (DL_FUNC) &betaEst,           9},
-    {"glHaz",            (DL_FUNC) &glHaz,             6},
-    {"glRate",           (DL_FUNC) &glRate,            8},
-    {"glU2",             (DL_FUNC) &glU2,              8},
-    {"HWb",              (DL_FUNC) &HWb,              10},
-    {"hwHaz",            (DL_FUNC) &hwHaz,             8},
-    {"log_ns_est",       (DL_FUNC) &log_ns_est,       11},
-    {"lwyy",             (DL_FUNC) &lwyy,              9},
-    {"outerC1",          (DL_FUNC) &outerC1,           5},
-    {"outerC2",          (DL_FUNC) &outerC2,           5},
-    {"plLambda",         (DL_FUNC) &plLambda,          7},
-    {"sarm1",            (DL_FUNC) &sarm1,             9},
-    {"scaleChangeGehan", (DL_FUNC) &scaleChangeGehan,  9},
-    {"scaleChangeLog",   (DL_FUNC) &scaleChangeLog,    9},
-    {"scRate",           (DL_FUNC) &scRate,            9},
+    {"alphaEqC",   (DL_FUNC) &alphaEqC,    6},
+    {"betaEst",    (DL_FUNC) &betaEst,     9},
+    {"glHaz",      (DL_FUNC) &glHaz,       6},
+    {"glRate",     (DL_FUNC) &glRate,      8},
+    {"glU2",       (DL_FUNC) &glU2,        8},
+    {"HWb",        (DL_FUNC) &HWb,        10},
+    {"hwHaz",      (DL_FUNC) &hwHaz,       8},
+    {"log_ns_est", (DL_FUNC) &log_ns_est, 11},
+    {"lwyy",       (DL_FUNC) &lwyy,        9},
+    {"outerC1",    (DL_FUNC) &outerC1,     5},
+    {"outerC2",    (DL_FUNC) &outerC2,     5},
+    {"plLambda",   (DL_FUNC) &plLambda,    7},
+    {"sarm1",      (DL_FUNC) &sarm1,       9},
+    {"sc1Gehan",   (DL_FUNC) &sc1Gehan,    9},
+    {"sc1Log",     (DL_FUNC) &sc1Log,      9},
+    {"sc2",        (DL_FUNC) &sc2,         7},
+    {"scRate",     (DL_FUNC) &scRate,      9},
     {NULL, NULL, 0}
 };
 
