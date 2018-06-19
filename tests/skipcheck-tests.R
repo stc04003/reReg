@@ -13,6 +13,24 @@ H0 <- function(x) log(1 + x) / 4
 
 fm <- reSurv(Time, id, event, status) ~ x1 + x2    
 
+meanOut <- function(dat, na.rm = TRUE) {
+    dat[which(dat %in% boxplot(dat, plot = FALSE)$out)] <- NA
+    dat <- dat[complete.cases(dat)]
+    mean(dat, na.rm = na.rm)
+}
+
+sdOut <- function(dat, na.rm = TRUE) {
+    dat[which(dat %in% boxplot(dat, plot = FALSE)$out)] <- NA
+    dat <- dat[complete.cases(dat)]
+    sd(dat, na.rm = na.rm)
+}
+
+varOut <- function(dat, na.rm = TRUE) {
+    dat[which(dat %in% boxplot(dat, plot = FALSE)$out)] <- NA
+    dat <- dat[complete.cases(dat)]
+    var(dat, na.rm = na.rm)
+}
+
 ## ------------------------------------------------------------------------------------------
 ## checking reSurv
 ## ------------------------------------------------------------------------------------------
@@ -634,7 +652,7 @@ vcov(fit5)
 
 
 do <- function(n = 200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
-    dat <- simDat(n, a, b, type , indCen)
+    dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
     f1 <- reReg(fm, data = dat, se = "boot")
     f2 <- reReg(fm, data = dat, method = "cox.HW", se = "resam")
     invisible(capture.output(f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot")))
@@ -654,5 +672,39 @@ cl <- makePSOCKcluster(8)
 setDefaultCluster(cl)
 clusterExport(NULL, c("do", "simDat", "fm"))
 clusterEvalQ(NULL, library(reReg))
-foo <- matrix(parSapply(NULL, 1:500, function(z) do()), 40)
+f1 <- matrix(parSapply(NULL, 1:500, function(z) do()), 40)
+f2 <- matrix(parSapply(NULL, 1:500, function(z) do(indCen = FALSE)), 40)
+f3 <- matrix(parSapply(NULL, 1:500, function(z) do(type = "am")), 40)
+f4 <- matrix(parSapply(NULL, 1:500, function(z) do(type = "am", indCen = FALSE)), 40)
+f5 <- matrix(parSapply(NULL, 1:500, function(z)
+    tryCatch(do(a = c(1, 1), b = -c(1, 1), type = "sc"), error = function(e) rep(NA, 40))), 40)
+f6 <- matrix(parSapply(NULL, 1:500, function(z)
+    tryCatch(do(a = c(1, 1), b = -c(1, 1), type = "sc", indCen = FALSE),
+             error = function(e) rep(NA, 40))), 40)
 stopCluster(cl)
+
+datPre <- function(f0) {
+    PE <- apply(f0, 1, mean, na.rm = T)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
+    ESE <- apply(f0, 1, sd, na.rm = T)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
+    ASE <- apply(f0, 1, mean, na.rm = T)[c(1:4, 9:12, 17:20, 25:28, 33:36) + 4]
+    matrix(rbind(matrix(PE, 4), matrix(ESE, 4), matrix(ASE, 4)), 4)
+}
+
+datPre2 <- function(f0) {
+    PE <- apply(f0, 1, meanOut)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
+    ESE <- apply(f0, 1, sdOut)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
+    ASE <- apply(f0, 1, meanOut)[c(1:4, 9:12, 17:20, 25:28, 33:36) + 4]
+    matrix(rbind(matrix(PE, 4), matrix(ESE, 4), matrix(ASE, 4)), 4)
+}
+
+datPre(f2)
+datPre2(f2)
+
+datPre(f3)
+datPre2(f3)
+
+datPre(f4)
+datPre2(f4)
+
+datPre(f5)
+datPre2(f5)
