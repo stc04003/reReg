@@ -630,6 +630,11 @@ system.time(print(summary(reReg(fm, data = dat, method = "sc.XCYH", se = "resa")
 ## H0 Accelerated mean model:
 ##      X-squared = 0.7962, df = 2, p-value = 0.6716
 
+set.seed(1)
+dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "am", indCen = FALSE)
+
+set.seed(1)
+dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
 
 system.time(fit1 <- reReg(fm, data = dat, se = "bootstrap"))
 system.time(fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res"))
@@ -708,3 +713,54 @@ datPre2(f4)
 
 datPre(f5)
 datPre2(f5)
+
+
+
+
+
+
+
+
+
+
+
+
+set.seed(1)
+dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
+
+fit1 <- reReg(fm, data = dat, method = "cox.HW", se = "boo")
+fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res")
+
+summary(fit1)
+
+## Call: reReg(formula = fm, data = dat, method = "cox.HW", se = "boo")
+## Method: Huang-Wang Model 
+## Coefficients (rate):
+##    Estimate StdErr z.value   p.value    
+## x1    0.943  0.160   5.899 < 2.2e-16 ***
+## x2   -1.089  0.089 -12.228 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Coefficients (hazard):
+##    Estimate StdErr z.value   p.value    
+## x1    0.782  0.211   3.711 < 2.2e-16 ***
+## x2   -1.136  0.134  -8.458 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+summary(fit2)
+
+## Call: reReg(formula = fm, data = dat, method = "cox.HW", se = "res")
+## Method: Huang-Wang Model 
+## Coefficients (rate):
+##    Estimate StdErr z.value   p.value    
+## x1    0.943  0.142   6.625 < 2.2e-16 ***
+## x2   -1.089  0.095 -11.422 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Coefficients (hazard):
+##    Estimate StdErr z.value   p.value    
+## x1    0.782  0.187   4.177 < 2.2e-16 ***
+## x2   -1.136  0.091 -12.518 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1

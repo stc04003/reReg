@@ -392,14 +392,12 @@ doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     X <- cbind(1, X[event == 0,])
     B <- stdErr@B
     E <- matrix(rexp(n * B), nrow = n)
-    Z <- matrix(rnorm((p) * B), nrow = p)
-    ua <- matrix(apply(Z, 2, function(x) HWeq(c(res$muZ, res$alpha) + n^(-.5) * c(0, x), X = X, Y = Y, T = T, cluster = cluster, mt = mt)), nrow = p + 1) 
+    Z <- matrix(rnorm((p + 1) * B), nrow = p + 1)
+    ua <- matrix(apply(Z, 2, function(x) HWeq(c(res$muZ, res$alpha) + n^(-.5) * x, X = X, Y = Y, T = T, cluster = cluster, mt = mt)), nrow = p + 1) 
     da <- t(apply(ua, 1, function(x) lm(n^(.5) * x ~ t(Z))$coef[-1]))
     ua2 <- apply(E, 2, function(x) HWeq(c(res$muZ, res$alpha), X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = rep(x, mt + 1))) 
     va <- var(t(ua2))
-    da <- da[-1,]
-    va <- va[-1, -1]
-    if (qr(da)$rank == p) aVar <- solve(da) %*% va %*% t(solve(da))
+    if (qr(da)$rank == (p + 1)) aVar <- solve(da) %*% va %*% t(solve(da))
     else aVar <- ginv(da) %*% va %*% t(ginv(da))
     aSE <- sqrt(diag(aVar))
     Z <- Z[1:p,]
@@ -410,7 +408,7 @@ doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     if (qr(da)$rank == p) bVar <- solve(db) %*% vb %*% t(solve(db))
     else bVar <- ginv(db) %*% vb %*% t(ginv(db))
     bSE <- sqrt(diag(bVar))
-    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
+    c(res, list(alphaSE = aSE[-1], betaSE = bSE, alphaVar = aVar[-1, -1], betaVar = bVar))
 
 }
 
