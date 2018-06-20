@@ -411,8 +411,8 @@ doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     lmfit2 <- t(apply(Z, 2, function(x) Sn(g, res$beta + x[-1] / sqrt(n), rep(1, n), "s2")))
     ## J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
     ## J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,])))[-1,]
-    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z) - 1))
-    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,]) - 1))
+    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
+    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,])))[-1,]
     if (qr(J1)$rank == (p + 1)) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
     else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
     if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
@@ -458,8 +458,8 @@ doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
     V2 <- V[1:p + p, 1:p + p]
     lmfit1 <- t(apply(Z, 2, function(x) Sn(res$alpha + x / sqrt(n), res$beta, rep(1, n), "s1")))
     lmfit2 <- t(apply(Z, 2, function(x) Sn(res$alpha, res$beta + x / sqrt(n), rep(1, n), "s2")))
-    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z) - 1))
-    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z) - 1))
+    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
+    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
     if (qr(J1)$rank == p) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
     else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
     if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
@@ -507,7 +507,7 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
     E <- matrix(rexp(n * B), nrow = n)
     Z <- matrix(rnorm((2 * p  + 1) * B), nrow = 2 * p + 1)
     a <- res$alpha
-    b <- c(res$log.muZ, res$beta)
+    b <- c(res$log.muZ, res$beta - res$alpha)
     U12 <- function(a, b, w) {
         yi <- log(DF0$Time) + X %*% a
         tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% a

@@ -143,497 +143,24 @@ e
 fm <- reSurv(Time, id, event, status) ~ x1 + x2
 B <- 200
 
-## -----------------------------------------
-## Under Cox model; independent censoring
-## -----------------------------------------
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-t2 <- sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, sd), 4)", sep = ""))))
-t1 <- sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, meanOut), 4)", sep = ""))))
-t3 <- sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, sdOut), 4)", sep = ""))))
-
-tab <- rbind(matrix(sapply(1:2, function(x) c(t1[,x], t2[,x], t3[,x])), 4),
-             matrix(sapply(3:4, function(x) c(t1[,x], t2[,x], t3[,x])), 4),
-             cbind(matrix(sapply(5, function(x) c(t1[,x], t2[,x], t3[,x])), 4), NA, NA, NA))
-xtable(tab, digits = 3)
-
-## -----------------------------------------
-## Under Cox model: informative censoring
-## -----------------------------------------
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = FALSE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## ----------------------------------------------------
-## Under accelerated mean model: independent censoring
-## ----------------------------------------------------
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = TRUE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## ----------------------------------------------------
-## Under accelerated mean model: informative censoring
-## ----------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = FALSE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]        [,3]       [,4]       [,5]
-## [1,]  0.2914423  0.4734534   7.4112595  0.9963321  0.9594337
-## [2,] -0.2941699 -0.4972407 -46.0428575 -1.0120288 -0.9812084
-## [3,]  0.0000000  0.4645129   0.9418970  0.9548308  0.9784432
-## [4,]  0.0000000 -0.4924252  -0.9800455 -0.9943737 -0.9857935
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]       [,4]       [,5]
-## [1,]  0.2967115  0.4855938  0.9751950  0.9834565  0.9374652
-## [2,] -0.2940373 -0.4852154 -0.9806555 -1.0167114 -0.9538417
-## [3,]  0.0000000  0.4453158  0.9591747  0.9907931  0.9679560
-## [4,]  0.0000000 -0.4776840 -0.9818601 -1.0148674 -0.9870059
-
-## -------------------------------------------------------
-## Under scale-change model case 1 : independent censoring
-## -------------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "sc", indCen = TRUE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]       [,4]       [,5]
-## [1,]  0.3376109  0.4776484  2.1180249  1.0417487  0.9493306
-## [2,] -0.3171822 -0.4654617  3.4339798 -0.9979099 -1.0091965
-## [3,]  0.0000000  0.4602072  0.9843028  0.9817925  0.9933374
-## [4,]  0.0000000 -0.4593015 -0.9580159 -0.9593768 -0.9986040
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]       [,4]       [,5]
-## [1,]  0.3320632  0.4847381  1.0028684  1.0546360  0.9194267
-## [2,] -0.3176486 -0.4428428 -0.9940145 -1.0031604 -1.0032721
-## [3,]  0.0000000  0.4525045  0.9764476  0.9822547  0.9972095
-## [4,]  0.0000000 -0.4390052 -0.9422122 -0.9656356 -1.0070125
-
-## -------------------------------------------------------
-## Under scale-change model, case 1: informative censoring
-## -------------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "sc", indCen = FALSE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]        [,3]       [,4]       [,5]
-## [1,]  0.2914423  0.4734534   7.4112595  0.9963321  0.9594337
-## [2,] -0.2941699 -0.4972407 -46.0428575 -1.0120288 -0.9812084
-## [3,]  0.0000000  0.4645129   0.9418970  0.9548308  0.9784432
-## [4,]  0.0000000 -0.4924252  -0.9800455 -0.9943737 -0.9857935
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]       [,4]       [,5]
-## [1,]  0.2967115  0.4855938  0.9751950  0.9834565  0.9374652
-## [2,] -0.2940373 -0.4852154 -0.9806555 -1.0167114 -0.9538417
-## [3,]  0.0000000  0.4453158  0.9591747  0.9907931  0.9679560
-## [4,]  0.0000000 -0.4776840 -0.9818601 -1.0148674 -0.9870059
-
-## -------------------------------------------------------
-## Under scale-change model case 2 : independent censoring
-## -------------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(0, 0), b = c(1, -1), type = "sc", indCen = TRUE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]      [,4]        [,5]
-## [1,]  1.0095395  1.0030558 -12.258359  1.701714 -0.07104285
-## [2,] -0.9987734 -0.9828919  70.284788 -1.694750  0.00794948
-## [3,]  0.0000000  0.9925946   1.901420  1.693173  0.98412444
-## [4,]  0.0000000 -0.9903248  -1.889879 -1.793086 -0.99590091
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]      [,3]      [,4]        [,5]
-## [1,]  1.0137409  0.9860589 -0.569459  1.713592 -0.07785388
-## [2,] -0.9986787 -0.9726049  1.349517 -1.694036 -0.02879766
-## [3,]  0.0000000  0.9926598  1.898220  1.674650  0.96859297
-## [4,]  0.0000000 -0.9838892 -1.870775 -1.676171 -1.01655726
-
-## -------------------------------------------------------
-## Under scale-change model case 2 : informative censoring
-## -------------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(0, 0), b = c(1, -1), type = "sc", indCen = FALSE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]      [,4]        [,5]
-## [1,]  0.8831710  0.9882635  -6.678685  1.662889 -0.03127153
-## [2,] -0.8862846 -0.9741403 -19.448102 -1.670255  0.02254210
-## [3,]  0.0000000  0.9996500   1.928973  7.548137  0.98554706
-## [4,]  0.0000000 -0.9970690  -1.919424 -1.779842 -0.99167877
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]      [,4]        [,5]
-## [1,]  0.8817936  0.9755894  0.1947878  1.682990  0.03008002
-## [2,] -0.8844487 -0.9655540 -0.9124529 -1.658278  0.04240854
-## [3,]  0.0000000  0.9750789  1.9610650  1.675099  0.99290055
-## [4,]  0.0000000 -0.9856637 -1.9264643 -1.716020 -0.99817651
-
-## -------------------------------------------------------
-## Under scale-change model, case 3: independent censoring
-## -------------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(0, 0), type = "sc", indCen = TRUE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]      [,3]      [,4]        [,5]
-## [1,] -0.6273514 -0.5257213 -1.511254 -1.247291  1.03154219
-## [2,]  0.5963205  0.4809668 17.324138  1.269810 -1.03648721
-## [3,]  0.0000000 -0.5219780 -1.411929 -1.208746 -0.01009765
-## [4,]  0.0000000  0.5151750  1.433242  1.360865 -0.01261398
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]      [,4]         [,5]
-## [1,] -0.6166167 -0.5152762 -0.2131766 -1.271713  0.964870296
-## [2,]  0.5953391  0.4940052  0.2089009  1.326962 -1.010374144
-## [3,]  0.0000000 -0.5353492 -1.4207072 -1.281072 -0.025677149
-## [4,]  0.0000000  0.5091196  1.4120230  1.343471  0.004867741
-
-## -------------------------------------------------------
-## Under scale-change model case 3 : informative censoring
-## -------------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(0, 0), type = "sc", indCen = FALSE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]      [,3]      [,4]         [,5]
-## [1,] -0.5922499 -0.4974843  2.055044 -1.103509  0.989257876
-## [2,]  0.5641647  0.4710069  2.593204  1.158041 -1.019649499
-## [3,]  0.0000000 -0.5193405 -1.494127 -1.133016 -0.018755820
-## [4,]  0.0000000  0.4897615  1.419987  1.186428 -0.006947674
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]      [,4]         [,5]
-## [1,] -0.5915571 -0.4922137 -0.1857666 -1.178810  0.925451397
-## [2,]  0.5606655  0.4785538  0.2642478  1.237901 -1.000159504
-## [3,]  0.0000000 -0.5159088 -1.4670673 -1.223989 -0.024519623
-## [4,]  0.0000000  0.4969365  1.4249257  1.236251 -0.002014639
-
-## -------------------------------------------------------
-## Under scale-change model, case 4: independent censoring
-## -------------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- tryCatch(coef(reReg(fm, data = dat, method = "am.XCHWY")),
-                       error = function(e) rep(NA, 4))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##           [,1]      [,2]       [,3]        [,4]       [,5]
-## [1,] -1.445607 -1.282392  54.095636   -2.056268  1.0115391
-## [2,] -1.429322 -1.197263 629.029911   -2.472715  1.0446197
-## [3,]  0.000000 -1.314208  -2.704081 1022.070326 -0.8843080
-## [4,]  0.000000 -1.212871  -2.648869 -658.625437 -0.8646925
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##           [,1]      [,2]       [,3]      [,4]       [,5]
-## [1,] -1.443116 -1.263079 -0.6560799 -2.366647  0.9857615
-## [2,] -1.433454 -1.178175 -0.9972435 -2.603102  1.0137420
-## [3,]  0.000000 -1.302996 -2.7414862 -2.444653 -1.0306269
-## [4,]  0.000000 -1.192750 -2.6541133 -2.718752 -0.9753301
-
-## -------------------------------------------------------
-## Under scale-change model, case 4: informative censoring
-## -------------------------------------------------------
-
-f1 <- f2 <- f3 <- f4 <- f5 <- matrix(NA, B, 4)
-for (i in 1:B) {
-    set.seed(i)
-    dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "sc", indCen = FALSE)
-    f1[i,] <- coef(reReg(fm, data = dat))
-    f2[i,] <- coef(reReg(fm, data = dat, method = "cox.HW"))
-    f3[i,] <- coef(reReg(fm, data = dat, method = "am.GL"))
-    f4[i,] <- coef(reReg(fm, data = dat, method = "am.XCHWY"))
-    f5[i,] <- coef(reReg(fm, data = dat, method = "sc.XCYH"))
-    if (i %% 20 == 0) print(i)
-}
-
-sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##           [,1]      [,2]      [,3]      [,4]       [,5]
-## [1,] -1.374198 -1.233134 12.949477 -1.729938  1.0530883
-## [2,] -1.327007 -1.182547 52.996464 -2.189577  1.0982379
-## [3,]  0.000000 -1.275683 -2.806613 -6.174569 -0.8793427
-## [4,]  0.000000 -1.221069 -2.702266 -3.484050 -0.8328464
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##           [,1]      [,2]       [,3]      [,4]       [,5]
-## [1,] -1.373814 -1.234607 -0.4802198 -1.988484  0.9796008
-## [2,] -1.336483 -1.175824 -1.0299474 -2.360519  0.9997686
-## [3,]  0.000000 -1.274581 -2.7381195 -2.158546 -0.9409923
-## [4,]  0.000000 -1.218858 -2.6801064 -2.443495 -0.9009280
-
-
-
-## ------------------------------------------------------------------------------------------
-## checking variance estimation
-## ------------------------------------------------------------------------------------------
-
-set.seed(1)
-dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
-summary(reReg(fm, data = dat, method = "cox.HW", se = "boot"))
-## Call: reReg(formula = fm, data = dat, method = "cox.HW", se = "boot")
-## Method: Huang-Wang Model 
-## Coefficients (rate):
-##    Estimate StdErr z.value   p.value    
-## x1    0.943  0.160   5.899 < 2.2e-16 ***
-## x2   -1.089  0.089 -12.228 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## Coefficients (hazard):
-##    Estimate StdErr z.value   p.value    
-## x1    0.782  0.211   3.711 < 2.2e-16 ***
-## x2   -1.136  0.134  -8.458 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-summary(reReg(fm, data = dat, method = "cox.HW", se = "boot", control = list(parallel = TRUE)))
-## Method: Huang-Wang Model 
-## Coefficients (rate):
-##    Estimate StdErr z.value   p.value    
-## x1    0.943  0.165   5.713 < 2.2e-16 ***
-## x2   -1.089  0.091 -11.940 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## Coefficients (hazard):
-##    Estimate StdErr z.value   p.value    
-## x1    0.782  0.221   3.547 < 2.2e-16 ***
-## x2   -1.136  0.137  -8.294 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-summary(reReg(fm, data = dat, method = "cox.HW", se = "resam"))
-## Call: reReg(formula = fm, data = dat, method = "cox.HW", se = "resam")
-## Method: Huang-Wang Model 
-## Coefficients (rate):
-##    Estimate StdErr z.value   p.value    
-## x1    0.943  0.139   6.805 < 2.2e-16 ***
-## x2   -1.089  0.087 -12.525 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## Coefficients (hazard):
-##    Estimate StdErr z.value   p.value    
-## x1    0.782  0.186   4.196 < 2.2e-16 ***
-## x2   -1.136  0.104 -10.903 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-
-set.seed(1)
-dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "cox", indCen = FALSE)
-system.time(print(summary(reReg(fm, data = dat, method = "sc.XCYH", se = "resa"))))
-
-## Call: reReg(formula = fm, data = dat, method = "sc.XCYH", se = "resa")
-## Method: Generalized Scale-Change Model 
-## Scale-change effect:
-##    Estimate StdErr z.value p.value
-## x1    0.089  0.241   0.368   0.713
-## x2   -0.053  0.064  -0.827   0.408
-## Multiplicative coefficients:
-##    Estimate StdErr z.value   p.value    
-## x1    1.056  0.189   5.582 < 2.2e-16 ***
-## x2    1.075  0.096  11.163 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## Hypothesis tests:
-## H0 Cox-type model:
-##      X-squared = 0.7121, df = 2, p-value = 0.7004
-## H0 Accelerated rate model:
-##      X-squared = 150.0657, df = 2, p-value = 0
-## H0 Accelerated mean model:
-##      X-squared = 184.2484, df = 2, p-value = 0
-
-set.seed(1)
-dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "am", indCen = FALSE)
-system.time(print(summary(reReg(fm, data = dat, method = "sc.XCYH", se = "resa"))))
-
-## Call: reReg(formula = fm, data = dat, method = "sc.XCYH", se = "resa")
-## Method: Generalized Scale-Change Model 
-## Scale-change effect:
-##    Estimate StdErr z.value p.value    
-## x1    0.551  0.302   1.824   0.068 .  
-## x2    0.767  0.209   3.664  <2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## Multiplicative coefficients:
-##    Estimate StdErr z.value p.value  
-## x1    0.647  0.370   1.750    0.08 .
-## x2    0.630  0.360   1.751    0.08 .
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## Hypothesis tests:
-## H0 Cox-type model:
-##      X-squared = 17.7746, df = 2, p-value = 1e-04
-## H0 Accelerated rate model:
-##      X-squared = 3.5778, df = 2, p-value = 0.1671
-## H0 Accelerated mean model:
-##      X-squared = 0.7962, df = 2, p-value = 0.6716
-
-set.seed(1)
-dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "am", indCen = FALSE)
-
-set.seed(1)
-dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
-
-system.time(fit1 <- reReg(fm, data = dat, se = "bootstrap"))
-system.time(fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res"))
-system.time(fit3 <- reReg(fm, data = dat, method = "am.GL", se = "boot"))
-system.time(fit4 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res"))
-system.time(fit5 <- reReg(fm, data = dat, method = "sc.XCYH", se = "resa"))
-
-summary(fit1)
-summary(fit2)
-summary(fit3)
-summary(fit4)
-summary(fit5)
-
-vcov(fit1)
-vcov(fit2)
-vcov(fit3)
-vcov(fit4)
-vcov(fit5)
-
-
+## t2 <- sapply(1:5, function(x)
+##     eval(parse(text = paste("matrix(apply(f", x, ", 2, sd), 4)", sep = ""))))
+## t1 <- sapply(1:5, function(x)
+##     eval(parse(text = paste("matrix(apply(f", x, ", 2, meanOut), 4)", sep = ""))))
+## t3 <- sapply(1:5, function(x)
+##     eval(parse(text = paste("matrix(apply(f", x, ", 2, sdOut), 4)", sep = ""))))
+## tab <- rbind(matrix(sapply(1:2, function(x) c(t1[,x], t2[,x], t3[,x])), 4),
+##              matrix(sapply(3:4, function(x) c(t1[,x], t2[,x], t3[,x])), 4),
+##              cbind(matrix(sapply(5, function(x) c(t1[,x], t2[,x], t3[,x])), 4), NA, NA, NA))
+## xtable(tab, digits = 3)
 
 do <- function(n = 200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
     dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
-    f1 <- reReg(fm, data = dat, se = "boot")
-    f2 <- reReg(fm, data = dat, method = "cox.HW", se = "resam")
-    invisible(capture.output(f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot")))
-    f4 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
-    f5 <- reReg(fm, data = dat, method = "sc.XCYH", se = "resam")
+    f1 <- reReg(fm, data = dat, se = "boot", B = 300)
+    f2 <- reReg(fm, data = dat, method = "cox.HW", se = "resam", B = 300)
+    invisible(capture.output(f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot", B = 300)))
+    f4 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res", B = 300)
+    f5 <- reReg(fm, data = dat, method = "sc.XCYH", se = "resam", B = 300)
     c(coef(f1), f1$alphaSE, f1$betaSE,
       coef(f2), f2$alphaSE, f2$betaSE,
       coef(f3), f3$alphaSE, f3$betaSE,
@@ -641,23 +168,33 @@ do <- function(n = 200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
       coef(f5), f5$alphaSE, f5$betaSE)
 }
 
+debug(doREFit.sc.XCYH)
+debug(doREFit.sc.XCYH.resampling)
+doREFit.sc.XCYH(DF = DF, engine = engine, stdErr = stdErr)
+doREFit.sc.XCYH.resampling(DF = DF, engine = engine, stdErr = stdErr)
+
 system.time(foo <- do())
 foo
 
 cl <- makePSOCKcluster(8)
 setDefaultCluster(cl)
-clusterExport(NULL, c("do", "simDat", "fm"))
+clusterExport(NULL, c("do", "fm"))
 clusterEvalQ(NULL, library(reReg))
-f1 <- matrix(parSapply(NULL, 1:500, function(z) do()), 40)
-f2 <- matrix(parSapply(NULL, 1:500, function(z) do(indCen = FALSE)), 40)
-f3 <- matrix(parSapply(NULL, 1:500, function(z) do(type = "am")), 40)
-f4 <- matrix(parSapply(NULL, 1:500, function(z) do(type = "am", indCen = FALSE)), 40)
-f5 <- matrix(parSapply(NULL, 1:500, function(z)
-    tryCatch(do(a = c(1, 1), b = -c(1, 1), type = "sc"), error = function(e) rep(NA, 40))), 40)
-f6 <- matrix(parSapply(NULL, 1:500, function(z)
-    tryCatch(do(a = c(1, 1), b = -c(1, 1), type = "sc", indCen = FALSE),
-             error = function(e) rep(NA, 40))), 40)
+f1 <- parSapply(NULL, 1:500, function(z) tryCatch(do(), error = function(e) rep(NA, 40)))
+f2 <- parSapply(NULL, 1:500, function(z) tryCatch(do(indCen = FALSE), error = function(e) rep(NA, 40)))
+f3 <- parSapply(NULL, 1:500, function(z) tryCatch(do(type = "am"), error = function(e) rep(NA, 40)))
+f4 <- parSapply(NULL, 1:500, function(z)
+    tryCatch(do(type = "am", indCen = FALSE), error = function(e) rep(NA, 40)))
+f5 <- parSapply(NULL, 1:100, function(z)
+    tryCatch(do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE),
+             error = function(e) rep(NA, 40)))
+f6 <- parSapply(NULL, 1:100, function(z)
+    tryCatch(do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = FALSE),
+             error = function(e) rep(NA, 40)))
 stopCluster(cl)
+
+sim <- list(f1 = f1, f2 = f2, f3 = f3, f4 = f4, f5 = f5, f6 = f6)
+save(sim, file = "sim.RData")
 
 datPre <- function(f0) {
     PE <- apply(f0, 1, mean, na.rm = T)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
@@ -673,21 +210,9 @@ datPre2 <- function(f0) {
     matrix(rbind(matrix(PE, 4), matrix(ESE, 4), matrix(ASE, 4)), 4)
 }
 
-datPre(f2)
-datPre2(f2)
-
-datPre(f3)
-datPre2(f3)
-
-datPre(f4)
-datPre2(f4)
-
-datPre(f5)
-datPre2(f5)
-
-
-
-
+set.seed(1)
+debug(do)
+do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE)
 
 set.seed(1)
 dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
@@ -765,41 +290,6 @@ coef(reReg(fm, data = dat, method = "am.GL"))
 coef(reReg(fm, data = dat, method = "am.XCHWY"))
 coef(reReg(fm, data = dat, method = "sc.XCYH"))
 
+coef(reReg(fm, data = dat, method = "cox.HW", se = "res"))
+coef(reReg(fm, data = dat, method = "sc.XCYH", se = "res"))
 
-Sn <- function(a, b, w, r = "both") {
-    Ystar <- log(Y) + X %*% a
-    Tstar <- log(T) + X %*% a
-    Lam <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar, rep(w, mt + 1))
-    s1 <- .C("alphaEqC", as.double(X[which(cluster == 1),]), as.double(Lam), as.integer(mt),
-             as.integer(n), as.integer(p), res = double(p), PACKAGE = "reReg")$res / n
-    if (r == "s1") return(s1)
-    zHat <- mt / Lam
-    zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    Ystar <- (log(Y) + X %*% b)[cluster == 1]
-    s2 <- .C("betaEst", as.double(Ystar), as.double(X[cluster == 1,]),
-             as.double(status[event == 0]), as.double(zHat),
-             as.double(w), as.integer(n), as.integer(p), as.integer(1), res = double(p), PACKAGE = "reReg")$res / n
-    if (r == "s2") return(s2)
-    return(c(s1, s2))
-}
-
-V <- var(t(apply(E, 2, function(x) Sn(res$alpha, res$beta, x))))
-V1 <- V[1:p, 1:p]
-V2 <- V[1:p + p, 1:p + p]
-
-lmfit1 <- t(apply(Z, 2, function(x) Sn(res$alpha + x / sqrt(n), res$beta, rep(1, n), "s1")))
-lmfit2 <- t(apply(Z, 2, function(x) Sn(res$alpha, res$beta + x / sqrt(n), rep(1, n), "s2")))
-J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z) - 1))
-J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z) - 1))
-
-solve(J1) %*% V1 %*% t(solve(J1))
-sqrt(diag(solve(J1) %*% V1 %*% t(solve(J1))))
-
-solve(J2) %*% V2 %*% t(solve(J2))
-sqrt(diag(solve(J2) %*% V2 %*% t(solve(J2))))
-
-
-
-
-coef(lm(sqrt(n) * lmfit1 ~ t(Z) - 1))
-coef(lm(sqrt(n) * lmfit1 ~ t(Z)))
