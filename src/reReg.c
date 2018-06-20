@@ -79,19 +79,19 @@ void sarm2(double *X, double *T, double *Y, double *weights,
   Free(nu);
 }
 
-void alphaEqC(double *X, double *Lambda, int *mt, int *n, int *p, double *res) {
+void alphaEqC(double *X, double *Lambda, int *mt, int *n, int *p, double *weights, double *res) {
   int i, j, r; 
   for (i = 0; i < *n; i++) {
     for (j = 0; j < *n; j++) {
       for (r = 0; r < *p; r++) {
 	if (Lambda[i] != 0 && Lambda[j] != 0) {
-	  res[r] += X[i + r * *n] * (mt[i] / Lambda[i] -  mt[j] / Lambda[j]);
+	  res[r] += weights[i] * X[i + r * *n] * (mt[i] / Lambda[i] -  weights[j] * mt[j] / Lambda[j]);
 	}
 	if (Lambda[i] != 0 && Lambda[j] == 0) {
-	  res[r] += X[i + r * *n] * (mt[i] / Lambda[i]);
+	  res[r] += weights[i] * X[i + r * *n] * (mt[i] / Lambda[i]);
 	}
 	if (Lambda[i] == 0 && Lambda[j] != 0) {
-	  res[r] += X[i + r * *n] * (0 - mt[j] / Lambda[j]);
+	  res[r] += weights[i] * X[i + r * *n] * (0 - weights[j] * mt[j] / Lambda[j]);
 	}
       }
     }

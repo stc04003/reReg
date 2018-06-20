@@ -6,6 +6,7 @@ library(parallel)
 library(reReg)
 library(reda)
 library(gridExtra)
+library(xtable)
 data(readmission, package = "frailtypack")
 
 R0 <- function(x) log(1 + x)
@@ -140,7 +141,7 @@ e
 ## ------------------------------------------------------------------------------------------
 
 fm <- reSurv(Time, id, event, status) ~ x1 + x2
-B <- 100
+B <- 200
 
 ## -----------------------------------------
 ## Under Cox model; independent censoring
@@ -160,18 +161,14 @@ for (i in 1:B) {
 sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
 sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
 
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]      [,4]        [,5]
-## [1,]  1.0045515  0.9866267 -0.6408149  1.693991 -0.06327675
-## [2,] -0.9989104 -0.9846831 33.9799462 -1.702738  0.02135911
-## [3,]  0.0000000  0.9831873  1.9082346  1.697227  0.98241508
-## [4,]  0.0000000 -0.9866988 -1.8796832 -1.762501 -0.99980678
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]      [,4]         [,5]
-## [1,]  1.0089382  0.9811865 -0.7239646  1.719878 -0.064861179
-## [2,] -0.9999909 -0.9734948  1.9427521 -1.700137 -0.003709682
-## [3,]  0.0000000  0.9921877  1.9117672  1.674758  0.958277053
-## [4,]  0.0000000 -0.9835988 -1.8527776 -1.658847 -1.013114033
+t2 <- sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, sd), 4)", sep = ""))))
+t1 <- sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, meanOut), 4)", sep = ""))))
+t3 <- sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, sdOut), 4)", sep = ""))))
+
+tab <- rbind(matrix(sapply(1:2, function(x) c(t1[,x], t2[,x], t3[,x])), 4),
+             matrix(sapply(3:4, function(x) c(t1[,x], t2[,x], t3[,x])), 4),
+             cbind(matrix(sapply(5, function(x) c(t1[,x], t2[,x], t3[,x])), 4), NA, NA, NA))
+xtable(tab, digits = 3)
 
 ## -----------------------------------------
 ## Under Cox model: informative censoring
@@ -191,19 +188,6 @@ for (i in 1:B) {
 sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
 sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
 
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]      [,3]      [,4]        [,5]
-## [1,]  0.8689491  0.9512708 -2.124821  1.681021 -0.04609916
-## [2,] -0.8869352 -0.9785694 -4.683311 -1.689699  0.01385236
-## [3,]  0.0000000  0.9672966  1.894967 13.441088  0.94418619
-## [4,]  0.0000000 -1.0041152 -1.923131 -1.828242 -0.99715960
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]      [,4]        [,5]
-## [1,]  0.8777029  0.9576853  0.2604682  1.680410  0.02014634
-## [2,] -0.8885664 -0.9664461 -1.2535982 -1.659235  0.01751235
-## [3,]  0.0000000  0.9570289  1.9145469  1.686200  0.93996583
-## [4,]  0.0000000 -0.9913744 -1.9149213 -1.718060 -1.00247617
-
 ## ----------------------------------------------------
 ## Under accelerated mean model: independent censoring
 ## ----------------------------------------------------
@@ -221,19 +205,6 @@ for (i in 1:B) {
 
 sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
 sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(colMeans(f", x, "), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]       [,4]       [,5]
-## [1,]  0.3293329  0.4744924  1.0534743  1.0170697  0.9939016
-## [2,] -0.3181031 -0.4684926  2.1080002 -0.9919633 -0.9970334
-## [3,]  0.0000000  0.4766892  1.0221018  1.0179075  1.0041706
-## [4,]  0.0000000 -0.4704039 -0.9810203 -0.9850167 -0.9899014
-## > sapply(1:5, function(x) eval(parse(text = paste("matrix(apply(f", x, ", 2, median), 4)", sep = ""))))
-##            [,1]       [,2]       [,3]       [,4]       [,5]
-## [1,]  0.3243937  0.4722361  0.9887925  1.0117680  0.9860829
-## [2,] -0.3174810 -0.4458255 -0.9756880 -0.9862884 -0.9939761
-## [3,]  0.0000000  0.4868080  1.0327419  1.0195803  1.0114809
-## [4,]  0.0000000 -0.4447878 -0.9911142 -0.9908719 -0.9898207
 
 ## ----------------------------------------------------
 ## Under accelerated mean model: informative censoring
@@ -718,18 +689,11 @@ datPre2(f5)
 
 
 
-
-
-
-
-
-
-
 set.seed(1)
 dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
 
-fit1 <- reReg(fm, data = dat, method = "cox.HW", se = "boo")
-fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res")
+system.time(fit1 <- reReg(fm, data = dat, method = "cox.HW", se = "boo"))
+system.time(fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res"))
 
 summary(fit1)
 
@@ -764,3 +728,78 @@ summary(fit2)
 ## x2   -1.136  0.091 -12.518 < 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+tmp <- matrix(NA, 100, 8)
+for (i in 1:100) {
+    set.seed(i)
+    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
+    fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res")
+    tmp[i,] <- c(coef(fit2), fit2$alphaSE, fit2$betaSE)
+}
+
+tmp <- matrix(NA, 100, 8)
+for (i in 1:100) {
+    set.seed(i)
+    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = TRUE)
+    fit2 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
+    tmp[i,] <- c(coef(fit2), fit2$alphaSE, fit2$betaSE)
+    if (i %% 10 == 0) print(i)
+}
+
+set.seed(1)
+dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = TRUE)
+fit1 <- reReg(fm, data = dat, method = "am.XCHWY", se = "boo")
+fit2 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
+
+summary(fit1)
+summary(fit2)
+
+
+debug(doREFit.am.XCHWY.resampling)
+doREFit.am.XCHWY.resampling(DF = DF, engine = engine, stdErr = stdErr)
+
+
+coef(reReg(fm, data = dat))
+coef(reReg(fm, data = dat, method = "cox.HW"))
+coef(reReg(fm, data = dat, method = "am.GL"))
+coef(reReg(fm, data = dat, method = "am.XCHWY"))
+coef(reReg(fm, data = dat, method = "sc.XCYH"))
+
+
+Sn <- function(a, b, w, r = "both") {
+    Ystar <- log(Y) + X %*% a
+    Tstar <- log(T) + X %*% a
+    Lam <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar, rep(w, mt + 1))
+    s1 <- .C("alphaEqC", as.double(X[which(cluster == 1),]), as.double(Lam), as.integer(mt),
+             as.integer(n), as.integer(p), res = double(p), PACKAGE = "reReg")$res / n
+    if (r == "s1") return(s1)
+    zHat <- mt / Lam
+    zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+    Ystar <- (log(Y) + X %*% b)[cluster == 1]
+    s2 <- .C("betaEst", as.double(Ystar), as.double(X[cluster == 1,]),
+             as.double(status[event == 0]), as.double(zHat),
+             as.double(w), as.integer(n), as.integer(p), as.integer(1), res = double(p), PACKAGE = "reReg")$res / n
+    if (r == "s2") return(s2)
+    return(c(s1, s2))
+}
+
+V <- var(t(apply(E, 2, function(x) Sn(res$alpha, res$beta, x))))
+V1 <- V[1:p, 1:p]
+V2 <- V[1:p + p, 1:p + p]
+
+lmfit1 <- t(apply(Z, 2, function(x) Sn(res$alpha + x / sqrt(n), res$beta, rep(1, n), "s1")))
+lmfit2 <- t(apply(Z, 2, function(x) Sn(res$alpha, res$beta + x / sqrt(n), rep(1, n), "s2")))
+J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z) - 1))
+J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z) - 1))
+
+solve(J1) %*% V1 %*% t(solve(J1))
+sqrt(diag(solve(J1) %*% V1 %*% t(solve(J1))))
+
+solve(J2) %*% V2 %*% t(solve(J2))
+sqrt(diag(solve(J2) %*% V2 %*% t(solve(J2))))
+
+
+
+
+coef(lm(sqrt(n) * lmfit1 ~ t(Z) - 1))
+coef(lm(sqrt(n) * lmfit1 ~ t(Z)))

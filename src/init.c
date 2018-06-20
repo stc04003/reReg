@@ -9,9 +9,8 @@
 /*   R_useDynamicSymbols(info, TRUE); */
 /* } */
 
-
 /* .C calls */
-extern void alphaEqC(void *, void *, void *, void *, void *, void *);
+extern void alphaEqC(void *, void *, void *, void *, void *, void *, void *);
 extern void betaEst(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void glHaz(void *, void *, void *, void *, void *, void *);
 extern void glRate(void *, void *, void *, void *, void *, void *, void *, void *);
@@ -20,8 +19,6 @@ extern void HWb(void *, void *, void *, void *, void *, void *, void *, void *, 
 extern void hwHaz(void *, void *, void *, void *, void *, void *, void *, void *);
 extern void log_ns_est(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void lwyy(void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void outerC1(void *, void *, void *, void *, void *);
-extern void outerC2(void *, void *, void *, void *, void *);
 extern void plLambda(void *, void *, void *, void *, void *, void *, void *);
 extern void sarm1(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void sc1Gehan(void *, void *, void *, void *, void *, void *, void *, void *, void *);
@@ -30,7 +27,7 @@ extern void sc2(void *, void *, void *, void *, void *, void *, void *);
 extern void scRate(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CMethodDef CEntries[] = {
-    {"alphaEqC",   (DL_FUNC) &alphaEqC,    6},
+    {"alphaEqC",   (DL_FUNC) &alphaEqC,    7},
     {"betaEst",    (DL_FUNC) &betaEst,     9},
     {"glHaz",      (DL_FUNC) &glHaz,       6},
     {"glRate",     (DL_FUNC) &glRate,      8},
@@ -39,8 +36,6 @@ static const R_CMethodDef CEntries[] = {
     {"hwHaz",      (DL_FUNC) &hwHaz,       8},
     {"log_ns_est", (DL_FUNC) &log_ns_est, 11},
     {"lwyy",       (DL_FUNC) &lwyy,        9},
-    {"outerC1",    (DL_FUNC) &outerC1,     5},
-    {"outerC2",    (DL_FUNC) &outerC2,     5},
     {"plLambda",   (DL_FUNC) &plLambda,    7},
     {"sarm1",      (DL_FUNC) &sarm1,       9},
     {"sc1Gehan",   (DL_FUNC) &sc1Gehan,    9},

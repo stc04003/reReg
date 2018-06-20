@@ -109,11 +109,10 @@ doREFit.am.GL <- function(DF, engine, stdErr) {
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
     ghoshU2 <- function(a) {
-        ## d <- max(X %*% (a - bhat), 0)
         d <- max(X %*% (a - bhat))
         tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
         tij <- tij[DF$event == 1]
-        yi <- Y - X %*% bhat - d
+        yi <- Y - X %*% a - d ## There is error in Ghosh's paper
         .C("glU2", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
            as.double(yi), as.double(tij), as.double(X), result = double(p),
            PACKAGE = "reReg")$result
@@ -393,20 +392,32 @@ doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     B <- stdErr@B
     E <- matrix(rexp(n * B), nrow = n)
     Z <- matrix(rnorm((p + 1) * B), nrow = p + 1)
-    ua <- matrix(apply(Z, 2, function(x) HWeq(c(res$muZ, res$alpha) + n^(-.5) * x, X = X, Y = Y, T = T, cluster = cluster, mt = mt)), nrow = p + 1) 
-    da <- t(apply(ua, 1, function(x) lm(n^(.5) * x ~ t(Z))$coef[-1]))
-    ua2 <- apply(E, 2, function(x) HWeq(c(res$muZ, res$alpha), X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = rep(x, mt + 1))) 
-    va <- var(t(ua2))
-    if (qr(da)$rank == (p + 1)) aVar <- solve(da) %*% va %*% t(solve(da))
-    else aVar <- ginv(da) %*% va %*% t(ginv(da))
+    Sn <- function(g, b, w, r = "both") {
+        s1 <- HWeq(g, X, Y, T, cluster, mt, rep(w, mt + 1))
+        if (r == "s1") return(s1)            
+        lam <- npMLE(Y[event == 0], T, Y, rep(w, mt + 1))
+        zHat <- mt / (lam * exp(as.matrix(X[,-1]) %*% g[-1]))
+        zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+        ## s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat / g[1], rep(w, mt + 1))
+        s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat / log(mean(zHat)), rep(w, mt + 1))
+        if (r == "s2") return(s2)
+        return(c(s1, s2))
+    }
+    g <- c(res$muZ, res$alpha)
+    V <- var(t(apply(E, 2, function(x) Sn(g, res$beta, x))))
+    V1 <- V[1:(p + 1), 1:(p + 1)]
+    V2 <- V[1 + p + 1:p, 1 + p + 1:p]
+    lmfit1 <- t(apply(Z, 2, function(x) Sn(g + x / sqrt(n), res$beta, rep(1, n), "s1")))
+    lmfit2 <- t(apply(Z, 2, function(x) Sn(g, res$beta + x[-1] / sqrt(n), rep(1, n), "s2")))
+    ## J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
+    ## J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,])))[-1,]
+    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z) - 1))
+    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,]) - 1))
+    if (qr(J1)$rank == (p + 1)) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
+    else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
+    if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
+    else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))
     aSE <- sqrt(diag(aVar))
-    Z <- Z[1:p,]
-    ub <- matrix(apply(Z, 2, function(x) HWeq2(res$beta + n^(-.5) * x, X = X[,-1], Y = Y[event == 0], delta = status[event == 0], zHat = res$zHat)), p)
-    db <- t(apply(ub, 1, function(x) lm(n^(.5) * x ~ t(Z))$coef[-1]))
-    ub2 <- apply(E, 2, function(x) HWeq2(res$beta, X = X[,-1], Y = Y[event == 0], delta = status[event == 0], zHat = res$zHat, weights = rep(x, mt + 1)))
-    vb <- var(t(ub2))
-    if (qr(da)$rank == p) bVar <- solve(db) %*% vb %*% t(solve(db))
-    else bVar <- ginv(db) %*% vb %*% t(ginv(db))
     bSE <- sqrt(diag(bVar))
     c(res, list(alphaSE = aSE[-1], betaSE = bSE, alphaVar = aVar[-1, -1], betaVar = bVar))
 
@@ -425,30 +436,56 @@ doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
     Y <- rep(DF$Time[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))        
     B <- stdErr@B
-    aSE <- bSE <- da <- va <- db <- vb <- NA
     E <- matrix(rexp(n * B), nrow = n)
     Z <- matrix(rnorm(p * B), nrow = p)
-    ua <- matrix(apply(Z, 2, function(x) alphaEq(res$alpha + n ^ (-0.5) * x, X, Y, T, cluster, mt)),
-                 nrow = p)
-    da <- t(apply(ua, 1, function(x) lm(n ^ (0.5) * x ~ t(Z))$coef[-1]))
-    ua2 <- apply(E, 2, function(x) alphaEq(res$alpha, X, Y, T, cluster, mt, weights = x))
-    va <- var(t(matrix(ua2, nrow = p)))
-    if (qr(da)$rank == p)
-        aVar <- solve(da) %*% va %*% t(solve(da))
-    if (qr(da)$rank != p)
-        aVar <- ginv(da) %*% va %*% t(ginv(da))
+    Sn <- function(a, b, w, r = "both") {
+        Ystar <- log(Y) + X %*% a
+        Tstar <- log(T) + X %*% a
+        Lam <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar, rep(w, mt + 1))
+        s1 <- .C("alphaEqC", as.double(X[which(cluster == 1),]), as.double(Lam), as.integer(mt),
+                 as.integer(n), as.integer(p), as.double(w), res = double(p), PACKAGE = "reReg")$res / n
+        if (r == "s1") return(s1)
+        zHat <- mt / Lam
+        zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+        Ystar <- (log(Y) + X %*% b)[cluster == 1]
+        s2 <- .C("betaEst", as.double(Ystar), as.double(X[cluster == 1,]), as.double(status[event == 0]), as.double(zHat),
+                 as.double(w), as.integer(n), as.integer(p), as.integer(1), res = double(p), PACKAGE = "reReg")$res / n
+        if (r == "s2") return(s2)
+        return(c(s1, s2))
+    }
+    V <- var(t(apply(E, 2, function(x) Sn(res$alpha, res$beta, x))))
+    V1 <- V[1:p, 1:p]
+    V2 <- V[1:p + p, 1:p + p]
+    lmfit1 <- t(apply(Z, 2, function(x) Sn(res$alpha + x / sqrt(n), res$beta, rep(1, n), "s1")))
+    lmfit2 <- t(apply(Z, 2, function(x) Sn(res$alpha, res$beta + x / sqrt(n), rep(1, n), "s2")))
+    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z) - 1))
+    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z) - 1))
+    if (qr(J1)$rank == p) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
+    else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
+    if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
+    else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))    
+    ## aSE <- bSE <- da <- va <- db <- vb <- NA
+    ## ua <- matrix(apply(Z, 2, function(x) alphaEq(res$alpha + n ^ (-0.5) * x, X, Y, T, cluster, mt)), nrow = p)
+    ## da <- t(apply(ua, 1, function(x) lm(n ^ (0.5) * x ~ t(Z))$coef[-1]))
+    ## ua2 <- apply(E, 2, function(x) alphaEq(res$alpha, X, Y, T, cluster, mt, weights = x))
+    ## va <- var(t(matrix(ua2, nrow = p)))
+    ## if (qr(da)$rank == p)
+    ##     aVar <- solve(da) %*% va %*% t(solve(da))
+    ## if (qr(da)$rank != p)
+    ##     aVar <- ginv(da) %*% va %*% t(ginv(da))
+    ## aSE <- sqrt(diag(aVar))
+    ## ub <- matrix(apply(Z, 2, function(x)
+    ##     betaEq(X, Y, T, cluster, mt, status[event == 0],
+    ##            res$zHat, res$alpha, res$beta + n ^ (-0.5) * x)), nrow = p)
+    ## db <- t(apply(ub, 1, function(x) lm(n ^ (0.5) * x ~ t(Z))$coef[-1]))
+    ## ub2 <- apply(E, 2, function(x) betaEq(X, Y, T, cluster, mt, status[event == 0],
+    ##                                       NULL, res$alpha, res$beta, weights = x))
+    ## vb <- var(t(matrix(ub2, nrow = p)))
+    ## if (qr(db)$rank == p)
+    ##     bVar <- solve(db) %*% vb %*% t(solve(db))
+    ## if (qr(db)$rank != p)
+    ##     bVar <- ginv(db) %*% vb %*% t(ginv(db))
     aSE <- sqrt(diag(aVar))
-    ub <- matrix(apply(Z, 2, function(x)
-        betaEq(X, Y, T, cluster, mt, status[event == 0],
-               res$zHat, res$alpha, res$beta + n ^ (-0.5) * x)), nrow = p)
-    db <- t(apply(ub, 1, function(x) lm(n ^ (0.5) * x ~ t(Z))$coef[-1]))
-    ub2 <- apply(E, 2, function(x) betaEq(X, Y, T, cluster, mt, status[event == 0],
-                                          NULL, res$alpha, res$beta, weights = x))
-    vb <- var(t(matrix(ub2, nrow = p)))
-    if (qr(db)$rank == p)
-        bVar <- solve(db) %*% vb %*% t(solve(db))
-    if (qr(db)$rank != p)
-        bVar <- ginv(db) %*% vb %*% t(ginv(db))
     bSE <- sqrt(diag(bVar))
     c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
     ## c(res, list(alphaSE = aSE, betaSE = bSE, da = da, va = va, db = db, vb = vb, B = stdErr@B))
@@ -480,7 +517,7 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
                      as.integer(m), as.double(yi), as.double(tij), as.double(X), as.double(w), 
                      result = double(p), PACKAGE = "reReg")$result
         if (engine@eqType %in% c("Gehan", "gehan"))
-            s2 <- .C("sc1Gehan", as.integer(n), as.integer(p), as.integer(index - 1),
+            s1 <- .C("sc1Gehan", as.integer(n), as.integer(p), as.integer(index - 1),
                      as.integer(m), as.double(yi), as.double(tij), as.double(X), as.double(w), 
                      result = double(p), PACKAGE = "reReg")$result / n
         t0.rate <- unique(sort(c(tij, yi)))
@@ -1180,8 +1217,7 @@ baseHaz <- function(t0, Y, zhat, delta, weights  = NULL) {
 
 alphaEq <- function(alpha, X, Y, T, cluster, mt, weights = NULL) {
     n <- sum(cluster == 1)
-    if (is.null(weights))
-        weights <- rep(1, n)
+    if (is.null(weights)) weights <- rep(1, n)
     p <- ncol(X)
     Ystar <- log(Y) + X %*% alpha
     Tstar <- log(T) + X %*% alpha
@@ -1189,7 +1225,7 @@ alphaEq <- function(alpha, X, Y, T, cluster, mt, weights = NULL) {
                     weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
     res <- vector("double", p * length(weights) %/% n)
     res <- .C("alphaEqC", as.double(X[which(cluster == 1), ]), as.double(Lambda),
-              as.integer(mt), as.integer(n), as.integer(p),
+              as.integer(mt), as.integer(n), as.integer(p), as.double(weights), 
               out = as.double(res), PACKAGE = "reReg")$out
     res / rep(n * unlist(lapply(split(weights, rep(1:(length(weights) %/% n), each = n)), sum)), each = p)
 }
@@ -1206,7 +1242,8 @@ betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weight
         ## Tstar <- log(T) + X %*% alpha
         lambda <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar,
                         weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
-        zHat <- as.numeric(weights * mt / lambda)
+        ## zHat <- as.numeric(weights * mt / lambda)
+        zHat <- mt / lambda
         zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     }
     Y <- log(Y) + X %*% beta
