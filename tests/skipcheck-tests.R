@@ -245,13 +245,17 @@ fit2 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
 summary(fit1)
 summary(fit2)
 
-tmp <- matrix(NA, 100, 8)
+tmp3 <- tmp1 <- tmp2 <- matrix(NA, 100, 8)
 for (i in 1:100) {
     set.seed(i)
-    dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE)
+    dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "am", indCen = FALSE)
     ## fit2 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
-    fit2 <- reReg(fm, data = dat, method = "sc.X", se = "res")
-    tmp[i,] <- c(coef(fit2), fit2$alphaSE, fit2$betaSE)
+    fit1 <- reReg(fm, data = dat, method = "cox.HW", se = "res", B = 500)
+    ## fit2 <- reReg(fm, data = dat, method = "am.X", se = "res", B = 500)
+    ## fit3 <- reReg(fm, data = dat, method = "sc.X", se = "res", B = 500)
+    tmp1[i,] <- c(coef(fit1), fit1$alphaSE, fit1$betaSE)
+    ## tmp2[i,] <- c(coef(fit2), fit2$alphaSE, fit2$betaSE)
+    ## tmp3[i,] <- c(coef(fit3), fit3$alphaSE, fit3$betaSE)
     if (i %% 10 == 0) print(i)
 }
 
@@ -260,6 +264,11 @@ cbind(apply(tmp, 2, mean)[5:8],
       apply(tmp, 2, meanOut)[5:8],
       apply(tmp, 2, sd)[1:4],
       apply(tmp, 2, sdOut)[1:4])
+
+cbind(apply(tmp3, 2, mean)[5:8],
+      apply(tmp3, 2, meanOut)[5:8],
+      apply(tmp3, 2, sd)[1:4],
+      apply(tmp3, 2, sdOut)[1:4])
 
 set.seed(94)
 dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = FALSE)
@@ -276,12 +285,24 @@ summary(reReg(fm, data = dat, method = "am.XCHWY", se = "res"))
 ## x1    1.395  1.336   1.044   0.296   
 ## x2   -1.451  0.530  -2.740   0.006 **
 
-set.seed(95)
-dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE, summary = TRUE)
-fit2 <- reReg(fm, data = dat, method = "sc.X", se = "res")
-summary(fit2)
 
-summary(reReg(fm, data = dat, method = "sc.X", se = "res"), control = list(solver = "BBsolve"))
+do <- function() {
+    dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "am", indCen = FALSE)
+    fit1 <- reReg(fm, data = dat, method = "cox.HW", se = "res", B = 500)
+    c(coef(fit1), fit1$alphaSE, fit1$betaSE)
+}
 
-debug(reReg)
-fit2 <- reReg(fm, data = dat, method = "sc.X", se = "res")
+cl <- makePSOCKcluster(8)
+setDefaultCluster(cl)
+clusterExport(NULL, c("do", "fm"))
+clusterEvalQ(NULL, library(reReg))
+f1 <- parSapply(NULL, 1:100, function(z) tryCatch(do(), error = function(e) rep(NA, 8)))
+stopCluster(cl)
+
+apply(f1, 1, mean)
+apply(f1, 1, meanOut)
+
+rbind(apply(f1, 1, mean)[5:8],
+      apply(f1, 1, meanOut)[5:8],
+      apply(f1, 1, sd)[1:4],
+      apply(f1, 1, sdOut)[1:4])
