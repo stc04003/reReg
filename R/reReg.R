@@ -43,7 +43,9 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
     ## Tstar <- T * exp(X %*% alpha)
     lambda <- npMLE(Ystar[event == 0], Tstar, Ystar)
     zHat <- as.numeric(mt * npMLE(log(max(Y)), Tstar, Ystar) / lambda)
-    zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+    zHat <- ifelse(zHat > 1e5, (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01), zHat)
+    zHat <- ifelse(is.na(zHat), 0, zHat)
+    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     if (engine@solver %in% c("dfsane", "BBsolve")) 
         suppressWarnings(
             outB <- do.call(
@@ -177,7 +179,9 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
     alpha <- outA$par <- outA$par[-1]
     lambda <- npMLE(Y[event == 0], T, Y)
     zHat <- as.numeric(mt / (lambda * exp(as.matrix(X[, -1]) %*% alpha)))
-    zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+    zHat <- ifelse(zHat > 1e5, (mt + .01) / (lambda * exp(as.matrix(X[, -1]) %*% alpha) + .01), zHat)
+    zHat <- ifelse(is.na(zHat), 0, zHat)
+    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     if (engine@solver %in% c("dfsane", "BBsolve")) 
         suppressWarnings(
             outB <- do.call(
@@ -252,17 +256,17 @@ doREFit.sc.XCYH <- function(DF, engine, stdErr) {
         suppressWarnings(
             fit.a <- do.call(engine@solver, list(par = engine@a0, fn = U1,
                                                  quiet = TRUE, control = list(trace = FALSE))))
-        a.value <- fit.a$residual
+        ## a.value <- fit.a$residual
     }
     if (engine@solver == "BBoptim") {
         suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
             sum(U1(x)^2), quiet = TRUE, control = list(trace = FALSE))))
-        a.value <- fit.a$value
+        ## a.value <- fit.a$value
     }
     if (engine@solver == "optim") {
         suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
             sum(U1(x)^2), control = list(trace = FALSE))))
-        a.value <- fit.a$value
+        ## a.value <- fit.a$value
     }
     ahat <- fit.a$par
     yi <- log(DF0$Time) + X %*% ahat
@@ -287,22 +291,21 @@ doREFit.sc.XCYH <- function(DF, engine, stdErr) {
         suppressWarnings(
             fit.b <- do.call(engine@solver, list(par = engine@b0, fn = U2,
                                                  quiet = TRUE, control = list(trace = FALSE))))
-        b.value <- fit.b$residual
+        ## b.value <- fit.b$residual
     }
     if (engine@solver == "BBoptim") {
         suppressWarnings(fit.b <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
             sum(U2(x)^2), quiet = TRUE, control = list(trace = FALSE))))
-        b.value <- fit.b$value
+        ## b.value <- fit.b$value
     }
     if (engine@solver == "optim") {
         suppressWarnings(fit.b <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
             sum(U2(x)^2), control = list(trace = FALSE))))
-        b.value <- fit.b$value
+        ## b.value <- fit.b$value
     }    
     list(alpha = fit.a$par, beta = fit.b$par[-1] + fit.a$par,
          aconv = fit.a$convergence, bconv = fit.b$convergence,
-         log.muZ = fit.b$par[1],
-         values = c(fit.a$a.value, fit.b$b.value))
+         log.muZ = fit.b$par[1])
 }
 
 ##############################################################################
@@ -396,10 +399,13 @@ doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
         s1 <- HWeq(g, X, Y, T, cluster, mt, rep(w, mt + 1))
         if (r == "s1") return(s1)            
         lam <- npMLE(Y[event == 0], T, Y, rep(w, mt + 1))
-        zHat <- mt / (lam * exp(as.matrix(X[,-1]) %*% g[-1]))
-        zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+        zHat <- w * mt / (lam * exp(as.matrix(X[,-1]) %*% g[-1]))
+        zHat <- ifelse(zHat > 1e5, (mt + .01) / (lam * exp(as.matrix(X[,-1]) %*% g[-1]) + .01), zHat)
+        zHat <- ifelse(is.na(zHat), 0, zHat)
+        ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
         ## s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat / g[1], rep(w, mt + 1))
-        s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat / log(mean(zHat)), rep(w, mt + 1))
+        s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0],
+                    zHat / log(mean(zHat)), rep(w, mt + 1))
         if (r == "s2") return(s2)
         return(c(s1, s2))
     }
@@ -442,14 +448,22 @@ doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
         Ystar <- log(Y) + X %*% a
         Tstar <- log(T) + X %*% a
         Lam <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar, rep(w, mt + 1))
-        s1 <- .C("alphaEqC", as.double(X[which(cluster == 1),]), as.double(Lam), as.integer(mt),
-                 as.integer(n), as.integer(p), as.double(w), res = double(p), PACKAGE = "reReg")$res / n
-        if (r == "s1") return(s1)
         zHat <- mt / Lam
-        zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+        zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
+        zHat <- ifelse(is.na(zHat), 0, zHat)
+        s1 <- .C("alphaEqC", as.double(X[which(cluster == 1),]), as.double(zHat),
+                 as.integer(n), as.integer(p), as.double(w),
+                 res = double(p), PACKAGE = "reReg")$res / n
+        if (r == "s1") return(s1)
+        zHat <- w * mt / Lam
+        zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
+        zHat <- ifelse(is.na(zHat), 0, zHat)
+        ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
         Ystar <- (log(Y) + X %*% b)[cluster == 1]
-        s2 <- .C("betaEst", as.double(Ystar), as.double(X[cluster == 1,]), as.double(status[event == 0]), as.double(zHat),
-                 as.double(w), as.integer(n), as.integer(p), as.integer(1), res = double(p), PACKAGE = "reReg")$res / n
+        s2 <- .C("betaEst", as.double(Ystar), as.double(X[cluster == 1,]),
+                 as.double(status[event == 0]), as.double(zHat),
+                 as.double(w), as.integer(n), as.integer(p), res = double(p),
+                 PACKAGE = "reReg")$res / n
         if (r == "s2") return(s2)
         return(c(s1, s2))
     }
@@ -700,10 +714,12 @@ doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     lambda <- npMLE(Ya[which(event == 0)], Ta, Ya)
     ly <- npMLE(t0, Ta, Ya)
     zHat <- as.numeric(mt * max(ly) / lambda)
+    zHat <- ifelse(zHat > 1e5, (mt * max(ly) + .01) / (lambda + .01), zHat)
+    zHat <- ifelse(is.na(zHat), 0, zHat)
+    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     ly <- ly / max(ly)
     win.ly <- max(ly)
     muZ <- mean(zHat)
-    zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     Yb <- log(Y) + X %*% beta
     Yb <- Yb[which(cluster == 1)]
     hy <- baseHaz(log(t0), Yb, zHat / muZ, status[event == 0])
@@ -820,10 +836,12 @@ doNonpara.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     lambda <- npMLE(Ya[event == 0], Ta, Ya)
     ly <- npMLE(t0, exp(Ta), exp(Ya))
     zHat <- as.numeric(mt * max(ly) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha)))
+    zHat <- ifelse(zHat > 1e5, (mt * max(ly) + .01) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha) + .01), zHat)
+    zHat <- ifelse(is.na(zHat), 0, zHat)
+    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+    muZ <- mean(zHat)
     ly <- ly / max(ly)
     win.ly <- max(ly)
-    zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    muZ <- mean(zHat)
     Yb <- log(Y) ## + X %*% beta
     Yb <- Yb[event == 0]
     ## hy <- sapply(t0, function(z) baseHaz(z, exp(Yb),
@@ -859,13 +877,15 @@ doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     lambda <- npMLE(Ya[event == 0], Ta, Ya)
     ly <- npMLE(t0, Ta, Ya)
     zHat <-  as.numeric(mt * max(ly) / lambda)
+    zHat <- ifelse(zHat > 1e5, (mt * max(ly) + .01) / (lambda + .01), zHat)
+    zHat <- ifelse(is.na(zHat), 0, zHat)
+    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     ly <- ly / max(ly)
     E <- matrix(rexp(length(t0) * B), nrow = length(t0))
     lytmp <- apply(E, 2, function(x) npMLE(t0, Ta, Ya, x))
     lytmp <- apply(lytmp, 2, function(z) z / max(z))
     lyU <- apply(lytmp, 1, function(z) quantile(z, 0.975))
     lyL <- apply(lytmp, 1, function(z) quantile(z, 0.025))
-    zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     Yb <- log(Y) + X %*% beta
     Yb <- Yb[event == 0]
     muZ <- mean(zHat)
@@ -911,13 +931,15 @@ doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     lambda <- npMLE(Ya[event == 0], Ta, Ya)
     ly <- npMLE(t0, exp(Ta), exp(Ya))
     zHat <- as.numeric(mt * max(ly) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha)))
+    zHat <- ifelse(zHat > 1e5, (mt * max(ly) + .01) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha) + .01), zHat)
+    zHat <- ifelse(is.na(zHat), 0, zHat)
+    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     ly <- ly / max(ly)
     E <- matrix(rexp(ng * B), nrow = ng)
     lytmp <- apply(E, 2, function(x) npMLE(t0, exp(Ta), exp(Ya), x))
     lytmp <- apply(lytmp, 2, function(z) z / max(z))
     lyU <- apply(lytmp, 1, function(z) quantile(z, 0.975))
     lyL <- apply(lytmp, 1, function(z) quantile(z, 0.025))
-    zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     Yb <- log(Y) ## + X %*% beta
     Yb <- Yb[event == 0]
     muZ <- mean(zHat)
@@ -1207,7 +1229,6 @@ npMLE <- function(t, tij, yi, weights = NULL) {
     out <- exp(-out)
 }
 
-
 baseHaz <- function(t0, Y, zhat, delta, weights  = NULL) {
     if (is.null(weights)) weights <- rep(1, length(Y))
     .C("hwHaz", as.double(t0), as.double(Y), as.double(zhat), as.double(delta),
@@ -1223,11 +1244,13 @@ alphaEq <- function(alpha, X, Y, T, cluster, mt, weights = NULL) {
     Tstar <- log(T) + X %*% alpha
     Lambda <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar,
                     weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
-    res <- vector("double", p * length(weights) %/% n)
-    res <- .C("alphaEqC", as.double(X[which(cluster == 1), ]), as.double(Lambda),
-              as.integer(mt), as.integer(n), as.integer(p), as.double(weights), 
-              out = as.double(res), PACKAGE = "reReg")$out
-    res / rep(n * unlist(lapply(split(weights, rep(1:(length(weights) %/% n), each = n)), sum)), each = p)
+    zHat <- mt / Lambda
+    zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lambda + .01), zHat)
+    zHat <- ifelse(is.na(zHat), 0, zHat)
+    res <- .C("alphaEqC", as.double(X[which(cluster == 1), ]), as.double(zHat),
+              as.integer(n), as.integer(p), as.double(weights), 
+              out = double(p), PACKAGE = "reReg")$out
+    res / n
 }
 
 betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weights = NULL) {
@@ -1243,17 +1266,17 @@ betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weight
         lambda <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar,
                         weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
         ## zHat <- as.numeric(weights * mt / lambda)
-        zHat <- mt / lambda
-        zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
+        zHat <- weights * mt / lambda
+        zHat <- ifelse(zHat > 1e5, (mt + .01) / (lambda + .01), zHat)
+        zHat <- ifelse(is.na(zHat), 0, zHat)
+        ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     }
     Y <- log(Y) + X %*% beta
     Y <- Y[which(cluster == 1)]
     X <- X[which(cluster == 1), ]
-    res <- vector("double", p * length(weights) %/% n)
     res <- .C("betaEst", as.double(Y), as.double(X), as.double(delta), as.double(zHat),
               as.double(weights), as.integer(n), as.integer(p),
-              as.integer(length(weights) %/% n), 
-              out = as.double(res), PACKAGE = "reReg")$out
+              out = double(p), PACKAGE = "reReg")$out
     res / n
 }
 
@@ -1263,51 +1286,31 @@ LWYYeq <- function(beta, X, Y, T, cl) {
     wgt <- exp(X %*% beta)
     .C("lwyy", as.double(T), as.double(Y), as.double(X), as.double(wgt), as.integer(cl),
        as.integer(c(0, cumsum(cl)[-length(cl)])), as.integer(nrow(X)), as.integer(p),        
-       out = as.double(double(p)), PACKAGE = "reReg")$out       
+       out = double(p), PACKAGE = "reReg")$out       
 }
 
 HWeq <-function(gamma, X, Y, T, cluster, mt, weights = NULL) {
     if (is.null(weights)) weights <- rep(1, length(T))
     n <- sum(cluster == 1)
     Lambda <- npMLE(Y[cluster == 1], T, Y, weights)
-    res <- vector("double", length(gamma))
+    zHat <- mt / Lambda
+    zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lambda + .01), zHat)
+    zHat <- ifelse(is.na(zHat), 0, zHat) 
     p <- ncol(X)
-    .C("sarm1", as.double(X), as.double(Lambda), as.double(weights), as.double(gamma), 
-       as.integer(mt), as.integer(n), as.integer(p), as.integer(1),
+    xr <- exp(X %*% gamma)
+    .C("sarm1", as.double(X), as.double(weights), as.double(xr), 
+       as.integer(zHat), as.integer(n), as.integer(p),
        res = double(p), PACKAGE = "reReg")$res / n
 }
-
 
 HWeq2 <-function(beta, X, Y, delta, zHat, weights = NULL) {
     if (is.null(weights)) weights <- rep(1, length(Y))        
     n <- nrow(X)
     p <- ncol(X)
-    res <- vector("double", p)
     res <- .C("HWb", as.double(Y), as.double(X), as.double(delta), as.double(zHat),
-              as.double(X %*% beta), as.double(weights), as.integer(n), as.integer(p), as.integer(1),
-              out = as.double(res), PACKAGE = "reReg")$out
+              as.double(X %*% beta), as.double(weights), as.integer(n), as.integer(p), 
+              out = double(p), PACKAGE = "reReg")$out
     res / n
-}
-    
-coefEq <- function(alpha, gamma, X, Y, T, cluster, mt, weights = NULL) {
-    n <- sum(cluster == 1)
-    if (is.null(weights))
-        weights <- rep(1, n)
-    if (is.null(alpha))
-        alpha <- -1 * gamma[-1]
-    Ytmp <- log(Y) + X %*% alpha
-    Ttmp <- log(T) + X %*% alpha    
-    Lambda <- npMLE(Ytmp[cluster == 1], Ttmp, Ytmp,
-                    weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
-    Lambda <- Lambda / max(Lambda)
-    X <- X[cluster == 1,]
-    p <- ncol(X)
-    res <- vector("double", (p + 1) * length(weights) %/% n)
-    res <- .C("sarm1", as.double(cbind(1, X)), as.double(Lambda), as.double(weights),
-              as.double(gamma), as.integer(mt), as.integer(n), as.integer(p+1),
-              as.integer(length(weights) %/% n),
-              out = as.double(res), PACKAGE = "reReg")$out
-    res / n    
 }
 
 varOut <- function(dat, na.rm = TRUE) {

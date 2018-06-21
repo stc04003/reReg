@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-### **reReg** implements a collection of regression models for recurrent event process and failure time.
+### ***reReg*** implements a collection of regression models for recurrent event process and failure time.
 ***
 
 #### Installation

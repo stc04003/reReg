@@ -9,8 +9,8 @@ library(gridExtra)
 library(xtable)
 data(readmission, package = "frailtypack")
 
-R0 <- function(x) log(1 + x)
-H0 <- function(x) log(1 + x) / 4
+R0 <- function(x) log(1 + x) / .5
+H0 <- function(x) log(1 + x) / 8
 
 fm <- reSurv(Time, id, event, status) ~ x1 + x2    
 
@@ -120,19 +120,19 @@ plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", title = "User 
 ## checking simulated data generator
 ## ------------------------------------------------------------------------------------------
 
-simDat(5e3, c(1, -1), c(1, -1), indCen = TRUE, summary = TRUE)
-simDat(5e3, c(1, -1), c(1, -1), indCen = FALSE, summary = TRUE)
-simDat(5e3, c(1, -1), c(1, -1), indCen = TRUE, summary = TRUE, type = "am")
-simDat(5e3, c(1, -1), c(1, -1), indCen = FALSE, summary = TRUE, type = "am")
+simDat(1e4, c(1, -1), c(1, -1), indCen = TRUE, summary = TRUE)
+simDat(1e4, c(1, -1), c(1, -1), indCen = FALSE, summary = TRUE)
+simDat(1e4, c(1, -1), c(1, -1), indCen = TRUE, summary = TRUE, type = "am")
+simDat(1e4, c(1, -1), c(1, -1), indCen = FALSE, summary = TRUE, type = "am")
 
-simDat(5e3, c(1, -1), c(1, -1), indCen = TRUE, summary = TRUE, type = "sc")
-simDat(5e3, c(1, -1), c(1, -1), indCen = FALSE, summary = TRUE, type = "sc")
-simDat(5e3, c(0, 0), c(1, -1), indCen = TRUE, summary = TRUE, type = "sc")
-simDat(5e3, c(0, 0), c(1, -1), indCen = FALSE, summary = TRUE, type = "sc")
-simDat(5e3, c(1, -1), c(0, 0), indCen = TRUE, summary = TRUE, type = "sc")
-simDat(5e3, c(1, -1), c(0, 0), indCen = FALSE, summary = TRUE, type = "sc")
-simDat(5e3, c(1, 1), c(-1, -1), indCen = TRUE, summary = TRUE, type = "sc")
-simDat(5e3, c(1, 1), c(-1, -1), indCen = FALSE, summary = TRUE, type = "sc")
+simDat(1e4, c(1, -1), c(1, -1), indCen = TRUE, summary = TRUE, type = "sc")
+simDat(1e4, c(1, -1), c(1, -1), indCen = FALSE, summary = TRUE, type = "sc")
+simDat(1e4, c(0, 0), c(1, -1), indCen = TRUE, summary = TRUE, type = "sc")
+simDat(1e4, c(0, 0), c(1, -1), indCen = FALSE, summary = TRUE, type = "sc")
+simDat(1e4, c(1, -1), c(0, 0), indCen = TRUE, summary = TRUE, type = "sc")
+simDat(1e4, c(1, -1), c(0, 0), indCen = FALSE, summary = TRUE, type = "sc")
+simDat(1e4, c(1, 1), c(-1, -1), indCen = TRUE, summary = TRUE, type = "sc")
+simDat(1e4, c(1, 1), c(-1, -1), indCen = FALSE, summary = TRUE, type = "sc")
 
 e
 
@@ -154,7 +154,7 @@ B <- 200
 ##              cbind(matrix(sapply(5, function(x) c(t1[,x], t2[,x], t3[,x])), 4), NA, NA, NA))
 ## xtable(tab, digits = 3)
 
-do <- function(n = 200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
+do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
     dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
     f1 <- reReg(fm, data = dat, se = "boot", B = 300)
     f2 <- reReg(fm, data = dat, method = "cox.HW", se = "resam", B = 300)
@@ -168,33 +168,29 @@ do <- function(n = 200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
       coef(f5), f5$alphaSE, f5$betaSE)
 }
 
-debug(doREFit.sc.XCYH)
-debug(doREFit.sc.XCYH.resampling)
-doREFit.sc.XCYH(DF = DF, engine = engine, stdErr = stdErr)
-doREFit.sc.XCYH.resampling(DF = DF, engine = engine, stdErr = stdErr)
-
 system.time(foo <- do())
+system.time(foo <- do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = FALSE))
 foo
 
 cl <- makePSOCKcluster(8)
 setDefaultCluster(cl)
 clusterExport(NULL, c("do", "fm"))
 clusterEvalQ(NULL, library(reReg))
-f1 <- parSapply(NULL, 1:500, function(z) tryCatch(do(), error = function(e) rep(NA, 40)))
-f2 <- parSapply(NULL, 1:500, function(z) tryCatch(do(indCen = FALSE), error = function(e) rep(NA, 40)))
-f3 <- parSapply(NULL, 1:500, function(z) tryCatch(do(type = "am"), error = function(e) rep(NA, 40)))
-f4 <- parSapply(NULL, 1:500, function(z)
+f1 <- parSapply(NULL, 1:100, function(z) tryCatch(do(), error = function(e) rep(NA, 40)))
+f2 <- parSapply(NULL, 1:100, function(z) tryCatch(do(indCen = FALSE), error = function(e) rep(NA, 40)))
+f3 <- parSapply(NULL, 1:100, function(z) tryCatch(do(type = "am"), error = function(e) rep(NA, 40)))
+f4 <- parSapply(NULL, 1:100, function(z)
     tryCatch(do(type = "am", indCen = FALSE), error = function(e) rep(NA, 40)))
-f5 <- parSapply(NULL, 1:100, function(z)
+f5 <- parSapply(NULL, 1:200, function(z)
     tryCatch(do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE),
              error = function(e) rep(NA, 40)))
-f6 <- parSapply(NULL, 1:100, function(z)
+f6 <- parSapply(NULL, 1:200, function(z)
     tryCatch(do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = FALSE),
              error = function(e) rep(NA, 40)))
 stopCluster(cl)
 
-sim <- list(f1 = f1, f2 = f2, f3 = f3, f4 = f4, f5 = f5, f6 = f6)
-save(sim, file = "sim.RData")
+## sim <- list(f1 = f1, f2 = f2, f3 = f3, f4 = f4, f5 = f5, f6 = f6)
+## save(sim, file = "sim.RData")
 
 datPre <- function(f0) {
     PE <- apply(f0, 1, mean, na.rm = T)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
@@ -211,48 +207,17 @@ datPre2 <- function(f0) {
 }
 
 set.seed(1)
-debug(do)
 do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE)
 
-set.seed(1)
-dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
-
-system.time(fit1 <- reReg(fm, data = dat, method = "cox.HW", se = "boo"))
-system.time(fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res"))
-
-summary(fit1)
-
-## Call: reReg(formula = fm, data = dat, method = "cox.HW", se = "boo")
-## Method: Huang-Wang Model 
-## Coefficients (rate):
-##    Estimate StdErr z.value   p.value    
-## x1    0.943  0.160   5.899 < 2.2e-16 ***
-## x2   -1.089  0.089 -12.228 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## Coefficients (hazard):
-##    Estimate StdErr z.value   p.value    
-## x1    0.782  0.211   3.711 < 2.2e-16 ***
-## x2   -1.136  0.134  -8.458 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
+set.seed(123)
+dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE)
+system.time(fit2 <- reReg(fm, data = dat, method = "am.XC", se = "res"))
 summary(fit2)
+system.time(fit22 <- reReg(fm, data = dat, method = "am.XC", se = "boo"))
+summary(fit22)
 
-## Call: reReg(formula = fm, data = dat, method = "cox.HW", se = "res")
-## Method: Huang-Wang Model 
-## Coefficients (rate):
-##    Estimate StdErr z.value   p.value    
-## x1    0.943  0.142   6.625 < 2.2e-16 ***
-## x2   -1.089  0.095 -11.422 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## Coefficients (hazard):
-##    Estimate StdErr z.value   p.value    
-## x1    0.782  0.187   4.177 < 2.2e-16 ***
-## x2   -1.136  0.091 -12.518 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+system.time(fit3 <- reReg(fm, data = dat, method = "sc.X", se = "res"))
+summary(fit3)
 
 tmp <- matrix(NA, 100, 8)
 for (i in 1:100) {
@@ -260,12 +225,13 @@ for (i in 1:100) {
     dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
     fit2 <- reReg(fm, data = dat, method = "cox.HW", se = "res")
     tmp[i,] <- c(coef(fit2), fit2$alphaSE, fit2$betaSE)
+    if (i %% 10 == 0) print(i)
 }
 
 tmp <- matrix(NA, 100, 8)
 for (i in 1:100) {
     set.seed(i)
-    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = TRUE)
+    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = FALSE)
     fit2 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
     tmp[i,] <- c(coef(fit2), fit2$alphaSE, fit2$betaSE)
     if (i %% 10 == 0) print(i)
@@ -279,17 +245,43 @@ fit2 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
 summary(fit1)
 summary(fit2)
 
+tmp <- matrix(NA, 100, 8)
+for (i in 1:100) {
+    set.seed(i)
+    dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE)
+    ## fit2 <- reReg(fm, data = dat, method = "am.XCHWY", se = "res")
+    fit2 <- reReg(fm, data = dat, method = "sc.X", se = "res")
+    tmp[i,] <- c(coef(fit2), fit2$alphaSE, fit2$betaSE)
+    if (i %% 10 == 0) print(i)
+}
 
-debug(doREFit.am.XCHWY.resampling)
-doREFit.am.XCHWY.resampling(DF = DF, engine = engine, stdErr = stdErr)
+tail(tmp)
+cbind(apply(tmp, 2, mean)[5:8],
+      apply(tmp, 2, meanOut)[5:8],
+      apply(tmp, 2, sd)[1:4],
+      apply(tmp, 2, sdOut)[1:4])
 
+set.seed(94)
+dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = FALSE)
+summary(reReg(fm, data = dat, method = "am.XCHWY", se = "res"))
 
-coef(reReg(fm, data = dat))
-coef(reReg(fm, data = dat, method = "cox.HW"))
-coef(reReg(fm, data = dat, method = "am.GL"))
-coef(reReg(fm, data = dat, method = "am.XCHWY"))
-coef(reReg(fm, data = dat, method = "sc.XCYH"))
+## Coefficients (rate):
+##    Estimate StdErr z.value p.value    
+## x1    0.893  0.442   2.021   0.043 *  
+## x2   -1.117  0.128  -8.761  <2e-16 ***
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## Coefficients (hazard):
+##    Estimate StdErr z.value p.value   
+## x1    1.395  1.336   1.044   0.296   
+## x2   -1.451  0.530  -2.740   0.006 **
 
-coef(reReg(fm, data = dat, method = "cox.HW", se = "res"))
-coef(reReg(fm, data = dat, method = "sc.XCYH", se = "res"))
+set.seed(95)
+dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE, summary = TRUE)
+fit2 <- reReg(fm, data = dat, method = "sc.X", se = "res")
+summary(fit2)
 
+summary(reReg(fm, data = dat, method = "sc.X", se = "res"), control = list(solver = "BBsolve"))
+
+debug(reReg)
+fit2 <- reReg(fm, data = dat, method = "sc.X", se = "res")

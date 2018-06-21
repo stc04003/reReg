@@ -29,144 +29,89 @@ void plLambda(double *sl, double *tij, double *yi, double *weights,
   }
 }
 
-void sarm1(double *X, double *Lambda, double *weights, double *gamma, 
-	   int *mt, int *n, int *p, int *B, 
-	   double *res) {
-  int i, r, b, k; 
-  double xr; 
-  for (b = 0; b < *B; b++) {
-    for (i = 0; i < *n; i++) {
-      xr = 0;
-      for (k = 0; k < *p; k++) {
-	xr += X[i + k * *n] * gamma[k];
-      }
-      for (r = 0; r < *p; r++) {
-	if (Lambda[i] > 0) 
-	  res[r + b * *p] += X[i + r * *n] * weights[i + b * *n] * (mt[i]/Lambda[i] - exp(xr));
-	if (Lambda[i] == 0)
-	  res[r + b * *p] += X[i + r * *n] * weights[i + b * *n] * (-1 * exp(xr));
-      } // end r
-    } // end i
-  } // end b
-}
-
-void sarm2(double *X, double *T, double *Y, double *weights, 
-	   int *n, int *p, int *B,
-	   double *res) {
-  double *nu = Calloc(*p, double);
-  int i, j, r, b;
-  double de;
-  for (b = 0; b < *B; b++) {
-    for (i = 0; i < *n; i++) {
-      for (r = 0; r < *p; r++) {
-	nu[r] = 0;
-      }
-      de = 0.0;
-      for (j = 0; j < *n; j++) {
-	if (T[i] <= Y[j] && T[i] >= T[j]) {
-	  for (r = 0; r < *p; r++) {
-	    nu[r] += X[j + r * *n];
-	  }
-	  de += 1;
-	}
-      }
-      for (r = 0; r < *p; r ++) {
-      	res[r] += X[i + r * *n] - nu[r] / de;
-      	// res[r] += (X[i + r * *n] - X[j + r * *n]) * de[r];
-      }
-    }
-    }
-  Free(nu);
-}
-
-void alphaEqC(double *X, double *Lambda, int *mt, int *n, int *p, double *weights, double *res) {
-  int i, j, r; 
+void sarm1(double *X, double *weights, double *xr, 
+	   int *ratio, int *n, int *p, double *res) {
+  int i, r, k; 
   for (i = 0; i < *n; i++) {
+    for (r = 0; r < *p; r++) {
+      res[r] += X[i + r * *n] * weights[i] * (ratio[i] - xr[i]);
+    } 
+  } 
+}
+
+void alphaEqC(double *X, double *ratio, int *n, int *p, double *weights, double *res) {
+  int i, j, r;
+  double snd;
+  for (i = 0; i < *n; i++) {
+    snd = 0;
     for (j = 0; j < *n; j++) {
-      for (r = 0; r < *p; r++) {
-	if (Lambda[i] != 0 && Lambda[j] != 0) {
-	  res[r] += weights[i] * X[i + r * *n] * (mt[i] / Lambda[i] -  weights[j] * mt[j] / Lambda[j]);
-	}
-	if (Lambda[i] != 0 && Lambda[j] == 0) {
-	  res[r] += weights[i] * X[i + r * *n] * (mt[i] / Lambda[i]);
-	}
-	if (Lambda[i] == 0 && Lambda[j] != 0) {
-	  res[r] += weights[i] * X[i + r * *n] * (0 - weights[j] * mt[j] / Lambda[j]);
-	}
-      }
+      snd += weights[j] * ratio[j] / n[0];
+    }
+    for (r = 0; r < *p; r++) {
+      res[r] += weights[i] * X[i + r * *n] * (ratio[i] - snd);
     }
   }
-}		 
+}
 
 void betaEst(double *Y, double *X, double *delta, double *z, double *weights,
-	     int *n, int *p, int *B, 
-	     // output
-	     double *res) {
-  int i, j, r, b;
+	     int *n, int *p, double *res) {
+  int i, j, r;
   double *nu = Calloc(*p, double); 
   double de;
-  for (b = 0; b < *B; b++) {
-    for (i = 0; i < *n; i++) {
-      if (delta[i] != 0) {
-	for ( r = 0; r < *p; r++) {
-	  nu[r] = 0.0;
-	}
-	de = 0.0;
-	for (j = 0; j < *n; j++) {
-	  if (Y[i] <= Y[j]) {
-	    for (r = 0; r < *p; r++) {
-	      nu[r] += weights[j + b * *n] * z[j] * X[j + r * *n];
-	    }
-	    de += weights[j + b * *n] * z[j];
+  for (i = 0; i < *n; i++) {
+    if (delta[i] != 0) {
+      de = 0.0;
+      for (j = 0; j < *n; j++) {
+	if (Y[i] <= Y[j]) {
+	  for (r = 0; r < *p; r++) {
+	    nu[r] += weights[j] * z[j] * X[j + r * *n];
 	  }
+	  de += weights[j] * z[j];
 	}
-	for (r = 0; r < *p; r++) {
-	  if (de == 0) {
-	    res[r + b * *p] += weights[i + b * *n] *  X[i + r * *n];
-	  }
-	  if (de != 0) {
-	    res[r + b * *p] += weights[i + b * *n] * (X[i + r * *n] - (nu[r] / de));
-	  }
+      }
+      for (r = 0; r < *p; r++) {
+	if (de == 0) {
+	  res[r] += weights[i] *  X[i + r * *n];
 	}
-      } // end delta
-    }
+	if (de != 0) {
+	  res[r] += weights[i] * (X[i + r * *n] - (nu[r] / de));
+	}
+	nu[r] = 0;
+      }
+    } // end delta
   }
   Free(nu);
 }
 
 void HWb(double *Y, double *X, double *delta, double *z, double *xb, double *weights, 
-	     int *n, int *p, int *B, 
-	     // output
-	 double *res) {
+	 int *n, int *p, double *res) {
   int i, j, r, b;
   double *nu = Calloc(*p, double); 
   double de;
-  for (b = 0; b < *B; b++) {
-    for (i = 0; i < *n; i++) {
-      if (delta[i] != 0) {
-	for ( r = 0; r < *p; r++) {
-	  nu[r] = 0.0;
-	}
-	de = 0.0;
-	for (j = 0; j < *n; j++) {
-	  if (Y[i] <= Y[j]) {
-	    for (r = 0; r < *p; r++) {
-	      nu[r] += weights[j] * exp(xb[j + b * *n]) * z[j] * X[j + r * *n];
-	    }
-	    de += weights[j] * exp(xb[j + b * *n]) * z[j];
+  for (i = 0; i < *n; i++) {
+    if (delta[i] != 0) {
+      for ( r = 0; r < *p; r++) {
+	nu[r] = 0.0;
+      }
+      de = 0.0;
+      for (j = 0; j < *n; j++) {
+	if (Y[i] <= Y[j]) {
+	  for (r = 0; r < *p; r++) {
+	    nu[r] += weights[j] * exp(xb[j]) * z[j] * X[j + r * *n];
 	  }
+	  de += weights[j] * exp(xb[j]) * z[j];
 	}
-	for (r = 0; r < *p; r++) {
-	  if (de == 0) {
-	    res[r + b * *p] += weights[i] * X[i + r * *n];
-	  }
-	  if (de != 0) {
-	    res[r + b * *p] += weights[i] * (X[i + r * *n] - (nu[r] / de));
-	  }
+      }
+      for (r = 0; r < *p; r++) {
+	if (de == 0) {
+	  res[r] += weights[i] * X[i + r * *n];
 	}
-      } // end delta
-    }
-  }
+	if (de != 0) {
+	  res[r] += weights[i] * (X[i + r * *n] - (nu[r] / de));
+	}
+      }
+    } // end delta
+  }  
   Free(nu);
 }
 
