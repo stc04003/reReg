@@ -231,7 +231,7 @@ do <- function() {
 }
 
 do <- function() {
-    dat <- simDat(500, a = c(1, -1), b = c(1, -1), type = "am", indCen = TRUE)
+    dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "am", indCen = TRUE)
     ## dat <- simDat(400, a = c(1, -1), b = c(1, -1), type = "am", indCen = FALSE)
     ## dat <- simDat(200, a = c(1, -1), b = c(1, -1), type = "cox", indCen = FALSE)
     fit1 <- reReg(fm, data = dat, method = "am.X", se = "res", B = 200)
@@ -240,11 +240,11 @@ do <- function() {
 
 system.time(print(do()))
 
-cl <- makePSOCKcluster(16)
+cl <- makePSOCKcluster(7)
 setDefaultCluster(cl)
 clusterExport(NULL, c("do", "fm"))
 clusterEvalQ(NULL, library(reReg))
-f1 <- parSapply(NULL, 1:50, function(z) tryCatch(do(), error = function(e) rep(NA, 8)))
+f1 <- parSapply(NULL, 1:100, function(z) tryCatch(do(), error = function(e) rep(NA, 8)))
 stopCluster(cl)
 
 apply(f1, 1, mean)[1:4]
@@ -261,76 +261,3 @@ rbind(apply(f1, 1, mean)[5:8],
 ## [2,] 0.2904914 0.07186844 0.5161991 0.2615754
 ## [3,] 0.1411801 0.06733162 0.5332168 0.2603365
 ## [4,] 0.1294701 0.06733162 0.5332168 0.2471383
-
-set.seed(1)
-dat <- simDat(100, a = c(1, -1), b = c(1, -1), type = "am", indCen = TRUE)
-
-dat <- simDat(100, a = c(1, -1), b = c(1, -1), type = "sc", indCen = TRUE)
-fit1 <- reReg(fm, data = dat, method = "am.X", se = "res")
-fit2 <- reReg(fm, data = dat, method = "sc.X", se = "res")
-
-summary(fit1)
-summary(fit2)
-
-
-debug(reReg)
-set.seed(1)
-dat <- simDat(100, a = c(1, -1), b = c(1, -1), type = "am", indCen = TRUE)
-
-do()
-
-debug(doREFit.am.XCHWY.resampling)
-doREFit.am.XCHWY.resampling(DF = DF, engine = engine, stdErr = stdErr)
-
-
-Sn <- function(a, b, w, r = "both") {
-    Ystar <- log(Y) + X %*% a
-    Tstar <- log(T) + X %*% a
-    Lam <- npMLE(Ystar[event == 0], Tstar, Ystar, rep(w, mt + 1))
-    ## Lam <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar)
-    zHat <- mt / Lam
-    zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    s1 <- .C("alphaEqC", as.double(X[event == 0,]), as.double(zHat),
-             as.integer(n), as.integer(p), as.double(w),
-             res = double(p), PACKAGE = "reReg")$res / sqrt(n)
-    if (r == "s1") return(s1)
-    Lam <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar)
-    ## Lam <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar, rep(w, mt + 1))
-    zHat <- mt / Lam
-    zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    Ystar <- (log(Y) + X %*% b)[event == 0]
-    s2 <- .C("betaEst", as.double(Ystar), as.double(X[event == 0,]),
-             as.double(status[event == 0]), as.double(zHat),
-             as.double(w), as.integer(n), as.integer(p), res = double(p),
-             PACKAGE = "reReg")$res / n
-    if (r == "s2") return(s2)
-    return(c(s1, s2))
-}
-
-V <- varOut(t(apply(E, 2, function(x) Sn(res$alpha, res$beta, x))))
-V1 <- V[1:p, 1:p]
-V2 <- V[1:p + p, 1:p + p]
-lmfit1 <- t(apply(Z, 2, function(x) Sn(res$alpha + x / sqrt(n), res$beta, rep(1, n), "s1")))
-lmfit2 <- t(apply(Z, 2, function(x) Sn(res$alpha, res$beta + x / sqrt(n), rep(1, n), "s2")))
-J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
-J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
-J1 <- t(J1)
-J2 <- t(J2)
-sqrt(diag(solve(J1) %*% V1 %*% t(solve(J1))))
-sqrt(diag(solve(J2) %*% V2 %*% t(solve(J2))))
-
-sqrt(diag(solve(t(J1)) %*% V1 %*% solve(J1)))
-
-V <- varOut(t(apply(E, 2, function(x) Sn(c(-1, 1), res$beta, x))))
-V1 <- V[1:p, 1:p]
-V2 <- V[1:p + p, 1:p + p]
-lmfit1 <- t(apply(Z, 2, function(x) Sn(c(-1, 1) + x / sqrt(n), res$beta, rep(1, n), "s1")))
-lmfit2 <- t(apply(Z, 2, function(x) Sn(c(-1, 1), res$beta + x / sqrt(n), rep(1, n), "s2")))
-J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
-J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
-J1 <- t(J1)
-J2 <- t(J2)
-sqrt(diag(solve(J1) %*% V1 %*% t(solve(J1))))
-sqrt(diag(solve(J2) %*% V2 %*% t(solve(J2))))

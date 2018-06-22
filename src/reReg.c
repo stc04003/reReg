@@ -42,13 +42,18 @@ void sarm1(double *X, double *weights, double *xr,
 void alphaEqC(double *X, double *ratio, int *n, int *p, double *weights, double *res) {
   int i, j, r;
   double snd;
+  double wgtMean = 0;
+  for (i = 0; i < *n; i++) {
+    wgtMean += weights[i];
+  }
+  wgtMean = wgtMean / *n;
   for (i = 0; i < *n; i++) {
     snd = 0;
     for (j = 0; j < *n; j++) {
       snd += weights[j] * ratio[j];
     }
     for (r = 0; r < *p; r++) {
-      res[r] += weights[i] * X[i + r * *n] * (ratio[i] - snd / *n);
+      res[r] += weights[i] * X[i + r * *n] * (wgtMean * ratio[i] - snd / *n);
     }
   }
 }

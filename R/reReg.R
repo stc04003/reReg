@@ -446,7 +446,7 @@ doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
     Sn <- function(a, b, w, r = "both") {
         Ystar <- log(Y) + X %*% a
         Tstar <- log(T) + X %*% a
-        Lam <- npMLE(Ystar[event ==  1], Tstar, Ystar, rep(w, mt + 1))
+        Lam <- npMLE(Ystar[event ==  0], Tstar, Ystar, rep(w, mt + 1))
         ## Lam <- npMLE(Ystar[event == 0], Tstar, Ystar)
         zHat <- mt / Lam
         zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
@@ -455,7 +455,7 @@ doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
                  as.integer(n), as.integer(p), as.double(w),
                  res = double(p), PACKAGE = "reReg")$res / n
         if (r == "s1") return(s1)
-        Lam <- npMLE(Ystar[event == 1], Tstar, Ystar)
+        Lam <- npMLE(Ystar[event == 0], Tstar, Ystar)
         ## Lam <- npMLE(Ystar[event == 0], Tstar, Ystar, rep(w, mt + 1))
         zHat <- mt / Lam
         zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
