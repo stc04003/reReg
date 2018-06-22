@@ -168,23 +168,19 @@ do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
       coef(f5), f5$alphaSE, f5$betaSE)
 }
 
-system.time(foo <- do())
-system.time(foo <- do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = FALSE))
-foo
-
 cl <- makePSOCKcluster(8)
 setDefaultCluster(cl)
 clusterExport(NULL, c("do", "fm"))
 clusterEvalQ(NULL, library(reReg))
-f1 <- parSapply(NULL, 1:100, function(z) tryCatch(do(), error = function(e) rep(NA, 40)))
-f2 <- parSapply(NULL, 1:100, function(z) tryCatch(do(indCen = FALSE), error = function(e) rep(NA, 40)))
-f3 <- parSapply(NULL, 1:100, function(z) tryCatch(do(type = "am"), error = function(e) rep(NA, 40)))
-f4 <- parSapply(NULL, 1:100, function(z)
+f1 <- parSapply(NULL, 1:500, function(z) tryCatch(do(), error = function(e) rep(NA, 40)))
+f2 <- parSapply(NULL, 1:500, function(z) tryCatch(do(indCen = FALSE), error = function(e) rep(NA, 40)))
+f3 <- parSapply(NULL, 1:500, function(z) tryCatch(do(type = "am"), error = function(e) rep(NA, 40)))
+f4 <- parSapply(NULL, 1:500, function(z)
     tryCatch(do(type = "am", indCen = FALSE), error = function(e) rep(NA, 40)))
-f5 <- parSapply(NULL, 1:200, function(z)
+f5 <- parSapply(NULL, 1:500, function(z)
     tryCatch(do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE),
              error = function(e) rep(NA, 40)))
-f6 <- parSapply(NULL, 1:200, function(z)
+f6 <- parSapply(NULL, 1:500, function(z)
     tryCatch(do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = FALSE),
              error = function(e) rep(NA, 40)))
 stopCluster(cl)
