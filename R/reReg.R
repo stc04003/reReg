@@ -39,13 +39,10 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
     alpha <- outA$par
     Ystar <- log(Y) + X %*% alpha
     Tstar <- log(T) + X %*% alpha
-    ## Ystar <- Y * exp(X %*% alpha)
-    ## Tstar <- T * exp(X %*% alpha)
     lambda <- npMLE(Ystar[event == 0], Tstar, Ystar)
     zHat <- as.numeric(mt * npMLE(log(max(Y)), Tstar, Ystar) / lambda)
     zHat <- ifelse(zHat > 1e5, (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01), zHat)
     zHat <- ifelse(is.na(zHat), 0, zHat)
-    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     if (engine@solver %in% c("dfsane", "BBsolve")) 
         suppressWarnings(
             outB <- do.call(
@@ -181,7 +178,6 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
     zHat <- as.numeric(mt / (lambda * exp(as.matrix(X[, -1]) %*% alpha)))
     zHat <- ifelse(zHat > 1e5, (mt + .01) / (lambda * exp(as.matrix(X[, -1]) %*% alpha) + .01), zHat)
     zHat <- ifelse(is.na(zHat), 0, zHat)
-    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     if (engine@solver %in% c("dfsane", "BBsolve")) 
         suppressWarnings(
             outB <- do.call(
@@ -220,7 +216,6 @@ doREFit.cox.LWYY <- function(DF, engine, stdErr) {
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))   
     out <- dfsane(par = engine@a0, fn = LWYYeq, X = as.matrix(X[event == 0, ]),
                   Y = Y[event == 0], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
-                  ## cl = unlist(lapply(split(id, id), length)), 
                   alertConvergence = FALSE, quiet = TRUE,
                   control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
     list(alpha = out$par, beta = rep(0, p), muZ = NA)
@@ -626,7 +621,7 @@ doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     d <- max(X %*% (alpha - beta))
     tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
     tij <- tij[DF$event == 1]
-    yi <- log(DF0$Time) - X %*% beta
+    yi <- log(DF0$Time) - X %*% beta ## beta or alpha?
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
     t0.rate <- unique(sort(tij)) # log scale

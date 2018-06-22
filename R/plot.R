@@ -345,6 +345,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
     if (ncol(dat1) == 5 & length(unique(dat1$recType)) == 2) {
         gg <- gg + geom_step() 
     } else {
+        if (!onePanel & length(unique(dat1$recType)) == 2) gg <- gg + geom_step()
         if (!onePanel & length(unique(dat1$recType)) > 2) 
             gg <- gg + geom_step(aes(color = recType), direction = "hv") +
                 guides(color = guide_legend(title = ctrl$recurrent.name))

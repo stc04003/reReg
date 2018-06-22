@@ -62,58 +62,70 @@ detach(readmission)
 reObj <- with(readmission, reSurv(t.stop, id, event, death))
 
 plot(reObj)
-plot(reObj, xlab = "User X", ylab = "User Y", title = "User title")
-plot(reObj, control = list(xlab = "User X", ylab = "User Y", title = "User title"))
+plot(reObj, xlab = "User X", ylab = "User Y", main = "User title")
+plot(reObj, control = list(xlab = "User X", ylab = "User Y", main = "User title"))
 
 plot(reObj, order = FALSE)
-plot(reObj, order = FALSE, xlab = "User X", ylab = "User Y", title = "User title")
-plot(reObj, order = FALSE, control = list(xlab = "User X", ylab = "User Y", title = "User title"))
+plot(reObj, order = FALSE, xlab = "User X", ylab = "User Y", main = "User title")
+plot(reObj, order = FALSE, control = list(xlab = "User X", ylab = "User Y", main = "User title"))
 
 plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
 plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission,
-           xlab = "User X", ylab = "User Y", title = "User title")
+           xlab = "User X", ylab = "User Y", main = "User title")
            
 plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
 plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission,
-           xlab = "User X", ylab = "User Y", title = "User title")           
+           xlab = "User X", ylab = "User Y", main = "User title")           
 plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
 plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission,
-           xlab = "User X", ylab = "User Y", title = "User title",
+           xlab = "User X", ylab = "User Y", main = "User title",
            control = list(terminal.name = "User terminal",
                           recurrent.name = "User event"))
-
-plot(reObj, CSM = TRUE)
-plot(reObj, CSM = TRUE, xlab = "User X", ylab = "User Y", title = "User title")
-plot(reObj, CSM = TRUE, control = list(xlab = "User X", ylab = "User Y", title = "User title"))
 
 ## multiple event types
 reObj <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 plot(reObj)
-plot(reObj, xlab = "User X", ylab = "User Y", title = "User title")
-plot(reObj, control = list(xlab = "User X", ylab = "User Y", title = "User title"))
-plot(reObj, xlab = "User X", ylab = "User Y", title = "User title",
+plot(reObj, xlab = "User X", ylab = "User Y", main = "User title")
+plot(reObj, control = list(xlab = "User X", ylab = "User Y", main = "User title"))
+plot(reObj, xlab = "User X", ylab = "User Y", main = "User title",
      control = list(recurrent.name = "User event"))
-plot(reObj, xlab = "User X", ylab = "User Y", title = "User title",
+plot(reObj, xlab = "User X", ylab = "User Y", main = "User title",
      control = list(recurrent.type = letters[1:3]))
 
 plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
 plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission,
-           control = list(xlab = "User X", ylab = "User Y", title = "User title"))
+           control = list(xlab = "User X", ylab = "User Y", main = "User title"))
 plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission,
-           xlab = "User X", ylab = "User Y", title = "User title")
+           xlab = "User X", ylab = "User Y", main = "User title")
 
 set.seed(123)
 fm <- reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~ sex + chemo
 plotEvents(fm, data = readmission)
-plotEvents(fm, data = readmission, xlab = "User X", ylab = "User Y", title = "User title",
+plotEvents(fm, data = readmission, xlab = "User X", ylab = "User Y", main = "User title",
            control = list(recurrent.type = letters[1:3]))
 
+## ------------------------------------------------------------------------------------------
+## checking plotCSM
+## ------------------------------------------------------------------------------------------
+reObj <- with(readmission, reSurv(t.stop, id, event, death))
+
+plot(reObj, CSM = TRUE)
+plot(reObj, CSM = TRUE, xlab = "User X", ylab = "User Y", main = "User title")
+plot(reObj, CSM = TRUE, control = list(xlab = "User X", ylab = "User Y", main = "User title"))
+
+plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
+plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
+plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE)
+
+
+set.seed(123)
+fm <- reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~ sex + chemo
 plotCSM(fm, data = readmission)
-plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", title = "User title",
+plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", main = "User title",
            control = list(recurrent.type = letters[1:3]))
-plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", title = "User title",
+plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", main = "User title",
            control = list(recurrent.name = "Types", recurrent.type = letters[1:3]))
-plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", title = "User title",
+plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", main = "User title",
            control = list(recurrent.type = letters[1:3])) + ggplot2::theme(legend.position = "bottom")
 
 ## ------------------------------------------------------------------------------------------
