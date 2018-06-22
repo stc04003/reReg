@@ -45,10 +45,10 @@ void alphaEqC(double *X, double *ratio, int *n, int *p, double *weights, double 
   for (i = 0; i < *n; i++) {
     snd = 0;
     for (j = 0; j < *n; j++) {
-      snd += weights[j] * ratio[j] / n[0];
+      snd += weights[j] * ratio[j];
     }
     for (r = 0; r < *p; r++) {
-      res[r] += weights[i] * X[i + r * *n] * (ratio[i] - snd);
+      res[r] += weights[i] * X[i + r * *n] * (ratio[i] - snd / *n);
     }
   }
 }
@@ -59,7 +59,7 @@ void betaEst(double *Y, double *X, double *delta, double *z, double *weights,
   double *nu = Calloc(*p, double); 
   double de;
   for (i = 0; i < *n; i++) {
-    if (delta[i] != 0) {
+    if (delta[i] > 0) {
       de = 0.0;
       for (j = 0; j < *n; j++) {
 	if (Y[i] <= Y[j]) {
