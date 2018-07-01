@@ -31,7 +31,7 @@ void plLambda(double *sl, double *tij, double *yi, double *weights,
 
 void sarm1(double *X, double *weights, double *xr, 
 	   int *ratio, int *n, int *p, double *res) {
-  int i, r, k; 
+  int i, r; 
   for (i = 0; i < *n; i++) {
     for (r = 0; r < *p; r++) {
       res[r] += X[i + r * *n] * weights[i] * (ratio[i] - xr[i]);
@@ -90,7 +90,7 @@ void betaEst(double *Y, double *X, double *delta, double *z, double *weights,
 
 void HWb(double *Y, double *X, double *delta, double *z, double *xb, double *weights, 
 	 int *n, int *p, double *res) {
-  int i, j, r, b;
+  int i, j, r;
   double *nu = Calloc(*p, double); 
   double de;
   for (i = 0; i < *n; i++) {
