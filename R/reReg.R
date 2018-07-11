@@ -561,7 +561,7 @@ doNonpara.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
                PACKAGE = "reReg")$result
-    if (is.null(engine@muZ)) 
+    if (engine@muZ == 0) 
         engine@muZ <- sum(m / approx(t0.rate, exp(-rate), yi, yleft = 0, yright = max(rate),
                                      method = "constant")$y, na.rm = TRUE) / n
     rate <- exp(-rate) * engine@muZ
@@ -585,7 +585,7 @@ doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
                PACKAGE = "reReg")$result
-    if (is.null(engine@muZ))
+    if (engine@muZ == 0)
         engine@muZ <- sum(m / approx(t0.rate, exp(-rate), yi, yleft = 0, yright = max(rate),
                                      method = "constant")$y, na.rm = TRUE) / n
     rate <- exp(-rate) * engine@muZ
@@ -950,7 +950,7 @@ setClass("am.XCHWY", contains = "Engine")
 setClass("am.GL", contains = "Engine")
 setClass("sc.XCYH",
          representation(eqType = "character", muZ = "numeric"),
-         prototype(eqType = "Logrank", muZ = NULL),
+         prototype(eqType = "Logrank", muZ = 0),
          contains = "Engine")
 
 setClass("stdErr")
