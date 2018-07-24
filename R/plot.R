@@ -130,8 +130,6 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
     nX <- 0
     if (is.reSurv(formula)) {dat <- formula$reTb
     } else {
-        ## if (length(attr(terms(formula), "term.labels")) > 1)
-        ##     stop("The current vision can only handle one covaraite.")
         if (missing(data)) obj <- eval(formula[[2]], parent.frame())
         else obj <- eval(formula[[2]], data)
         dat <- obj$reTb
@@ -181,11 +179,8 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
         }
     }
     names(shp.val) <- names(clr.val) <- c("Yi", rec.lab)
-    ## ggplot starts here
     gg <- ggplot(dat, aes(id, Yi)) +
         geom_bar(stat = "identity", fill = "gray75") +
-        geom_point(data = dat %>% filter(status > 0),
-                   aes(id, Yi, shape = "Yi", color = "Yi"), size = sz) +
         geom_point(data = dat %>% filter(!map_lgl(tij, is.null)) %>%
                        unnest(tij, recType), # %>% select(id, tij, recType),
                    aes(id, tij, shape = factor(recType, labels = rec.lab), 
@@ -205,6 +200,9 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
               axis.title.y = element_text(vjust = 0),
               axis.text.y = element_blank(),
               axis.ticks.y = element_blank())
+    if (sum(dat$status) > 0)
+        gg <- gg + geom_point(data = dat %>% filter(status > 0),
+                              aes(id, Yi, shape = "Yi", color = "Yi"), size = sz) 
     if (nX > 0 && formula[[3]] != 1) 
         gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
                               scales = "free", space = "free", switch = "both")
@@ -343,11 +341,11 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
     }
     gg <- ggplot(data = dat0, aes(x = Time, y = CSM))
     if (ncol(dat1) == 5 & length(unique(dat1$recType)) == 2) {
-        gg <- gg + geom_step() 
+        gg <- gg + geom_step(size = ctrl$lwd)
     } else {
-        if (!onePanel & length(unique(dat1$recType)) == 2) gg <- gg + geom_step()
+        if (!onePanel & length(unique(dat1$recType)) == 2) gg <- gg + geom_step(size = ctrl$lwd)
         if (!onePanel & length(unique(dat1$recType)) > 2) 
-            gg <- gg + geom_step(aes(color = recType), direction = "hv") +
+            gg <- gg + geom_step(aes(color = recType), direction = "hv", size = ctrl$lwd) +
                 guides(color = guide_legend(title = ctrl$recurrent.name))
         if (onePanel) {
             rText <- paste("geom_step(aes(color = interaction(",
@@ -649,10 +647,11 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject", main = "Recurren
 
 plotCSM.control <- function(xlab = "Time", ylab = "Cumulative mean",
                             main = "Sample cumulative mean function plot",
+                            lwd = 1,
                             terminal.name = "Terminal event",
                             recurrent.name = "Recurrent events",
                             recurrent.type = NULL) {
-    list(xlab = xlab, ylab = ylab, main = main,
+    list(xlab = xlab, ylab = ylab, main = main, lwd = lwd, 
          terminal.name = terminal.name, recurrent.name = recurrent.name,
          recurrent.type = recurrent.type)         
 }
