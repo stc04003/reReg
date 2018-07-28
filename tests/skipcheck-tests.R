@@ -269,3 +269,29 @@ rbind(apply(f1, 1, mean)[5:8],
 ## [2,] 0.2904914 0.07186844 0.5161991 0.2615754
 ## [3,] 0.1411801 0.06733162 0.5332168 0.2603365
 ## [4,] 0.1294701 0.06733162 0.5332168 0.2471383
+
+
+
+
+## ------------------------------------------------------------------------------------------
+## fitting cox.LWYY
+## ------------------------------------------------------------------------------------------
+
+fm <- reSurv(Time, id, event, status) ~ x1 + x2
+dat <- simDat(n = 100, c(1, -1), c(1, -1), type = "cox", indCen = TRUE)
+f1 <- reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
+f1
+summary(f1)
+
+debug(reReg)
+debug(doREFit.cox.LWYY)
+
+reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
+doREFit.cox.LWYY(DF = DF, engine = engine, stdErr = stdErr)
+
+
+T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
+
+
+coxph(Surv(T0, T, event) ~ X)
+coxph(Surv(T0, T, event) ~ X + cluster(id))

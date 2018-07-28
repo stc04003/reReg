@@ -203,22 +203,30 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
          beta = outB$par, bconv = outB$convergence, muZ = muZ, zHat = zHat / muZ)
 }
 
+#' @importFrom survival cluster
 doREFit.cox.LWYY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    status <- DF$status
     X <- as.matrix(DF[,-c(1:4)])    
-    n <- length(unique(id))
     p <- ncol(X)
     T <- DF$Time
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
-    cluster <- unlist(sapply(mt + 1, function(x) 1:x))   
-    out <- dfsane(par = engine@a0, fn = LWYYeq, X = as.matrix(X[event == 0, ]),
-                  Y = Y[event == 0], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
-                  alertConvergence = FALSE, quiet = TRUE,
-                  control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
-    list(alpha = out$par, beta = rep(0, p), muZ = NA)
+    T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
+    fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
+    list(alpha = coef(fit.coxph), alphaSE = sqrt(diag(vcov(fit.coxph))),
+         beta = rep(0, p), muZ = NA)
+    ## my implementation of coxph estimating equation
+    ##
+    ## status <- DF$status
+    ## n <- length(unique(id))
+    ## p <- ncol(X)
+    ## mt <- aggregate(event ~ id, data = DF, sum)$event
+    ## Y <- rep(DF$Time[event == 0], mt + 1)
+    ## cluster <- unlist(sapply(mt + 1, function(x) 1:x))   
+    ## out <- dfsane(par = engine@a0, fn = LWYYeq, X = as.matrix(X[event == 0, ]),
+    ##               Y = Y[event == 0], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
+    ##               alertConvergence = FALSE, quiet = TRUE,
+    ##               control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
+    ## list(alpha = out$par, beta = rep(0, p), muZ = NA)
 }
 
 doREFit.sc.XCYH <- function(DF, engine, stdErr) {

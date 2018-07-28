@@ -46,7 +46,10 @@ print.reReg <- function(x, ...) {
 summary.reReg <- function(object, ...) {
     if (!is.reReg(object)) stop("Must be a reReg x")
     if (all(!is.na(object$alpha))) {
-        if (object$se == "NULL") object$alphaSE <- object$betaSE <- NA
+        if (object$se == "NULL") {
+            if (object$method == "cox.LWYY") object$betaSE <- NA
+            else object$alphaSE <- object$betaSE <- NA
+        }
         tabA <- cbind(Estimate = round(object$alpha, 3),
                       StdErr = round(object$alphaSE, 3),
                       z.value = round(object$alpha / object$alphaSE, 3),
@@ -122,7 +125,9 @@ print.summary.reReg <- function(x, ...) {
             }
         }
         if (x$method == "cox.LWYY") {
-            cat("\nMethod: Lin-Wei-Yang-Ying method \n")
+            if (is.null(x$call[["se"]]))
+                cat("\nMethod: Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)\n")
+            else cat("\nMethod: Lin-Wei-Yang-Ying method \n")
             cat("\nCoefficients effect:\n")
             printCoefmat(as.data.frame(x$tabA), P.values = TRUE, has.Pvalue = TRUE)
         }
