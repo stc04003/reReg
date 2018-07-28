@@ -280,18 +280,6 @@ rbind(apply(f1, 1, mean)[5:8],
 fm <- reSurv(Time, id, event, status) ~ x1 + x2
 dat <- simDat(n = 100, c(1, -1), c(1, -1), type = "cox", indCen = TRUE)
 f1 <- reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
-f1
+f2 <- reReg(fm, data = dat, se = "bootst", method = "cox.LWYY")
 summary(f1)
-
-debug(reReg)
-debug(doREFit.cox.LWYY)
-
-reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
-doREFit.cox.LWYY(DF = DF, engine = engine, stdErr = stdErr)
-
-
-T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
-
-
-coxph(Surv(T0, T, event) ~ X)
-coxph(Surv(T0, T, event) ~ X + cluster(id))
+summary(f2)
