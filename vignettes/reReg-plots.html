@@ -224,7 +224,7 @@ div.tocify {
 </div>
 
 
-<p>In this vignette, we demonstrate how to create a <em>reSurv</em> object in <strong><em>reReg</em></strong> package. The <em>reSurv</em> object is then used to create event plots and cumulative sample mean (CSM) plots. We will illustrate the usage of our functions with the <em>readmission</em> data from the <strong><em>frailtypack</em></strong> package <span class="citation">(Rondeau, Mazroui, and Gonzalez 2012)</span>.</p>
+<p>In this vignette, we demonstrate how to create a <code>reSurv</code> object in <strong><code>reReg</code></strong> package. The <code>reSurv</code> object is then used to create event plots and cumulative sample mean (CSM) plots. We will illustrate the usage of our functions with the <code>readmission</code> data from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and Gonzalez 2012)</span>.</p>
 <pre class="r"><code>library(reReg)
 data(readmission, package = &quot;frailtypack&quot;)
 head(readmission)</code></pre>
@@ -235,19 +235,36 @@ head(readmission)</code></pre>
 ## 4  2    1       0    489  489     1 NonTreated   Male     C        0     0
 ## 5  2    2     489   1182  693     0 NonTreated   Male     C        0     0
 ## 6  3    1       0     15   15     1 NonTreated   Male     C        3     0</code></pre>
-<p>The usage of is similar to the <em>Surv</em> function in the <strong><em>survival</em></strong> package. There are five arguments in <em>reSurv</em>, but not all of them needs to be specified. The arguments of <em>reSurv</em> is as follow</p>
+<pre class="r"><code>attach(readmission)</code></pre>
+<div id="resurv-object" class="section level2">
+<h2><code>reSurv</code> object</h2>
+<p>The usage of is similar to the <code>Surv</code> function in the <strong><code>survival</code></strong> package. There are five arguments in <code>reSurv</code>, but not all of them needs to be specified. The arguments of <code>reSurv</code> is as follow</p>
 <pre class="r"><code>args(reSurv)</code></pre>
 <pre><code>## function (time1, time2, id, event, status, origin = 0) 
 ## NULL</code></pre>
 <p>The five arguments are</p>
 <ul>
-<li>time1 starting time for the gap time between two successive recurrent events</li>
-<li>time2 ending time for the gap time between two successive recurrent events</li>
-<li>id subject’s id</li>
-<li>event a binary vector used as the recurrent event indicator; event = 0 for non-recurrent times (such as the censoring times)</li>
-<li>status a binary vector used as the status indicator for the terminal event; status = 0 for censored time</li>
-<li>origin a numerical vector indicating the time origin of subjects.</li>
+<li><code>time1</code> starting time for the gap time between two successive recurrent events</li>
+<li><code>time2</code> ending time for the gap time between two successive recurrent events</li>
+<li><code>id</code> subject’s id</li>
+<li><code>event</code> a binary vector used as the recurrent event indicator; <code>event = 0</code> for non-recurrent times (such as the censoring times)</li>
+<li><code>status</code> a binary vector used as the status indicator for the terminal event; <code>status = 0</code> for censored time</li>
+<li><code>origin</code> a numerical vector indicating the time origin of subjects</li>
 </ul>
+<p>There are a few ways to create an <code>reSurv</code> object. when the starting times and the ending times of recurrent events are known, one can specify both times in <code>reSurv</code>. %If the time origins of subjects are equal, as in the <code>readmission</code> data, the argument <code>time2</code> can be deprecated.</p>
+<pre class="r"><code>reSurv(time1 = t.start, time2 = t.stop, id = id, event = event, status = death)
+reSurv(time1 = t.stop, id = id, event = event, status = death)</code></pre>
+<p>The same <code>reSurv</code> objects can be achieved without specifying the argument name:</p>
+<pre class="r"><code>reSurv(t.start, t.stop, id, event, death)
+reSurv(t.stop, id, event, death)</code></pre>
+</div>
+<div id="event-plots" class="section level2">
+<h2>Event plots</h2>
+</div>
+<div id="csm-plots" class="section level2">
+<h2>CSM plots</h2>
+<pre class="r"><code>detach(readmission)</code></pre>
+</div>
 <div id="reference" class="section level2 unnumbered">
 <h2>Reference</h2>
 <div id="refs" class="references">

@@ -54,6 +54,9 @@ identical(reSurv(t.stop, id)$reTb, reSurv(t.start, t.stop, id)$reTb) # TRUE
 identical(reSurv(t.stop, id, event)$reTb, reSurv(t.start, t.stop, id, event)$reTb) # TRUE
 identical(reSurv(t.stop, id, event, death)$reTb, reSurv(t.start, t.stop, id, event, death)$reTb) # TRUE
 
+reSurv(time1 = t.start, time2 = t.stop, id = id, event = event, status = death)
+reSurv(time1 = t.stop, id = id, event = event, status = death)
+
 detach(readmission)
 
 ## ------------------------------------------------------------------------------------------

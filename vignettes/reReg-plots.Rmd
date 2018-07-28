@@ -14,33 +14,58 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-In this vignette, we demonstrate how to create a *reSurv* object in __*reReg*__ package.
-The *reSurv* object is then used to create event plots and cumulative sample mean (CSM) plots.
-We will illustrate the usage of our functions with the *readmission* data from the __*frailtypack*__
+In this vignette, we demonstrate how to create a `reSurv` object in __`reReg`__ package.
+The `reSurv` object is then used to create event plots and cumulative sample mean (CSM) plots.
+We will illustrate the usage of our functions with the `readmission` data from the __`frailtypack`__
 package [@rondeau2012frailtypack].
 
 ```{r data}
 library(reReg)
 data(readmission, package = "frailtypack")
 head(readmission)
+attach(readmission)
 ```
 
+## `reSurv` object
 The usage of is similar to the
-*Surv* function in the __*survival*__ package.
-There are five arguments in *reSurv*, but not all of them needs to be specified.
-The arguments of *reSurv* is as follow
+`Surv` function in the __`survival`__ package.
+There are five arguments in `reSurv`, but not all of them needs to be specified.
+The arguments of `reSurv` is as follow
 ```{r reSurv}
 args(reSurv)
 ```
 The five arguments are 
 
-* time1 starting time for the gap time between two successive recurrent events
-* time2 ending time for the gap time between two successive recurrent events
-* id subject's id
-* event a binary vector used as the recurrent event indicator; event = 0 for non-recurrent times (such as the censoring times)
-* status a binary vector used as the status indicator for the terminal event; status = 0 for censored time
-* origin a numerical vector indicating the time origin of subjects.
+* `time1` starting time for the gap time between two successive recurrent events
+* `time2` ending time for the gap time between two successive recurrent events
+* `id` subject's id
+* `event` a binary vector used as the recurrent event indicator; `event = 0` for non-recurrent times (such as the censoring times)
+* `status` a binary vector used as the status indicator for the terminal event; `status = 0` for censored time
+* `origin` a numerical vector indicating the time origin of subjects
+
+There are a few ways to create an `reSurv` object.
+when the starting times and the ending times of recurrent events are known, 
+one can specify both times in `reSurv`. 
+%If the time origins of subjects are equal, as in the `readmission` data, the argument `time2` can be deprecated.
+```{r reSurv-obj, eval = FALSE}
+reSurv(time1 = t.start, time2 = t.stop, id = id, event = event, status = death)
+reSurv(time1 = t.stop, id = id, event = event, status = death)
+```
+The same `reSurv` objects can be achieved without specifying the argument name:
+```{r reSurv-obj-short, eval = FALSE}
+reSurv(t.start, t.stop, id, event, death)
+reSurv(t.stop, id, event, death)
+```
+
+## Event plots
 
 
+## CSM plots
+
+
+
+```{r detach}
+detach(readmission)
+```
 
 ## Reference
