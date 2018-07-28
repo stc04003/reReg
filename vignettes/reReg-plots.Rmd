@@ -1,0 +1,46 @@
+---
+title: "Visualization of recurrent event data"
+author: Sy Han (Steven) Chiou
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+bibliography: ../inst/bib/reReg.bib
+vignette: >
+  %\VignetteIndexEntry{Visualization of recurrent event data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+In this vignette, we demonstrate how to create a *reSurv* object in __*reReg*__ package.
+The *reSurv* object is then used to create event plots and cumulative sample mean (CSM) plots.
+We will illustrate the usage of our functions with the *readmission* data from the __*frailtypack*__
+package [@rondeau2012frailtypack].
+
+```{r data}
+library(reReg)
+data(readmission, package = "frailtypack")
+head(readmission)
+```
+
+The usage of is similar to the
+*Surv* function in the __*survival*__ package.
+There are five arguments in *reSurv*, but not all of them needs to be specified.
+The arguments of *reSurv* is as follow
+```{r reSurv}
+args(reSurv)
+```
+The five arguments are 
+
+* time1 starting time for the gap time between two successive recurrent events
+* time2 ending time for the gap time between two successive recurrent events
+* id subject's id
+* event a binary vector used as the recurrent event indicator; event = 0 for non-recurrent times (such as the censoring times)
+* status a binary vector used as the status indicator for the terminal event; status = 0 for censored time
+* origin a numerical vector indicating the time origin of subjects.
+
+
+
+## Reference
