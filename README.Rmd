@@ -40,6 +40,10 @@ You can install reReg from github with:
 devtools::install_github("stc04003/reReg")
 ```
 
+#### Online documentation 
+[Online document](homepage) includes:
+
+* Package vignette on [visualization of recurrent event data](reReg-plots).
 
 #### References:
 
