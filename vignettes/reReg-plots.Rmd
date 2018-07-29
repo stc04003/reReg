@@ -163,8 +163,9 @@ p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission,
               CSM = TRUE, adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
 ```
+As in the `plotEvents`, more complicated 
 Figure 8 depicts the CSM plots grouped by `sex` and `chemo`.
-```{r plot-csm-sex-chemo, fig.cap = "Figure 7: CSM plot grouped by `sex`."}
+```{r plot-csm-sex-chemo, fig.cap = "Figure 8: CSM plot grouped by `sex` and `chemo`."}
 p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
               CSM = TRUE, main = "")
 p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
@@ -174,24 +175,33 @@ grid.arrange(p1, p2, ncol=2)
 
 ## Multiple recurrent event types
 The functions `plotEvents` and `plotCSM` can be used to accomdiate recurrent event data with multiple recurrent types.
-To illustrate this, we generate hypothetical event types:
+To illustrate this, we generate hypothetical event types and store these in `event2`.
 ```{r multi-events}
 library(dplyr)
 set.seed(1)
 readmission <- readmission %>% mutate(event2 = event * sample(1:3, 861, TRUE))
 ```
-
-```{r multi-event-plot, fig.cap = "Figure 8: Event plots with multiple recurrent event types."}
+`plotEvents` and `plotCSM` functions can still be applied with `event` replaced with `event2`. 
+Different recurrent events will be denoted by different colors and shapes.
+```{r multi-event-plot, fig.cap = "Figure 9: Event plots with multiple recurrent event types."}
 plotEvents(reSurv(t.stop, id, event2, death) ~ sex, data = readmission)
 ```
+Default labels can be changed
+```{r multi-csm2, fig.cap = "Figure 10: CSM plot with multiple recurrent event types and customized labels."}
+plotCSM(reSurv(t.stop, id, event2, death) ~ sex, adjrisk = FALSE, data = readmission,
+        control = list(recurrent.types = c("Type 1", "Type 2", "Type 3")))
+```
 
-```{r multi-csm, fig.cap = "Figure 9: CSM plot with multiple recurrent event types."}
-plotCSM(reSurv(t.stop, id, event2, death) ~ sex, data = readmission)
+```{r multi-csm, fig.cap = "Figure 11: CSM plot with multiple recurrent event types."}
+library(ggplot2)
+p1 <- plotCSM(reSurv(t.stop, id, event2, death) ~ sex, data = readmission, main = "") +
+  theme(legend.position="none")
+p2 <- plotCSM(reSurv(t.stop, id, event2, death) ~ sex, data = readmission, 
+              adjrisk = FALSE, main = "") +
+  theme(legend.position="none")
+grid.arrange(p1, p2, ncol = 2)
 ```
 
 
-```{r multi-csm2, fig.cap = "Figure 10: CSM plot with multiple recurrent event types."}
-plotCSM(reSurv(t.stop, id, event2, death) ~ sex, adjrisk = FALSE, data = readmission)
-```
 
 ## Reference
