@@ -20,11 +20,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-#### Regression models for recurrent event data
+### Regression models for recurrent event data
 ***reReg*** implements a collection of regression models for recurrent event process and failure time.
 The package is still under active development.
 
-#### Installation
+### Installation
 
 You can install and load **reReg** from CRAN using
 
@@ -40,12 +40,12 @@ You can install reReg from github with:
 devtools::install_github("stc04003/reReg")
 ```
 
-#### Online documentation 
+### Online documentation 
 [Online document](https://www.sychiou.com/reReg/index.html) includes:
 
 * Package vignette on [visualization of recurrent event data](https://www.sychiou.com/reReg/articles/reReg-plots.html).
 
-#### References:
+### References:
 
      Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017).
      Joint Scale-change Models for Recurrent Events and Failure Time.

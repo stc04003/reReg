@@ -4,11 +4,11 @@
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg)](https://cran.r-project.org/) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/reReg)](https://cran.r-project.org/package=reReg) [![packageversion](https://img.shields.io/badge/Package%20version-1.1.5-orange.svg?style=flat-square)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2018--07--29-yellowgreen.svg)](/commits/master) [![Build Status](https://travis-ci.org/user/pkg.svg?branch=master)](https://travis-ci.org/user/pkg) <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-#### Regression models for recurrent event data
+### Regression models for recurrent event data
 
 ***reReg*** implements a collection of regression models for recurrent event process and failure time. The package is still under active development.
 
-#### Installation
+### Installation
 
 You can install and load **reReg** from CRAN using
 
@@ -24,13 +24,13 @@ You can install reReg from github with:
 devtools::install_github("stc04003/reReg")
 ```
 
-#### Online documentation
+### Online documentation
 
 [Online document](https://www.sychiou.com/reReg/index.html) includes:
 
 -   Package vignette on [visualization of recurrent event data](https://www.sychiou.com/reReg/articles/reReg-plots.html).
 
-#### References:
+### References:
 
      Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017).
      Joint Scale-change Models for Recurrent Events and Failure Time.
