@@ -41,9 +41,9 @@ devtools::install_github("stc04003/reReg")
 ```
 
 #### Online documentation 
-[Online document](homepage) includes:
+[Online document](https://www.sychiou.com/reReg/index.html) includes:
 
-* Package vignette on [visualization of recurrent event data](reReg-plots).
+* Package vignette on [visualization of recurrent event data](https://www.sychiou.com/reReg/articles/reReg-plots.html).
 
 #### References:
 
