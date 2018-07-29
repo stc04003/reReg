@@ -3,10 +3,10 @@ title: "Visualization of recurrent event data"
 author: Sy Han (Steven) Chiou
 date: "`r Sys.Date()`"
 output:
-    bookdown::html_document2:
+  rmarkdown::html_document:
     toc: true
+    toc_depth: 2
     toc_float: true
-    fig_caption: yes
 bibliography: ../inst/bib/reReg.bib
 vignette: >
   %\VignetteIndexEntry{Visualization of recurrent event data}
@@ -73,15 +73,15 @@ On the other hand patient id \# 4 has 4 readmission and was censored at `t = 204
 
 ## Event plots {-}
 A quick and easy way to glance into the recurrent event data is by an event plot.
-Event plots can be produce by plotting the `reSurv` object with `R`'s generic function `plot`, shown in \@ref(fig:plot-reSurv)
-```{r plot-reSurv, fig.cap="Creating an event plot from a `reSurv` object."}
+Event plots can be produce by plotting the `reSurv` object with `R`'s generic function `plot`, shown in Figure 1.
+```{r plot-reSurv, fig.cap="Figure 1: Creating an event plot from a `reSurv` object."}
 reObj <- reSurv(t.stop, id, event, death)
 plot(reObj)
 ```
 
 
 Common graphical options like `xlab`, `ylab`, `'main`, and more can be directly passed down to `plot`. 
-```{r plot-reSurv2, fig.cap="Creating an event plot from a `reSurv` object with custom labels."}
+```{r plot-reSurv2, fig.cap="Figure 2: Creating an event plot from a `reSurv` object with custom labels."}
 plot(reObj, cex = 1.5, xlab = "Time in days", ylab = "Patients", 
      main = "Event plot for readmission data", 
      terminal.name = "Death", 
@@ -94,22 +94,104 @@ To demonstrate the usage, we first detach `readmission`.
 ```{r detach}
 detach(readmission)
 ```
-Unlike the generaic plot function, `plotEvents` uses a formula object to specify the stratification.
+Unlike the generic plot function, `plotEvents` uses a formula object to specify the stratification.
 ```{r plotEvents}
 args(plotEvents)
 ```
-Here are some examples to generate Figure \@ref(fig:plot-reSurv2) with `plotEvents`:
+Here are some examples to re-create Figure 1 with `plotEvents`:
 ```{r plotEvents-example, eval = FALSE}
 plotEvents(reObj)
-plotEvents(reObj ~ 1, data = readmission)
 plotEvents(reObj, data = readmission)
+plotEvents(reObj ~ 1, data = readmission)
+plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
+```
+Figure 2 can be re-created with `plotEvents` in a similar fashion:
+```{r plotEvents-example2, eval = FALSE}
+plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission,
+           cex = 1.5, xlab = "Time in days", ylab = "Patients", 
+           main = "Event plot for readmission data", 
+           terminal.name = "Death", recurrent.name = "Hospital readmission")
+```
+The `plotEvents` can also create event plots by groups. 
+For example, the following can be used to create event plot by gender:
+```{r plotEvents-gender, fig.cap="Figure 3: Event plot grouped by `sex`"}
+plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
+```
+Event plot by gender and treatment:
+```{r plotEvents-gender-chemo, fig.cap="Figure 4: Event plot grouped by `sex` and `chemo`."}
+plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
 ```
 
 
-## CSM plots {-}
 
+## CSM plots {-}
+The nonparametric cumulative sample mean (CSM) function can be used to aid event plots 
+to determine visually whether a trend or other pattern exists.
+The CSM function is defined as follows:
 $$\begin{array}{c}
-\hat \mu_n(t) = \sum_{i = 1}^n\int_0^tY_\cdot^{-1}(t)dN_i(t).
+\hat \mu_n(t) = \sum_{i = 1}^n\int_0^tY_\cdot^{-1}(t)dN_i(t),
 \end{array}$$
+where $Y_\cdot(t) = \sum_{j=1}^nY_i(t)$ is the total number of subjects who are at risk at time $t$ and
+$N_i(t)$ is the number of events over the time interval [0, t] for the *i*th process.
+This estimator is also known as the Nelson-Aalen estimator [@nelson2003recurrent] and 
+is also implemented in the `mcf` function in **`reda`** package [@R:reda].
+Another variation of the CSM function is discussed in [@cook2007statistical] assuming $Y_i(t) = n$ for all $t$.
+This variation is equivalent to the Nelson-Aalen estimator without adjusting for risk set. 
+We refer the Nelson-Aalen estimator and the Cook-Lawless estimator as the CSM function with (default) and without adjusting for risk set, respectively.
+
+The CSM plot can be created with `R`'s generic function `plot`, shown in Figure 5.
+```{r plot-csm, fig.cap = "Figure 5: Creating a CSM plot from a `reSurv` object."}
+plot(reObj, CSM = TRUE)
+```
+
+The CSM plot can be created with the more specialized function, `plotCSM`.
+Since CSM plot returns a **`ggplot2`** object, a side-by-side CSM plots, with and without risk set adjustment, is shown in Figure 6.
+```{r plot-csm2, fig.cap = "Figure 6: Creating a CSM plot from a `reSurv` object."}
+library(gridExtra)
+p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission, 
+              CSM = TRUE, main = "")
+p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission, 
+              CSM = TRUE, adjrisk = FALSE, main = "")
+grid.arrange(p1, p2, ncol=2)
+```
+As with the `plotEvents`, `plotCSM` can generate CSM plots given covariates. 
+Figure 7 depicts the CSM plots grouped by `sex`.
+```{r plot-csm-sex, fig.cap = "Figure 7: CSM plot grouped by `sex`."}
+p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, 
+              CSM = TRUE, main = "")
+p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, 
+              CSM = TRUE, adjrisk = FALSE, main = "")
+grid.arrange(p1, p2, ncol=2)
+```
+Figure 8 depicts the CSM plots grouped by `sex` and `chemo`.
+```{r plot-csm-sex-chemo, fig.cap = "Figure 7: CSM plot grouped by `sex`."}
+p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
+              CSM = TRUE, main = "")
+p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
+              CSM = TRUE, adjrisk = FALSE, main = "")
+grid.arrange(p1, p2, ncol=2)
+```
+
+## Multiple recurrent event types
+The functions `plotEvents` and `plotCSM` can be used to accomdiate recurrent event data with multiple recurrent types.
+To illustrate this, we generate hypothetical event types:
+```{r multi-events}
+library(dplyr)
+set.seed(1)
+readmission <- readmission %>% mutate(event2 = event * sample(1:3, 861, TRUE))
+```
+
+```{r multi-event-plot, fig.cap = "Figure 8: Event plots with multiple recurrent event types."}
+plotEvents(reSurv(t.stop, id, event2, death) ~ sex, data = readmission)
+```
+
+```{r multi-csm, fig.cap = "Figure 9: CSM plot with multiple recurrent event types."}
+plotCSM(reSurv(t.stop, id, event2, death) ~ sex, data = readmission)
+```
+
+
+```{r multi-csm2, fig.cap = "Figure 10: CSM plot with multiple recurrent event types."}
+plotCSM(reSurv(t.stop, id, event2, death) ~ sex, adjrisk = FALSE, data = readmission)
+```
 
 ## Reference
