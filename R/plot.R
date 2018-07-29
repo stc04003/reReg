@@ -125,7 +125,7 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
     namp <- names(match.call())
     if (any(namp %in% names(ctrl))) {
         namp <- namp[namp %in% names(ctrl)]
-        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+        ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
     }
     nX <- 0
     if (is.reSurv(formula)) {dat <- formula$reTb
@@ -271,7 +271,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
     namp <- names(match.call())
     if (any(namp %in% names(ctrl))) {
         namp <- namp[namp %in% names(ctrl)]
-        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+        ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
     }
     nX <- 0
     if(is.reSurv(formula)) {
