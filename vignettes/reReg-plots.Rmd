@@ -3,10 +3,10 @@ title: "Visualization of recurrent event data"
 author: Sy Han (Steven) Chiou
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_document:
+    bookdown::html_document2:
     toc: true
-    toc_depth: 2
     toc_float: true
+    fig_caption: yes
 bibliography: ../inst/bib/reReg.bib
 vignette: >
   %\VignetteIndexEntry{Visualization of recurrent event data}
@@ -14,10 +14,16 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r default, include = FALSE}
+knitr::opts_chunk$set(prompt = TRUE, comment = "")
+```
 In this vignette, we demonstrate how to create a `reSurv` object in __`reReg`__ package.
 The `reSurv` object is then used to create event plots and cumulative sample mean (CSM) plots.
 We will illustrate the usage of our functions with the `readmission` data from the __`frailtypack`__
-package [@rondeau2012frailtypack].
+package [@rondeau2012frailtypack, @gonzalez2005sex]. 
+The data contains re-hospitalization times after surgery in patients diagnosed with colorectal cancer.
+In this data set, the recurrent event is the readmission and the terminal event is either death or end of study.
+See `?readmission` for data details.
 
 ```{r data}
 library(reReg)
@@ -26,7 +32,7 @@ head(readmission)
 attach(readmission)
 ```
 
-## `reSurv` object
+## `reSurv` object {-}
 The usage of is similar to the
 `Surv` function in the __`survival`__ package.
 There are five arguments in `reSurv`, but not all of them needs to be specified.
@@ -56,16 +62,54 @@ The same `reSurv` objects can be achieved without specifying the argument name:
 reSurv(t.start, t.stop, id, event, death)
 reSurv(t.stop, id, event, death)
 ```
+The function `reSurv` prints a list-column `tibble`.
+```{r reSurv-obj-short2, eval = TRUE}
+reSurv(t.stop, id, event, death)
+```
+The example above shows patient id \#1 experienced 2 readmission (`tij[1]` is a list of two `double`) with a terminal event at `t = 1037` (days).
+The terminal event was censored (`status = 1`).
+Similarly, patient id \#3 has one readmission and was died at `t = 783` (days).
+On the other hand patient id \# 4 has 4 readmission and was censored at `t = 2048` (days).
 
-## Event plots
+## Event plots {-}
+A quick and easy way to glance into the recurrent event data is by an event plot.
+Event plots can be produce by plotting the `reSurv` object with `R`'s generic function `plot`, shown in \@ref(fig:plot-reSurv)
+```{r plot-reSurv, fig.cap="Creating an event plot from a `reSurv` object."}
+reObj <- reSurv(t.stop, id, event, death)
+plot(reObj)
+```
 
 
-## CSM plots
+Common graphical options like `xlab`, `ylab`, `'main`, and more can be directly passed down to `plot`. 
+```{r plot-reSurv2, fig.cap="Creating an event plot from a `reSurv` object with custom labels."}
+plot(reObj, cex = 1.5, xlab = "Time in days", ylab = "Patients", 
+     main = "Event plot for readmission data", 
+     terminal.name = "Death", 
+     recurrent.name = "Hospital readmission")
+```
 
 
-
+Separate (stratified) events plots can be produced with the `plotEvents` function, which is more specialized function for events plots.
+To demonstrate the usage, we first detach `readmission`.
 ```{r detach}
 detach(readmission)
 ```
+Unlike the generaic plot function, `plotEvents` uses a formula object to specify the stratification.
+```{r plotEvents}
+args(plotEvents)
+```
+Here are some examples to generate Figure \@ref(fig:plot-reSurv2) with `plotEvents`:
+```{r plotEvents-example, eval = FALSE}
+plotEvents(reObj)
+plotEvents(reObj ~ 1, data = readmission)
+plotEvents(reObj, data = readmission)
+```
+
+
+## CSM plots {-}
+
+$$\begin{array}{c}
+\hat \mu_n(t) = \sum_{i = 1}^n\int_0^tY_\cdot^{-1}(t)dN_i(t).
+\end{array}$$
 
 ## Reference
