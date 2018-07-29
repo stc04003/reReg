@@ -106,7 +106,7 @@ fm <- reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~ sex + chemo
 plotEvents(fm, data = readmission)
 plotEvents(fm, data = readmission, xlab = "User X", ylab = "User Y", main = "User title",
            control = list(recurrent.type = letters[1:3]))
-
+e
 ## ------------------------------------------------------------------------------------------
 ## checking plotCSM
 ## ------------------------------------------------------------------------------------------
@@ -128,6 +128,9 @@ plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", main = "User t
            control = list(recurrent.type = letters[1:3]))
 plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", main = "User title",
            control = list(recurrent.name = "Types", recurrent.type = letters[1:3]))
+
+plotCSM(fm, data = readmission, recurrent.name = "Types", recurrent.type = letters[1:3])
+
 plotCSM(fm, data = readmission, xlab = "User X", ylab = "User Y", main = "User title",
            control = list(recurrent.type = letters[1:3])) + ggplot2::theme(legend.position = "bottom")
 
