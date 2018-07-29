@@ -159,7 +159,8 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
         if (nX == 0 || formula[[3]] == 1) dat <- dat %>% mutate(id = rank(Yi, ties.method = "first"))
         else dat <- dat %>% group_by_at(6:ncol(dat)) %>% mutate(id = rank(Yi, ties.method = "first")) 
     }
-    sz <- 1 + 8 / (1 + exp(length(unique(dat$id)) / 30))
+    if (ctrl$cex == "Default") sz <- 1 + 8 / (1 + exp(length(unique(dat$id)) / 30))
+    else sz <- ctrl$cex
     k <- length(unique(unlist(dat$recType)))
     shp.val <- c(17, rep(19, k))
     clr.val <- c(alpha("red", ctrl$alpha), hcl(h = seq(120, 360, length.out = k), l = 60, alpha = ctrl$alpha))
@@ -636,11 +637,13 @@ unrowwise <- function(x) {
   x
 }
 
-plotEvents.control <- function(xlab = "Time", ylab = "Subject", main = "Recurrent event plot",
+plotEvents.control <- function(xlab = "Time", ylab = "Subject",
+                               main = "Recurrent event plot",
+                               cex = "Default", 
                                terminal.name = "Terminal event",
                                recurrent.name = "Recurrent events",
                                recurrent.type = NULL, alpha = .7) {
-    list(xlab = xlab, ylab = ylab, main = main, 
+    list(xlab = xlab, ylab = ylab, main = main, cex = cex,
          terminal.name = terminal.name, recurrent.name = recurrent.name,
          recurrent.type = recurrent.type, alpha = alpha)
 }

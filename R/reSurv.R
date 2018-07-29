@@ -27,7 +27,7 @@ NULL
 #' reSurv(t.start, t.stop, id, event, death)
 #' detach(readmission)
 reSurv <- function(time1, time2, id, event, status, origin = 0) {
-    if (missing(time1)) stop("Must have a time argument.")
+    if (missing(time1) & missing(time2)) stop("Must have a time argument.")
     if (!is.numeric(time1)) stop("Time argument (time1) must be numeric.")
     if (any(time1 < 0)) stop("Time argument (time1) must be positive.")
     msArg <- sum(missing(time2), missing(event), missing(status), missing(id))
@@ -71,7 +71,8 @@ reSurv <- function(time1, time2, id, event, status, origin = 0) {
         }
     }
     if (msArg == 1) {
-        if (missing(status) & all(time2 >= time1)) {
+        if (missing(time2)) time2 <- NULL
+        if (missing(status) & !is.null(time2) & all(time2 >= time1)) {
             if (missing(id))
                 eval(parse(text = default.reSurv(c("id"))))
             else if (missing(event))
@@ -79,7 +80,7 @@ reSurv <- function(time1, time2, id, event, status, origin = 0) {
             else if (missing(status))
                 eval(parse(text = default.reSurv(c("status"))))
         }
-        if (missing(status) & !all(time2 >= time1)) {
+        if (missing(status) & !is.null(time2) & !all(time2 >= time1)) {
             status <- event
             event <- id
             id <- time2
