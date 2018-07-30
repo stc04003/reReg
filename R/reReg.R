@@ -229,6 +229,28 @@ doREFit.cox.LWYY <- function(DF, engine, stdErr) {
     ## list(alpha = out$par, beta = rep(0, p), muZ = NA)
 }
 
+#' @importFrom survival basehaz
+#' This is the adjusted risk function (ARF) in Luo et al (2010) or
+#' equation (8) of Ghosh and Lin (2002).
+doREFit.cox.GL <- function(DF, engine, stdErr) {
+    id <- DF$id
+    event <- DF$event
+    X <- as.matrix(DF[,-c(1:4)])    
+    p <- ncol(X)
+    T <- DF$Time
+    T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
+    fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
+    cumHaz <- basehaz(fit.coxph)
+    X0 <- subset(X, event == 0)
+    wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
+        with(cumHaz, stepfun(time, c(1, exp(-hazard * x))))(T))
+    out <- dfsane(par = engine@a0, fn = coxGLeq,
+                  X = as.matrix(X[event == 0, ]),
+                  Y = Y[event == 0], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
+                  alertConvergence = FALSE, quiet = TRUE)
+    list(alpha = out$par, beta = rep(0, p), muZ = NA)
+}
+
 doREFit.sc.XCYH <- function(DF, engine, stdErr) {
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
@@ -975,6 +997,7 @@ setClass("resampling", representation(B = "numeric"),
 setGeneric("doREFit", function(DF, engine, stdErr) {standardGeneric("doREFit")})
 
 setMethod("doREFit", signature(engine = "cox.LWYY", stdErr = "NULL"), doREFit.cox.LWYY)
+setMethod("doREFit", signature(engine = "cox.GL", stdErr = "NULL"), doREFit.cox.GL)
 setMethod("doREFit", signature(engine = "cox.HW", stdErr = "NULL"), doREFit.cox.HW)
 setMethod("doREFit", signature(engine = "am.XCHWY", stdErr = "NULL"), doREFit.am.XCHWY)
 setMethod("doREFit", signature(engine = "am.GL", stdErr = "NULL"), doREFit.am.GL)
@@ -1265,12 +1288,24 @@ betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weight
 LWYYeq <- function(beta, X, Y, T, cl) {
     p <- ncol(X)
     res <- vector("double", p)
-    wgt <- exp(X %*% beta)
     .C("lwyy", as.double(T), as.double(Y), as.double(X), as.double(wgt), as.integer(cl),
        as.integer(c(0, cumsum(cl)[-length(cl)])), as.integer(nrow(X)), as.integer(p),        
        out = double(p), PACKAGE = "reReg")$out       
 }
 
+#' R function for equation 8 of Ghosh & Lin (2002);
+#' Marginal regression models for recurrent and terminal events.
+#' 
+#' @keywords internal
+#' @noRd
+coxGLeq <- function(beta, X, Y, T, cl, wgt) {
+    p <- ncol(X)
+    res <- vector("double", p)
+    .C("coxGL", as.double(T), as.double(Y), as.double(X), as.double(wgt), as.integer(cl),
+       as.integer(c(0, cumsum(cl)[-length(cl)])), as.integer(nrow(X)), as.integer(p),        
+       out = double(p), PACKAGE = "reReg")$out       
+}
+                    
 HWeq <-function(gamma, X, Y, T, cluster, mt, weights = NULL) {
     if (is.null(weights)) weights <- rep(1, length(T))
     n <- sum(cluster == 1)

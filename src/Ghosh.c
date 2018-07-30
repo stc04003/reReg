@@ -160,7 +160,44 @@ void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz,
 	  if (de <= 0) {
 	    res[r] += X[i + r * *n];
 	  }
-	  // nu[r] = 0;
+	}
+      }
+    }
+  }
+  Free(nu);
+}
+
+// Equation 8 of Ghosh & Lin (2002); Marginal regression models for recurrent and terminal events.
+// IPSW estimator
+// The weight 'matrix', w_i(t_ij), is a n by length(m) matrix.
+// The ith column gives w_i and the jth row evaluates w_i at t_ij
+void coxGL(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz,
+	  int *n, int *p, double *res) {
+  int i, j, k, r;
+  double *nu = Calloc(*p, double);
+  double de;
+  for (i = 0; i < *n; i++) {
+    for (k = 0; k < cl[i]; k++) {
+      if (Y[i] >= Tik[clsz[i] + k]) {
+	de = 0.0;
+	for (r = 0; r < *p; r++) {
+	  nu[r] = 0;
+	}
+	for (j = 0; j < *n; j++) {
+	  if (Y[j] >= Tik[clsz[i] + k]) {
+	    for (r = 0; r < *p; r++) {
+	      nu[r] += X[j + r * *n] * wgt[j * *n + clsz[i] + k];
+	    }
+	    de += wgt[j * *n + clsz[i] + k];
+	  }
+	}
+	for (r = 0; r < *p; r++) {
+	  if (de > 0) {
+	    res[r] += wgt[i * *n + clsz[i] + k] * (X[i + r * *n] - (nu[r] / de));
+	  }
+	  if (de <= 0) {
+	    res[r] += wgt[i * *n + clsz[i] + k] * X[i + r * *n];
+	  }
 	}
       }
     }

@@ -289,3 +289,14 @@ f1 <- reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
 f2 <- reReg(fm, data = dat, se = "bootst", method = "cox.LWYY")
 summary(f1)
 summary(f2)
+
+
+reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
+
+debug(reReg)
+debug(doREFit.cox.LWYY)
+
+reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
+doREFit.cox.LWYY(DF = DF, engine = engine, stdErr = stdErr)
+
+

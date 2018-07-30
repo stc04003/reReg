@@ -12,6 +12,7 @@
 /* .C calls */
 extern void alphaEqC(void *, void *, void *, void *, void *, void *);
 extern void betaEst(void *, void *, void *, void *, void *, void *, void *, void *);
+extern void coxGL(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void glHaz(void *, void *, void *, void *, void *, void *);
 extern void glRate(void *, void *, void *, void *, void *, void *, void *, void *);
 extern void glU2(void *, void *, void *, void *, void *, void *, void *, void *);
@@ -29,6 +30,7 @@ extern void scRate(void *, void *, void *, void *, void *, void *, void *, void 
 static const R_CMethodDef CEntries[] = {
     {"alphaEqC",   (DL_FUNC) &alphaEqC,    6},
     {"betaEst",    (DL_FUNC) &betaEst,     8},
+    {"coxGL",      (DL_FUNC) &coxGL,       9},
     {"glHaz",      (DL_FUNC) &glHaz,       6},
     {"glRate",     (DL_FUNC) &glRate,      8},
     {"glU2",       (DL_FUNC) &glU2,        8},
