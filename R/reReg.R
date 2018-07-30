@@ -230,24 +230,26 @@ doREFit.cox.LWYY <- function(DF, engine, stdErr) {
 }
 
 #' @importFrom survival basehaz
-#' This is the adjusted risk function (ARF) in Luo et al (2010) or
-#' equation (8) of Ghosh and Lin (2002).
+#' @noRd
 doREFit.cox.GL <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     X <- as.matrix(DF[,-c(1:4)])    
     p <- ncol(X)
     T <- DF$Time
+    mt <- aggregate(event ~ id, data = DF, sum)$event
+    Y <- rep(DF$Time[event == 0], mt + 1)
     T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
     fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
     cumHaz <- basehaz(fit.coxph)
     X0 <- subset(X, event == 0)
     wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
-        with(cumHaz, stepfun(time, c(1, exp(-hazard * x))))(T))
-    out <- dfsane(par = engine@a0, fn = coxGLeq,
+        with(cumHaz, stepfun(time, c(1, exp(-hazard * x / max(hazard)))))(T))
+    wgt <- 1 / wgt
+    out <- dfsane(par = engine@a0, fn = coxGLeq, wgt = wgt, 
                   X = as.matrix(X[event == 0, ]),
                   Y = Y[event == 0], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
-                  alertConvergence = FALSE, quiet = TRUE)
+                  alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
     list(alpha = out$par, beta = rep(0, p), muZ = NA)
 }
 
@@ -975,6 +977,7 @@ setClass("Engine",
          contains="VIRTUAL")
 
 setClass("cox.LWYY", contains = "Engine")
+setClass("cox.GL", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
 setClass("am.GL", contains = "Engine")
@@ -1149,7 +1152,7 @@ setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara
 #'               method = "sc.XCYH", se = "resampling", B = 20))
 #' summary(fit)
 reReg <- function(formula, data, B = 200, 
-                  method = c("cox.LWYY", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"),
+                  method = c("cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"),
                   se = c("NULL", "bootstrap", "resampling"), 
                   contrasts = NULL, control = list()) {
     method <- match.arg(method)
@@ -1301,8 +1304,10 @@ LWYYeq <- function(beta, X, Y, T, cl) {
 coxGLeq <- function(beta, X, Y, T, cl, wgt) {
     p <- ncol(X)
     res <- vector("double", p)
-    .C("coxGL", as.double(T), as.double(Y), as.double(X), as.double(wgt), as.integer(cl),
-       as.integer(c(0, cumsum(cl)[-length(cl)])), as.integer(nrow(X)), as.integer(p),        
+    xb <- exp(X %*% beta)
+    .C("coxGL", as.double(T), as.double(Y), as.double(X), as.double(xb), as.double(wgt),
+       as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
+       as.integer(nrow(X)), as.integer(p),        
        out = double(p), PACKAGE = "reReg")$out       
 }
                     
