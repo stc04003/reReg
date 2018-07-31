@@ -207,7 +207,7 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
 doREFit.cox.LWYY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    X <- as.matrix(DF[,-c(1:4)])    
+    X <- as.matrix(DF[,-c(1:4)])
     p <- ncol(X)
     T <- DF$Time
     T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
@@ -229,28 +229,31 @@ doREFit.cox.LWYY <- function(DF, engine, stdErr) {
     ## list(alpha = out$par, beta = rep(0, p), muZ = NA)
 }
 
+#' This is also the ARF in Luo
 #' @importFrom survival basehaz
 #' @noRd
 doREFit.cox.GL <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    X <- as.matrix(DF[,-c(1:4)])    
+    X <- as.matrix(DF[,-c(1:4)])
     p <- ncol(X)
     T <- DF$Time
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[event == 0], mt + 1)
-    T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
-    fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
+    ## T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
+    ## fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
+    fit.coxph <- coxph(Surv(Time, status) ~ ., data = subset(DF, !event, select = -c(id, event)))
     cumHaz <- basehaz(fit.coxph)
-    X0 <- subset(X, event == 0)
+    X0 <- subset(X, !event)
     wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
         with(cumHaz, stepfun(time, c(1, exp(-hazard * x / max(hazard)))))(T))
     wgt <- 1 / wgt
     out <- dfsane(par = engine@a0, fn = coxGLeq, wgt = wgt, 
-                  X = as.matrix(X[event == 0, ]),
-                  Y = Y[event == 0], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
+                  X = as.matrix(X[!event, ]),
+                  Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                   alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
-    list(alpha = out$par, beta = rep(0, p), muZ = NA)
+    list(alpha = out$par, beta = coef(fit.coxph), betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
+         wgt = wgt, haz0 = with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant")))
 }
 
 doREFit.sc.XCYH <- function(DF, engine, stdErr) {
@@ -641,6 +644,26 @@ doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
          haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
 }
 
+doNonpara.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
+    id <- DF$id
+    event <- DF$event
+    X <- as.matrix(DF[,-c(1:4)])
+    p <- ncol(X)
+    T <- DF$Time
+    mt <- aggregate(event ~ id, data = DF, sum)$event
+    Y <- rep(DF$Time[!event], mt + 1)
+    t0.rate <- unique(sort(T))
+    xb <- exp(X[!event,] %*% beta) 
+    cl <- mt + 1
+    rate <- .C("glCoxRate", as.double(ifelse(T == Y, 1e5, T)), as.double(Y[!event]),
+               as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
+               as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
+               as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
+    rate0 <- approxfun(t0.rate, rate, yleft = 0, yright = max(rate), method = "constant")
+    list(rate0 = rate0, rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0.rate,
+         haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
+}
+
 doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     alpha <- -alpha
     beta <- -beta
@@ -977,7 +1000,6 @@ setClass("Engine",
          contains="VIRTUAL")
 
 setClass("cox.LWYY", contains = "Engine")
-setClass("cox.GL", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
 setClass("am.GL", contains = "Engine")
@@ -985,6 +1007,9 @@ setClass("sc.XCYH",
          representation(eqType = "character", muZ = "numeric"),
          prototype(eqType = "Logrank", muZ = 0),
          contains = "Engine")
+setClass("cox.GL",
+         representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
+
 
 setClass("stdErr")
 setClass("bootstrap", representation(B = "numeric", parallel = "logical", parCL = "integer"),
@@ -1020,6 +1045,7 @@ setMethod("doREFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
 ##############################################################################
 setGeneric("doNonpara", function(DF, alpha, beta, engine, stdErr) {standardGeneric("doNonpara")})
 setMethod("doNonpara", signature(engine = "cox.LWYY", stdErr = "NULL"), doNonpara.cox.NA)
+setMethod("doNonpara", signature(engine = "cox.GL", stdErr = "NULL"), doNonpara.cox.GL)
 setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "NULL"), doNonpara.cox.HW)
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "NULL"), doNonpara.am.XCHWY)
 
@@ -1196,6 +1222,7 @@ reReg <- function(formula, data, B = 200,
     } else {
         fit <- doREFit(DF = DF, engine = engine, stdErr = stdErr)
         if (method == "sc.XCYH") engine@muZ <- exp(fit$log.muZ)
+        if (method == "cox.GL") engine@wgt <- fit$wgt
         fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = stdErr))
     }
     class(fit) <- "reReg"

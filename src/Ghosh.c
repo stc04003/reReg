@@ -168,7 +168,7 @@ void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz,
 }
 
 // Equation 8 of Ghosh & Lin (2002); Marginal regression models for recurrent and terminal events.
-// IPSW estimator
+// IPSW estimator (ARF in Luo et al (2015)
 // The weight 'matrix', w_i(t_ij), is a n by length(m) matrix.
 // The ith column gives w_i and the jth row evaluates w_i at t_ij
 void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
@@ -205,4 +205,52 @@ void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
   Free(nu);
 }
 
+
+// Equation 9 of Ghosh & Lin (2002); Marginal regression models for recurrent and terminal events.
+// Baseline rate function
+// arguments follow similar structure in `coxGL`
+void glCoxRate(double *Tik, double *Y, double *xb, double *wgt, double *T0, int *len_T0, 
+	       int *cl, int *clsz, int *n, double *res) {
+  int i, j, k, r;
+  double de;
+  for (i = 0; i < *n; i++) {
+    for (k = 0; k < cl[i]; k++) {
+      if (Y[i] >= Tik[clsz[i] + k]) {
+	de = 0.0;
+	for (j = 0; j < *n; j++) {
+	  if (Y[j] >= Tik[clsz[i] + k]) {
+	    de += wgt[j * *n + clsz[i] + k] * xb[j]; 
+	  }
+	}
+	for (r = 0; r < *len_T0; r++) {
+	  if (T0[r] >= Tik[clsz[i] + k]) {
+	    res[r] += wgt[i * *n + clsz[i] + k] / de; 
+	  }
+	}
+      }
+    }
+  }
+}
+
+
+/* void glCoxRate(double *Tik, double *Y, double *xb, double *wgt, double *T0, int *len_T0,  */
+/* 	       int *cl, int *clsz, int *n, double *res) { */
+/*   int i, j, k, r; */
+/*   double de; */
+/*   for (r = 0; r < *len_T0; r++) { */
+/*     for (i = 0; i < *n; i++) { */
+/*       for (k = 0; k < cl[i]; k++) { */
+/* 	if (Y[i] >= Tik[clsz[i] + k] && T0[r] >= Tik[clsz[i] + k]) { */
+/* 	  de = 0.0; */
+/* 	  for (j = 0; j < *n; j++) { */
+/* 	    if (Y[j] >= Tik[clsz[i] + k]) { */
+/* 	      de += wgt[j * *n + clsz[i] + k] * xb[j];  */
+/* 	    } */
+/* 	  } */
+/* 	  res[r] = wgt[i * *n + clsz[i] + k] / de;  */
+/* 	} */
+/*       } */
+/*     } */
+/*   } */
+/* } */
 

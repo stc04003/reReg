@@ -283,6 +283,7 @@ rbind(apply(f1, 1, mean)[5:8],
 ## fitting cox.LWYY
 ## ------------------------------------------------------------------------------------------
 
+set.seed(1)
 fm <- reSurv(Time, id, event, status) ~ x1 + x2
 dat <- simDat(n = 100, c(1, -1), c(1, -1), type = "cox", indCen = TRUE)
 
@@ -291,10 +292,23 @@ f2 <- reReg(fm, data = dat, se = "bootst", method = "cox.LWYY")
 summary(f1)
 summary(f2)
 
+f1 <- reReg(fm, data = dat, se = NULL, method = "cox.GL")
+f1
+plot(f1)
+e
+
+
+
+
+
+
+
+
+
+
 
 reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
 reReg(fm, data = dat, se = NULL, method = "cox.GL")
-
 
 debug(reReg)
 reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
@@ -315,31 +329,4 @@ BBsolve(par = engine@a0, fn = coxGLeq, wgt = wgt,
        X = as.matrix(X[event == 0, ]), Y = Y[event == 0],
        T = ifelse(T == Y, 1e+05, T), cl = mt + 1,
        alertConvergence = FALSE, quiet = TRUE)
-
-
-fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
-cumHaz <- basehaz(fit.coxph)
-X0 <- subset(X, event == 0)
-wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
-    with(cumHaz, stepfun(time, c(1, exp(-hazard * x))))(T))
-
-tmp <- 1 / wgt
-tmp <- ifelse(tmp > 1e310, 1e310, tmp)
-tmp <- ifelse(tmp > 1e10, 1e10, tmp)
-tmp <- ifelse(tmp > 1e5, 1e5, tmp)
-summary(c(tmp))
-
-dfsane(par = engine@a0, fn = coxGLeq, wgt = tmp, 
-       X = as.matrix(X[event == 0, ]), Y = Y[event == 0],
-       T = ifelse(T == Y, 1e+05, T), cl = mt + 1,
-       alertConvergence = FALSE, quiet = TRUE)
-
-BBsolve(par = engine@a0, fn = coxGLeq, wgt = tmp, 
-        X = as.matrix(X[event == 0, ]), Y = Y[event == 0],
-        T = ifelse(T == Y, 1e+05, T), cl = mt + 1)
-
-coxGLeq(double(2), as.matrix(X[event == 0, ]), Y[event == 0], ifelse(T == Y, 1e+05, T), mt + 1, wgt)
-coxGLeq(c(1, 0), as.matrix(X[event == 0, ]), Y[event == 0], ifelse(T == Y, 1e+05, T), mt + 1, wgt)
-coxGLeq(c(1, 1), as.matrix(X[event == 0, ]), Y[event == 0], ifelse(T == Y, 1e+05, T), mt + 1, wgt)
-
 
