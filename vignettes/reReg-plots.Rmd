@@ -19,7 +19,7 @@ knitr::opts_chunk$set(prompt = TRUE, comment = "")
 ```
 In this vignette, we demonstrate how to create a `reSurv` object in __`reReg`__ package.
 The `reSurv` object is then used to create event plots and cumulative sample mean (CSM) plots.
-We will illustrate the usage of our functions with the `readmission` data from the __`frailtypack`__
+We will illustrate the usage of our functions with the `readmission` data from the __`frailtypack`__ 
 package [@rondeau2012frailtypack, @gonzalez2005sex]. 
 The data contains re-hospitalization times after surgery in patients diagnosed with colorectal cancer.
 In this data set, the recurrent event is the readmission and the terminal event is either death or end of study.
@@ -32,15 +32,15 @@ head(readmission)
 attach(readmission)
 ```
 
-## `reSurv` object {-}
-The usage of is similar to the
+## `reSurv` objects {-}
+The usage of `reSurv` is similar to the
 `Surv` function in the __`survival`__ package.
-There are five arguments in `reSurv`, but not all of them needs to be specified.
+There are five arguments in `reSurv` but not all of them need to be specified.
 The arguments of `reSurv` is as follow
 ```{r reSurv}
 args(reSurv)
 ```
-The five arguments are 
+The five arguments are as follows
 
 * `time1` starting time for the gap time between two successive recurrent events
 * `time2` ending time for the gap time between two successive recurrent events
@@ -50,14 +50,14 @@ The five arguments are
 * `origin` a numerical vector indicating the time origin of subjects
 
 There are a few ways to create an `reSurv` object.
-when the starting times and the ending times of recurrent events are known, 
+When the starting times and the ending times of recurrent events are known, 
 one can specify both times in `reSurv`. 
-%If the time origins of subjects are equal, as in the `readmission` data, the argument `time2` can be deprecated.
+ <!--If the time origins of subjects are equal, as in the `readmission` data, the argument `time2` can be deprecated. --> 
 ```{r reSurv-obj, eval = FALSE}
 reSurv(time1 = t.start, time2 = t.stop, id = id, event = event, status = death)
 reSurv(time1 = t.stop, id = id, event = event, status = death)
 ```
-The same `reSurv` objects can be achieved without specifying the argument name:
+The same `reSurv` objects can be achieved without specifying the argument names:
 ```{r reSurv-obj-short, eval = FALSE}
 reSurv(t.start, t.stop, id, event, death)
 reSurv(t.stop, id, event, death)
@@ -66,21 +66,21 @@ The function `reSurv` prints a list-column `tibble`.
 ```{r reSurv-obj-short2, eval = TRUE}
 reSurv(t.stop, id, event, death)
 ```
-The example above shows patient id \#1 experienced 2 readmission (`tij[1]` is a list of two `double`) with a terminal event at `t = 1037` (days).
-The terminal event was censored (`status = 1`).
-Similarly, patient id \#3 has one readmission and was died at `t = 783` (days).
+The example above shows patient id \#1 experienced 2 readmissions (`tij[1]` is a list of two `double`s) with a terminal event at `t = 1037` (days).
+The terminal event was censored (`status = 0`).
+Similarly, patient id \#3 has one readmission and died at `t = 783` (days).
 On the other hand patient id \# 4 has 4 readmission and was censored at `t = 2048` (days).
 
 ## Event plots {-}
-A quick and easy way to glance into the recurrent event data is by an event plot.
-Event plots can be produce by plotting the `reSurv` object with `R`'s generic function `plot`, shown in Figure 1.
+Event plots are a quick and easy way to glance at recurrent event data.
+These can be produced by plotting the `reSurv` object with `R`'s generic function `plot`, shown in Figure 1.
 ```{r plot-reSurv, fig.cap="Figure 1: Creating an event plot from a `reSurv` object."}
 reObj <- reSurv(t.stop, id, event, death)
 plot(reObj)
 ```
 
 
-Common graphical options like `xlab`, `ylab`, `'main`, and more can be directly passed down to `plot`. 
+Common graphical options like `xlab`, `ylab`, `main`, and more can be directly passed down to `plot`. 
 ```{r plot-reSurv2, fig.cap="Figure 2: Creating an event plot from a `reSurv` object with custom labels."}
 plot(reObj, cex = 1.5, xlab = "Time in days", ylab = "Patients", 
      main = "Event plot for readmission data", 
@@ -89,8 +89,9 @@ plot(reObj, cex = 1.5, xlab = "Time in days", ylab = "Patients",
 ```
 
 
-Separate (stratified) events plots can be produced with the `plotEvents` function, which is more specialized function for events plots.
-To demonstrate the usage, we first detach `readmission`.
+Separate (stratified) event plots can be produced with the `plotEvents` function, 
+which is a more specialized function for event plots.
+To demonstrate this, we first detach `readmission`.
 ```{r detach}
 detach(readmission)
 ```
@@ -112,12 +113,12 @@ plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission,
            main = "Event plot for readmission data", 
            terminal.name = "Death", recurrent.name = "Hospital readmission")
 ```
-The `plotEvents` can also create event plots by groups. 
-For example, the following can be used to create event plot by gender:
+The `plotEvents` function can also stratify event plots by groups. 
+For example, the following can be used to stratify an event plot by `sex`.
 ```{r plotEvents-gender, fig.cap="Figure 3: Event plot grouped by `sex`"}
 plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
 ```
-Event plot by gender and treatment:
+Event plot by `sex` and `chemo`:
 ```{r plotEvents-gender-chemo, fig.cap="Figure 4: Event plot grouped by `sex` and `chemo`."}
 plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
 ```
@@ -134,7 +135,7 @@ $$\begin{array}{c}
 where $Y_\cdot(t) = \sum_{j=1}^nY_i(t)$ is the total number of subjects who are at risk at time $t$ and
 $N_i(t)$ is the number of events over the time interval [0, t] for the *i*th process.
 This estimator is also known as the Nelson-Aalen estimator [@nelson2003recurrent] and 
-is also implemented in the `mcf` function in **`reda`** package [@R:reda].
+is also implemented in the `mcf` function in the **`reda`** package [@R:reda].
 Another variation of the CSM function is discussed in [@cook2007statistical] assuming $Y_i(t) = n$ for all $t$.
 This variation is equivalent to the Nelson-Aalen estimator without adjusting for risk set. 
 We refer the Nelson-Aalen estimator and the Cook-Lawless estimator as the CSM function with (default) and without adjusting for risk set, respectively.
@@ -145,7 +146,8 @@ plot(reObj, CSM = TRUE)
 ```
 
 The CSM plot can be created with the more specialized function, `plotCSM`.
-Since CSM plot returns a **`ggplot2`** object, a side-by-side CSM plots, with and without risk set adjustment, is shown in Figure 6.
+Both `plotEvents` and `plotCSM` return **`ggplot2`** objects.
+A side-by-side CSM plot, showing the CSM functions with and without risk adjustment, is shown in Figure 6.
 ```{r plot-csm2, fig.cap = "Figure 6: Creating a CSM plot from a `reSurv` object."}
 library(gridExtra)
 p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission, 
@@ -163,9 +165,9 @@ p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission,
               CSM = TRUE, adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
 ```
-As in the `plotEvents`, more complicated 
+As in `plotEvents`, the more complicated 
 Figure 8 depicts the CSM plots grouped by `sex` and `chemo`.
-```{r plot-csm-sex-chemo, fig.cap = "Figure 8: CSM plot grouped by `sex` and `chemo`."}
+```{r plot-csm-sex-chemo, fig.cap = "Figure 8: CSM plots grouped by `sex` and `chemo`."}
 p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
               CSM = TRUE, main = "")
 p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
@@ -174,14 +176,14 @@ grid.arrange(p1, p2, ncol=2)
 ```
 
 ## Multiple recurrent event types
-The functions `plotEvents` and `plotCSM` can be used to accomdiate recurrent event data with multiple recurrent types.
+The functions `plotEvents` and `plotCSM` can be used to accommodate recurrent event data with multiple recurrent types.
 To illustrate this, we generate hypothetical event types and store these in `event2`.
 ```{r multi-events, message = FALSE}
 library(dplyr)
 set.seed(1)
 readmission <- readmission %>% mutate(event2 = event * sample(1:3, 861, TRUE))
 ```
-`plotEvents` and `plotCSM` functions can still be applied with `event` replaced with `event2`. 
+`plotEvents` and `plotCSM` functions can still be applied when `event` is replaced by `event2`. 
 Different recurrent events will be denoted by different colors and shapes.
 ```{r multi-event-plot, fig.cap = "Figure 9: Event plots with multiple recurrent event types."}
 plotEvents(reSurv(t.stop, id, event2, death) ~ sex, data = readmission)

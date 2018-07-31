@@ -79,7 +79,7 @@
       <h1>Visualization of recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2018-07-29</h4>
+            <h4 class="date">2018-07-31</h4>
       
       <small class="dont-index">Source: <a href="http://github.com/stc04003/reReg/blob/master/vignettes/reReg-plots.Rmd"><code>vignettes/reReg-plots.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-plots.Rmd</code></div>
@@ -100,14 +100,14 @@
 5  2    2     489   1182  693     0 NonTreated   Male     C        0     0
 6  3    1       0     15   15     1 NonTreated   Male     C        3     0</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">attach</span>(readmission)</code></pre></div>
-<div id="resurv-object" class="section level2 unnumbered">
+<div id="resurv-objects" class="section level2 unnumbered">
 <h2 class="hasAnchor">
-<a href="#resurv-object" class="anchor"></a><code>reSurv</code> object</h2>
-<p>The usage of is similar to the <code>Surv</code> function in the <strong><code>survival</code></strong> package. There are five arguments in <code>reSurv</code>, but not all of them needs to be specified. The arguments of <code>reSurv</code> is as follow</p>
+<a href="#resurv-objects" class="anchor"></a><code>reSurv</code> objects</h2>
+<p>The usage of <code>reSurv</code> is similar to the <code>Surv</code> function in the <strong><code>survival</code></strong> package. There are five arguments in <code>reSurv</code> but not all of them need to be specified. The arguments of <code>reSurv</code> is as follow</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">args</span>(reSurv)</code></pre></div>
 <pre><code>function (time1, time2, id, event, status, origin = 0) 
 NULL</code></pre>
-<p>The five arguments are</p>
+<p>The five arguments are as follows</p>
 <ul>
 <li>
 <code>time1</code> starting time for the gap time between two successive recurrent events</li>
@@ -122,10 +122,10 @@ NULL</code></pre>
 <li>
 <code>origin</code> a numerical vector indicating the time origin of subjects</li>
 </ul>
-<p>There are a few ways to create an <code>reSurv</code> object. when the starting times and the ending times of recurrent events are known, one can specify both times in <code>reSurv</code>. %If the time origins of subjects are equal, as in the <code>readmission</code> data, the argument <code>time2</code> can be deprecated.</p>
+<p>There are a few ways to create an <code>reSurv</code> object. When the starting times and the ending times of recurrent events are known, one can specify both times in <code>reSurv</code>. <!--If the time origins of subjects are equal, as in the `readmission` data, the argument `time2` can be deprecated. --></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">reSurv</span>(<span class="dt">time1 =</span> t.start, <span class="dt">time2 =</span> t.stop, <span class="dt">id =</span> id, <span class="dt">event =</span> event, <span class="dt">status =</span> death)
 &gt;<span class="st"> </span><span class="kw">reSurv</span>(<span class="dt">time1 =</span> t.stop, <span class="dt">id =</span> id, <span class="dt">event =</span> event, <span class="dt">status =</span> death)</code></pre></div>
-<p>The same <code>reSurv</code> objects can be achieved without specifying the argument name:</p>
+<p>The same <code>reSurv</code> objects can be achieved without specifying the argument names:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">reSurv</span>(t.start, t.stop, id, event, death)
 &gt;<span class="st"> </span><span class="kw">reSurv</span>(t.stop, id, event, death)</code></pre></div>
 <p>The function <code>reSurv</code> prints a list-column <code>tibble</code>.</p>
@@ -139,12 +139,12 @@ NULL</code></pre>
 4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;  2048      0
 5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;  1144      0
 # ... with 398 more rows</code></pre>
-<p>The example above shows patient id #1 experienced 2 readmission (<code>tij[1]</code> is a list of two <code>double</code>) with a terminal event at <code>t = 1037</code> (days). The terminal event was censored (<code>status = 1</code>). Similarly, patient id #3 has one readmission and was died at <code>t = 783</code> (days). On the other hand patient id # 4 has 4 readmission and was censored at <code>t = 2048</code> (days).</p>
+<p>The example above shows patient id #1 experienced 2 readmissions (<code>tij[1]</code> is a list of two <code>double</code>s) with a terminal event at <code>t = 1037</code> (days). The terminal event was censored (<code>status = 0</code>). Similarly, patient id #3 has one readmission and died at <code>t = 783</code> (days). On the other hand patient id # 4 has 4 readmission and was censored at <code>t = 2048</code> (days).</p>
 </div>
 <div id="event-plots" class="section level2 unnumbered">
 <h2 class="hasAnchor">
 <a href="#event-plots" class="anchor"></a>Event plots</h2>
-<p>A quick and easy way to glance into the recurrent event data is by an event plot. Event plots can be produce by plotting the <code>reSurv</code> object with <code>R</code>’s generic function <code>plot</code>, shown in Figure 1.</p>
+<p>Event plots are a quick and easy way to glance at recurrent event data. These can be produced by plotting the <code>reSurv</code> object with <code>R</code>’s generic function <code>plot</code>, shown in Figure 1.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>reObj &lt;-<span class="st"> </span><span class="kw">reSurv</span>(t.stop, id, event, death)
 &gt;<span class="st"> </span><span class="kw">plot</span>(reObj)</code></pre></div>
 <div class="figure">
@@ -152,7 +152,7 @@ NULL</code></pre>
 Figure 1: Creating an event plot from a <code>reSurv</code> object.
 </p>
 </div>
-<p>Common graphical options like <code>xlab</code>, <code>ylab</code>, <code>'main</code>, and more can be directly passed down to <code>plot</code>.</p>
+<p>Common graphical options like <code>xlab</code>, <code>ylab</code>, <code>main</code>, and more can be directly passed down to <code>plot</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">plot</span>(reObj, <span class="dt">cex =</span> <span class="fl">1.5</span>, <span class="dt">xlab =</span> <span class="st">"Time in days"</span>, <span class="dt">ylab =</span> <span class="st">"Patients"</span>, 
 +<span class="st">      </span><span class="dt">main =</span> <span class="st">"Event plot for readmission data"</span>, 
 +<span class="st">      </span><span class="dt">terminal.name =</span> <span class="st">"Death"</span>, 
@@ -162,7 +162,7 @@ Figure 1: Creating an event plot from a <code>reSurv</code> object.
 Figure 2: Creating an event plot from a <code>reSurv</code> object with custom labels.
 </p>
 </div>
-<p>Separate (stratified) events plots can be produced with the <code>plotEvents</code> function, which is more specialized function for events plots. To demonstrate the usage, we first detach <code>readmission</code>.</p>
+<p>Separate (stratified) event plots can be produced with the <code>plotEvents</code> function, which is a more specialized function for event plots. To demonstrate this, we first detach <code>readmission</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">detach</span>(readmission)</code></pre></div>
 <p>Unlike the generic plot function, <code>plotEvents</code> uses a formula object to specify the stratification.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">args</span>(plotEvents)</code></pre></div>
@@ -178,14 +178,14 @@ NULL</code></pre>
 +<span class="st">            </span><span class="dt">cex =</span> <span class="fl">1.5</span>, <span class="dt">xlab =</span> <span class="st">"Time in days"</span>, <span class="dt">ylab =</span> <span class="st">"Patients"</span>, 
 +<span class="st">            </span><span class="dt">main =</span> <span class="st">"Event plot for readmission data"</span>, 
 +<span class="st">            </span><span class="dt">terminal.name =</span> <span class="st">"Death"</span>, <span class="dt">recurrent.name =</span> <span class="st">"Hospital readmission"</span>)</code></pre></div>
-<p>The <code>plotEvents</code> can also create event plots by groups. For example, the following can be used to create event plot by gender:</p>
+<p>The <code>plotEvents</code> function can also stratify event plots by groups. For example, the following can be used to stratify an event plot by <code>sex</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission)</code></pre></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/plotEvents-gender-1.png" alt="Figure 3: Event plot grouped by `sex`" width="700"><p class="caption">
 Figure 3: Event plot grouped by <code>sex</code>
 </p>
 </div>
-<p>Event plot by gender and treatment:</p>
+<p>Event plot by <code>sex</code> and <code>chemo</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission)</code></pre></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/plotEvents-gender-chemo-1.png" alt="Figure 4: Event plot grouped by `sex` and `chemo`." width="700"><p class="caption">
@@ -198,7 +198,7 @@ Figure 4: Event plot grouped by <code>sex</code> and <code>chemo</code>.
 <a href="#csm-plots" class="anchor"></a>CSM plots</h2>
 <p>The nonparametric cumulative sample mean (CSM) function can be used to aid event plots to determine visually whether a trend or other pattern exists. The CSM function is defined as follows: <span class="math display">\[\begin{array}{c}
 \hat \mu_n(t) = \sum_{i = 1}^n\int_0^tY_\cdot^{-1}(t)dN_i(t),
-\end{array}\]</span> where <span class="math inline">\(Y_\cdot(t) = \sum_{j=1}^nY_i(t)\)</span> is the total number of subjects who are at risk at time <span class="math inline">\(t\)</span> and <span class="math inline">\(N_i(t)\)</span> is the number of events over the time interval [0, t] for the <em>i</em>th process. This estimator is also known as the Nelson-Aalen estimator <span class="citation">(Nelson 2003)</span> and is also implemented in the <code>mcf</code> function in <strong><code>reda</code></strong> package <span class="citation">(Wang, Fu, and Yan 2017)</span>. Another variation of the CSM function is discussed in <span class="citation">(Cook and Lawless 2007)</span> assuming <span class="math inline">\(Y_i(t) = n\)</span> for all <span class="math inline">\(t\)</span>. This variation is equivalent to the Nelson-Aalen estimator without adjusting for risk set. We refer the Nelson-Aalen estimator and the Cook-Lawless estimator as the CSM function with (default) and without adjusting for risk set, respectively.</p>
+\end{array}\]</span> where <span class="math inline">\(Y_\cdot(t) = \sum_{j=1}^nY_i(t)\)</span> is the total number of subjects who are at risk at time <span class="math inline">\(t\)</span> and <span class="math inline">\(N_i(t)\)</span> is the number of events over the time interval [0, t] for the <em>i</em>th process. This estimator is also known as the Nelson-Aalen estimator <span class="citation">(Nelson 2003)</span> and is also implemented in the <code>mcf</code> function in the <strong><code>reda</code></strong> package <span class="citation">(Wang, Fu, and Yan 2017)</span>. Another variation of the CSM function is discussed in <span class="citation">(Cook and Lawless 2007)</span> assuming <span class="math inline">\(Y_i(t) = n\)</span> for all <span class="math inline">\(t\)</span>. This variation is equivalent to the Nelson-Aalen estimator without adjusting for risk set. We refer the Nelson-Aalen estimator and the Cook-Lawless estimator as the CSM function with (default) and without adjusting for risk set, respectively.</p>
 <p>The CSM plot can be created with <code>R</code>’s generic function <code>plot</code>, shown in Figure 5.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">plot</span>(reObj, <span class="dt">CSM =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <div class="figure">
@@ -206,7 +206,7 @@ Figure 4: Event plot grouped by <code>sex</code> and <code>chemo</code>.
 Figure 5: Creating a CSM plot from a <code>reSurv</code> object.
 </p>
 </div>
-<p>The CSM plot can be created with the more specialized function, <code>plotCSM</code>. Since CSM plot returns a <strong><code>ggplot2</code></strong> object, a side-by-side CSM plots, with and without risk set adjustment, is shown in Figure 6.</p>
+<p>The CSM plot can be created with the more specialized function, <code>plotCSM</code>. Both <code>plotEvents</code> and <code>plotCSM</code> return <strong><code>ggplot2</code></strong> objects. A side-by-side CSM plot, showing the CSM functions with and without risk adjustment, is shown in Figure 6.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">library</span>(gridExtra)
 &gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">main =</span> <span class="st">""</span>)
@@ -229,26 +229,26 @@ Figure 6: Creating a CSM plot from a <code>reSurv</code> object.
 Figure 7: CSM plot grouped by <code>sex</code>.
 </p>
 </div>
-<p>As in the <code>plotEvents</code>, more complicated Figure 8 depicts the CSM plots grouped by <code>sex</code> and <code>chemo</code>.</p>
+<p>As in <code>plotEvents</code>, the more complicated Figure 8 depicts the CSM plots grouped by <code>sex</code> and <code>chemo</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">main =</span> <span class="st">""</span>)
 &gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">adjrisk =</span> <span class="ot">FALSE</span>, <span class="dt">main =</span> <span class="st">""</span>)
 &gt;<span class="st"> </span><span class="kw">grid.arrange</span>(p1, p2, <span class="dt">ncol=</span><span class="dv">2</span>)</code></pre></div>
 <div class="figure">
-<img src="reReg-plots_files/figure-html/plot-csm-sex-chemo-1.png" alt="Figure 8: CSM plot grouped by `sex` and `chemo`." width="700"><p class="caption">
-Figure 8: CSM plot grouped by <code>sex</code> and <code>chemo</code>.
+<img src="reReg-plots_files/figure-html/plot-csm-sex-chemo-1.png" alt="Figure 8: CSM plots grouped by `sex` and `chemo`." width="700"><p class="caption">
+Figure 8: CSM plots grouped by <code>sex</code> and <code>chemo</code>.
 </p>
 </div>
 </div>
 <div id="multiple-recurrent-event-types" class="section level2">
 <h2 class="hasAnchor">
 <a href="#multiple-recurrent-event-types" class="anchor"></a>Multiple recurrent event types</h2>
-<p>The functions <code>plotEvents</code> and <code>plotCSM</code> can be used to accomdiate recurrent event data with multiple recurrent types. To illustrate this, we generate hypothetical event types and store these in <code>event2</code>.</p>
+<p>The functions <code>plotEvents</code> and <code>plotCSM</code> can be used to accommodate recurrent event data with multiple recurrent types. To illustrate this, we generate hypothetical event types and store these in <code>event2</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">library</span>(dplyr)
 &gt;<span class="st"> </span><span class="kw">set.seed</span>(<span class="dv">1</span>)
 &gt;<span class="st"> </span>readmission &lt;-<span class="st"> </span>readmission %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">event2 =</span> event *<span class="st"> </span><span class="kw">sample</span>(<span class="dv">1</span>:<span class="dv">3</span>, <span class="dv">861</span>, <span class="ot">TRUE</span>))</code></pre></div>
-<p><code>plotEvents</code> and <code>plotCSM</code> functions can still be applied with <code>event</code> replaced with <code>event2</code>. Different recurrent events will be denoted by different colors and shapes.</p>
+<p><code>plotEvents</code> and <code>plotCSM</code> functions can still be applied when <code>event</code> is replaced by <code>event2</code>. Different recurrent events will be denoted by different colors and shapes.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw">reSurv</span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission)</code></pre></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/multi-event-plot-1.png" alt="Figure 9: Event plots with multiple recurrent event types." width="700"><p class="caption">
@@ -290,7 +290,7 @@ Figure 11: CSM plot with multiple recurrent event types.
 <p>Nelson, Wayne B. 2003. <em>Recurrent Events Data Analysis for Product Repairs, Disease Recurrences, and Other Applications</em>. Vol. 10. SIAM.</p>
 </div>
 <div id="ref-rondeau2012frailtypack">
-<p>Rondeau, Virginie, Yassin Mazroui, and Juan R Gonzalez. 2012. “Frailtypack: An R Package for the Analysis of Correlated Survival Data with Frailty Models Using Penalized Likelihood Estimation or Parametrical Estimation.” <em>J Stat Softw</em> 47 (4): 1–28.</p>
+<p>Rondeau, Virginie, Yassin Mazroui, and Juan R Gonzalez. 2012. “Frailtypack: An R Package for the Analysis of Correlated Survival Data with Frailty Models Using Penalized Likelihood Estimation or Parametrical Estimation.” <em>Journal of Statistical Software</em> 47 (4): 1–28.</p>
 </div>
 <div id="ref-R:reda">
 <p>Wang, Wenjie, Haoda Fu, and Jun Yan. 2017. <em>reda: Recurrent Event Data Analysis</em>. <a href="https://CRAN.R-project.org/package=reda" class="uri">https://CRAN.R-project.org/package=reda</a>.</p>
@@ -304,7 +304,7 @@ Figure 11: CSM plot with multiple recurrent event types.
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#resurv-object"><code>reSurv</code> object</a></li>
+<li><a href="#resurv-objects"><code>reSurv</code> objects</a></li>
       <li><a href="#event-plots">Event plots</a></li>
       <li><a href="#csm-plots">CSM plots</a></li>
       <li><a href="#multiple-recurrent-event-types">Multiple recurrent event types</a></li>
