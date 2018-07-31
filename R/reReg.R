@@ -249,7 +249,8 @@ doREFit.cox.GL <- function(DF, engine, stdErr) {
     wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
         with(cumHaz, approxfun(time, exp(-hazard * x), yleft = 1, yright = min(exp(-hazard * x)),
                                method = "constant"))(T))
-    wgt <- 1 / wgt
+    wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
+    wgt <- ifelse(wgt > 1e5, 1e5, wgt)
     out <- dfsane(par = engine@a0, fn = coxGLeq, wgt = wgt, 
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
@@ -706,7 +707,8 @@ doNonpara.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
         wgt <- sapply(exp(X0 %*% coef(fit.coxphB)), function(x)
             with(cumHaz, approxfun(time, exp(-hazard * x), yleft = 1, yright = min(exp(-hazard * x)),
                                    method = "constant"))(DF2$Time))
-        engine@wgt <- 1 / wgt       
+        engine@wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
+        engine@wgt <- ifelse(engine@wgt > 1e5, 1e5, engine@wgt)
         tmp <- doNonpara.cox.GL(DF2, alpha, beta, engine, NULL)
         rateMat[i,] <- tmp$rate0(t0.rate)
         hazMat[i,] <- tmp$haz0(t0.haz)

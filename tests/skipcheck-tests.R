@@ -290,6 +290,7 @@ dat <- simDat(n = 100, c(1, -1), c(1, -1), type = "cox", indCen = TRUE)
 system.time(f1 <- reReg(fm, data = dat, se = NULL, method = "cox.GL"))
 f1
 summary(f1)
+coef(f1)  # 1.142801 -1.081793  1.062973 -1.306367
 plot(f1)
 
 system.time(f2 <- reReg(fm, data = dat, se = "boot", method = "cox.GL", B = 20))
@@ -310,9 +311,8 @@ do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
 }
 
 set.seed(160)
-## debug(reReg)
 do()
-
 
 foo <- replicate(100, do(indCen = FALSE))
 rowMeans(foo)
+
