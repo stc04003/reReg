@@ -294,39 +294,21 @@ summary(f2)
 
 f1 <- reReg(fm, data = dat, se = NULL, method = "cox.GL")
 f1
+summary(f1)
 plot(f1)
-e
+
+## ------------------------------------------------------------------------------------------
+
+do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
+    dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
+    f1 <- reReg(fm, data = dat, method = "cox.GL")
+    coef(f1)
+}
+
+set.seed(160)
+## debug(reReg)
+do()
 
 
-
-
-
-
-
-
-
-
-
-reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
-reReg(fm, data = dat, se = NULL, method = "cox.GL")
-
-debug(reReg)
-reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
-
-debug(doREFit.cox.GL)
-doREFit.cox.GL(DF = DF, engine = engine, stdErr = stdErr)
-
-debug(doREFit.cox.LWYY)
-doREFit.cox.LWYY(DF = DF, engine = engine, stdErr = stdErr)
-
-
-dfsane(par = engine@a0, fn = coxGLeq, wgt =  wgt,
-       X = as.matrix(X[event == 0, ]), Y = Y[event == 0],
-       T = ifelse(T == Y, 1e+05, T), cl = mt + 1,
-       alertConvergence = FALSE, quiet = TRUE, trace = FALSE)
-
-BBsolve(par = engine@a0, fn = coxGLeq, wgt = wgt,
-       X = as.matrix(X[event == 0, ]), Y = Y[event == 0],
-       T = ifelse(T == Y, 1e+05, T), cl = mt + 1,
-       alertConvergence = FALSE, quiet = TRUE)
-
+foo <- replicate(1000, do(indCen = FALSE))
+rowMeans(foo)

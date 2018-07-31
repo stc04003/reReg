@@ -244,9 +244,11 @@ doREFit.cox.GL <- function(DF, engine, stdErr) {
     ## fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
     fit.coxph <- coxph(Surv(Time, status) ~ ., data = subset(DF, !event, select = -c(id, event)))
     cumHaz <- basehaz(fit.coxph)
+    ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
     X0 <- subset(X, !event)
     wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
-        with(cumHaz, stepfun(time, c(1, exp(-hazard * x / max(hazard)))))(T))
+        with(cumHaz, approxfun(time, exp(-hazard * x), yleft = 1, yright = min(exp(-hazard * x)),
+                               method = "constant"))(T))
     wgt <- 1 / wgt
     out <- dfsane(par = engine@a0, fn = coxGLeq, wgt = wgt, 
                   X = as.matrix(X[!event, ]),
@@ -657,7 +659,7 @@ doNonpara.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     cl <- mt + 1
     rate <- .C("glCoxRate", as.double(ifelse(T == Y, 1e5, T)), as.double(Y[!event]),
                as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
-               as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
+               as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
                as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
     rate0 <- approxfun(t0.rate, rate, yleft = 0, yright = max(rate), method = "constant")
     list(rate0 = rate0, rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0.rate,
@@ -1333,7 +1335,7 @@ coxGLeq <- function(beta, X, Y, T, cl, wgt) {
     res <- vector("double", p)
     xb <- exp(X %*% beta)
     .C("coxGL", as.double(T), as.double(Y), as.double(X), as.double(xb), as.double(wgt),
-       as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
+       as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
        as.integer(nrow(X)), as.integer(p),        
        out = double(p), PACKAGE = "reReg")$out       
 }

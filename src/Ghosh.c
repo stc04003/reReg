@@ -172,7 +172,7 @@ void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz,
 // The weight 'matrix', w_i(t_ij), is a n by length(m) matrix.
 // The ith column gives w_i and the jth row evaluates w_i at t_ij
 void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
-	   int *cl, int *clsz, int *n, int *p, double *res) {
+	   int *len_Tik, int *cl, int *clsz, int *n, int *p, double *res) {
   int i, j, k, r;
   double *nu = Calloc(*p, double);
   double de;
@@ -186,17 +186,17 @@ void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
 	for (j = 0; j < *n; j++) {
 	  if (Y[j] >= Tik[clsz[i] + k]) {
 	    for (r = 0; r < *p; r++) {
-	      nu[r] += X[j + r * *n] * wgt[j * *n + clsz[i] + k] * xb[j];
+	      nu[r] += X[j + r * *n] * wgt[j * *len_Tik + clsz[i] + k] * xb[j];
 	    }
-	    de += wgt[j * *n + clsz[i] + k] * xb[j];
+	    de += wgt[j * *len_Tik + clsz[i] + k] * xb[j];
 	  }
 	}
 	for (r = 0; r < *p; r++) {
 	  if (de > 0) {
-	    res[r] += wgt[i * *n + clsz[i] + k] * (X[i + r * *n] - (nu[r] / de));
+	    res[r] += wgt[i * *len_Tik + clsz[i] + k] * (X[i + r * *n] - (nu[r] / de));
 	  }
 	  if (de <= 0) {
-	    res[r] += wgt[i * *n + clsz[i] + k] * X[i + r * *n];
+	    res[r] += wgt[i * *len_Tik + clsz[i] + k] * X[i + r * *n];
 	  }
 	}
       }
@@ -210,7 +210,7 @@ void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
 // Baseline rate function
 // arguments follow similar structure in `coxGL`
 void glCoxRate(double *Tik, double *Y, double *xb, double *wgt, double *T0, int *len_T0, 
-	       int *cl, int *clsz, int *n, double *res) {
+	       int *len_Tik, int *cl, int *clsz, int *n, double *res) {
   int i, j, k, r;
   double de;
   for (i = 0; i < *n; i++) {
@@ -219,12 +219,12 @@ void glCoxRate(double *Tik, double *Y, double *xb, double *wgt, double *T0, int 
 	de = 0.0;
 	for (j = 0; j < *n; j++) {
 	  if (Y[j] >= Tik[clsz[i] + k]) {
-	    de += wgt[j * *n + clsz[i] + k] * xb[j]; 
+	    de += wgt[j * *len_Tik + clsz[i] + k] * xb[j]; 
 	  }
 	}
 	for (r = 0; r < *len_T0; r++) {
 	  if (T0[r] >= Tik[clsz[i] + k]) {
-	    res[r] += wgt[i * *n + clsz[i] + k] / de; 
+	    res[r] += wgt[i * *len_Tik + clsz[i] + k] / de; 
 	  }
 	}
       }
