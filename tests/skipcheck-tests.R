@@ -316,3 +316,15 @@ do()
 foo <- replicate(100, do(indCen = FALSE))
 rowMeans(foo)
 
+
+cl <- makePSOCKcluster(16)
+setDefaultCluster(cl)
+invisible(clusterExport(NULL, "do"))
+invisible(clusterExport(NULL, "fm"))
+invisible(clusterEvalQ(NULL, library(reReg)))
+invisible(clusterEvalQ(NULL, library(survival)))
+
+sim1 <- parSapply(NULL, 1:500, function(z) do())
+sim2 <- parSapply(NULL, 1:500, function(z) do(indCen = FALSE))
+
+stopCluster(cl)
