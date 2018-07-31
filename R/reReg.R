@@ -662,8 +662,67 @@ doNonpara.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
                as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
                as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
     rate0 <- approxfun(t0.rate, rate, yleft = 0, yright = max(rate), method = "constant")
+    fit.coxph <- coxph(Surv(Time, status) ~ ., data = subset(DF, !event, select = -c(id, event)))
+    cumHaz <- basehaz(fit.coxph)
+    haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
     list(rate0 = rate0, rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0.rate,
-         haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
+         haz0 = haz0, haz0.lower = NULL, haz0.upper = NULL, t0.haz = cumHaz$time)
+}
+
+doNonpara.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
+    id <- DF$id
+    event <- DF$event
+    X <- as.matrix(DF[,-c(1:4)])
+    p <- ncol(X)
+    T <- DF$Time
+    mt <- aggregate(event ~ id, data = DF, sum)$event
+    Y <- rep(DF$Time[!event], mt + 1)
+    t0.rate <- unique(sort(T))
+    xb <- exp(X[!event,] %*% beta) 
+    cl <- mt + 1
+    rate <- .C("glCoxRate", as.double(ifelse(T == Y, 1e5, T)), as.double(Y[!event]),
+               as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
+               as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
+               as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
+    rate0 <- approxfun(t0.rate, rate, yleft = 0, yright = max(rate), method = "constant")
+    fit.coxph <- coxph(Surv(Time, status) ~ ., data = subset(DF, !event, select = -c(id, event)))
+    cumHaz <- basehaz(fit.coxph)
+    t0.haz <- cumHaz$time
+    haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
+    B <- stdErr@B
+    rateMat <- matrix(NA, B, length(t0.rate))
+    hazMat <- matrix(NA, B, length(cumHaz$time))
+    id0 <- unique(id)
+    for (i in 1:B) {
+        sampled.id <- sample(id0, length(id0), TRUE)
+        ind <- unlist(sapply(sampled.id, function(x) which(DF$id == x)))
+        DF2 <- DF[ind,]
+        DF2$id <- rep(1:length(id0), table(DF$id)[sampled.id])
+        rownames(DF2) <- NULL
+        fit.coxphB <- coxph(Surv(Time, status) ~ ., data = subset(DF2, !event, select = -c(id, event)))
+        cumHaz <- basehaz(fit.coxphB)
+        ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
+        X0 <- as.matrix(DF2[!DF2$event, -(1:4)])
+        wgt <- sapply(exp(X0 %*% coef(fit.coxphB)), function(x)
+            with(cumHaz, approxfun(time, exp(-hazard * x), yleft = 1, yright = min(exp(-hazard * x)),
+                                   method = "constant"))(DF2$Time))
+        engine@wgt <- 1 / wgt       
+        tmp <- doNonpara.cox.GL(DF2, alpha, beta, engine, NULL)
+        rateMat[i,] <- tmp$rate0(t0.rate)
+        hazMat[i,] <- tmp$haz0(t0.haz)
+    }
+    rl <- apply(rateMat, 2, quantile, prob = .025)
+    ru <- apply(rateMat, 2, quantile, prob = .975)
+    hl <- apply(hazMat, 2, quantile, prob = .025)
+    hu <- apply(hazMat, 2, quantile, prob = .975)
+    list(rate0 = rate0,
+         rate0.lower = approxfun(t0.rate, rl, yleft = 0, yright = max(rl), method = "constant"),
+         rate0.upper = approxfun(t0.rate, ru, yleft = 0, yright = max(ru), method = "constant"),
+         t0.rate = t0.rate,
+         haz0 = haz0,
+         haz0.lower = approxfun(t0.haz, hl, yleft = 0, yright = max(hl), method = "constant"),
+         haz0.upper = approxfun(t0.haz, hu, yleft = 0, yright = max(hu), method = "constant"),
+         t0.haz = t0.haz)
 }
 
 doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
@@ -1053,15 +1112,14 @@ setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "NULL"), doNonpar
 
 setMethod("doNonpara", signature(engine = "cox.LWYY", stdErr = "bootstrap"), doNonpara.cox.NA)
 setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "bootstrap"), doNonpara.SE.cox.HW)
+setMethod("doNonpara", signature(engine = "cox.GL", stdErr = "bootstrap"), doNonpara.SE.cox.GL)
 setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "resampling"), doNonpara.SE.cox.HW)
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "resampling"), doNonpara.SE.am.XCHWY)
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
 
-## GL method?
 setMethod("doNonpara", signature(engine = "am.GL", stdErr = "bootstrap"), doNonpara.SE.am.GL)
 setMethod("doNonpara", signature(engine = "am.GL", stdErr = "NULL"), doNonpara.am.GL)
 
-## general model
 setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "bootstrap"), doNonpara.SE.sc.XCYH)
 setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "resampling"), doNonpara.SE.sc.XCYH)
 setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara.sc.XCYH)

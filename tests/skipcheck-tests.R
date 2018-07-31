@@ -287,22 +287,26 @@ set.seed(1)
 fm <- reSurv(Time, id, event, status) ~ x1 + x2
 dat <- simDat(n = 100, c(1, -1), c(1, -1), type = "cox", indCen = TRUE)
 
-f1 <- reReg(fm, data = dat, se = NULL, method = "cox.LWYY")
-f2 <- reReg(fm, data = dat, se = "bootst", method = "cox.LWYY")
-summary(f1)
-summary(f2)
-
-f1 <- reReg(fm, data = dat, se = NULL, method = "cox.GL")
+system.time(f1 <- reReg(fm, data = dat, se = NULL, method = "cox.GL"))
 f1
 summary(f1)
 plot(f1)
 
+system.time(f2 <- reReg(fm, data = dat, se = "boot", method = "cox.GL", B = 20))
+f2
+summary(f2)
+plot(f2)
+
+
+
+
+e
 ## ------------------------------------------------------------------------------------------
 
 do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
     dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
-    f1 <- reReg(fm, data = dat, method = "cox.GL")
-    coef(f1)
+    f1 <- reReg(fm, data = dat, method = "cox.GL", se = "boot")
+    c(coef(f1), sqrt(diag(vcov(f1)$alpha.vcov)), sqrt(diag(vcov(f1)$beta.vcov)))
 }
 
 set.seed(160)
@@ -310,5 +314,5 @@ set.seed(160)
 do()
 
 
-foo <- replicate(1000, do(indCen = FALSE))
+foo <- replicate(100, do(indCen = FALSE))
 rowMeans(foo)
