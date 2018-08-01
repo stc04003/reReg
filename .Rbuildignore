@@ -2,3 +2,11 @@
 ^README\.md$
 ^README-.*\.png$
 skipcheck*
+^docs$
+\.tar\.gz$
+\.Rproj$
+^\.Rproj\.user$
+^\.Rhistory$
+^test$
+^vignettes$
+^\.git$

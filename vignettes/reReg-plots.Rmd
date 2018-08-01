@@ -11,7 +11,7 @@ bibliography: ../inst/bib/reReg.bib
 vignette: >
   %\VignetteIndexEntry{Visualization of recurrent event data}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  %\VignetteEncoding{UTF-8}{inputenc}
 ---
 
 ```{r default, include = FALSE}

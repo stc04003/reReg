@@ -1,4 +1,4 @@
-globalVariables(c("event")) ## global variables for reReg
+globalVariables(c("event", "vcov", "wgt")) ## global variables for reReg
 
 ##############################################################################
 ## Functions for different methods
@@ -204,6 +204,7 @@ regFit.cox.HW <- function(DF, engine, stdErr) {
 }
 
 #' @importFrom survival cluster
+#' @importFrom stats vcov
 regFit.cox.LWYY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
