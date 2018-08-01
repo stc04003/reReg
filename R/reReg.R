@@ -79,7 +79,6 @@ doREFit.am.GL <- function(DF, engine, stdErr) {
     X <- as.matrix(DF0[,-(1:4)])
     status <- DF0$status
     n <- nrow(DF0)
-    ## Obtaining AFT estimator first
     log.est <- function(b) {
         .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
            as.integer(rep(1, n)), as.integer(n), as.integer(p), as.integer(n),
@@ -1061,7 +1060,6 @@ setClass("Engine",
          representation(tol = "numeric", a0 = "numeric", b0 = "numeric", solver = "character"),
          prototype(tol = 1e-7, a0 = 0, b0 = 0, solver = "dfsane"),
          contains="VIRTUAL")
-
 setClass("cox.LWYY", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
@@ -1072,7 +1070,6 @@ setClass("sc.XCYH",
          contains = "Engine")
 setClass("cox.GL",
          representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
-
 
 setClass("stdErr")
 setClass("bootstrap", representation(B = "numeric", parallel = "logical", parCL = "integer"),
@@ -1093,7 +1090,6 @@ setMethod("doREFit", signature(engine = "cox.HW", stdErr = "NULL"), doREFit.cox.
 setMethod("doREFit", signature(engine = "am.XCHWY", stdErr = "NULL"), doREFit.am.XCHWY)
 setMethod("doREFit", signature(engine = "am.GL", stdErr = "NULL"), doREFit.am.GL)
 setMethod("doREFit", signature(engine = "sc.XCYH", stdErr = "NULL"), doREFit.sc.XCYH)
-
 setMethod("doREFit", signature(engine = "Engine", stdErr = "bootstrap"),
           doREFit.Engine.Bootstrap)
 setMethod("doREFit", signature(engine = "cox.HW", stdErr = "resampling"),
@@ -1118,10 +1114,8 @@ setMethod("doNonpara", signature(engine = "cox.GL", stdErr = "bootstrap"), doNon
 setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "resampling"), doNonpara.SE.cox.HW)
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "resampling"), doNonpara.SE.am.XCHWY)
 setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
-
 setMethod("doNonpara", signature(engine = "am.GL", stdErr = "bootstrap"), doNonpara.SE.am.GL)
 setMethod("doNonpara", signature(engine = "am.GL", stdErr = "NULL"), doNonpara.am.GL)
-
 setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "bootstrap"), doNonpara.SE.sc.XCYH)
 setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "resampling"), doNonpara.SE.sc.XCYH)
 setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara.sc.XCYH)
