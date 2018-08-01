@@ -6,7 +6,7 @@ globalVariables(c("event")) ## global variables for reReg
 ##        bootstrap otherwise
 ##############################################################################
 
-doREFit.am.XCHWY <- function(DF, engine, stdErr) {
+regFit.am.XCHWY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -71,7 +71,7 @@ doREFit.am.XCHWY <- function(DF, engine, stdErr) {
          muZ = mean(zHat, na.rm = TRUE), zHat = zHat)
 }
 
-doREFit.am.GL <- function(DF, engine, stdErr) {
+regFit.am.GL <- function(DF, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF0) - 4
     alpha <- beta <- gamma <- rep(0, p)
@@ -139,7 +139,7 @@ doREFit.am.GL <- function(DF, engine, stdErr) {
          beta = fit.b$par, bconv = fit.b$convergence, muZ = NA)
 }
 
-doREFit.cox.HW <- function(DF, engine, stdErr) {
+regFit.cox.HW <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -199,11 +199,12 @@ doREFit.cox.HW <- function(DF, engine, stdErr) {
                               zHat = zHat/muZ, weights = NULL)^2),
                     control = list(trace = FALSE))))
     list(alpha = outA$par, aconv = outA$convergence,
-         beta = outB$par, bconv = outB$convergence, muZ = muZ, zHat = zHat / muZ)
+         beta = outB$par, bconv = outB$convergence,
+         muZ = muZ, zHat = zHat / muZ)
 }
 
 #' @importFrom survival cluster
-doREFit.cox.LWYY <- function(DF, engine, stdErr) {
+regFit.cox.LWYY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     X <- as.matrix(DF[,-c(1:4)])
@@ -231,7 +232,7 @@ doREFit.cox.LWYY <- function(DF, engine, stdErr) {
 #' This is also the ARF in Luo
 #' @importFrom survival basehaz
 #' @noRd
-doREFit.cox.GL <- function(DF, engine, stdErr) {
+regFit.cox.GL <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     X <- as.matrix(DF[,-c(1:4)])
@@ -258,7 +259,7 @@ doREFit.cox.GL <- function(DF, engine, stdErr) {
          wgt = wgt, haz0 = with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant")))
 }
 
-doREFit.sc.XCYH <- function(DF, engine, stdErr) {
+regFit.sc.XCYH <- function(DF, engine, stdErr) {
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
@@ -343,8 +344,8 @@ doREFit.sc.XCYH <- function(DF, engine, stdErr) {
 ##############################################################################
 # Variance estimation 
 ##############################################################################
-doREFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
-    res <- doREFit(DF, engine, NULL)
+regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
+    res <- regFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -368,7 +369,7 @@ doREFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
             ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
-            with(doREFit(DF2, engine, NULL), c(alpha, beta))            
+            with(regFit(DF2, engine, NULL), c(alpha, beta))            
         })
         stopCluster(cl)
         betaMatrix <- t(out)
@@ -382,7 +383,7 @@ doREFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
             ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
-            betaMatrix[i,] <- with(doREFit(DF2, engine, NULL), c(alpha, beta))
+            betaMatrix[i,] <- with(regFit(DF2, engine, NULL), c(alpha, beta))
             convergence[i] <- 1 * (betaMatrix[i,] %*% betaMatrix[i,] >
                                    1e3 * with(res, c(alpha, beta) %*% c(alpha, beta)))
         }
@@ -411,8 +412,8 @@ sdOut <- function(dat) {
     sd(dat, na.rm = TRUE)
 }
 
-doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
-    res <- doREFit(DF, engine, NULL)
+regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
+    res <- regFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -460,8 +461,8 @@ doREFit.cox.HW.resampling <- function(DF, engine, stdErr) {
 
 }
 
-doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
-    res <- doREFit(DF, engine, NULL)
+regFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
+    res <- regFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -517,12 +518,12 @@ doREFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
     ## c(res, list(alphaSE = aSE, betaSE = bSE, da = da, va = va, db = db, vb = vb, B = stdErr@B))
 }
 
-doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
+regFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
-    res <- doREFit(DF, engine, NULL)
+    res <- regFit(DF, engine, NULL)
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF) - 4
     X <- as.matrix(DF0[,-(1:4)])
@@ -583,7 +584,7 @@ doREFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
 ##############################################################################
 # Nonparametric (~1)
 ##############################################################################
-doNonpara.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
+npFit.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF) - 4
     X <- as.matrix(DF0[,-(1:4)])
@@ -607,7 +608,7 @@ doNonpara.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
          haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
 }
 
-doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
+npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF) - 4
     X <- as.matrix(DF0[,-(1:4)])
@@ -646,7 +647,7 @@ doNonpara.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
          haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
 }
 
-doNonpara.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
+npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     X <- as.matrix(DF[,-c(1:4)])
@@ -669,7 +670,7 @@ doNonpara.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
          haz0 = haz0, haz0.lower = NULL, haz0.upper = NULL, t0.haz = cumHaz$time)
 }
 
-doNonpara.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
+npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     X <- as.matrix(DF[,-c(1:4)])
@@ -708,7 +709,7 @@ doNonpara.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
                                    method = "constant"))(DF2$Time))
         engine@wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
         engine@wgt <- ifelse(engine@wgt > 1e5, 1e5, engine@wgt)
-        tmp <- doNonpara.cox.GL(DF2, alpha, beta, engine, NULL)
+        tmp <- npFit.cox.GL(DF2, alpha, beta, engine, NULL)
         rateMat[i,] <- tmp$rate0(t0.rate)
         hazMat[i,] <- tmp$haz0(t0.haz)
     }
@@ -726,7 +727,7 @@ doNonpara.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
          t0.haz = t0.haz)
 }
 
-doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
+npFit.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     alpha <- -alpha
     beta <- -beta
     DF0 <- subset(DF, event == 0)
@@ -757,10 +758,10 @@ doNonpara.am.GL <- function(DF, alpha, beta, engine, stdErr) {
          haz0 = haz0, haz0.lower = NULL, haz0.upper = NULL, t0.haz = exp(t0.haz))
 }
 
-doNonpara.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
+npFit.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     id <- subset(DF, event == 0)$id
     B <- stdErr@B
-    PE <- doNonpara.am.GL(DF, alpha, beta, engine, NULL)
+    PE <- npFit.am.GL(DF, alpha, beta, engine, NULL)
     rateMat <- matrix(NA, B, length(PE$t0.rate))
     hazMat <- matrix(NA, B, length(PE$t0.haz))
     for (i in 1:B) {
@@ -768,7 +769,7 @@ doNonpara.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
         ind <- unlist(sapply(sampled.id, function(x) which(DF$id == x)))
         DF2 <- DF[ind,]
         DF2$id <- rep(1:length(id), table(DF$id)[sampled.id])
-        tmp <- doNonpara.am.GL(DF2, alpha, beta, engine, NULL)
+        tmp <- npFit.am.GL(DF2, alpha, beta, engine, NULL)
         rateMat[i,] <- tmp$rate0(PE$t0.rate)
         hazMat[i,] <- tmp$haz0(PE$t0.haz)
     }
@@ -784,7 +785,7 @@ doNonpara.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
          haz0.upper = approxfun(PE$t0.haz, hu, yleft = 0, yright = max(hu), method = "constant"))
 }
 
-doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
+npFit.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
     event <- DF$event
@@ -822,7 +823,7 @@ doNonpara.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
          haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
 }
 
-doNonpara.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
+npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
     ## t0 <- seq(0, max(DF$Time), length.out = 5 * nrow(DF))
     T <- DF$Time
     id <- DF$id
@@ -878,7 +879,7 @@ doNonpara.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
          t0.haz = t0)
 }
 
-## doNonpara.SE.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
+## npFit.SE.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
 ##     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
 ##     id <- DF$id
 ##     B <- stdErr@B
@@ -909,7 +910,7 @@ doNonpara.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
 ##     list(t0 = t0, ly = ly, lyU = lyU, lyL = lyL, hy = hy, hyU = hyU, hyL = hyL)
 ## }
 
-doNonpara.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
+npFit.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
     T <- DF$Time
@@ -947,7 +948,7 @@ doNonpara.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
          haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
 }
 
-doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
+npFit.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     B <- stdErr@B
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
@@ -1001,7 +1002,7 @@ doNonpara.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
          t0.haz = t0)
 }
 
-doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
+npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     B <- stdErr@B
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
@@ -1046,7 +1047,7 @@ doNonpara.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
          rate0.upper = approxfun(t0, lyU * muZ,
                                  yleft = 0, yright = max(lyU * muZ, na.rm = TRUE), method = "constant"),
          t0.rate = t0,
-         haz0 = approx(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
+         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
          haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
          haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
          t0.haz = t0)
@@ -1082,47 +1083,39 @@ setClass("resampling", representation(B = "numeric"),
 ##############################################################################
 # Method Dispatch
 ##############################################################################
-setGeneric("doREFit", function(DF, engine, stdErr) {standardGeneric("doREFit")})
+setGeneric("regFit", function(DF, engine, stdErr) {standardGeneric("regFit")})
 
-setMethod("doREFit", signature(engine = "cox.LWYY", stdErr = "NULL"), doREFit.cox.LWYY)
-setMethod("doREFit", signature(engine = "cox.GL", stdErr = "NULL"), doREFit.cox.GL)
-setMethod("doREFit", signature(engine = "cox.HW", stdErr = "NULL"), doREFit.cox.HW)
-setMethod("doREFit", signature(engine = "am.XCHWY", stdErr = "NULL"), doREFit.am.XCHWY)
-setMethod("doREFit", signature(engine = "am.GL", stdErr = "NULL"), doREFit.am.GL)
-setMethod("doREFit", signature(engine = "sc.XCYH", stdErr = "NULL"), doREFit.sc.XCYH)
-setMethod("doREFit", signature(engine = "Engine", stdErr = "bootstrap"),
-          doREFit.Engine.Bootstrap)
-setMethod("doREFit", signature(engine = "cox.HW", stdErr = "resampling"),
-          doREFit.cox.HW.resampling)
-setMethod("doREFit", signature(engine = "am.XCHWY", stdErr = "resampling"),
-          doREFit.am.XCHWY.resampling)
-setMethod("doREFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
-          doREFit.sc.XCYH.resampling)
+setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "NULL"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.GL", stdErr = "NULL"), regFit.cox.GL)
+setMethod("regFit", signature(engine = "cox.HW", stdErr = "NULL"), regFit.cox.HW)
+setMethod("regFit", signature(engine = "am.XCHWY", stdErr = "NULL"), regFit.am.XCHWY)
+setMethod("regFit", signature(engine = "am.GL", stdErr = "NULL"), regFit.am.GL)
+setMethod("regFit", signature(engine = "sc.XCYH", stdErr = "NULL"), regFit.sc.XCYH)
+setMethod("regFit", signature(engine = "Engine", stdErr = "bootstrap"),
+          regFit.Engine.Bootstrap)
+setMethod("regFit", signature(engine = "cox.HW", stdErr = "resampling"),
+          regFit.cox.HW.resampling)
+setMethod("regFit", signature(engine = "am.XCHWY", stdErr = "resampling"),
+          regFit.am.XCHWY.resampling)
+setMethod("regFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
+          regFit.sc.XCYH.resampling)
 
-##############################################################################
-## Non-parametric
-##############################################################################
-setGeneric("doNonpara", function(DF, alpha, beta, engine, stdErr) {standardGeneric("doNonpara")})
-setMethod("doNonpara", signature(engine = "cox.LWYY", stdErr = "NULL"), doNonpara.cox.NA)
-setMethod("doNonpara", signature(engine = "cox.GL", stdErr = "NULL"), doNonpara.cox.GL)
-setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "NULL"), doNonpara.cox.HW)
-setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "NULL"), doNonpara.am.XCHWY)
-
-setMethod("doNonpara", signature(engine = "cox.LWYY", stdErr = "bootstrap"), doNonpara.cox.NA)
-setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "bootstrap"), doNonpara.SE.cox.HW)
-setMethod("doNonpara", signature(engine = "cox.GL", stdErr = "bootstrap"), doNonpara.SE.cox.GL)
-setMethod("doNonpara", signature(engine = "cox.HW", stdErr = "resampling"), doNonpara.SE.cox.HW)
-setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "resampling"), doNonpara.SE.am.XCHWY)
-setMethod("doNonpara", signature(engine = "am.XCHWY", stdErr = "bootstrap"), doNonpara.SE.am.XCHWY)
-setMethod("doNonpara", signature(engine = "am.GL", stdErr = "bootstrap"), doNonpara.SE.am.GL)
-setMethod("doNonpara", signature(engine = "am.GL", stdErr = "NULL"), doNonpara.am.GL)
-setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "bootstrap"), doNonpara.SE.sc.XCYH)
-setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "resampling"), doNonpara.SE.sc.XCYH)
-setMethod("doNonpara", signature(engine = "sc.XCYH", stdErr = "NULL"), doNonpara.sc.XCYH)
-
-##############################################################################
-## User's Main Function
-##############################################################################
+setGeneric("npFit", function(DF, alpha, beta, engine, stdErr) {standardGeneric("npFit")})
+setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "NULL"), npFit.cox.NA)
+setMethod("npFit", signature(engine = "cox.GL", stdErr = "NULL"), npFit.cox.GL)
+setMethod("npFit", signature(engine = "cox.HW", stdErr = "NULL"), npFit.cox.HW)
+setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "NULL"), npFit.am.XCHWY)
+setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), npFit.cox.NA)
+setMethod("npFit", signature(engine = "cox.HW", stdErr = "bootstrap"), npFit.SE.cox.HW)
+setMethod("npFit", signature(engine = "cox.GL", stdErr = "bootstrap"), npFit.SE.cox.GL)
+setMethod("npFit", signature(engine = "cox.HW", stdErr = "resampling"), npFit.SE.cox.HW)
+setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "resampling"), npFit.SE.am.XCHWY)
+setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "bootstrap"), npFit.SE.am.XCHWY)
+setMethod("npFit", signature(engine = "am.GL", stdErr = "bootstrap"), npFit.SE.am.GL)
+setMethod("npFit", signature(engine = "am.GL", stdErr = "NULL"), npFit.am.GL)
+setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "bootstrap"), npFit.SE.sc.XCYH)
+setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "resampling"), npFit.SE.sc.XCYH)
+setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH)
 
 ## #' When a joint model is fitted (e.g., \code{method = "cox.HW"} or \code{method = "am.XCHWY"}),
 ## #' the hazard function of the terminal event is either in a Cox model or an accelerated failure time model.
@@ -1274,12 +1267,12 @@ reReg <- function(formula, data, B = 200,
     if (formula == ~1) {
         fit <- NULL
         fit$alpha <- fit$beta <- rep(NA, p)
-        fit <- c(fit, doNonpara(DF = DF, alpha = 0, beta = 0, engine = engine, stdErr = stdErr))
+        fit <- c(fit, npFit(DF = DF, alpha = 0, beta = 0, engine = engine, stdErr = stdErr))
     } else {
-        fit <- doREFit(DF = DF, engine = engine, stdErr = stdErr)
+        fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
         if (method == "sc.XCYH") engine@muZ <- exp(fit$log.muZ)
         if (method == "cox.GL") engine@wgt <- fit$wgt
-        fit <- c(fit, doNonpara(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = stdErr))
+        fit <- c(fit, npFit(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = stdErr))
     }
     class(fit) <- "reReg"
     fit$reTb <- obj$reTb

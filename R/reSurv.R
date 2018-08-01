@@ -136,7 +136,6 @@ is.reSurv <- function(x) inherits(x, "reSurv")
 is.reReg <- function(x) inherits(x, "reReg")
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
 
-
 default.reSurv <- function(x) {
     text <- NULL
     if ("time2" %in% x) text <- c(text, "time2 <- NULL")
