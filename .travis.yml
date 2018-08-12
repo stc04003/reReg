@@ -8,3 +8,7 @@ r:
   - oldrel
   - release
   - devel
+before_install:
+  - tlmgr install index
+pandoc_version: 2.2.3.2
+  
