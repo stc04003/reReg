@@ -10,3 +10,5 @@ skipcheck*
 ^test$
 ^vignettes$
 ^\.git$
+^appveyor\.yml$
+^\.travis\.yml$
