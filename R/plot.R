@@ -182,31 +182,31 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
     names(shp.val) <- names(clr.val) <- c("Yi", rec.lab)
     gg <- ggplot(dat, aes(id, Yi)) +
         geom_bar(stat = "identity", fill = "gray75") +
-        geom_point(data = dat %>% filter(!map_lgl(tij, is.null)) %>%
-                       unnest(tij, recType), # %>% select(id, tij, recType),
-                   aes(id, tij, shape = factor(recType, labels = rec.lab), 
-                       color = factor(recType, labels = rec.lab)),
-                   size = sz) + 
-        ## position = position_jitter(w = 0.1, h = 0)) +
-        scale_shape_manual(
-            name = "", values = shp.val,
-            labels = shp.lab,
-            breaks = c("Yi", rec.lab)) +
-        scale_color_manual(
-            name = "", values = clr.val,
-            labels = shp.lab,
-            breaks = c("Yi", rec.lab)) +
         coord_flip() + 
         theme(axis.line.y = element_blank(),
               axis.title.y = element_text(vjust = 0),
               axis.text.y = element_blank(),
               axis.ticks.y = element_blank())
+    if (sum(!is.na(dat$tij)) > 0) 
+        gg <- gg + geom_point(data = dat %>% filter(!map_lgl(tij, is.null)) %>%
+                                  unnest(tij, recType), # %>% select(id, tij, recType),
+                              aes(id, tij, shape = factor(recType, labels = rec.lab), 
+                                  color = factor(recType, labels = rec.lab)), size = sz)  
+            ## ## position = position_jitter(w = 0.1, h = 0)) +
+            ## scale_shape_manual(name = "", values = shp.val,
+            ##     labels = shp.lab, breaks = c("Yi", rec.lab)) +
+            ## scale_color_manual(name = "", values = clr.val,
+            ##     labels = shp.lab, breaks = c("Yi", rec.lab))
     if (sum(dat$status) > 0)
         gg <- gg + geom_point(data = dat %>% filter(status > 0),
                               aes(id, Yi, shape = "Yi", color = "Yi"), size = sz) 
     if (nX > 0 && formula[[3]] != 1) 
         gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
                               scales = "free", space = "free", switch = "both")
+    gg <- gg + scale_shape_manual(name = "", values = shp.val,
+                                  labels = shp.lab, breaks = c("Yi", rec.lab)) +
+        scale_color_manual(name = "", values = clr.val,
+                           labels = shp.lab, breaks = c("Yi", rec.lab))
     gg + theme(panel.background = element_blank(),
                axis.line = element_line(color = "black"),
                legend.key = element_rect(fill = "white", color = "white")) +
