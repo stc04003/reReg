@@ -11,7 +11,7 @@
 
 <meta name="author" content="Sy Han (Steven) Chiou" />
 
-<meta name="date" content="2018-07-31" />
+<meta name="date" content="2018-08-23" />
 
 <title>Visualization of recurrent event data</title>
 
@@ -94,6 +94,9 @@ img {
 }
 .tabbed-pane {
   padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
 }
 button.code-folding-btn:focus {
   outline: none;
@@ -219,7 +222,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Visualization of recurrent event data</h1>
 <h4 class="author"><em>Sy Han (Steven) Chiou</em></h4>
-<h4 class="date"><em>2018-07-31</em></h4>
+<h4 class="date"><em>2018-08-23</em></h4>
 
 </div>
 
@@ -260,13 +263,13 @@ NULL</code></pre>
 <p>The function <code>reSurv</code> prints a list-column <code>tibble</code>.</p>
 <pre class="r"><code>&gt; reSurv(t.stop, id, event, death)</code></pre>
 <pre><code># A tibble: 403 x 5
-     id tij       recType      Yi status
-  &lt;int&gt; &lt;list&gt;    &lt;list&gt;    &lt;dbl&gt;  &lt;dbl&gt;
-1     1 &lt;dbl [2]&gt; &lt;int [2]&gt;  1037      0
-2     2 &lt;dbl [1]&gt; &lt;int [1]&gt;  1182      0
-3     3 &lt;dbl [1]&gt; &lt;int [1]&gt;   783      1
-4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;  2048      0
-5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;  1144      0
+     id recTime   recType   temTime temStatus
+  &lt;int&gt; &lt;list&gt;    &lt;list&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+1     1 &lt;dbl [2]&gt; &lt;int [2]&gt;    1037         0
+2     2 &lt;dbl [1]&gt; &lt;int [1]&gt;    1182         0
+3     3 &lt;dbl [1]&gt; &lt;int [1]&gt;     783         1
+4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;    2048         0
+5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;    1144         0
 # ... with 398 more rows</code></pre>
 <p>The example above shows patient id #1 experienced 2 readmissions (<code>tij[1]</code> is a list of two <code>double</code>s) with a terminal event at <code>t = 1037</code> (days). The terminal event was censored (<code>status = 0</code>). Similarly, patient id #3 has one readmission and died at <code>t = 783</code> (days). On the other hand patient id # 4 has 4 readmission and was censored at <code>t = 2048</code> (days).</p>
 </div>

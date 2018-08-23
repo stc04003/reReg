@@ -79,7 +79,7 @@
       <h1>Visualization of recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2018-08-01</h4>
+            <h4 class="date">2018-08-23</h4>
       
       <small class="dont-index">Source: <a href="http://github.com/stc04003/reReg/blob/master/vignettes/reReg-plots.Rmd"><code>vignettes/reReg-plots.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-plots.Rmd</code></div>
@@ -123,21 +123,21 @@ NULL</code></pre>
 <code>origin</code> a numerical vector indicating the time origin of subjects</li>
 </ul>
 <p>There are a few ways to create an <code>reSurv</code> object. When the starting times and the ending times of recurrent events are known, one can specify both times in <code>reSurv</code>. <!--If the time origins of subjects are equal, as in the `readmission` data, the argument `time2` can be deprecated. --></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">reSurv</span>(<span class="dt">time1 =</span> t.start, <span class="dt">time2 =</span> t.stop, <span class="dt">id =</span> id, <span class="dt">event =</span> event, <span class="dt">status =</span> death)
-&gt;<span class="st"> </span><span class="kw">reSurv</span>(<span class="dt">time1 =</span> t.stop, <span class="dt">id =</span> id, <span class="dt">event =</span> event, <span class="dt">status =</span> death)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(<span class="dt">time1 =</span> t.start, <span class="dt">time2 =</span> t.stop, <span class="dt">id =</span> id, <span class="dt">event =</span> event, <span class="dt">status =</span> death)
+&gt;<span class="st"> </span><span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(<span class="dt">time1 =</span> t.stop, <span class="dt">id =</span> id, <span class="dt">event =</span> event, <span class="dt">status =</span> death)</code></pre></div>
 <p>The same <code>reSurv</code> objects can be achieved without specifying the argument names:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">reSurv</span>(t.start, t.stop, id, event, death)
-&gt;<span class="st"> </span><span class="kw">reSurv</span>(t.stop, id, event, death)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.start, t.stop, id, event, death)
+&gt;<span class="st"> </span><span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death)</code></pre></div>
 <p>The function <code>reSurv</code> prints a list-column <code>tibble</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">reSurv</span>(t.stop, id, event, death)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death)</code></pre></div>
 <pre><code># A tibble: 403 x 5
-     id tij       recType      Yi status
-  &lt;int&gt; &lt;list&gt;    &lt;list&gt;    &lt;dbl&gt;  &lt;dbl&gt;
-1     1 &lt;dbl [2]&gt; &lt;int [2]&gt;  1037      0
-2     2 &lt;dbl [1]&gt; &lt;int [1]&gt;  1182      0
-3     3 &lt;dbl [1]&gt; &lt;int [1]&gt;   783      1
-4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;  2048      0
-5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;  1144      0
+     id recTime   recType   temTime temStatus
+  &lt;int&gt; &lt;list&gt;    &lt;list&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+1     1 &lt;dbl [2]&gt; &lt;int [2]&gt;    1037         0
+2     2 &lt;dbl [1]&gt; &lt;int [1]&gt;    1182         0
+3     3 &lt;dbl [1]&gt; &lt;int [1]&gt;     783         1
+4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;    2048         0
+5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;    1144         0
 # ... with 398 more rows</code></pre>
 <p>The example above shows patient id #1 experienced 2 readmissions (<code>tij[1]</code> is a list of two <code>double</code>s) with a terminal event at <code>t = 1037</code> (days). The terminal event was censored (<code>status = 0</code>). Similarly, patient id #3 has one readmission and died at <code>t = 783</code> (days). On the other hand patient id # 4 has 4 readmission and was censored at <code>t = 2048</code> (days).</p>
 </div>
@@ -145,7 +145,7 @@ NULL</code></pre>
 <h2 class="hasAnchor">
 <a href="#event-plots" class="anchor"></a>Event plots</h2>
 <p>Event plots are a quick and easy way to glance at recurrent event data. These can be produced by plotting the <code>reSurv</code> object with <code>R</code>’s generic function <code>plot</code>, shown in Figure 1.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>reObj &lt;-<span class="st"> </span><span class="kw">reSurv</span>(t.stop, id, event, death)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>reObj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death)
 &gt;<span class="st"> </span><span class="kw">plot</span>(reObj)</code></pre></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/plot-reSurv-1.png" alt="Figure 1: Creating an event plot from a `reSurv` object." width="700"><p class="caption">
@@ -172,21 +172,21 @@ NULL</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(reObj)
 &gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(reObj, <span class="dt">data =</span> readmission)
 &gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(reObj ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission)
-&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission)</code></pre></div>
+&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission)</code></pre></div>
 <p>Figure 2 can be re-created with <code>plotEvents</code> in a similar fashion:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission,
 +<span class="st">            </span><span class="dt">cex =</span> <span class="fl">1.5</span>, <span class="dt">xlab =</span> <span class="st">"Time in days"</span>, <span class="dt">ylab =</span> <span class="st">"Patients"</span>, 
 +<span class="st">            </span><span class="dt">main =</span> <span class="st">"Event plot for readmission data"</span>, 
 +<span class="st">            </span><span class="dt">terminal.name =</span> <span class="st">"Death"</span>, <span class="dt">recurrent.name =</span> <span class="st">"Hospital readmission"</span>)</code></pre></div>
 <p>The <code>plotEvents</code> function can also stratify event plots by groups. For example, the following can be used to stratify an event plot by <code>sex</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission)</code></pre></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/plotEvents-gender-1.png" alt="Figure 3: Event plot grouped by `sex`" width="700"><p class="caption">
 Figure 3: Event plot grouped by <code>sex</code>
 </p>
 </div>
 <p>Event plot by <code>sex</code> and <code>chemo</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission)</code></pre></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/plotEvents-gender-chemo-1.png" alt="Figure 4: Event plot grouped by `sex` and `chemo`." width="700"><p class="caption">
 Figure 4: Event plot grouped by <code>sex</code> and <code>chemo</code>.
@@ -208,9 +208,9 @@ Figure 5: Creating a CSM plot from a <code>reSurv</code> object.
 </div>
 <p>The CSM plot can be created with the more specialized function, <code>plotCSM</code>. Both <code>plotEvents</code> and <code>plotCSM</code> return <strong><code>ggplot2</code></strong> objects. A side-by-side CSM plot, showing the CSM functions with and without risk adjustment, is shown in Figure 6.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">library</span>(gridExtra)
-&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission, 
+&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">main =</span> <span class="st">""</span>)
-&gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission, 
+&gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span><span class="dv">1</span>, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">adjrisk =</span> <span class="ot">FALSE</span>, <span class="dt">main =</span> <span class="st">""</span>)
 &gt;<span class="st"> </span><span class="kw">grid.arrange</span>(p1, p2, <span class="dt">ncol=</span><span class="dv">2</span>)</code></pre></div>
 <div class="figure">
@@ -219,9 +219,9 @@ Figure 6: Creating a CSM plot from a <code>reSurv</code> object.
 </p>
 </div>
 <p>As with the <code>plotEvents</code>, <code>plotCSM</code> can generate CSM plots given covariates. Figure 7 depicts the CSM plots grouped by <code>sex</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission, 
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">main =</span> <span class="st">""</span>)
-&gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission, 
+&gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">adjrisk =</span> <span class="ot">FALSE</span>, <span class="dt">main =</span> <span class="st">""</span>)
 &gt;<span class="st"> </span><span class="kw">grid.arrange</span>(p1, p2, <span class="dt">ncol=</span><span class="dv">2</span>)</code></pre></div>
 <div class="figure">
@@ -230,9 +230,9 @@ Figure 7: CSM plot grouped by <code>sex</code>.
 </p>
 </div>
 <p>As in <code>plotEvents</code>, the more complicated Figure 8 depicts the CSM plots grouped by <code>sex</code> and <code>chemo</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission, 
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">main =</span> <span class="st">""</span>)
-&gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission, 
+&gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event, death) ~<span class="st"> </span>sex +<span class="st"> </span>chemo, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">CSM =</span> <span class="ot">TRUE</span>, <span class="dt">adjrisk =</span> <span class="ot">FALSE</span>, <span class="dt">main =</span> <span class="st">""</span>)
 &gt;<span class="st"> </span><span class="kw">grid.arrange</span>(p1, p2, <span class="dt">ncol=</span><span class="dv">2</span>)</code></pre></div>
 <div class="figure">
@@ -249,14 +249,14 @@ Figure 8: CSM plots grouped by <code>sex</code> and <code>chemo</code>.
 &gt;<span class="st"> </span><span class="kw">set.seed</span>(<span class="dv">1</span>)
 &gt;<span class="st"> </span>readmission &lt;-<span class="st"> </span>readmission %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">event2 =</span> event *<span class="st"> </span><span class="kw">sample</span>(<span class="dv">1</span>:<span class="dv">3</span>, <span class="dv">861</span>, <span class="ot">TRUE</span>))</code></pre></div>
 <p><code>plotEvents</code> and <code>plotCSM</code> functions can still be applied when <code>event</code> is replaced by <code>event2</code>. Different recurrent events will be denoted by different colors and shapes.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw">reSurv</span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission)</code></pre></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/multi-event-plot-1.png" alt="Figure 9: Event plots with multiple recurrent event types." width="700"><p class="caption">
 Figure 9: Event plots with multiple recurrent event types.
 </p>
 </div>
 <p>Default labels can be changed</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">adjrisk =</span> <span class="ot">FALSE</span>, <span class="dt">data =</span> readmission,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">adjrisk =</span> <span class="ot">FALSE</span>, <span class="dt">data =</span> readmission,
 +<span class="st">         </span><span class="dt">recurrent.name =</span> <span class="st">"Event types"</span>, <span class="dt">recurrent.type =</span> <span class="kw">c</span>(<span class="st">"Type 1"</span>, <span class="st">"Type 2"</span>, <span class="st">"Type 3"</span>))</code></pre></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/multi-csm2-1.png" alt="Figure 10: CSM plot with multiple recurrent event types and customized labels." width="700"><p class="caption">
@@ -264,9 +264,9 @@ Figure 10: CSM plot with multiple recurrent event types and customized labels.
 </p>
 </div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">library</span>(ggplot2)
-&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission, <span class="dt">main =</span> <span class="st">""</span>) +
+&gt;<span class="st"> </span>p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission, <span class="dt">main =</span> <span class="st">""</span>) +
 +<span class="st">   </span><span class="kw">theme</span>(<span class="dt">legend.position=</span><span class="st">"none"</span>)
-&gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw">reSurv</span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission, 
+&gt;<span class="st"> </span>p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plotCSM.html">plotCSM</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(t.stop, id, event2, death) ~<span class="st"> </span>sex, <span class="dt">data =</span> readmission, 
 +<span class="st">               </span><span class="dt">adjrisk =</span> <span class="ot">FALSE</span>, <span class="dt">main =</span> <span class="st">""</span>) +
 +<span class="st">   </span><span class="kw">theme</span>(<span class="dt">legend.position=</span><span class="st">"none"</span>)
 &gt;<span class="st"> </span><span class="kw">grid.arrange</span>(p1, p2, <span class="dt">ncol =</span> <span class="dv">2</span>)</code></pre></div>

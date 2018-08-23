@@ -167,7 +167,7 @@ See <b>Examples</b>.</p>
     <pre class="examples"><div class='input'><span class='co'>## readmission data</span>
 <span class='fu'>data</span>(<span class='no'>readmission</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"frailtypack"</span>)
 <span class='fu'>set.seed</span>(<span class='fl'>123</span>)
-<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='reReg.html'>reReg</a></span>(<span class='fu'>reSurv</span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>) ~ <span class='no'>sex</span> + <span class='no'>chemo</span>,
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='reReg.html'>reReg</a></span>(<span class='fu'><a href='reSurv.html'>reSurv</a></span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>) ~ <span class='no'>sex</span> + <span class='no'>chemo</span>,
              <span class='kw'>data</span> <span class='kw'>=</span> <span class='fu'>subset</span>(<span class='no'>readmission</span>, <span class='no'>id</span> <span class='kw'>&lt;</span> <span class='fl'>50</span>),
              <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"am.XCHWY"</span>, <span class='kw'>se</span> <span class='kw'>=</span> <span class='st'>"resampling"</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>20</span>)
 <span class='co'>## Plot both the baseline cumulative rate and hazard function</span>

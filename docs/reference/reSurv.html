@@ -167,21 +167,21 @@ This argument is only needed when "<code>time2</code>" is missing.</p></td>
     <pre class="examples"><div class='input'><span class='fu'>data</span>(<span class='no'>readmission</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"frailtypack"</span>)
 <span class='fu'>attach</span>(<span class='no'>readmission</span>)
 <span class='fu'>reSurv</span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>)</div><div class='output co'>#&gt; # A tibble: 403 x 5
-#&gt;      id tij       recType      Yi status
-#&gt;   &lt;int&gt; &lt;list&gt;    &lt;list&gt;    &lt;dbl&gt;  &lt;dbl&gt;
-#&gt; 1     1 &lt;dbl [2]&gt; &lt;int [2]&gt;  1037      0
-#&gt; 2     2 &lt;dbl [1]&gt; &lt;int [1]&gt;  1182      0
-#&gt; 3     3 &lt;dbl [1]&gt; &lt;int [1]&gt;   783      1
-#&gt; 4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;  2048      0
-#&gt; 5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;  1144      0
+#&gt;      id recTime   recType   temTime temStatus
+#&gt;   &lt;int&gt; &lt;list&gt;    &lt;list&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1     1 &lt;dbl [2]&gt; &lt;int [2]&gt;    1037         0
+#&gt; 2     2 &lt;dbl [1]&gt; &lt;int [1]&gt;    1182         0
+#&gt; 3     3 &lt;dbl [1]&gt; &lt;int [1]&gt;     783         1
+#&gt; 4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;    2048         0
+#&gt; 5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;    1144         0
 #&gt; # ... with 398 more rows</div><div class='input'><span class='fu'>reSurv</span>(<span class='no'>t.start</span>, <span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>)</div><div class='output co'>#&gt; # A tibble: 403 x 5
-#&gt;      id tij       recType      Yi status
-#&gt;   &lt;int&gt; &lt;list&gt;    &lt;list&gt;    &lt;dbl&gt;  &lt;dbl&gt;
-#&gt; 1     1 &lt;dbl [2]&gt; &lt;int [2]&gt;  1037      0
-#&gt; 2     2 &lt;dbl [1]&gt; &lt;int [1]&gt;  1182      0
-#&gt; 3     3 &lt;dbl [1]&gt; &lt;int [1]&gt;   783      1
-#&gt; 4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;  2048      0
-#&gt; 5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;  1144      0
+#&gt;      id recTime   recType   temTime temStatus
+#&gt;   &lt;int&gt; &lt;list&gt;    &lt;list&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1     1 &lt;dbl [2]&gt; &lt;int [2]&gt;    1037         0
+#&gt; 2     2 &lt;dbl [1]&gt; &lt;int [1]&gt;    1182         0
+#&gt; 3     3 &lt;dbl [1]&gt; &lt;int [1]&gt;     783         1
+#&gt; 4     4 &lt;dbl [4]&gt; &lt;int [4]&gt;    2048         0
+#&gt; 5     5 &lt;dbl [1]&gt; &lt;int [1]&gt;    1144         0
 #&gt; # ... with 398 more rows</div><div class='input'><span class='fu'>detach</span>(<span class='no'>readmission</span>)</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

@@ -122,8 +122,8 @@ with more flexible options.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>plotCSM</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>adjrisk</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'>list</span>(),
-  <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>plotCSM</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>adjrisk</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'>list</span>(), <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -180,12 +180,12 @@ to a list with the following values:</p><dl class='dl-horizontal'>
     
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code>reSurv</code>, <code><a href='plot.reSurv.html'>plot.reSurv</a></code></p></div>
+    <div class='dont-index'><p><code><a href='reSurv.html'>reSurv</a></code>, <code><a href='plot.reSurv.html'>plot.reSurv</a></code></p></div>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'>data</span>(<span class='no'>readmission</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"frailtypack"</span>)
-<span class='fu'>plotCSM</span>(<span class='fu'>reSurv</span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>) ~ <span class='fl'>1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>readmission</span>)</div><div class='img'><img src='plotCSM-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotCSM</span>(<span class='fu'>reSurv</span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>) ~ <span class='no'>sex</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>readmission</span>)</div><div class='img'><img src='plotCSM-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotCSM</span>(<span class='fu'>reSurv</span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>) ~ <span class='no'>sex</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>readmission</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotCSM-3.png' alt='' width='700' height='433' /></div></pre>
+<span class='fu'>plotCSM</span>(<span class='fu'><a href='reSurv.html'>reSurv</a></span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>) ~ <span class='fl'>1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>readmission</span>)</div><div class='img'><img src='plotCSM-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotCSM</span>(<span class='fu'><a href='reSurv.html'>reSurv</a></span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>) ~ <span class='no'>sex</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>readmission</span>)</div><div class='img'><img src='plotCSM-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotCSM</span>(<span class='fu'><a href='reSurv.html'>reSurv</a></span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>death</span>) ~ <span class='no'>sex</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>readmission</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotCSM-3.png' alt='' width='700' height='433' /></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
