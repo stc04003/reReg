@@ -4,8 +4,8 @@
 \alias{plotCSM}
 \title{Produce Cumulative Sample Mean Function Plots}
 \usage{
-plotCSM(formula, data, onePanel = FALSE, adjrisk = TRUE, control = list(),
-  ...)
+plotCSM(formula, data, onePanel = FALSE, adjrisk = TRUE,
+  control = list(), ...)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.

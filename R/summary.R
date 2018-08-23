@@ -1,6 +1,7 @@
+#' @importFrom dplyr rename
 #' @export
 print.reSurv <- function(x, ...) {
-    x$reTb %>% print(n = 5)
+    x$reTb %>% rename(recTime = tij, temTime = Yi, temStatus = status) %>% print(n = 5)
 }
 
 #' @export

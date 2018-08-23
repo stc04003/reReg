@@ -4,9 +4,9 @@
 \alias{reReg}
 \title{Fits Semiparametric Regression Models for Recurrent Event Data}
 \usage{
-reReg(formula, data, B = 200, method = c("cox.LWYY", "cox.GL", "cox.HW",
-  "am.GL", "am.XCHWY", "sc.XCYH"), se = c("NULL", "bootstrap", "resampling"),
-  contrasts = NULL, control = list())
+reReg(formula, data, B = 200, method = c("cox.LWYY", "cox.GL",
+  "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"), se = c("NULL", "bootstrap",
+  "resampling"), contrasts = NULL, control = list())
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.

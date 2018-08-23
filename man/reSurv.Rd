@@ -2,7 +2,6 @@
 % Please edit documentation in R/reSurv.R
 \name{reSurv}
 \alias{reSurv}
-\alias{reSurv}
 \alias{is.reSurv}
 \title{Create an \code{reSurv} Object}
 \usage{

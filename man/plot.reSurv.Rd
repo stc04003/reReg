@@ -4,7 +4,8 @@
 \alias{plot.reSurv}
 \title{Produce Event Plot or Cumulative Sample Mean Function Plot}
 \usage{
-\method{plot}{reSurv}(x, CSM = FALSE, order = TRUE, control = list(), ...)
+\method{plot}{reSurv}(x, CSM = FALSE, order = TRUE, control = list(),
+  ...)
 }
 \arguments{
 \item{x}{an object of class \code{reSurv}, usually returned by the \code{reSurv} function.}
