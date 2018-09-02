@@ -16,7 +16,7 @@ extern void coxGL(void *, void *, void *, void *, void *, void *, void *, void *
 extern void glCoxRate(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void glHaz(void *, void *, void *, void *, void *, void *);
 extern void glRate(void *, void *, void *, void *, void *, void *, void *, void *);
-extern void glU2(void *, void *, void *, void *, void *, void *, void *, void *);
+extern void glU2(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void HWb(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void hwHaz(void *, void *, void *, void *, void *, void *, void *, void *);
 extern void log_ns_est(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
@@ -35,7 +35,7 @@ static const R_CMethodDef CEntries[] = {
     {"glCoxRate",  (DL_FUNC) &glCoxRate,  11},
     {"glHaz",      (DL_FUNC) &glHaz,       6},
     {"glRate",     (DL_FUNC) &glRate,      8},
-    {"glU2",       (DL_FUNC) &glU2,        8},
+    {"glU2",       (DL_FUNC) &glU2,        9},
     {"HWb",        (DL_FUNC) &HWb,         9},
     {"hwHaz",      (DL_FUNC) &hwHaz,       8},
     {"log_ns_est", (DL_FUNC) &log_ns_est, 11},

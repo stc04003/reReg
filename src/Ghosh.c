@@ -13,7 +13,8 @@
 // X: the covariate matrix of dimension p and n rows
 // results: what to return
 void glU2(int *n, int *p, int *start, int *M,
-	  double *yi, double *tij, double *X, double *result) {
+	  double *yi, double *tij, double *X,
+	  double *weight, double *result) {
   int i, j, k, r;
   double *nu = Calloc(*p, double); 
   double de;
@@ -22,15 +23,15 @@ void glU2(int *n, int *p, int *start, int *M,
       if(tij[start[i] + k] <= yi[i]) {
 	for (j = 0; j < *n; j++) {
 	  if (tij[start[i] + k] <= yi[j]) {
-	    de = de + 1;
+	    de += weight[j];
 	    for (r = 0; r < *p; r++) {
-	      nu[r] += X[j + r * *n];
+	      nu[r] += weight[j] * X[j + r * *n];
 	    }
 	  }
 	} // end j
 	for (r = 0; r < *p; r++) {
-	  if (de > 0) result[r] += X[i + r * *n] - nu[r] / de;
-	  if (de <= 0) result[r] += X[i + r * *n];
+	  if (de > 0) result[r] += weight[i] * (X[i + r * *n] - nu[r] / de);
+	  if (de <= 0) result[r] += weight[i] * X[i + r * *n];
 	  nu[r] = 0;
 	}
 	de = 0;
@@ -115,15 +116,15 @@ void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
 	  for (l = 0; l < clsize[j]; l++) {
 	    if (e[ik_idx] - e[jl_idx] <= 0) {
 	      for ( r = 0; r < *p; r++) {
-		nu[r] += X[jl_idx + r * *N] * weights[jl_idx];
+		nu[r] += X[jl_idx + r * *N] * weights[j];
 	      }
-	      de += weights[jl_idx];
+	      de += weights[j];
 	    }
 	    jl_idx++;
 	  }
 	}  // end jl
 	for (r =  0; r < *p; r++) {
-	  sn[r] += weights[ik_idx] * gw[ik_idx] * (X[ik_idx + r * *N] - nu[r] / de);
+	  sn[r] += weights[i] * gw[ik_idx] * (X[ik_idx + r * *N] - nu[r] / de);
 	}
       }
       ik_idx++;

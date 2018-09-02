@@ -61,7 +61,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
         if (sum(tij < rep(yi, m)) == 0) return(1e5)
         else
             .C("glU2", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
-               as.double(yi), as.double(tij), as.double(X), result = double(p),
+               as.double(yi), as.double(tij), as.double(X), as.double(rep(1, n)), result = double(p),
                PACKAGE = "reReg")$result
     }
     fit.a <- eqSolve(engine@a0, ghoshU2, engine@solver)
@@ -70,6 +70,134 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     list(alpha = fit.a$par, aconv = fit.a$convergence,
          beta = fit.b$par, bconv = fit.b$convergence, muZ = NA)
 }
+
+regFit.am.GL.resampling <- function(DF, engine, stdErr) {
+    res <- regFit(DF, engine, NULL)
+    DF0 <- subset(DF, event == 0)
+    p <- ncol(DF0) - 4
+    alpha <- beta <- gamma <- rep(0, p)
+    Y <- log(DF0$Time)
+    X <- as.matrix(DF0[,-(1:4)])
+    status <- DF0$status
+    n <- nrow(DF0)
+    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    index <- c(1, cumsum(m)[-n] + 1)
+    B <- stdErr@B
+    E <- matrix(rexp(n * B), nrow = n)
+    Z <- matrix(rnorm(p * B), nrow = p)
+    Sn <- function(a, b, w, r = "both") {
+        s2 <- .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
+                 as.integer(rep(1, n)), as.integer(n), as.integer(p), as.integer(n),
+                 as.double(w), as.double(rep(1, n)), 
+                 result = double(p), PACKAGE = "reReg")$result
+        d <- max(X %*% (a - b))
+        tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
+        tij <- tij[DF$event == 1]
+        ## yi <- Y - X %*% a - d ## Correct version
+        yi <- Y - X %*% b - d ## Paper version
+        if (sum(tij < rep(yi, m)) == 0) s1 <- NA
+        else s1 <- .C("glU2", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
+                      as.double(yi), as.double(tij), as.double(X), as.double(w), result = double(p),
+                      PACKAGE = "reReg")$result
+        if (r == "s1") return(s1)
+        if (r == "s2") return(s2)
+        return(c(s1, s2))
+    }
+    V <- var(t(apply(E, 2, function(x) Sn(-res$alpha, -res$beta, x))))
+    V1 <- V[1:p, 1:p]
+    V2 <- V[1:p + p, 1:p + p]
+    lmfit1 <- t(apply(Z, 2, function(x) Sn(-res$alpha + x / sqrt(n), -res$beta, rep(1, n), "s1")))
+    lmfit2 <- t(apply(Z, 2, function(x) Sn(-res$alpha, -res$beta + x / sqrt(n), rep(1, n), "s2")))
+    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
+    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
+    if (qr(J1)$rank == p) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
+    else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
+    if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
+    else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))    
+    aSE <- sqrt(diag(aVar))
+    bSE <- sqrt(diag(bVar))
+    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
+}
+
+## regFit.am.GL.resampling <- function(DF, engine, stdErr) {
+##     res <- regFit(DF, engine, NULL)
+##     B <- stdErr@B
+##     p <- ncol(as.matrix(DF[,-(1:4)]))
+##     if (stdErr@parallel) {
+##         cl <- makeCluster(stdErr@parCl)
+##         clusterExport(cl = cl,
+##                       varlist = c("DF", "engine"),
+##                       envir = environment())
+##         out <- parSapply(cl, 1:B, function(x) am.GL.resampling(DF, engine, NULL))
+##         stopCluster(cl)
+##         betaMatrix <- t(out)
+##         convergence <- apply(betaMatrix, 1, function(x)
+##             1 * (x %*% x > 1e3 * with(res, c(alpha, beta) %*% c(alpha, beta))))
+##     } else {
+##         betaMatrix <- matrix(0, B, p * 2)
+##         convergence <- rep(0, B)
+##         for (i in 1:B) {
+##             betaMatrix[i,] <- with(am.GL.resampling(DF, engine, NULL), c(alpha, beta))
+##             convergence[i] <- 1 * (betaMatrix[i,] %*% betaMatrix[i,] >
+##                                    1e3 * with(res, c(alpha, beta) %*% c(alpha, beta)))
+##         }
+##     }
+##     converged <- which(convergence == 0)
+##     if (sum(convergence != 0) > 0) {
+##         print("Warning: Some bootstrap samples failed to converge")
+##         tmp <- apply(betaMatrix, 1, function(x) x %*% x)
+##         converged <- (1:B)[- which(tmp %in% boxplot(tmp, plot = FALSE)$out)]        
+##     }
+##     if (all(convergence != 0) || sum(convergence == 0) == 1) {
+##         print("Warning: some bootstrap samples failed to converge")
+##         converged <- 1:B
+##     }
+##     betaVar <- var(betaMatrix[converged, ], na.rm = TRUE)
+##     betaSE <- sqrt(diag(as.matrix(betaVar)))
+##     c(res, list(alphaSE = betaSE[1:p], betaSE = betaSE[1:p + p],
+##                 alphaVar = betaVar[1:p, 1:p], betaVar = betaVar[1:p + p, 1:p + p],
+##                 SEmat = betaMatrix, B = length(converged)))
+## }
+
+## ## This is the resampling multipler method, different than the resampling for sandwich estimator
+## am.GL.resampling <- function(DF, engine, stdErr) {
+##     DF0 <- subset(DF, event == 0)
+##     p <- ncol(DF0) - 4
+##     alpha <- beta <- gamma <- rep(0, p)
+##     Y <- log(DF0$Time)
+##     X <- as.matrix(DF0[,-(1:4)])
+##     status <- DF0$status
+##     n <- nrow(DF0)
+##     Z <- rexp(n)
+##     log.est <- function(b) {
+##         .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
+##            as.integer(rep(1, n)), as.integer(n), as.integer(p), as.integer(n),
+##            as.double(rep(1, n)), as.double(Z), 
+##            result = double(p), PACKAGE = "reReg")$result
+##     }
+##     fit.b <- eqSolve(engine@b0, log.est, engine@solver)
+##     bhat <- fit.b$par
+##     m <- aggregate(event ~ id, data = DF, sum)[,2]
+##     index <- c(1, cumsum(m)[-n] + 1)
+##     ghoshU2 <- function(a) {
+##         d <- max(X %*% (a - bhat))
+##         tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
+##         tij <- tij[DF$event == 1]
+##         ## yi <- Y - X %*% a - d ## Correct version
+##         yi <- Y - X %*% bhat - d ## Paper version
+##         if (sum(tij < rep(yi, m)) == 0) return(1e5)
+##         else
+##             .C("glU2", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
+##                as.double(yi), as.double(tij), as.double(X), as.double(Z), result = double(p),
+##                PACKAGE = "reReg")$result
+##     }
+##     fit.a <- eqSolve(engine@a0, ghoshU2, engine@solver)
+##     fit.b$par <- -fit.b$par
+##     fit.a$par <- -fit.a$par
+##     list(alpha = fit.a$par, aconv = fit.a$convergence,
+##          beta = fit.b$par, bconv = fit.b$convergence, muZ = NA)
+## }
+
 
 regFit.cox.HW <- function(DF, engine, stdErr) {
     id <- DF$id
@@ -922,7 +1050,7 @@ npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
 setClass("Engine",
          representation(tol = "numeric", a0 = "numeric", b0 = "numeric", solver = "character"),
          prototype(tol = 1e-7, a0 = 0, b0 = 0, solver = "dfsane"),
-         contains="VIRTUAL")
+         contains = "VIRTUAL")
 setClass("cox.LWYY", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
@@ -934,12 +1062,13 @@ setClass("sc.XCYH",
 setClass("cox.GL",
          representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
 
-setClass("stdErr")
-setClass("bootstrap", representation(B = "numeric", parallel = "logical", parCL = "integer"),
+setClass("stdErr",
+         representation(B = "numeric", parallel = "logical", parCL = "integer"),
          prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2),
-         contains="stdErr")
-setClass("resampling", representation(B = "numeric"),
-         prototype(B = 100), contains="stdErr")
+         contains = "VIRTUAL")
+
+setClass("bootstrap", contains="stdErr")
+setClass("resampling", contains="stdErr")
 
 
 ##############################################################################
@@ -957,6 +1086,8 @@ setMethod("regFit", signature(engine = "Engine", stdErr = "bootstrap"),
           regFit.Engine.Bootstrap)
 setMethod("regFit", signature(engine = "cox.HW", stdErr = "resampling"),
           regFit.cox.HW.resampling)
+setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
+          regFit.am.GL.resampling)
 setMethod("regFit", signature(engine = "am.XCHWY", stdErr = "resampling"),
           regFit.am.XCHWY.resampling)
 setMethod("regFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
@@ -974,6 +1105,7 @@ setMethod("npFit", signature(engine = "cox.HW", stdErr = "resampling"), npFit.SE
 setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "resampling"), npFit.SE.am.XCHWY)
 setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "bootstrap"), npFit.SE.am.XCHWY)
 setMethod("npFit", signature(engine = "am.GL", stdErr = "bootstrap"), npFit.SE.am.GL)
+setMethod("npFit", signature(engine = "am.GL", stdErr = "resampling"), npFit.SE.am.GL)
 setMethod("npFit", signature(engine = "am.GL", stdErr = "NULL"), npFit.am.GL)
 setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "bootstrap"), npFit.SE.sc.XCYH)
 setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "resampling"), npFit.SE.sc.XCYH)
