@@ -23,7 +23,7 @@ regFit.am.XCHWY <- function(DF, engine, stdErr) {
                 engine@solver, list(par = engine@a0, fn = alphaEq,
                                     X = X, Y = Y, T = T, cluster = cluster, mt = mt,
                                     weights = NULL, alertConvergence = FALSE, quiet = TRUE,
-                                    control = list(trace = FALSE))))
+                                    control = list(trace = FALSE, NM = 1))))
     if (engine@solver == "BBoptim")
         suppressWarnings(
             outA <- do.call(
@@ -41,7 +41,8 @@ regFit.am.XCHWY <- function(DF, engine, stdErr) {
     Tstar <- log(T) + X %*% alpha
     lambda <- npMLE(Ystar[event == 0], Tstar, Ystar)
     zHat <- as.numeric(mt * npMLE(log(max(Y)), Tstar, Ystar) / lambda)
-    zHat <- ifelse(zHat > 1e5, (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01), zHat)
+    if (any(zHat > 1e5)) zHat <- (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01)
+    ## zHat <- ifelse(zHat > 1e5, (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01), zHat)
     zHat <- ifelse(is.na(zHat), 0, zHat)
     if (engine@solver %in% c("dfsane", "BBsolve")) 
         suppressWarnings(
@@ -50,7 +51,7 @@ regFit.am.XCHWY <- function(DF, engine, stdErr) {
                                     X = X, Y = Y, T = T, cluster = cluster,
                                     delta = status[event == 0], mt = mt,
                                     alpha = outA$par, zHat = zHat, weights = NULL,
-                                    quiet = TRUE, control = list(trace = FALSE))))
+                                    quiet = TRUE, control = list(trace = FALSE, NM = 1))))
     if (engine@solver == "BBoptim")
         suppressWarnings(
             outB <- do.call(
@@ -89,7 +90,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
         suppressWarnings(
             fit.b <- do.call(
                 engine@solver, list(par = engine@b0, fn = log.est, quiet = TRUE,
-                                    control = list(trace = FALSE))))
+                                    control = list(trace = FALSE, NM = 1))))
     }
     if (engine@solver == "BBoptim") {
         suppressWarnings(
@@ -110,16 +111,19 @@ regFit.am.GL <- function(DF, engine, stdErr) {
         d <- max(X %*% (a - bhat))
         tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
         tij <- tij[DF$event == 1]
-        yi <- Y - X %*% a - d ## There is error in Ghosh's paper
-        .C("glU2", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
-           as.double(yi), as.double(tij), as.double(X), result = double(p),
-           PACKAGE = "reReg")$result
+        ## yi <- Y - X %*% a - d ## Correct version
+        yi <- Y - X %*% bhat - d ## Paper version
+        if (sum(tij < rep(yi, m)) == 0) return(1e5)
+        else
+            .C("glU2", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
+               as.double(yi), as.double(tij), as.double(X), result = double(p),
+               PACKAGE = "reReg")$result
     }
     if (engine@solver %in% c("dfsane", "BBsolve")) {
         suppressWarnings(
             fit.a <- do.call(
                 engine@solver, list(par = engine@a0, fn = ghoshU2, quiet = TRUE,
-                                    control = list(trace = FALSE))))
+                                    control = list(trace = FALSE, NM = 1))))
     }
     if (engine@solver == "BBoptim") {
         suppressWarnings(
@@ -158,7 +162,7 @@ regFit.cox.HW <- function(DF, engine, stdErr) {
                 engine@solver, list(par = engine@a0, fn = HWeq, 
                                     X = X, Y = Y, T = T, cluster = cluster, mt = mt,
                                     weights = NULL, quiet = TRUE, alertConvergence = FALSE,
-                                    control = list(trace = FALSE))))
+                                    control = list(trace = FALSE, NM = 1))))
     if (engine@solver == "BBoptim")
         suppressWarnings(
             outA <- do.call(
@@ -183,7 +187,7 @@ regFit.cox.HW <- function(DF, engine, stdErr) {
                 engine@solver, list(par = engine@b0, fn = HWeq2, X = as.matrix(X[,-1]),
                                     Y = Y[event == 0], delta = status[event == 0], zHat = zHat/muZ,
                                     weights = NULL, alertConvergence = FALSE, quiet = TRUE,
-                                    control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))))
+                                    control = list(NM = 1, M = 100, noimp = 50, trace = FALSE))))
     if (engine@solver == "BBoptim")
         suppressWarnings(
             outB <- do.call(
@@ -255,7 +259,7 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
     out <- dfsane(par = engine@a0, fn = coxGLeq, wgt = wgt, 
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
-                  alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
+                  alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE, NM = 1))
     list(alpha = out$par, beta = coef(fit.coxph), betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
          wgt = wgt, haz0 = with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant")))
 }
@@ -289,7 +293,7 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
     if (engine@solver %in% c("dfsane", "BBsolve")) {
         suppressWarnings(
             fit.a <- do.call(engine@solver, list(par = engine@a0, fn = U1,
-                                                 quiet = TRUE, control = list(trace = FALSE))))
+                                                 quiet = TRUE, control = list(trace = FALSE, NM = 1))))
         ## a.value <- fit.a$residual
     }
     if (engine@solver == "BBoptim") {
@@ -324,7 +328,7 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
     if (engine@solver %in% c("dfsane", "BBsolve")) {
         suppressWarnings(
             fit.b <- do.call(engine@solver, list(par = engine@b0, fn = U2,
-                                                 quiet = TRUE, control = list(trace = FALSE))))
+                                                 quiet = TRUE, control = list(trace = FALSE, NM = 1))))
         ## b.value <- fit.b$residual
     }
     if (engine@solver == "BBoptim") {
@@ -406,13 +410,6 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
                 SEmat = betaMatrix, B = length(converged)))
 }
 
-sdOut <- function(dat) {
-    ol <- boxplot(dat, plot = FALSE)$out
-    if (length(ol) > 0)
-        dat <- dat[-which(dat %in% ol)]
-    sd(dat, na.rm = TRUE)
-}
-
 regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     id <- DF$id
@@ -481,18 +478,18 @@ regFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
         Ystar <- log(Y) + X %*% a
         Tstar <- log(T) + X %*% a
         Lam <- npMLE(Ystar[event ==  0], Tstar, Ystar, rep(w, mt + 1))
-        ## Lam <- npMLE(Ystar[event == 0], Tstar, Ystar)
         zHat <- mt / Lam
-        zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
+        if (any(zHat > 1e5)) zHat <- (mt + .01) / (Lam + .01)
+        ## zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
         zHat <- ifelse(is.na(zHat), 0, zHat)
         s1 <- .C("alphaEqC", as.double(X[event == 0,]), as.double(zHat),
                  as.integer(n), as.integer(p), as.double(w),
                  res = double(p), PACKAGE = "reReg")$res / n
         if (r == "s1") return(s1)
         Lam <- npMLE(Ystar[event == 0], Tstar, Ystar)
-        ## Lam <- npMLE(Ystar[event == 0], Tstar, Ystar, rep(w, mt + 1))
         zHat <- mt / Lam
-        zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
+        if (any(zHat > 1e5)) zHat <- (mt + .01) / (Lam + .01)
+        ## zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
         zHat <- ifelse(is.na(zHat), 0, zHat)
         Ystar <- (log(Y) + X %*% b)[event == 0]
         s2 <- .C("betaEst", as.double(Ystar), as.double(X[event == 0,]),
@@ -1329,9 +1326,9 @@ alphaEq <- function(alpha, X, Y, T, cluster, mt, weights = NULL) {
     Ystar <- log(Y) + X %*% alpha
     Tstar <- log(T) + X %*% alpha
     Lambda <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar, weights = rep(weights, mt + 1))
-    ## weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
     zHat <- mt / Lambda
-    zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lambda + .01), zHat)
+    if (any(zHat > 1e5)) zHat <- (mt + .01) / (Lambda + .01)
+    ## zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lambda + .01), zHat)
     zHat <- ifelse(is.na(zHat), 0, zHat)
     res <- .C("alphaEqC", as.double(X[which(cluster == 1), ]), as.double(zHat),
               as.integer(n), as.integer(p), as.double(weights), 
@@ -1352,6 +1349,7 @@ betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weight
         ## weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
         ## zHat <- as.numeric(weights * mt / lambda)
         zHat <- weights * mt / lambda
+        if (any(zHat > 1e5)) zHat <- (mt + .01) / (lambda + .01)
         zHat <- ifelse(zHat > 1e5, (mt + .01) / (lambda + .01), zHat)
         zHat <- ifelse(is.na(zHat), 0, zHat)
         ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
