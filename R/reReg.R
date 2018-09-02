@@ -213,6 +213,8 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
 ##############################################################################
 regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
+    ## engine@a0 <- res$alpha
+    ## engine@b0 <- res$beta
     id <- DF$id
     event <- DF$event
     status <- DF$status
@@ -1155,9 +1157,11 @@ reReg <- function(formula, data, B = 200,
 #' @noRd
 #' @keywords internal
 eqSolve <- function(par, fn, solver, ...) {
-    if (solver == "dfsane")
+    if (solver == "dfsane") {
         out <- dfsane(par = par, fn = function(z) fn(z, ...), 
                       alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
+        if (max(abs(out$par)) > 10) solver <- "BBsolve"
+    }
     if (solver == "BBsolve")
         out <- BBsolve(par = par, fn = fn, ..., quiet = TRUE)
     if (solver == "BBoptim")

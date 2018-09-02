@@ -38,7 +38,6 @@ varMatOut <- function(dat, na.rm = TRUE) {
     var(dat, na.rm = na.rm)
 }
 
-
 ## ------------------------------------------------------------------------------------------
 ## checking reSurv
 ## ------------------------------------------------------------------------------------------
@@ -180,6 +179,18 @@ do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
       coef(f5), f5$alphaSE, f5$betaSE)
 }
 
+set.seed(1)
+system.time(print(as.numeric(do())))
+##  [1]  1.12848066 -0.96327210  0.00000000  0.00000000  0.08104150  0.04824949
+##  [7]  0.00000000  0.00000000  1.15079732 -0.91960453  0.74502877 -1.24873434
+## [13]  0.16494271  0.08979208  0.34134656  0.23186728  1.51329534 -0.93929787
+## [19]  1.81354205 -2.75997486  0.56986363  0.59142903  0.76257468  0.46165841
+## [25]  1.91210659 -1.68138709  2.95126692 -6.91165775  0.25677702  0.17527877
+## [31]  3.83398866  4.78986621  0.72652799  0.15362817  1.27024352 -0.91267918
+## [37]  0.36916668  0.12422041  0.22821398  0.12536768
+##    user  system elapsed 
+##  42.920   0.008  42.933 
+
 cl <- makePSOCKcluster(8)
 setDefaultCluster(cl)
 clusterExport(NULL, c("do", "fm"))
@@ -250,8 +261,9 @@ do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
 do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
     fm <- reSurv(Time, id, event, status) ~ x1 + x2
     dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
-    invisible(capture.output(f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot", B = 200)))
-    c(coef(f3), f3$alphaSE, f3$betaSE)
+    invisible(capture.output(f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot", B = 500)))
+    ## c(coef(f3), f3$alphaSE, f3$betaSE)
+    c(coef(f3), sqrt(diag(varMatOut(f3$SEmat))), f3$alphaSE, f3$betaSE)
 }
 
 do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
@@ -266,9 +278,10 @@ cl <- makePSOCKcluster(8)
 ## cl <- makePSOCKcluster(16)
 setDefaultCluster(cl)
 invisible(clusterExport(NULL, "do"))
+invisible(clusterExport(NULL, "varMatOut"))
 invisible(clusterEvalQ(NULL, library(reReg)))
-fo <- parSapply(NULL, 1:10, function(z) {
-    set.seed(z); do(n = 200, type = "am", indCen = FALSE)})
+fo <- parSapply(NULL, 1:50, function(z) {
+    set.seed(z); do(n = 100, type = "am", indCen = FALSE)})
     ## set.seed(z); do(type = "am", indCen = TRUE)})
 stopCluster(cl)
 
@@ -276,9 +289,31 @@ cbind(apply(fo, 1, mean, na.rm = TRUE),
       apply(fo, 1, meanOut),
       apply(fo, 1, sdOut))
 
+##          [,1]       [,2]       [,3]
+##     0.1479000  1.2372969 0.38630290
+##    -6.8621531 -0.9971683 0.20061374
+##     1.2758290  1.3451419 1.23691914
+##    -0.9869453 -0.9869453 0.65943666
+##     0.4551695  0.4306245 0.04966363
+##     0.2550767  0.2425224 0.05336644
+##     1.1352869  1.1352869 0.19788000
+##     0.6058836  0.6058836 0.13003136
+## x1  3.0402262  0.7271139 0.47859693
+## x2  6.1281749  0.7969116 0.77930025
+## x1  1.1617666  1.1617666 0.18347036
+## x2  0.6358100  0.6358100 0.13126954
 
-set.seed(6)
+set.seed(2)
 dat <- simDat(n = 100, a = c(1, -1), b = c(1, -1), type = "am", indCen = FALSE)
 f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot", B = 200)
 summary(f3)
 
+debug(reReg)
+debug(regFit.am.GL)
+
+reReg(fm, data = dat, method = "am.GL", se = "boot", B = 200)
+
+regFit.am.GL(DF = DF, engine = engine, stdErr = stdErr)
+
+
+########################################################################
