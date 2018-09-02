@@ -17,25 +17,8 @@ regFit.am.XCHWY <- function(DF, engine, stdErr) {
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    if (engine@solver %in% c("dfsane", "BBsolve")) 
-        suppressWarnings(
-            outA <- do.call(
-                engine@solver, list(par = engine@a0, fn = alphaEq,
-                                    X = X, Y = Y, T = T, cluster = cluster, mt = mt,
-                                    weights = NULL, alertConvergence = FALSE, quiet = TRUE,
-                                    control = list(trace = FALSE, NM = 1))))
-    if (engine@solver == "BBoptim")
-        suppressWarnings(
-            outA <- do.call(
-                engine@solver, list(par = engine@a0, fn = function(x)
-                    sum(alphaEq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
-                    quiet = TRUE, control = list(trace = FALSE))))
-    if (engine@solver == "optim")
-        suppressWarnings(
-            outA <- do.call(
-                engine@solver, list(par = engine@a0, fn = function(x)
-                    sum(alphaEq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
-                    control = list(trace = FALSE))))
+    outA <- eqSolve(engine@a0, alphaEq, engine@solver,
+                    X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)
     alpha <- outA$par
     Ystar <- log(Y) + X %*% alpha
     Tstar <- log(T) + X %*% alpha
@@ -44,30 +27,9 @@ regFit.am.XCHWY <- function(DF, engine, stdErr) {
     if (any(zHat > 1e5)) zHat <- (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01)
     ## zHat <- ifelse(zHat > 1e5, (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01), zHat)
     zHat <- ifelse(is.na(zHat), 0, zHat)
-    if (engine@solver %in% c("dfsane", "BBsolve")) 
-        suppressWarnings(
-            outB <- do.call(
-                engine@solver, list(par = engine@b0, fn = betaEq,
-                                    X = X, Y = Y, T = T, cluster = cluster,
-                                    delta = status[event == 0], mt = mt,
-                                    alpha = outA$par, zHat = zHat, weights = NULL,
-                                    quiet = TRUE, control = list(trace = FALSE, NM = 1))))
-    if (engine@solver == "BBoptim")
-        suppressWarnings(
-            outB <- do.call(
-                engine@solver, list(par = engine@b0, fn = function(x)
-                    sum(betaEq(x, X = X, Y = Y, T = T, cluster = cluster,
-                               delta = status[event == 0], mt = mt,
-                               alpha = outA$par, zHat = zHat, weights = NULL)^2),
-                    quiet = TRUE, control = list(trace = FALSE))))
-    if (engine@solver == "optim") 
-        suppressWarnings(
-            outB <- do.call(
-                engine@solver, list(par = engine@b0, fn = function(x)
-                    sum(betaEq(x, X = X, Y = Y, T = T, cluster = cluster,
-                               delta = status[event == 0], mt = mt,
-                               alpha = outA$par, zHat = zHat, weights = NULL)^2),
-                    control = list(trace = FALSE))))
+    outB <- eqSolve(engine@b0, betaEq, engine@solver,
+                    X = X, Y = Y, T = T, cluster = cluster, delta = status[event == 0],
+                    mt = mt, alpha = outA$par, zHat = zHat, weights = NULL)
     list(alpha = outA$par, aconv = outA$convergence, beta = outB$par, bconv = outB$convergence,
          muZ = mean(zHat, na.rm = TRUE), zHat = zHat)
 }
@@ -86,24 +48,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
            as.double(rep(1, n)), as.double(rep(1, n)), 
            result = double(p), PACKAGE = "reReg")$result
     }
-    if (engine@solver %in% c("dfsane", "BBsolve")) {    
-        suppressWarnings(
-            fit.b <- do.call(
-                engine@solver, list(par = engine@b0, fn = log.est, quiet = TRUE,
-                                    control = list(trace = FALSE, NM = 1))))
-    }
-    if (engine@solver == "BBoptim") {
-        suppressWarnings(
-            fit.b <- do.call(
-                engine@solver, list(par = engine@b0, fn = function(x)
-                    sum(log.est(x)^2), quiet = TRUE, control = list(trace = FALSE))))
-    }
-    if (engine@solver == "optim") {
-        suppressWarnings(
-            fit.b <- do.call(
-                engine@solver, list(par = engine@b0, fn = function(x)
-                    sum(log.est(x)^2), control = list(trace = FALSE))))
-    }
+    fit.b <- eqSolve(engine@b0, log.est, engine@solver)
     bhat <- fit.b$par
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
@@ -119,24 +64,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
                as.double(yi), as.double(tij), as.double(X), result = double(p),
                PACKAGE = "reReg")$result
     }
-    if (engine@solver %in% c("dfsane", "BBsolve")) {
-        suppressWarnings(
-            fit.a <- do.call(
-                engine@solver, list(par = engine@a0, fn = ghoshU2, quiet = TRUE,
-                                    control = list(trace = FALSE, NM = 1))))
-    }
-    if (engine@solver == "BBoptim") {
-        suppressWarnings(
-            fit.a <- do.call(
-                engine@solver, list(par = engine@a0, fn = function(x)
-                    sum(log.est(x)^2), quiet = TRUE, control = list(trace = FALSE))))
-    }
-    if (engine@solver == "optim"){
-        suppressWarnings(
-            fit.a <- do.call(
-                engine@solver, list(par = engine@a0, fn = function(x)
-                    sum(log.est(x)^2), control = list(trace = FALSE))))
-    }
+    fit.a <- eqSolve(engine@a0, ghoshU2, engine@solver)
     fit.b$par <- -fit.b$par
     fit.a$par <- -fit.a$par
     list(alpha = fit.a$par, aconv = fit.a$convergence,
@@ -156,52 +84,16 @@ regFit.cox.HW <- function(DF, engine, stdErr) {
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     X <- cbind(1, X[event == 0,])
     engine@a0 <- c(0, engine@a0)
-    if (engine@solver %in% c("dfsane", "BBsolve")) 
-        suppressWarnings(
-            outA <- do.call(
-                engine@solver, list(par = engine@a0, fn = HWeq, 
-                                    X = X, Y = Y, T = T, cluster = cluster, mt = mt,
-                                    weights = NULL, quiet = TRUE, alertConvergence = FALSE,
-                                    control = list(trace = FALSE, NM = 1))))
-    if (engine@solver == "BBoptim")
-        suppressWarnings(
-            outA <- do.call(
-                engine@solver, list(par = engine@a0, fn = function(x)
-                    sum(HWeq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
-                    quiet = TRUE, control = list(trace = FALSE))))
-    if (engine@solver == "optim")
-        suppressWarnings(
-            outA <- do.call(
-                engine@solver, list(par = engine@a0, fn = function(x)
-                    sum(HWeq(x, X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)^2),
-                    control = list(trace = FALSE))))
+    outA <- eqSolve(par = engine@a0, fn = HWeq, solver = engine@solver,
+                    X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)
     muZ <- outA$par[1]
     alpha <- outA$par <- outA$par[-1]
     lambda <- npMLE(Y[event == 0], T, Y)
     zHat <- as.numeric(mt / (lambda * exp(as.matrix(X[, -1]) %*% alpha)))
     zHat <- ifelse(zHat > 1e5, (mt + .01) / (lambda * exp(as.matrix(X[, -1]) %*% alpha) + .01), zHat)
     zHat <- ifelse(is.na(zHat), 0, zHat)
-    if (engine@solver %in% c("dfsane", "BBsolve")) 
-        suppressWarnings(
-            outB <- do.call(
-                engine@solver, list(par = engine@b0, fn = HWeq2, X = as.matrix(X[,-1]),
-                                    Y = Y[event == 0], delta = status[event == 0], zHat = zHat/muZ,
-                                    weights = NULL, alertConvergence = FALSE, quiet = TRUE,
-                                    control = list(NM = 1, M = 100, noimp = 50, trace = FALSE))))
-    if (engine@solver == "BBoptim")
-        suppressWarnings(
-            outB <- do.call(
-                engine@solver, list(par = engine@a0, fn = function(x)
-                    sum(HWeq2(x, X = as.matrix(X[,-1]), Y = Y[event == 0], delta = status[event == 0],
-                              zHat = zHat/muZ, weights = NULL)^2),
-                    quiet = TRUE, control = list(trace = FALSE))))
-    if (engine@solver == "optim")
-        suppressWarnings(
-            outB <- do.call(
-                engine@solver, list(par = engine@a0, fn = function(x)
-                    sum(HWeq2(x, X = as.matrix(X[,-1]), Y = Y[event == 0], delta = status[event == 0],
-                              zHat = zHat/muZ, weights = NULL)^2),
-                    control = list(trace = FALSE))))
+    outB <- eqSolve(par = engine@b0, fn = HWeq2, solver = engine@solver,
+                    X = as.matrix(X[,-1]), Y = Y[event == 0], delta = status[event == 0], zHat = zHat/muZ, weights = NULL)
     list(alpha = outA$par, aconv = outA$convergence,
          beta = outB$par, bconv = outB$convergence,
          muZ = muZ, zHat = zHat / muZ)
@@ -259,7 +151,7 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
     out <- dfsane(par = engine@a0, fn = coxGLeq, wgt = wgt, 
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
-                  alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE, NM = 1))
+                  alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
     list(alpha = out$par, beta = coef(fit.coxph), betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
          wgt = wgt, haz0 = with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant")))
 }
@@ -290,22 +182,7 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
                       as.double(rep(1, length(index))), 
                       result = double(p), PACKAGE = "reReg")$result / n)
     }
-    if (engine@solver %in% c("dfsane", "BBsolve")) {
-        suppressWarnings(
-            fit.a <- do.call(engine@solver, list(par = engine@a0, fn = U1,
-                                                 quiet = TRUE, control = list(trace = FALSE, NM = 1))))
-        ## a.value <- fit.a$residual
-    }
-    if (engine@solver == "BBoptim") {
-        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
-            sum(U1(x)^2), quiet = TRUE, control = list(trace = FALSE))))
-        ## a.value <- fit.a$value
-    }
-    if (engine@solver == "optim") {
-        suppressWarnings(fit.a <- do.call(engine@solver, list(par = engine@a0, fn = function(x)
-            sum(U1(x)^2), control = list(trace = FALSE))))
-        ## a.value <- fit.a$value
-    }
+    fit.a <- eqSolve(engine@a0, U1, engine@solver)
     ahat <- fit.a$par
     yi <- log(DF0$Time) + X %*% ahat
     tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% ahat
@@ -325,22 +202,7 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
            as.double(xb), as.double(tmp), as.double(rep(1, n)),
            result = double(p + 1), PACKAGE = "reReg")$result / n
     }
-    if (engine@solver %in% c("dfsane", "BBsolve")) {
-        suppressWarnings(
-            fit.b <- do.call(engine@solver, list(par = engine@b0, fn = U2,
-                                                 quiet = TRUE, control = list(trace = FALSE, NM = 1))))
-        ## b.value <- fit.b$residual
-    }
-    if (engine@solver == "BBoptim") {
-        suppressWarnings(fit.b <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
-            sum(U2(x)^2), quiet = TRUE, control = list(trace = FALSE))))
-        ## b.value <- fit.b$value
-    }
-    if (engine@solver == "optim") {
-        suppressWarnings(fit.b <- do.call(engine@solver, list(par = engine@b0, fn = function(x)
-            sum(U2(x)^2), control = list(trace = FALSE))))
-        ## b.value <- fit.b$value
-    }    
+    fit.b <- eqSolve(engine@b0, U2, engine@solver)
     list(alpha = fit.a$par, beta = fit.b$par[-1] + fit.a$par,
          aconv = fit.a$convergence, bconv = fit.b$convergence,
          log.muZ = fit.b$par[1])
@@ -1286,6 +1148,25 @@ reReg <- function(formula, data, B = 200,
     if (!is.null(fit$alpha)) names(fit$alpha) <- fit$varNames
     if (!is.null(fit$beta)) names(fit$beta) <- fit$varNames
     fit
+}
+
+#' equation wrapper
+#'
+#' @noRd
+#' @keywords internal
+eqSolve <- function(par, fn, solver, ...) {
+    if (solver == "dfsane")
+        out <- dfsane(par = par, fn = function(z) fn(z, ...), 
+                      alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
+    if (solver == "BBsolve")
+        out <- BBsolve(par = par, fn = fn, ..., quiet = TRUE)
+    if (solver == "BBoptim")
+        out <- BBoptim(par = par, fn = function(z) sum(fn(z, ...)^2),
+                       quiet = TRUE, control = list(trace = FALSE))
+    if (solver == "optim")
+        out <- optim(par = par, fn = function(z) sum(fn(z, ...)^2),
+                     control = list(trace = FALSE))
+    return(out)
 }
 
 ##############################################################################
