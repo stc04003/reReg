@@ -250,16 +250,24 @@ do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
 do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
     fm <- reSurv(Time, id, event, status) ~ x1 + x2
     dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
+    invisible(capture.output(f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot", B = 200)))
+    c(coef(f3), f3$alphaSE, f3$betaSE)
+}
+
+do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
+    fm <- reSurv(Time, id, event, status) ~ x1 + x2
+    dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
     f3 <- reReg(fm, data = dat, method = "am.GL", se = NULL)
     f4 <- reReg(fm, data = dat, method = "am.XCHWY", se = NULL)
     c(coef(f3), coef(f4))
 }
 
-cl <- makePSOCKcluster(16)
+cl <- makePSOCKcluster(8)
+## cl <- makePSOCKcluster(16)
 setDefaultCluster(cl)
 invisible(clusterExport(NULL, "do"))
 invisible(clusterEvalQ(NULL, library(reReg)))
-fo <- parSapply(NULL, 1:100, function(z) {
+fo <- parSapply(NULL, 1:10, function(z) {
     set.seed(z); do(n = 200, type = "am", indCen = FALSE)})
     ## set.seed(z); do(type = "am", indCen = TRUE)})
 stopCluster(cl)
