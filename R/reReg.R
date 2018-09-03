@@ -119,86 +119,6 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
 }
 
-## regFit.am.GL.resampling <- function(DF, engine, stdErr) {
-##     res <- regFit(DF, engine, NULL)
-##     B <- stdErr@B
-##     p <- ncol(as.matrix(DF[,-(1:4)]))
-##     if (stdErr@parallel) {
-##         cl <- makeCluster(stdErr@parCl)
-##         clusterExport(cl = cl,
-##                       varlist = c("DF", "engine"),
-##                       envir = environment())
-##         out <- parSapply(cl, 1:B, function(x) am.GL.resampling(DF, engine, NULL))
-##         stopCluster(cl)
-##         betaMatrix <- t(out)
-##         convergence <- apply(betaMatrix, 1, function(x)
-##             1 * (x %*% x > 1e3 * with(res, c(alpha, beta) %*% c(alpha, beta))))
-##     } else {
-##         betaMatrix <- matrix(0, B, p * 2)
-##         convergence <- rep(0, B)
-##         for (i in 1:B) {
-##             betaMatrix[i,] <- with(am.GL.resampling(DF, engine, NULL), c(alpha, beta))
-##             convergence[i] <- 1 * (betaMatrix[i,] %*% betaMatrix[i,] >
-##                                    1e3 * with(res, c(alpha, beta) %*% c(alpha, beta)))
-##         }
-##     }
-##     converged <- which(convergence == 0)
-##     if (sum(convergence != 0) > 0) {
-##         print("Warning: Some bootstrap samples failed to converge")
-##         tmp <- apply(betaMatrix, 1, function(x) x %*% x)
-##         converged <- (1:B)[- which(tmp %in% boxplot(tmp, plot = FALSE)$out)]        
-##     }
-##     if (all(convergence != 0) || sum(convergence == 0) == 1) {
-##         print("Warning: some bootstrap samples failed to converge")
-##         converged <- 1:B
-##     }
-##     betaVar <- var(betaMatrix[converged, ], na.rm = TRUE)
-##     betaSE <- sqrt(diag(as.matrix(betaVar)))
-##     c(res, list(alphaSE = betaSE[1:p], betaSE = betaSE[1:p + p],
-##                 alphaVar = betaVar[1:p, 1:p], betaVar = betaVar[1:p + p, 1:p + p],
-##                 SEmat = betaMatrix, B = length(converged)))
-## }
-
-## ## This is the resampling multipler method, different than the resampling for sandwich estimator
-## am.GL.resampling <- function(DF, engine, stdErr) {
-##     DF0 <- subset(DF, event == 0)
-##     p <- ncol(DF0) - 4
-##     alpha <- beta <- gamma <- rep(0, p)
-##     Y <- log(DF0$Time)
-##     X <- as.matrix(DF0[,-(1:4)])
-##     status <- DF0$status
-##     n <- nrow(DF0)
-##     Z <- rexp(n)
-##     log.est <- function(b) {
-##         .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
-##            as.integer(rep(1, n)), as.integer(n), as.integer(p), as.integer(n),
-##            as.double(rep(1, n)), as.double(Z), 
-##            result = double(p), PACKAGE = "reReg")$result
-##     }
-##     fit.b <- eqSolve(engine@b0, log.est, engine@solver)
-##     bhat <- fit.b$par
-##     m <- aggregate(event ~ id, data = DF, sum)[,2]
-##     index <- c(1, cumsum(m)[-n] + 1)
-##     ghoshU2 <- function(a) {
-##         d <- max(X %*% (a - bhat))
-##         tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
-##         tij <- tij[DF$event == 1]
-##         ## yi <- Y - X %*% a - d ## Correct version
-##         yi <- Y - X %*% bhat - d ## Paper version
-##         if (sum(tij < rep(yi, m)) == 0) return(1e5)
-##         else
-##             .C("glU2", as.integer(n), as.integer(p), as.integer(index - 1), as.integer(m),
-##                as.double(yi), as.double(tij), as.double(X), as.double(Z), result = double(p),
-##                PACKAGE = "reReg")$result
-##     }
-##     fit.a <- eqSolve(engine@a0, ghoshU2, engine@solver)
-##     fit.b$par <- -fit.b$par
-##     fit.a$par <- -fit.a$par
-##     list(alpha = fit.a$par, aconv = fit.a$convergence,
-##          beta = fit.b$par, bconv = fit.b$convergence, muZ = NA)
-## }
-
-
 regFit.cox.HW <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
@@ -1113,7 +1033,6 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 
 ## #' When a joint model is fitted (e.g., \code{method = "cox.HW"} or \code{method = "am.XCHWY"}),
 ## #' the hazard function of the terminal event is either in a Cox model or an accelerated failure time model.
-
 
 #' Fits Semiparametric Regression Models for Recurrent Event Data
 #'
