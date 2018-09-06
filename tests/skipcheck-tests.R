@@ -162,10 +162,9 @@ simDat(1e4, c(1, 1), c(-1, -1), indCen = FALSE, summary = TRUE, type = "sc")
 ## checking point esitmation
 ## ------------------------------------------------------------------------------------------
 
-fm <- reSurv(Time, id, event, status) ~ x1 + x2
-B <- 200
-
 do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
+    fm <- reSurv(Time, id, event, status) ~ x1 + x2
+    B <- 200
     dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
     f1 <- reReg(fm, data = dat, se = "boot", B = 300)
     f2 <- reReg(fm, data = dat, method = "cox.HW", se = "resam", B = 300)
@@ -179,17 +178,15 @@ do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE)
       coef(f5), f5$alphaSE, f5$betaSE)
 }
 
-set.seed(1)
-system.time(print(as.numeric(do())))
-##  [1]  1.12848066 -0.96327210  0.00000000  0.00000000  0.08104150  0.04824949
-##  [7]  0.00000000  0.00000000  1.15079732 -0.91960453  0.74502877 -1.24873434
-## [13]  0.16494271  0.08979208  0.34134656  0.23186728  1.51329534 -0.93929787
-## [19]  1.81354205 -2.75997486  0.56986363  0.59142903  0.76257468  0.46165841
-## [25]  1.91210659 -1.68138709  2.95126692 -6.91165775  0.25677702  0.17527877
-## [31]  3.83398866  4.78986621  0.72652799  0.15362817  1.27024352 -0.91267918
-## [37]  0.36916668  0.12422041  0.22821398  0.12536768
-##    user  system elapsed 
-##  42.920   0.008  42.933 
+
+do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
+    fm <- reSurv(Time, id, event, status) ~ x1 + x2
+    B <- 500
+    dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
+    f2 <- reReg(fm, data = dat, method = "cox.HW", se = "resam", B = 300)
+    c(coef(f2), f2$alphaSE, f2$betaSE)
+}
+
 
 cl <- makePSOCKcluster(8)
 setDefaultCluster(cl)
@@ -208,152 +205,3 @@ f6 <- parSapply(NULL, 1:500, function(z)
              error = function(e) rep(NA, 40)))
 stopCluster(cl)
 
-## sim <- list(f1 = f1, f2 = f2, f3 = f3, f4 = f4, f5 = f5, f6 = f6)
-## save(sim, file = "sim.RData")
-
-datPre <- function(f0) {
-    PE <- apply(f0, 1, mean, na.rm = T)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
-    ESE <- apply(f0, 1, sd, na.rm = T)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
-    ASE <- apply(f0, 1, mean, na.rm = T)[c(1:4, 9:12, 17:20, 25:28, 33:36) + 4]
-    matrix(rbind(matrix(PE, 4), matrix(ESE, 4), matrix(ASE, 4)), 4)
-}
-
-datPre2 <- function(f0) {
-    PE <- apply(f0, 1, meanOut)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
-    ESE <- apply(f0, 1, sdOut)[c(1:4, 9:12, 17:20, 25:28, 33:36)]
-    ASE <- apply(f0, 1, meanOut)[c(1:4, 9:12, 17:20, 25:28, 33:36) + 4]
-    matrix(rbind(matrix(PE, 4), matrix(ESE, 4), matrix(ASE, 4)), 4)
-}
-
-set.seed(1)
-do(a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE)
-
-set.seed(123)
-dat <- simDat(200, a = c(1, 1), b = c(-1, -1), type = "sc", indCen = TRUE)
-system.time(fit2 <- reReg(fm, data = dat, method = "am.XC", se = "res"))
-summary(fit2)
-system.time(fit22 <- reReg(fm, data = dat, method = "am.XC", se = "boo"))
-summary(fit22)
-
-system.time(fit3 <- reReg(fm, data = dat, method = "sc.X", se = "res"))
-summary(fit3)
-
-
-
-
-
-## ------------------------------------------------------------------------------------------
-## checking am.GL
-## ------------------------------------------------------------------------------------------
-
-do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
-    fm <- reSurv(Time, id, event, status) ~ x1 + x2
-    dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
-    invisible(capture.output(f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot", B = 200)))
-    f4 <- reReg(fm, data = dat, method = "am.XCHWY", se = "re", B = 200)
-    ## c(coef(f3), f3$alphaSE, f3$betaSE,
-    c(coef(f3),
-      sqrt(diag$varMatOut(f3$SEmat))[1:2],
-      sqrt(diag$varMatOut(f3$SEmat))[3:4],
-      coef(f4), f4$alphaSE, f4$betaSE)
-}
-
-do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
-    fm <- reSurv(Time, id, event, status) ~ x1 + x2
-    dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
-    f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot", B = 500)
-    f4 <- reReg(fm, data = dat, method = "am.GL", se = "res", B = 500)
-    ## c(coef(f3), f3$alphaSE, f3$betaSE)
-    c(coef(f3), sqrt(diag(varMatOut(f3$SEmat))), f3$alphaSE, f3$betaSE,
-      coef(f4), sqrt(diag(varMatOut(f4$SEmat))), f4$alphaSE, f4$betaSE)
-}
-
-do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
-    fm <- reSurv(Time, id, event, status) ~ x1 + x2
-    dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
-    f4 <- reReg(fm, data = dat, method = "am.GL", se = "res", B = 500)
-    c(coef(f4), f4$alphaSE, f4$betaSE)
-}
-
-do <- function(n = 100, a = c(1, -1), b = c(1, -1), type = "cox", indCen = TRUE) {
-    fm <- reSurv(Time, id, event, status) ~ x1 + x2
-    dat <- simDat(n = n, a = a, b = b, type = type, indCen = indCen)
-    f3 <- reReg(fm, data = dat, method = "am.GL", se = NULL)
-    f4 <- reReg(fm, data = dat, method = "am.XCHWY", se = NULL)
-    c(coef(f3), coef(f4))
-}
-
-## cl <- makePSOCKcluster(8)
-cl <- makePSOCKcluster(16)
-setDefaultCluster(cl)
-invisible(clusterExport(NULL, "do"))
-invisible(clusterExport(NULL, "varMatOut"))
-invisible(clusterEvalQ(NULL, library(reReg)))
-fo <- parSapply(NULL, 1:50, function(z) { set.seed(z); tryCatch(do(n = 100, type = "am", indCen = FALSE), error = function(e) rep(NA, 8))})
-    ## set.seed(z); do(type = "am", indCen = TRUE)})
-stopCluster(cl)
-
-cbind(apply(fo, 1, mean, na.rm = TRUE),
-      apply(fo, 1, meanOut),
-      apply(fo, 1, sdOut))
-
-##          [,1]       [,2]       [,3]
-##     0.1479000  1.2372969 0.38630290
-##    -6.8621531 -0.9971683 0.20061374
-##     1.2758290  1.3451419 1.23691914
-##    -0.9869453 -0.9869453 0.65943666
-##     0.4551695  0.4306245 0.04966363
-##     0.2550767  0.2425224 0.05336644
-##     1.1352869  1.1352869 0.19788000
-##     0.6058836  0.6058836 0.13003136
-## x1  3.0402262  0.7271139 0.47859693
-## x2  6.1281749  0.7969116 0.77930025
-## x1  1.1617666  1.1617666 0.18347036
-## x2  0.6358100  0.6358100 0.13126954
-
-set.seed(2)
-dat <- simDat(n = 100, a = c(1, -1), b = c(1, -1), type = "am", indCen = FALSE)
-f3 <- reReg(fm, data = dat, method = "am.GL", se = "boot", B = 200)
-summary(f3)
-
-set.seed(2)
-dat <- simDat(n = 100, a = c(1, -1), b = c(1, -1), type = "am", indCen = FALSE)
-f4 <- reReg(fm, data = dat, method = "am.GL", se = "res", B = 200)
-summary(f4)
-
-
-## Method: Ghosh-Lin Model 
-
-## Coefficients (rate):
-##    Estimate StdErr z.value p.value   
-## x1    1.550  0.650   2.385   0.017 * 
-## x2   -1.024  0.330  -3.100   0.002 **
-## ---
-## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-## Coefficients (hazard):
-##    Estimate StdErr z.value p.value
-## x1    0.116  1.159   0.100   0.920
-## x2   -0.542  0.561  -0.966   0.334
-
-
-debug(reReg)
-debug(regFit.am.GL)
-debug(regFit.am.GL.resampling)
-
-reReg(fm, data = dat, method = "am.GL", se = "boot", B = 200)
-reReg(fm, data = dat, method = "am.GL", se = "res", B = 200)
-
-regFit.am.GL(DF = DF, engine = engine, stdErr = stdErr)
-regFit.am.GL.resampling(DF = DF, engine = engine, stdErr = stdErr)
-
-########################################################################
-
-set.seed(1)
-system.time(print(as.numeric(do(type = "am", indCen = FALSE))))
-
-
- [1]   9.6224914 -12.2893473   1.8320571  -1.1017439   0.7147545   0.4603809
- [7]   1.2662737   0.9185402   0.9478103   0.8093581   1.3610574   0.9212062
-   user  system elapsed 
- 84.018   0.026  84.180 

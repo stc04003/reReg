@@ -345,7 +345,6 @@ regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
         zHat <- mt / (lam * exp(as.matrix(X[,-1]) %*% g[-1]))
         zHat <- ifelse(zHat > 1e5, (mt + .01) / (lam * exp(as.matrix(X[,-1]) %*% g[-1]) + .01), zHat)
         zHat <- ifelse(is.na(zHat), 0, zHat)
-        ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
         ## s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat / g[1], rep(w, mt + 1))
         s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat, w) ## rep(w, mt + 1))
         if (r == "s2") return(s2)
@@ -353,13 +352,15 @@ regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     }
     g <- c(res$muZ, res$alpha)
     V <- var(t(apply(E, 2, function(x) Sn(g, res$beta, x))))
-    V1 <- V[1:(p + 1), 1:(p + 1)]
+    V1 <- V[2:(p + 1), 2:(p + 1)]
     V2 <- V[1 + p + 1:p, 1 + p + 1:p]
-    lmfit1 <- t(apply(Z, 2, function(x) Sn(g + x / sqrt(n), res$beta, rep(1, n), "s1")))
+    lmfit1 <- t(apply(Z, 2, function(x) Sn(g + c(0, x[-1]) / sqrt(n), res$beta, rep(1, n), "s1")[-1]))
+    ## V1 <- V[1:(p + 1), 1:(p + 1)]
+    ## V2 <- V[1 + p + 1:p, 1 + p + 1:p]
+    ## lmfit1 <- t(apply(Z, 2, function(x) Sn(g + x / sqrt(n), res$beta, rep(1, n), "s1")))
     lmfit2 <- t(apply(Z, 2, function(x) Sn(g, res$beta + x[-1] / sqrt(n), rep(1, n), "s2")))
     ## J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
-    ## J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,])))[-1,]
-    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
+    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z[-1,])))[-1,]
     J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,])))[-1,]
     if (qr(J1)$rank == (p + 1)) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
     else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
@@ -367,8 +368,8 @@ regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))
     aSE <- sqrt(diag(aVar))
     bSE <- sqrt(diag(bVar))
-    c(res, list(alphaSE = aSE[-1], betaSE = bSE, alphaVar = aVar[-1, -1], betaVar = bVar))
-
+    ## c(res, list(alphaSE = aSE[-1], betaSE = bSE, alphaVar = aVar[-1, -1], betaVar = bVar))
+    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
 }
 
 regFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
