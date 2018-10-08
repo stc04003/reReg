@@ -40,4 +40,9 @@ Useful links:
 \author{
 \strong{Maintainer}: Sy Han (Steven) Chiou \email{schiou@utdallas.edu}
 
+Authors:
+\itemize{
+  \item Chiung-Yu Huang \email{ChiungYu.Huang@ucsf.edu}
+}
+
 }
