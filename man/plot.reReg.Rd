@@ -15,7 +15,7 @@ If \code{baseline = "both"} (default), both the baseline cumulative rate and bas
 if \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
 if \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.}
 
-\item{smooth}{an optional logical value indicating whether the \emph{loess} smoothing will be applied.}
+\item{smooth}{an optional logical value indicating whether to add a smooth curve (\emph{loess} smooth).}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
@@ -33,11 +33,10 @@ Plot the baseline cumulative rate function and the baseline cumulative hazard fu
 The argument \code{control} consists of options with argument defaults to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
-  \item{ylab}{customizable y-label, default value is "Subject".}
+  \item{ylab}{customizable y-label, default value is empty, e.g., "".}
   \item{main}{customizable title, default value are "Baseline cumulative rate and hazard function" when \code{baseline = "both"},
 "Baseline cumulative rate function" when \code{baseline = "rate"}, and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 }
-These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
 data(readmission, package = "frailtypack")
@@ -45,6 +44,7 @@ fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
              data = subset(readmission, id < 50))
 plot(fit)
 plot(fit, baseline = "rate")
+plot(fit, baseline = "rate", xlab = "Time (days)")
 }
 \seealso{
 \code{\link{reReg}}

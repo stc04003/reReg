@@ -8,7 +8,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is "Subject".}
+#'   \item{ylab}{customizable y-label, default value is "Subject" for event plot and "Cumulative mean" for CSM plot.}
 #'   \item{main}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
 #' "Sample cumulative mean function plot" when \code{CSM = TRUE}.}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
@@ -16,7 +16,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
-#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
+#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 #' 
 #' @param x an object of class \code{reSurv}, usually returned by the \code{reSurv} function.
 ## #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
@@ -38,6 +38,8 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' @examples
 #' data(readmission, package = "frailtypack")
 #' reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, id, event, death))
+#'
+#' ## Event plots:
 #' ## Default labels
 #' plot(reObj)
 #' plot(reObj, order = FALSE)
@@ -48,6 +50,9 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' set.seed(1)
 #' reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 #' plot(reObj2)
+#'
+#' ## CSM plots
+#' plot(reObj, CSM = TRUE)
 plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
     if (!is.reSurv(x)) stop("Response must be a reSurv class")
     if (!CSM) ctrl <- plotEvents.control()
@@ -71,7 +76,8 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 
 #' Produce Event Plots
 #'
-#' Plot the event plot for an \code{reSurv} object, with more flexible options.
+#' Plot the event plot for an \code{reSurv} object.
+#' The function is similar to \code{plot.reSurve} but with more flexible options.
 #'
 #' The argument \code{control} consists of options with argument defaults to a
 #' list with the following values:
@@ -217,25 +223,22 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 
 #' Produce Cumulative Sample Mean Function Plots
 #'
-#' Plot the cumulative sample mean function (CSM) for an \code{reSurv} object,
-#' with more flexible options.
+#' Plot the cumulative sample mean function (CSM) for an \code{reSurv} object.
+#' The function is similar to \code{plot.reSurv} but with more flexible options.
 #'
 #' When \code{adjrisk = TRUE}, the \code{plotCSM} is equivalent to
 #' the Nelson-Aalen estimator for the intensity function of the recurrent event process.
 #' When \code{adjrisk = FALSE}, the \code{plotCSM} does not adjust for the risk set and
 #' assumes all subjects remain at risk after the last observed recurrent event.
+#' This is known as the survivor rate function.
 #' The argument \code{control} consists of options with argument defaults
 #' to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is "Subject".}
+#'   \item{ylab}{customizable y-label, default value is "Cumulative mean".}
 #'   \item{main}{customizable title, default value is "Sample cumulative mean function plot".}
-#'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-#'   \item{recurrent.name}{customizable legend title for recurrent events, default value is "Recurrent events".}
-#'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL} and .}
-#'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
-#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
+#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
@@ -380,14 +383,14 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is "Subject".}
+#'   \item{ylab}{customizable y-label, default value is empty, e.g., "".}
 #'   \item{main}{customizable title, default value are "Baseline cumulative rate and hazard function" when \code{baseline = "both"},
 #' "Baseline cumulative rate function" when \code{baseline = "rate"}, and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 #' }
-#' These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
+## #' These arguments can also be passed down without specifying a \code{control} list.
 #' 
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
-#' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
+#' @param smooth an optional logical value indicating whether to add a smooth curve (\emph{loess} smooth).
 #' @param baseline a character string specifying which baseline function to plot.
 #' If \code{baseline = "both"} (default), both the baseline cumulative rate and baseline cumulative hazard function will be plotted in separate panels within the same display;
 #' if \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
@@ -410,6 +413,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
 #'              data = subset(readmission, id < 50))
 #' plot(fit)
 #' plot(fit, baseline = "rate")
+#' plot(fit, baseline = "rate", xlab = "Time (days)")
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                        smooth = FALSE, control = list(), ...) {
     baseline <- match.arg(baseline)
@@ -481,7 +485,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is "Subject".}
+#'   \item{ylab}{customizable y-label, default value is empty, e.g., "".}
 #'   \item{main}{customizable title, default value is "Baseline cumulative rate function".}
 #' }
 #' These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
@@ -559,7 +563,7 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' defaults to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is "Subject".}
+#'   \item{ylab}{customizable y-label, default value is empty, e.g., "".}
 #'   \item{main}{customizable title, default value is "Baseline cumulative hazard function".}
 #' }
 #' These arguments can also be passed down without specifying a \code{control} list.
@@ -595,7 +599,7 @@ plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
         cat(paste("Baseline cumulative hazard function is not available for method = ", x$method, ".", sep = ""))
         return()
     }
-    ctrl <- plotEvents.control()
+    ctrl <- plotHaz.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])

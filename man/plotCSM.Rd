@@ -27,26 +27,23 @@ These include \code{xlab}, \code{ylab} and \code{main}.}
 A \code{ggplot} object.
 }
 \description{
-Plot the cumulative sample mean function (CSM) for an \code{reSurv} object,
-with more flexible options.
+Plot the cumulative sample mean function (CSM) for an \code{reSurv} object.
+The function is similar to \code{plot.reSurv} but with more flexible options.
 }
 \details{
 When \code{adjrisk = TRUE}, the \code{plotCSM} is equivalent to
 the Nelson-Aalen estimator for the intensity function of the recurrent event process.
 When \code{adjrisk = FALSE}, the \code{plotCSM} does not adjust for the risk set and
 assumes all subjects remain at risk after the last observed recurrent event.
+This is known as the survivor rate function.
 The argument \code{control} consists of options with argument defaults
 to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
-  \item{ylab}{customizable y-label, default value is "Subject".}
+  \item{ylab}{customizable y-label, default value is "Cumulative mean".}
   \item{main}{customizable title, default value is "Sample cumulative mean function plot".}
-  \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-  \item{recurrent.name}{customizable legend title for recurrent events, default value is "Recurrent events".}
-  \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL} and .}
-  \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
-The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
+The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 }
 \examples{
 data(readmission, package = "frailtypack")

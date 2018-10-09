@@ -27,7 +27,7 @@ The argument \code{control} consists of options with argument defaults
 to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
-  \item{ylab}{customizable y-label, default value is "Subject".}
+  \item{ylab}{customizable y-label, default value is empty, e.g., "".}
   \item{main}{customizable title, default value is "Baseline cumulative rate function".}
 }
 These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
