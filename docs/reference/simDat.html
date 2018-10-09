@@ -64,7 +64,7 @@ The simulated data is used for illustration." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">1.1.5</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">1.1.6</span>
       </span>
     </div>
 
@@ -195,16 +195,16 @@ with probability 0.5 and <code>x2</code> follows a standard normal distribution.
 <span class='fu'>simDat</span>(<span class='fl'>200</span>, <span class='fu'>c</span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'>c</span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>summary</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; 
 #&gt; Summary results for number of recurrent event per subject:
 #&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#&gt;   0.000   1.000   3.000   5.165   7.000  33.000 
+#&gt;    0.00    1.00    2.00    3.87    5.00   33.00 
 #&gt; 
-#&gt; Number of failures: 62 (31%); Number of censored events: 138 (69%)
+#&gt; Number of failures: 49 (24.5%); Number of censored events: 151 (75.5%)
 #&gt; 
-#&gt; Number of x1 == 1: 86 (43%); Number of x1 == 0: 114 (57%)
+#&gt; Number of x1 == 1: 96 (48%); Number of x1 == 0: 104 (52%)
 #&gt; Summary results for x2:
 #&gt;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#&gt; -2.27271 -0.58393  0.04562  0.06903  0.66867  3.29052 
+#&gt; -2.16226 -0.68832 -0.08922 -0.04727  0.61537  2.43023 
 #&gt; 
-#&gt; </div><div class='output co'>#&gt; # A tibble: 1,233 x 6
+#&gt; </div><div class='output co'>#&gt; # A tibble: 974 x 6
 #&gt;       id    Time event status    x1     x2
 #&gt;    &lt;int&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
 #&gt;  1     1  0.0737     1      0     0  0.801
@@ -217,7 +217,7 @@ with probability 0.5 and <code>x2</code> follows a standard normal distribution.
 #&gt;  8     2 60          0      0     1 -0.687
 #&gt;  9     3  0.403      1      0     0  1.79 
 #&gt; 10     3  0.505      1      0     0  1.79 
-#&gt; # ... with 1,223 more rows</div></pre>
+#&gt; # ... with 964 more rows</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

@@ -1,6 +1,6 @@
 Package: reReg
 Title: Recurrent Event Regression
-Version: 1.1.5
+Version: 1.1.6
 Authors@R: person("Sy Han (Steven)", "Chiou", email = "schiou@utdallas.edu", role = c("aut", "cre"))
 Description: A collection of regression models for recurrent event process and failure time data.
 	     Available methods include these from Xu et al. (2017) <doi:10.1080/01621459.2016.1173557>,

@@ -158,7 +158,7 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
     T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
     fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
     list(alpha = coef(fit.coxph), alphaSE = sqrt(diag(vcov(fit.coxph))),
-         beta = rep(0, p), muZ = NA)
+         beta = rep(NA, p), betaSE = rep(NA, p), muZ = NA)
     ## my implementation of coxph estimating equation
     ##
     ## status <- DF$status
@@ -1110,15 +1110,15 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #' @param control a list of control parameters.
 #'
 #' @export
-#' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
+#' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
 #' \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
 #' @references Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
 #' \emph{Journal of the Royal Statistical Society: Series B (Methodological)}, \bold{62}: 711--730.
-#' @references Wang, M.C., Qin, J., and Chiang, C.T. (2001). Analyzing Recurrent Event Data with Informative Censoring.
+#' @references Wang, M.-C., Qin, J., and Chiang, C.-T. (2001). Analyzing Recurrent Event Data with Informative Censoring.
 #' \emph{Journal of the American Statistical Association}, \bold{96}(455): 1057--1065.
 #' @references Ghosh, D. and Lin, D.Y. (2003). Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.
 #' \emph{Biometrics}, \bold{59}: 877--885.
-#' @references Huang, C.-Y. and Wang, M.C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
+#' @references Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 #' \emph{Journal of the American Statistical Association}, \bold{99}(468): 1153--1165.
 #'
 #' @importFrom stats approxfun
