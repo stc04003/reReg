@@ -38,11 +38,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Sy Han (Chiou) Chiou \email{schiou@utdallas.edu}
+\strong{Maintainer}: Sy Han (Steven) Chiou \email{schiou@utdallas.edu}
 
 Authors:
 \itemize{
-  \item Chiung-Y  Huang \email{ChiungYu.Huang@ucsf.edu}
+  \item Chiung-Yu  Huang \email{ChiungYu.Huang@ucsf.edu}
 }
 
 }
