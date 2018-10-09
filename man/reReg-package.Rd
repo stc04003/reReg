@@ -7,7 +7,7 @@
 \alias{reReg-packages}
 \title{reReg: Recurrent Event Regression}
 \description{
-The package provides easy access to analyzing recurrent event data.
+The package provides easy access to fit regression models to recurrent event data.
 The available implementations allow users to explore recurrent data through event plot and cumulative sample mean function plot,
 fit semiparametric regression models under different assumptions,
 and simulate recurrent event data.
@@ -38,11 +38,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Sy Han (Steven) Chiou \email{schiou@utdallas.edu}
+\strong{Maintainer}: Sy Han (Chiou) Chiou \email{schiou@utdallas.edu}
 
 Authors:
 \itemize{
-  \item Chiung-Yu Huang \email{ChiungYu.Huang@ucsf.edu}
+  \item Chiung-Y  Huang \email{ChiungYu.Huang@ucsf.edu}
 }
 
 }

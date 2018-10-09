@@ -31,7 +31,7 @@ Plot the event plot or the cumulative sample mean (CSM) function for an \code{re
 The argument \code{control} consists of options with argument defaults to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
-  \item{ylab}{customizable y-label, default value is "Subject".}
+  \item{ylab}{customizable y-label, default value is "Subject" for event plot and "Cumulative mean" for CSM plot.}
   \item{main}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
 "Sample cumulative mean function plot" when \code{CSM = TRUE}.}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
@@ -39,11 +39,13 @@ The argument \code{control} consists of options with argument defaults to a list
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
-The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
+The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 }
 \examples{
 data(readmission, package = "frailtypack")
 reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, id, event, death))
+
+## Event plots:
 ## Default labels
 plot(reObj)
 plot(reObj, order = FALSE)
@@ -54,6 +56,9 @@ plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User 
 set.seed(1)
 reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
 plot(reObj2)
+
+## CSM plots
+plot(reObj, CSM = TRUE)
 }
 \seealso{
 \code{\link{reSurv}}

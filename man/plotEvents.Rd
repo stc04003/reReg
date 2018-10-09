@@ -24,7 +24,8 @@ These include \code{xlab}, \code{ylab} and \code{main}.}
 A \code{ggplot} object.
 }
 \description{
-Plot the event plot for an \code{reSurv} object, with more flexible options.
+Plot the event plot for an \code{reSurv} object.
+The function is similar to \code{plot.reSurve} but with more flexible options.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a

@@ -1121,7 +1121,7 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #' @references Huang, C.-Y. and Wang, M.C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 #' \emph{Journal of the American Statistical Association}, \bold{99}(468): 1153--1165.
 #'
-#' @importFrom stats approxfun
+#' @importFrom stats approxfun optim
 #' 
 #' @seealso \code{\link{reSurv}}, \code{\link{simDat}}
 #'

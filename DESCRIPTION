@@ -1,7 +1,12 @@
 Package: reReg
 Title: Recurrent Event Regression
 Version: 1.1.5
-Authors@R: c(person("Sy Han (Steven)", "Chiou", email = "schiou@utdallas.edu", role = c("aut", "cre")), person("Chiung-Yu", "Huang", email = "ChiungYu.Huang@ucsf.edu", role = "aut"))
+Authors@R: c(
+	   person(given = "Sy Han (Chiou)", family = "Chiou",
+	   email = "schiou@utdallas.edu",
+	   role = c("aut", "cre")),
+	   person(given = "Chiung-Y", family = " Huang",
+	   email = "ChiungYu.Huang@ucsf.edu", role = "aut"))
 Description: A collection of regression models for recurrent event process and failure time data.
 	     Available methods include these from Xu et al. (2017) <doi:10.1080/01621459.2016.1173557>,
 	     Lin et al. (2000) <doi:10.1111/1467-9868.00259>,
@@ -19,7 +24,5 @@ Imports: BB, nleqslv, SQUAREM, survival, plyr, ggplot2,
 RoxygenNote: 6.1.0
 NeedsCompilation: yes
 Packaged: 2018-06-03 00:41:51 UTC; schiou
-Author: Sy Han (Steven) Chiou [aut, cre]
-Maintainer: Sy Han (Steven) Chiou <schiou@utdallas.edu>
 Suggests: frailtypack,
     reda
