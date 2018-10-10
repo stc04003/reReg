@@ -7,7 +7,7 @@ skipcheck*
 \.Rproj$
 ^\.Rproj\.user$
 ^\.Rhistory$
-^test$
+^tests$
 ^vignettes$
 ^\.git$
 ^appveyor\.yml$
