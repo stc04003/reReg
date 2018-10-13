@@ -1,0 +1,85 @@
+---
+title: "Simulating recurrent event data"
+author: Sy Han (Steven) Chiou
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+bibliography: ../inst/bib/reReg.bib
+vignette: >
+  %\VignetteIndexEntry{Visualization of recurrent event data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}{inputenc}
+---
+
+```{r default, include = FALSE}
+knitr::opts_chunk$set(prompt = TRUE, comment = "")
+```
+In this vignette, we demonstrate how to use the `simDat` in __`reReg`__ package
+to simulate recurrent event data from either a Cox-type model, an
+accelerated mean model, or a scale-change model. 
+The `simDat` function allows censoring time to be non-informative (independent given covariate)
+or informative about the recurrent event process. 
+
+## Notations
+Suppose recurrent events can potentially be observed in the time period $[0, \tau]$.
+For a subject, let $N_i(t)$ be the number of events in interval $[0, t]$,
+and $X_i$ is a $p\times 1$ covariate vector.
+Let $C_i$ be a noninformative censoring time, which is independent of $N_i(\cdot)$ given $X_i$.
+On the contrary, let $D_i$ be a failure time (informative censoring time),
+which is associated with $N_i(\cdot)$
+even after conditioning on $X$.
+Then the follow-up time is defined as $Y = \min(C, D, \tau)$.
+The observed data are independent and identically distributed copies of
+$\{N_i(t), Y_i, X_i: t\le Y_i, i = 1, \ldots, n\}$.
+In the following, we suppress the index for the ease of discussion.
+   
+## The `simDat` function {-}
+The function `simDat` generates the recurrent times from a recurrent event process, $N(t)$,
+with a pre-specified rate function, $\lambda(t)$, and the failure time, $D$,
+from a pre-specified hazard function, $h(t)$.
+By specifying the argument `type` in the function `simDat`,
+recurrent times and failure time can be generated from the following models:
+* `type = "cox"` for Cox-type models:
+$$\lambda(t) = Z\lambda_0(t) e^{X^\top\alpha}, h(t) = Zh_0(t) e^{X^\top\beta}.$$
+* `type = "am"` for accelerated mean models:
+$$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
+* `type = "sc"` for scale-change models:
+$$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
+
+In `simDat` currently only allows two covariates, i.e., $X = (X_{1}, X_{2})^\top$,
+where $X_1$ is a Bernoulli random variable with probability 0.5 and
+$X_2$ is a standard normal random variable.
+The non-informative censoring time, $C$, is generated separately from an exponential distribution 
+with mean 80.
+The observed follow-up time is then taken to be $Y = \min(D, C, \tau)$.
+We further assume the baseline functions
+$$\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.$$
+
+The complete list of arguments in `simDat` are as follow
+```{r simDat}
+library(reReg)
+args(simDat)
+```
+The arguments are as follows
+
+* `n` number of individual
+* `a, b` numeric vectors of parameter of length two.
+* `indCen` a logical value indicating whether the censoring assumption is imposed.
+  When `indCen = TRUE`, we set $Z = 1$.
+  Otherwise, $Z$ is generated from a gamma distribution with mean 1 and variance 0.25
+  (e.g., `rgamma(1, 4, 4)`).
+* `type` a character string specifying the underlying model.
+* `tau` a numeric value specifying the maximum observation time.
+* `summary` a logical value indicating whether a brief data summary will be printed.
+
+## Examples
+```{R set-seed, echo = FALSE}
+set.seed(123)
+```
+From Cox-type model
+```{R cox}
+simDat(200, c(-1, 1), c(-1, 1), summary = TRUE)
+```
