@@ -72,7 +72,7 @@ The arguments are as follows
   Otherwise, $Z$ is generated from a gamma distribution with mean 1 and variance 0.25
   (e.g., `rgamma(1, 4, 4)`).
 * `type` a character string specifying the underlying model.
-* `tau` a numeric value specifying the maximum observation time.
+* `tau` a numeric value specifying the maximum observation time, or $\tau$ in the above notation.
 * `summary` a logical value indicating whether a brief data summary will be printed.
 
 ## Examples
@@ -82,4 +82,12 @@ set.seed(123)
 From Cox-type model
 ```{R cox}
 simDat(200, c(-1, 1), c(-1, 1), summary = TRUE)
+```
+From accelerated mean model
+```{R am}
+simDat(200, c(-1, 1), c(-1, 1), type = "am", summary = TRUE)
+```
+From scale-change model
+```{R sc}
+simDat(200, c(-1, 1), c(-1, 1), type = "sc", summary = TRUE)
 ```
