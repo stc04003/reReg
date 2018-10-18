@@ -1,4 +1,8 @@
 2018-06-11 Sy Han Chiou <schiou@utdallas.edu>
+	* Version 1.1.6
+	* Added sandwish variance estimations 
+	* Added vignettes on simulation and plots
+2018-06-11 Sy Han Chiou <schiou@utdallas.edu>
 	* Version 1.1.5
 	* Cleaned reSurv and am.GL codes
 	* updated event plot, baseline function plots
