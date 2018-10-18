@@ -7,7 +7,8 @@ void plLambda(double *sl, double *tij, double *yi, double *weights,
 	      // output
 	      double *res) {
   int i, j;
-  double dl, Rl;
+  double dl = 0.0;
+  double Rl = 0.0;
   for (j = 0; j < *n; j++) {
     res[j] = 1;
     dl = 0;
@@ -39,8 +40,8 @@ void sarm1(double *X, double *weights, double *xr,
 
 void alphaEqC(double *X, double *ratio, int *n, int *p, double *weights, double *res) {
   int i, j, r;
-  double snd;
-  double wgtMean = 0;
+  double snd = 0.0;
+  double wgtMean = 0.0;
   for (i = 0; i < *n; i++) {
     wgtMean += weights[i];
   }
