@@ -3,4 +3,5 @@ pkgdown: 1.1.0
 pkgdown_sha: ~
 articles:
   reReg-plots: reReg-plots.html
+  reReg-sims: reReg-sims.html
 
