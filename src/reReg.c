@@ -7,24 +7,22 @@ void plLambda(double *sl, double *tij, double *yi, double *weights,
 	      // output
 	      double *res) {
   int i, j;
-  double dl = 0, Rl = 0;
+  double dl, Rl;
   for (j = 0; j < *n; j++) {
     res[j] = 1;
     dl = 0;
     Rl = 0;
     for (i = 0; i < *N; i++) {
       if (sl[j] >= tij[i] && sl[j] <= yi[i]) {
-	Rl = Rl + weights[i];
+	Rl += weights[i] * 1;
       }
       if (sl[j] == tij[i] && tij[i] != yi[i]) {
-	dl = dl + weights[i];
+	dl += weights[i] * 1;
       }
     }
     if (Rl > 0) {
-      if (j == 0)
-	res[j] = (dl / Rl);
-      if (j > 0)
-	res[j] = res[j - 1] + (dl / Rl);
+      if (j == 0) res[j] = (dl / Rl);
+      if (j > 0) res[j] = res[j - 1] + (dl / Rl);
     }
   }
 }

@@ -885,7 +885,8 @@ npFit.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     zHat <- ifelse(is.na(zHat), 0, zHat)
     ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
     ly <- ly / max(ly)
-    E <- matrix(rexp(length(t0) * B), nrow = length(t0))
+    E <- matrix(rexp(length(Ya) * B), nrow = length(Ya))
+    ## E <- matrix(rexp(length(t0) * B), nrow = length(t0))
     lytmp <- apply(E, 2, function(x) npMLE(t0, Ta, Ya, x))
     lytmp <- apply(lytmp, 2, function(z) z / max(z))
     lyU <- apply(lytmp, 1, function(z) quantile(z, 0.975))
@@ -1241,13 +1242,15 @@ npMLE <- function(t, tij, yi, weights = NULL) {
     tmp <- rev(tmp)
     tij <- rev(tij)
     yi <- rev(yi)
-    res <- vector("double", length(tmp)) + 1
+    ## print(length(weights))
     res <- .C("plLambda", as.double(tmp), as.double(tij), as.double(yi), as.double(weights), 
               as.integer(length(tmp)), as.integer(length(yi)),
-              out = as.double(res), PACKAGE = "reReg")$out
+              out = double(length(tmp)),
+              PACKAGE = "reReg")$out
     out <- rev(res)[sapply(t, function(x) which(rev(tmp) >= x)[1])]
     out <- ifelse(is.na(out), 0, out)
     out <- exp(-out)
+    return(out)
 }
 
 baseHaz <- function(t0, Y, zhat, delta, weights  = NULL) {
