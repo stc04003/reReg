@@ -1304,13 +1304,13 @@ betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weight
     res / n
 }
 
-LWYYeq <- function(beta, X, Y, T, cl) {
-    p <- ncol(X)
-    res <- vector("double", p)
-    .C("lwyy", as.double(T), as.double(Y), as.double(X), as.double(wgt), as.integer(cl),
-       as.integer(c(0, cumsum(cl)[-length(cl)])), as.integer(nrow(X)), as.integer(p),        
-       out = double(p), PACKAGE = "reReg")$out       
-}
+## LWYYeq <- function(beta, X, Y, T, cl) {
+##     p <- ncol(X)
+##     res <- vector("double", p)
+##     .C("lwyy", as.double(T), as.double(Y), as.double(X), as.double(wgt), as.integer(cl),
+##        as.integer(c(0, cumsum(cl)[-length(cl)])), as.integer(nrow(X)), as.integer(p),        
+##        out = double(p), PACKAGE = "reReg")$out       
+## }
 
 #' R function for equation 8 of Ghosh & Lin (2002);
 #' Marginal regression models for recurrent and terminal events.
