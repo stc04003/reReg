@@ -9,7 +9,7 @@ output:
     toc_float: true
 bibliography: ../inst/bib/reReg.bib
 vignette: >
-  %\VignetteIndexEntry{Visualization of recurrent event data}
+  %\VignetteIndexEntry{Simulating recurrent event data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}{inputenc}
 ---
