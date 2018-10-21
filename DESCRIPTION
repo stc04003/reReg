@@ -6,22 +6,15 @@ Authors@R: c(person(given = "Sy Han (Steven)", family = "Chiou",
 	   role = c("aut", "cre")),
 	   person(given = "Chiung-Yu", family = " Huang",
 	   email = "ChiungYu.Huang@ucsf.edu", role = "aut"))
-Description: A collection of regression models for recurrent event process and failure time data.
-	     Available methods include these from Xu et al. (2017) <doi:10.1080/01621459.2016.1173557>,
-	     Lin et al. (2000) <doi:10.1111/1467-9868.00259>,
-	     Wang et al. (2001) <doi:10.1198/016214501753209031>,
-	     Ghosh and Lin (2003) <doi:10.1111/j.0006-341X.2003.00102.x>, and
-	     Huang and Wang (2004) <doi:10.1198/016214504000001033>.
+Description: A collection of regression models for recurrent event process and failure time data. Available methods include these from Xu et al. (2017) <doi:10.1080/01621459.2016.1173557>, Lin et al. (2000) <doi:10.1111/1467-9868.00259>, Wang et al. (2001) <doi:10.1198/016214501753209031>, Ghosh and Lin (2003) <doi:10.1111/j.0006-341X.2003.00102.x>, and Huang and Wang (2004) <doi:10.1198/016214504000001033>.
 Depends: R (>= 3.4.0)
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 URL: http://github.com/stc04003/reReg
 BugReports: http://github.com/stc04003/reReg/issues
-Imports: BB, nleqslv, SQUAREM, survival, plyr, ggplot2,
-        purrr, dplyr, tidyr, MASS, methods, tibble
+Imports: BB, nleqslv, SQUAREM, survival, plyr, ggplot2, purrr, dplyr, tidyr, MASS, methods, tibble
 RoxygenNote: 6.1.0
 NeedsCompilation: yes
 Packaged: 2018-06-03 00:41:51 UTC; schiou
-Suggests: frailtypack,
-    reda
+Suggests: frailtypack
