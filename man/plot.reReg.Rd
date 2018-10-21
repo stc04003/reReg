@@ -42,7 +42,6 @@ The argument \code{control} consists of options with argument defaults to a list
 data(readmission, package = "frailtypack")
 fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
              data = subset(readmission, id < 50))
-plot(fit)
 plot(fit, baseline = "rate")
 plot(fit, baseline = "rate", xlab = "Time (days)")
 }

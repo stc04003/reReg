@@ -411,7 +411,6 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
 #' data(readmission, package = "frailtypack")
 #' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
 #'              data = subset(readmission, id < 50))
-#' plot(fit)
 #' plot(fit, baseline = "rate")
 #' plot(fit, baseline = "rate", xlab = "Time (days)")
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),

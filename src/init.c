@@ -2,6 +2,7 @@
 
 #include <R.h>
 #include <Rinternals.h>
+#include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 
 /* void R_init_markovchain(DllInfo* info) { */
@@ -20,7 +21,6 @@ extern void glU2(void *, void *, void *, void *, void *, void *, void *, void *,
 extern void HWb(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void hwHaz(void *, void *, void *, void *, void *, void *, void *, void *);
 extern void log_ns_est(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void lwyy(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void plLambda(void *, void *, void *, void *, void *, void *, void *);
 extern void sarm1(void *, void *, void *, void *, void *, void *, void *);
 extern void sc1Gehan(void *, void *, void *, void *, void *, void *, void *, void *, void *);
@@ -39,7 +39,6 @@ static const R_CMethodDef CEntries[] = {
     {"HWb",        (DL_FUNC) &HWb,         9},
     {"hwHaz",      (DL_FUNC) &hwHaz,       8},
     {"log_ns_est", (DL_FUNC) &log_ns_est, 11},
-    {"lwyy",       (DL_FUNC) &lwyy,        9},
     {"plLambda",   (DL_FUNC) &plLambda,    7},
     {"sarm1",      (DL_FUNC) &sarm1,       7},
     {"sc1Gehan",   (DL_FUNC) &sc1Gehan,    9},
