@@ -27,7 +27,7 @@ or informative about the recurrent event process.
 Suppose recurrent events can potentially be observed in the time period $[0, \tau]$.
 For a subject, let $N_i(t)$ be the number of events in interval $[0, t]$,
 and $X_i$ is a $p\times 1$ covariate vector.
-Let $C_i$ be a noninformative censoring time, which is independent of $N_i(\cdot)$ given $X_i$.
+Let $C_i$ be a non-informative censoring time, which is independent of $N_i(\cdot)$ given $X_i$.
 On the contrary, let $D_i$ be a failure time (informative censoring time),
 which is associated with $N_i(\cdot)$
 even after conditioning on $X$.
@@ -42,12 +42,13 @@ with a pre-specified rate function, $\lambda(t)$, and the failure time, $D$,
 from a pre-specified hazard function, $h(t)$.
 By specifying the argument `type` in the function `simDat`,
 recurrent times and failure time can be generated from the following models:
-* `type = "cox"` for Cox-type models:
-$$\lambda(t) = Z\lambda_0(t) e^{X^\top\alpha}, h(t) = Zh_0(t) e^{X^\top\beta}.$$
-* `type = "am"` for accelerated mean models:
-$$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
-* `type = "sc"` for scale-change models:
-$$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
+
+ * `type = "cox"` for Cox-type models:
+  $$\lambda(t) = Z\lambda_0(t) e^{X^\top\alpha}, h(t) = Zh_0(t) e^{X^\top\beta}.$$
+ * `type = "am"` for accelerated mean models:
+  $$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
+ * `type = "sc"` for scale-change models:
+  $$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
 
 In `simDat` currently only allows two covariates, i.e., $X = (X_{1}, X_{2})^\top$,
 where $X_1$ is a Bernoulli random variable with probability 0.5 and
@@ -76,18 +77,32 @@ The arguments are as follows
 * `summary` a logical value indicating whether a brief data summary will be printed.
 
 ## Examples
+In the following examples, we simulate recurrent event using `simDat`, with `summary = TRUE`.
 ```{R set-seed, echo = FALSE}
 set.seed(123)
 ```
-From Cox-type model
+Cox-type model:
 ```{R cox}
-simDat(200, c(-1, 1), c(-1, 1), summary = TRUE)
+dat.cox <- simDat(200, c(-1, 1), c(-1, 1), summary = TRUE)
 ```
-From accelerated mean model
+Accelerated mean model:
 ```{R am}
-simDat(200, c(-1, 1), c(-1, 1), type = "am", summary = TRUE)
+dat.am <- simDat(200, c(-1, 1), c(-1, 1), type = "am", summary = TRUE)
 ```
-From scale-change model
+Scale-change model:
 ```{R sc}
-simDat(200, c(-1, 1), c(-1, 1), type = "sc", summary = TRUE)
+dat.sc <- simDat(200, c(-1, 1), c(-1, 1), type = "sc", summary = TRUE)
 ```
+
+The output of `simDat` are `tibble` objects.
+```{R cox-display}
+class(dat.cox)
+dat.cox
+```
+```{R cox-DT}
+library(DT)
+datatable(dat.cox, options = list(pageLength = 10, scrollX=TRUE)) %>% 
+  formatRound(c("Time", "x2"), 3)
+```
+In this example, subject \#1 experienced 3 recurrent events (at time 0.074, 0.152, and 0.190) and died at time 0.224. 
+Similary, subject \#2 experienced 3 recurrent events (at time 1.136, 4.917, and 8.839) and is alive when censored at time 60.
