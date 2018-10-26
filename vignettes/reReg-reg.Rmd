@@ -1,0 +1,22 @@
+---
+title: "Fitting semiparametric regression model to recurrent event data"
+author: Sy Han (Steven) Chiou
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+bibliography: ../inst/bib/reReg.bib
+vignette: >
+  %\VignetteIndexEntry{Fitting semiparametric regression model to recurrent event data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}{inputenc}
+---
+
+```{r default, include = FALSE}
+knitr::opts_chunk$set(prompt = TRUE, comment = "")
+```	
+
+In this vignette, we demonstrate how to use the `reReg` function in __`reReg`__ package
+to fit semiparametric regression model to recurrent event data.
