@@ -985,7 +985,7 @@ setClass("cox.GL",
          representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
 
 setClass("stdErr",
-         representation(B = "numeric", parallel = "logical", parCL = "integer"),
+         representation(B = "numeric", parallel = "logical", parCl = "numeric"),
          prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2),
          contains = "VIRTUAL")
 
