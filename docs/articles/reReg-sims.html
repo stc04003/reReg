@@ -55,6 +55,9 @@
       <a href="../articles/reReg-plots.html">Visualization of recurrent event data</a>
     </li>
     <li>
+      <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
+    </li>
+    <li>
       <a href="../articles/reReg-sims.html">Simulating recurrent event data</a>
     </li>
   </ul>
@@ -86,7 +89,7 @@
       <h1>Simulating recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2018-10-26</h4>
+            <h4 class="date">2018-10-31</h4>
       
       <small class="dont-index">Source: <a href="http://github.com/stc04003/reReg/blob/master/vignettes/reReg-sims.Rmd"><code>vignettes/reReg-sims.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-sims.Rmd</code></div>
@@ -95,16 +98,16 @@
 
     
     
-<p>In this vignette, we demonstrate how to use the <code>simDat</code> in <strong><code>reReg</code></strong> package to simulate recurrent event data from either a Cox-type model, an accelerated mean model, or a scale-change model. The <code>simDat</code> function allows censoring time to be non-informative (independent given covariate) or informative about the recurrent event process.</p>
+<p>In this vignette, we demonstrate how to use the <code>simSC</code> function in <strong><code>reReg</code></strong> package to simulate recurrent event data from a scale-change model. Since the scale-change model includes the Cox-type model and the accelerated mean model as special cases, <code>simSC</code> can also be used to generate data from these submodels. The <code>simSC</code> function allows the censoring time to be non-informative (independent given covariate) or informative about the recurrent event process.</p>
 <div id="notations" class="section level2">
 <h2 class="hasAnchor">
 <a href="#notations" class="anchor"></a>Notations</h2>
 <p>Suppose recurrent events can potentially be observed in the time period <span class="math inline">\([0, \tau]\)</span>. For a subject, let <span class="math inline">\(N_i(t)\)</span> be the number of events in interval <span class="math inline">\([0, t]\)</span>, and <span class="math inline">\(X_i\)</span> is a <span class="math inline">\(p\times 1\)</span> covariate vector. Let <span class="math inline">\(C_i\)</span> be a non-informative censoring time, which is independent of <span class="math inline">\(N_i(\cdot)\)</span> given <span class="math inline">\(X_i\)</span>. On the contrary, let <span class="math inline">\(D_i\)</span> be a failure time (informative censoring time), which is associated with <span class="math inline">\(N_i(\cdot)\)</span> even after conditioning on <span class="math inline">\(X\)</span>. Then the follow-up time is defined as <span class="math inline">\(Y = \min(C, D, \tau)\)</span>. The observed data are independent and identically distributed copies of <span class="math inline">\(\{N_i(t), Y_i, X_i: t\le Y_i, i = 1, \ldots, n\}\)</span>. In the following, we suppress the index for the ease of discussion.</p>
 </div>
-<div id="the-simdat-function" class="section level2 unnumbered">
+<div id="the-simsc-function" class="section level2 unnumbered">
 <h2 class="hasAnchor">
-<a href="#the-simdat-function" class="anchor"></a>The <code>simDat</code> function</h2>
-<p>The function <code>simDat</code> generates the recurrent times from a recurrent event process, <span class="math inline">\(N(t)\)</span>, with a pre-specified rate function, <span class="math inline">\(\lambda(t)\)</span>, and the failure time, <span class="math inline">\(D\)</span>, from a pre-specified hazard function, <span class="math inline">\(h(t)\)</span>. By specifying the argument <code>type</code> in the function <code>simDat</code>, recurrent times and failure time can be generated from the following models:</p>
+<a href="#the-simsc-function" class="anchor"></a>The <code>simSC</code> function</h2>
+<p>The function <code>simSC</code> generates the recurrent times from a recurrent event process, <span class="math inline">\(N(t)\)</span>, with a pre-specified rate function, <span class="math inline">\(\lambda(t)\)</span>, and the failure time, <span class="math inline">\(D\)</span>, from a pre-specified hazard function, <span class="math inline">\(h(t)\)</span>. By specifying the argument <code>type</code> in the function <code>simSC</code>, recurrent times and failure time can be generated from the following models:</p>
 <ul>
 <li>
 <code>type = "cox"</code> for Cox-type models: <span class="math display">\[\lambda(t) = Z\lambda_0(t) e^{X^\top\alpha}, h(t) = Zh_0(t) e^{X^\top\beta}.\]</span>
@@ -116,10 +119,10 @@
 <code>type = "sc"</code> for scale-change models: <span class="math display">\[\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.\]</span>
 </li>
 </ul>
-<p>In <code>simDat</code> currently only allows two covariates, i.e., <span class="math inline">\(X = (X_{1}, X_{2})^\top\)</span>, where <span class="math inline">\(X_1\)</span> is a Bernoulli random variable with probability 0.5 and <span class="math inline">\(X_2\)</span> is a standard normal random variable. The non-informative censoring time, <span class="math inline">\(C\)</span>, is generated separately from an exponential distribution with mean 80. The observed follow-up time is then taken to be <span class="math inline">\(Y = \min(D, C, \tau)\)</span>. We further assume the baseline functions <span class="math display">\[\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.\]</span></p>
-<p>The complete list of arguments in <code>simDat</code> are as follow</p>
+<p>The <span class="math inline">\(Z\)</span> is a latent frailty variable. In <code>simSC</code> currently only allows two covariates, i.e., <span class="math inline">\(X = (X_{1}, X_{2})^\top\)</span>, where <span class="math inline">\(X_1\)</span> is a Bernoulli random variable with probability 0.5 and <span class="math inline">\(X_2\)</span> is a standard normal random variable. The non-informative censoring time, <span class="math inline">\(C\)</span>, is generated separately from an exponential distribution with mean 80. The observed follow-up time is then taken to be <span class="math inline">\(Y = \min(D, C, \tau)\)</span>. We further assume the baseline functions <span class="math display">\[\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.\]</span></p>
+<p>The complete list of arguments in <code>simSC</code> are as follow</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">library</span>(reReg)
-&gt;<span class="st"> </span><span class="kw">args</span>(simDat)</code></pre></div>
+&gt;<span class="st"> </span><span class="kw">args</span>(simSC)</code></pre></div>
 <pre><code>function (n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), 
     tau = 60, summary = FALSE) 
 NULL</code></pre>
@@ -142,9 +145,9 @@ NULL</code></pre>
 <div id="examples" class="section level2">
 <h2 class="hasAnchor">
 <a href="#examples" class="anchor"></a>Examples</h2>
-<p>In the following examples, we simulate recurrent event using <code>simDat</code>, with <code>summary = TRUE</code>.</p>
+<p>In the following examples, we simulate recurrent event using <code>simSC</code>, with <code>summary = TRUE</code>.</p>
 <p>Cox-type model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>dat.cox &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simDat.html">simDat</a></span>(<span class="dv">200</span>, <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">summary =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>dat.cox &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dv">200</span>, <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">summary =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>
 Summary results for number of recurrent event per subject:
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -157,7 +160,7 @@ Summary results for x2:
     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 -2.16226 -0.68832 -0.08922 -0.04727  0.61537  2.43023 </code></pre>
 <p>Accelerated mean model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>dat.am &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simDat.html">simDat</a></span>(<span class="dv">200</span>, <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">type =</span> <span class="st">"am"</span>, <span class="dt">summary =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>dat.am &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dv">200</span>, <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">type =</span> <span class="st">"am"</span>, <span class="dt">summary =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>
 Summary results for number of recurrent event per subject:
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -170,7 +173,7 @@ Summary results for x2:
     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 -2.73351 -0.61499  0.06812  0.01714  0.63933  2.30666 </code></pre>
 <p>Scale-change model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>dat.sc &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simDat.html">simDat</a></span>(<span class="dv">200</span>, <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">type =</span> <span class="st">"sc"</span>, <span class="dt">summary =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>dat.sc &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dv">200</span>, <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="kw">c</span>(-<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">type =</span> <span class="st">"sc"</span>, <span class="dt">summary =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>
 Summary results for number of recurrent event per subject:
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -182,7 +185,7 @@ Number of x1 == 1: 112 (56%); Number of x1 == 0: 88 (44%)
 Summary results for x2:
     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 -2.33329 -0.70020  0.02404 -0.03567  0.59424  2.78031 </code></pre>
-<p>The output of <code>simDat</code> are <code>tibble</code> objects.</p>
+<p>The output of <code>simSC</code> are <code>tibble</code> objects.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">class</span>(dat.cox)</code></pre></div>
 <pre><code>[1] "tbl_df"     "tbl"        "data.frame"</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>dat.cox</code></pre></div>
@@ -218,7 +221,7 @@ Summary results for x2:
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
 <li><a href="#notations">Notations</a></li>
-      <li><a href="#the-simdat-function">The <code>simDat</code> function</a></li>
+      <li><a href="#the-simsc-function">The <code>simSC</code> function</a></li>
       <li><a href="#examples">Examples</a></li>
       </ul>
 </div>

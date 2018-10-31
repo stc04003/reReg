@@ -17,10 +17,11 @@ vignette: >
 ```{r default, include = FALSE}
 knitr::opts_chunk$set(prompt = TRUE, comment = "")
 ```
-In this vignette, we demonstrate how to use the `simDat` function in __`reReg`__ package
-to simulate recurrent event data from either a Cox-type model, an
-accelerated mean model, or a scale-change model. 
-The `simDat` function allows the censoring time to be non-informative (independent given covariate)
+In this vignette, we demonstrate how to use the `simSC` function in __`reReg`__ package
+to simulate recurrent event data from a scale-change model.
+Since the scale-change model includes the Cox-type model and the
+accelerated mean model as special cases, `simSC` can also be used to generate data from these submodels.
+The `simSC` function allows the censoring time to be non-informative (independent given covariate)
 or informative about the recurrent event process. 
 
 ## Notations
@@ -36,11 +37,11 @@ The observed data are independent and identically distributed copies of
 $\{N_i(t), Y_i, X_i: t\le Y_i, i = 1, \ldots, n\}$.
 In the following, we suppress the index for the ease of discussion.
    
-## The `simDat` function {-}
-The function `simDat` generates the recurrent times from a recurrent event process, $N(t)$,
+## The `simSC` function {-}
+The function `simSC` generates the recurrent times from a recurrent event process, $N(t)$,
 with a pre-specified rate function, $\lambda(t)$, and the failure time, $D$,
 from a pre-specified hazard function, $h(t)$.
-By specifying the argument `type` in the function `simDat`,
+By specifying the argument `type` in the function `simSC`,
 recurrent times and failure time can be generated from the following models:
 
  * `type = "cox"` for Cox-type models:
@@ -51,7 +52,7 @@ recurrent times and failure time can be generated from the following models:
   $$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
 
 The $Z$ is a latent frailty variable.
-In `simDat` currently only allows two covariates, i.e., $X = (X_{1}, X_{2})^\top$,
+In `simSC` currently only allows two covariates, i.e., $X = (X_{1}, X_{2})^\top$,
 where $X_1$ is a Bernoulli random variable with probability 0.5 and
 $X_2$ is a standard normal random variable.
 The non-informative censoring time, $C$, is generated separately from an exponential distribution 
@@ -60,10 +61,10 @@ The observed follow-up time is then taken to be $Y = \min(D, C, \tau)$.
 We further assume the baseline functions
 $$\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.$$
 
-The complete list of arguments in `simDat` are as follow
-```{r simDat}
+The complete list of arguments in `simSC` are as follow
+```{r simSC}
 library(reReg)
-args(simDat)
+args(simSC)
 ```
 The arguments are as follows
 
@@ -78,24 +79,24 @@ The arguments are as follows
 * `summary` a logical value indicating whether a brief data summary will be printed.
 
 ## Examples
-In the following examples, we simulate recurrent event using `simDat`, with `summary = TRUE`.
+In the following examples, we simulate recurrent event using `simSC`, with `summary = TRUE`.
 ```{R set-seed, echo = FALSE}
 set.seed(123)
 ```
 Cox-type model:
 ```{R cox}
-dat.cox <- simDat(200, c(-1, 1), c(-1, 1), summary = TRUE)
+dat.cox <- simSC(200, c(-1, 1), c(-1, 1), summary = TRUE)
 ```
 Accelerated mean model:
 ```{R am}
-dat.am <- simDat(200, c(-1, 1), c(-1, 1), type = "am", summary = TRUE)
+dat.am <- simSC(200, c(-1, 1), c(-1, 1), type = "am", summary = TRUE)
 ```
 Scale-change model:
 ```{R sc}
-dat.sc <- simDat(200, c(-1, 1), c(-1, 1), type = "sc", summary = TRUE)
+dat.sc <- simSC(200, c(-1, 1), c(-1, 1), type = "sc", summary = TRUE)
 ```
 
-The output of `simDat` are `tibble` objects.
+The output of `simSC` are `tibble` objects.
 ```{R cox-display}
 class(dat.cox)
 dat.cox

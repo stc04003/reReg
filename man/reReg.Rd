@@ -122,5 +122,5 @@ Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent
 \emph{Journal of the American Statistical Association}, \bold{99}(468): 1153--1165.
 }
 \seealso{
-\code{\link{reSurv}}, \code{\link{simDat}}
+\code{\link{reSurv}}, \code{\link{simSC}}
 }

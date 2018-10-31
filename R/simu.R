@@ -1,4 +1,4 @@
-globalVariables(c("m", "x2", "Z")) ## global variables for simDat
+globalVariables(c("m", "x2", "Z")) ## global variables for simSC
 
 ###################################################################################
 ## Codes to generate simulated data
@@ -16,12 +16,12 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 
 #' Function to generate simulated data
 #'
-#' The function \code{simDat} generates simulated recurrent event data from either
+#' The function \code{simSC} generates simulated recurrent event data from either
 #' a Cox-type model, an accelerated mean model, or a scale-change model.
 #' The censoring time could be either independent (given covariates) or informative.
 #' The simulated data is used for illustration.
 #'
-#' The function \code{simDat} generates simulated recurrent event data under different
+#' The function \code{simSC} generates simulated recurrent event data under different
 #' scenarios based on the following assumptions.
 #' See \bold{Details} in \code{\link{reReg}} for a more complete model assumptions.
 #' \describe{
@@ -59,8 +59,8 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #'
 #' @examples
 #' set.seed(123)
-#' simDat(200, c(-1, 1), c(-1, 1), summary = TRUE)
-simDat <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60, summary = FALSE) {
+#' simSC(200, c(-1, 1), c(-1, 1), summary = TRUE)
+simSC <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60, summary = FALSE) {
     type <- match.arg(type)
     if (length(a) != 2L) stop("Require length(a) = 2.")
     if (length(b) != 2L) stop("Require length(b) = 2.")

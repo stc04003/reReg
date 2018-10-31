@@ -1124,7 +1124,7 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #'
 #' @importFrom stats approxfun optim
 #' 
-#' @seealso \code{\link{reSurv}}, \code{\link{simDat}}
+#' @seealso \code{\link{reSurv}}, \code{\link{simSC}}
 #'
 #' @examples
 #' ## readmission data
