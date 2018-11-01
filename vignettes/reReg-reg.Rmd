@@ -20,3 +20,112 @@ knitr::opts_chunk$set(prompt = TRUE, comment = "")
 
 In this vignette, we demonstrate how to use the `reReg` function in __`reReg`__ package
 to fit semiparametric regression model to recurrent event data.
+
+```{r reReg-args}
+library(reReg)
+args(reReg)
+```
+The arguments are as follows
+
+
+* `formula` a formula object, with the response on the left of a "~" operator, and the predictors on the right. The response must be a recurrent event survival object as returned by function `reSurv`. See the vignette on [Visualization of recurrent event data](https://www.sychiou.com/reReg/articles/reReg-plots.html) for examples in creating `reSurv` objects.
+* `data` an optional data frame in which to interpret the variables occurring in the `formula`.
+* `B` a numeric value specifies the number of resampling for variance estimation. When `B = 0`, variance estimation will not be performed.
+* `method` a character string specifying the underlying model.
+* `se` a character string specifying the method for standard error estimation. 
+* `contrasts` an optional list.
+* `control` a list of control parameters.
+
+We will illustrate the usage of `reReg` with simulated data generated from `simSC`. 
+Readers are referred to the vignette on [Simulating recurrent event data](https://www.sychiou.com/reReg/articles/reReg-sims.html)
+for using `simSC` to generate recurrent event data.
+
+## Point estimation
+We give brief description on each of the available methods below.
+
+### `cox.LWYY`
+
+```{r cox-lwyy}
+set.seed(123)
+dat.cox <- simSC(n = 500, a = c(1, -1), b = c(1, -1))
+fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox)
+summary(fit)
+```
+### `cox.GL`
+
+```{r cox-GL, tidy = TRUE}
+fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+             method = "cox.GL")
+summary(fit)
+```
+
+### `cox.HW`
+```{r cox-HW, tidy = TRUE}
+fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+             method = "cox.HW")
+summary(fit)
+```
+
+### `am.GL`
+```{r am-GL, tidy = TRUE}
+set.seed(123)
+dat.am <- simSC(n = 500, a = c(1, -1), b = c(1, -1), type = "am")
+fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
+             method = "am.GL")
+summary(fit)
+```
+
+### `am.XCHWY`
+```{r am-XCHWY, tidy = TRUE}
+fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
+             method = "am.XCHWY")
+summary(fit)
+```
+
+### `sc.XCYH`
+Fitting recurrent event data generated from the Cox model:
+```{r sc-XCYH-cox, tidy = TRUE}
+fit1 <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+              method = "sc.XCYH")
+summary(fit1)
+```
+Fitting recurrent event data generated from the accelerated model:
+```{r sc-XCYH-am, tidy = TRUE}
+fit2 <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+              method = "sc.XCYH")
+summary(fit2)
+```
+
+## Variance estimation
+The variance estimation was not performed in the examples above.
+However, the package provides several approaches for variance estimation.
+We will take `cox.HW` for example.
+
+### Bootstrap
+```{r bootstrap, tidy = TRUE}
+system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+                         method = "cox.HW", se = "bootstrap"))
+summary(fit)
+```
+
+### Bootstrap with parallel computing
+Detect the number of CPU cores on the current host.
+```{r bootstrap-detect}
+parallel::detectCores()
+```
+The default number of CPU cores used in the parallel computing is half of the available CPU cores.
+We will use all the CPU cores available.
+```{r bootstrap-para, cache = TRUE, tidy = TRUE}
+system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+                         method = "cox.HW", se = "bootstrap", 
+                         control = list(parallel = TRUE, parCl = 8)))
+summary(fit)
+```
+
+### Sandwich (resampling) variance estimator
+
+```{r bootstrap-resampling, tidy = TRUE}
+system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+                         method = "cox.HW", se = "resampling"))
+summary(fit)
+```
