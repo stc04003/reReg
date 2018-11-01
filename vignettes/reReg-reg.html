@@ -11,7 +11,7 @@
 
 <meta name="author" content="Sy Han (Steven) Chiou" />
 
-<meta name="date" content="2018-10-31" />
+<meta name="date" content="2018-11-01" />
 
 <title>Fitting semiparametric regression model to recurrent event data</title>
 
@@ -222,7 +222,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Fitting semiparametric regression model to recurrent event data</h1>
 <h4 class="author"><em>Sy Han (Steven) Chiou</em></h4>
-<h4 class="date"><em>2018-10-31</em></h4>
+<h4 class="date"><em>2018-11-01</em></h4>
 
 </div>
 
@@ -248,8 +248,8 @@ NULL</code></pre>
 <div id="point-estimation" class="section level2">
 <h2>Point estimation</h2>
 <p>We give brief description on each of the available methods below.</p>
-<div id="cox.lwyy" class="section level3">
-<h3><code>cox.LWYY</code></h3>
+<div id="lin1998-cox.lwyy" class="section level3">
+<h3><span class="citation">D. Y. Lin, Wei, and Ying (1998)</span> <code>cox.LWYY</code></h3>
 <pre class="r"><code>&gt; set.seed(123)
 &gt; dat.cox &lt;- simSC(n = 500, a = c(1, -1), b = c(1, -1))
 &gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox)
@@ -265,10 +265,9 @@ x2   -1.010  0.022 -45.580 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
-<div id="cox.gl" class="section level3">
-<h3><code>cox.GL</code></h3>
-<pre class="r"><code>&gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-+              method = &quot;cox.GL&quot;)
+<div id="ghosh2002-cox.gl" class="section level3">
+<h3><span class="citation">Ghosh and Lin (2002)</span> <code>cox.GL</code></h3>
+<pre class="r"><code>&gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, method = &quot;cox.GL&quot;)
 &gt; summary(fit)</code></pre>
 <pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     method = &quot;cox.GL&quot;)
@@ -283,10 +282,9 @@ Coefficients (hazard):
 x1    1.193     NA      NA      NA
 x2   -0.993     NA      NA      NA</code></pre>
 </div>
-<div id="cox.hw" class="section level3">
-<h3><code>cox.HW</code></h3>
-<pre class="r"><code>&gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-+              method = &quot;cox.HW&quot;)
+<div id="huang2004-cox.hw" class="section level3">
+<h3><span class="citation">Huang and Wang (2004)</span> <code>cox.HW</code></h3>
+<pre class="r"><code>&gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, method = &quot;cox.HW&quot;)
 &gt; summary(fit)</code></pre>
 <pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     method = &quot;cox.HW&quot;)
@@ -303,12 +301,11 @@ Coefficients (hazard):
 x1    1.168     NA      NA      NA
 x2   -1.064     NA      NA      NA</code></pre>
 </div>
-<div id="am.gl" class="section level3">
-<h3><code>am.GL</code></h3>
+<div id="ghosh2003-am.gl" class="section level3">
+<h3><span class="citation">Ghosh and Lin (2003)</span> <code>am.GL</code></h3>
 <pre class="r"><code>&gt; set.seed(123)
 &gt; dat.am &lt;- simSC(n = 500, a = c(1, -1), b = c(1, -1), type = &quot;am&quot;)
-&gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
-+              method = &quot;am.GL&quot;)
+&gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, method = &quot;am.GL&quot;)
 &gt; summary(fit)</code></pre>
 <pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
     method = &quot;am.GL&quot;)
@@ -325,10 +322,9 @@ Coefficients (hazard):
 x1    0.496     NA      NA      NA
 x2   -1.556     NA      NA      NA</code></pre>
 </div>
-<div id="am.xchwy" class="section level3">
-<h3><code>am.XCHWY</code></h3>
-<pre class="r"><code>&gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
-+              method = &quot;am.XCHWY&quot;)
+<div id="xu2017joint-am.xchwy" class="section level3">
+<h3><span class="citation">Xu et al. (2017)</span> <code>am.XCHWY</code></h3>
+<pre class="r"><code>&gt; fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, method = &quot;am.XCHWY&quot;)
 &gt; summary(fit)</code></pre>
 <pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
     method = &quot;am.XCHWY&quot;)
@@ -345,11 +341,10 @@ Coefficients (hazard):
 x1    0.754     NA      NA      NA
 x2   -1.475     NA      NA      NA</code></pre>
 </div>
-<div id="sc.xcyh" class="section level3">
-<h3><code>sc.XCYH</code></h3>
+<div id="xu2018generalized-sc.xcyh" class="section level3">
+<h3><span class="citation">Xu et al. (2018)</span> <code>sc.XCYH</code></h3>
 <p>Fitting recurrent event data generated from the Cox model:</p>
-<pre class="r"><code>&gt; fit1 &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-+               method = &quot;sc.XCYH&quot;)
+<pre class="r"><code>&gt; fit1 &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, method = &quot;sc.XCYH&quot;)
 &gt; summary(fit1)</code></pre>
 <pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     method = &quot;sc.XCYH&quot;)
@@ -366,23 +361,22 @@ Multiplicative coefficients:
 x1    0.966     NA      NA      NA
 x2   -1.052     NA      NA      NA</code></pre>
 <p>Fitting recurrent event data generated from the accelerated model:</p>
-<pre class="r"><code>&gt; fit2 &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-+               method = &quot;sc.XCYH&quot;)
+<pre class="r"><code>&gt; fit2 &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, method = &quot;sc.XCYH&quot;)
 &gt; summary(fit2)</code></pre>
-<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
     method = &quot;sc.XCYH&quot;)
 
 Method: Generalized Scale-Change Model 
 
 Scale-change effect:
    Estimate StdErr z.value p.value
-x1    0.120     NA      NA      NA
-x2   -0.003     NA      NA      NA
+x1    0.917     NA      NA      NA
+x2   -0.979     NA      NA      NA
 
 Multiplicative coefficients:
    Estimate StdErr z.value p.value
-x1    0.966     NA      NA      NA
-x2   -1.052     NA      NA      NA</code></pre>
+x1    0.988     NA      NA      NA
+x2   -0.911     NA      NA      NA</code></pre>
 </div>
 </div>
 <div id="variance-estimation" class="section level2">
@@ -391,86 +385,109 @@ x2   -1.052     NA      NA      NA</code></pre>
 <div id="bootstrap" class="section level3">
 <h3>Bootstrap</h3>
 <pre class="r"><code>&gt; system.time(fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-+                          method = &quot;cox.HW&quot;, se = &quot;bootstrap&quot;))</code></pre>
++     method = &quot;cox.HW&quot;, se = &quot;bootstrap&quot;, B = 100))</code></pre>
 <pre><code>   user  system elapsed 
-760.184   0.120 760.480 </code></pre>
+532.626   0.020 536.857 </code></pre>
 <pre class="r"><code>&gt; summary(fit)</code></pre>
 <pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-    method = &quot;cox.HW&quot;, se = &quot;bootstrap&quot;)
+    B = 100, method = &quot;cox.HW&quot;, se = &quot;bootstrap&quot;)
 
 Method: Huang-Wang Model 
 
 Coefficients (rate):
    Estimate StdErr z.value   p.value    
-x1    0.937  0.065  14.372 &lt; 2.2e-16 ***
-x2   -1.077  0.061 -17.657 &lt; 2.2e-16 ***
+x1    0.937  0.066  14.193 &lt; 2.2e-16 ***
+x2   -1.077  0.057 -18.821 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Coefficients (hazard):
    Estimate StdErr z.value   p.value    
-x1    1.168  0.150   7.774 &lt; 2.2e-16 ***
-x2   -1.064  0.115  -9.217 &lt; 2.2e-16 ***
+x1    1.168  0.158   7.412 &lt; 2.2e-16 ***
+x2   -1.064  0.114  -9.314 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <div id="bootstrap-with-parallel-computing" class="section level3">
 <h3>Bootstrap with parallel computing</h3>
 <p>Detect the number of CPU cores on the current host.</p>
-<pre class="r"><code>&gt; parallel::detectCores()</code></pre>
-<pre><code>[1] 8</code></pre>
-<p>The default number of CPU cores used in the parallel computing is half of the available CPU cores. We will use all the CPU cores available.</p>
+<pre class="r"><code>&gt; (core &lt;- parallel::detectCores())</code></pre>
+<pre><code>[1] 16</code></pre>
+<p>The default number of CPU cores used in the parallel computing is half of the available CPU cores. We will use all the CPU cores available in this example.</p>
 <pre class="r"><code>&gt; system.time(fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-+                          method = &quot;cox.HW&quot;, se = &quot;bootstrap&quot;, 
-+                          control = list(parallel = TRUE, parCl = 8)))</code></pre>
++     method = &quot;cox.HW&quot;, se = &quot;bootstrap&quot;, B = 100, control = list(parallel = TRUE, 
++         parCl = core)))</code></pre>
 <pre><code>   user  system elapsed 
- 93.524   0.112 238.244 </code></pre>
+ 65.948   0.511 125.457 </code></pre>
 <pre class="r"><code>&gt; summary(fit)</code></pre>
 <pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-    method = &quot;cox.HW&quot;, se = &quot;bootstrap&quot;, control = list(parallel = TRUE, 
-        parCl = 8))
+    B = 100, method = &quot;cox.HW&quot;, se = &quot;bootstrap&quot;, control = list(parallel = TRUE, 
+        parCl = core))
 
 Method: Huang-Wang Model 
 
 Coefficients (rate):
    Estimate StdErr z.value   p.value    
-x1    0.937  0.065  14.417 &lt; 2.2e-16 ***
-x2   -1.077  0.065 -16.684 &lt; 2.2e-16 ***
+x1    0.937  0.076   12.36 &lt; 2.2e-16 ***
+x2   -1.077  0.065  -16.55 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Coefficients (hazard):
    Estimate StdErr z.value   p.value    
-x1    1.168  0.156   7.498 &lt; 2.2e-16 ***
-x2   -1.064  0.112  -9.517 &lt; 2.2e-16 ***
+x1    1.168  0.138   8.468 &lt; 2.2e-16 ***
+x2   -1.064  0.110  -9.707 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <div id="sandwich-resampling-variance-estimator" class="section level3">
 <h3>Sandwich (resampling) variance estimator</h3>
 <pre class="r"><code>&gt; system.time(fit &lt;- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-+                          method = &quot;cox.HW&quot;, se = &quot;resampling&quot;))</code></pre>
++     method = &quot;cox.HW&quot;, se = &quot;resampling&quot;, B = 100))</code></pre>
 <pre><code>   user  system elapsed 
-151.100   0.048 151.245 </code></pre>
+ 96.200   0.004  96.224 </code></pre>
 <pre class="r"><code>&gt; summary(fit)</code></pre>
 <pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-    method = &quot;cox.HW&quot;, se = &quot;resampling&quot;)
+    B = 100, method = &quot;cox.HW&quot;, se = &quot;resampling&quot;)
 
 Method: Huang-Wang Model 
 
 Coefficients (rate):
    Estimate StdErr z.value   p.value    
-x1    0.937  0.053  17.533 &lt; 2.2e-16 ***
-x2   -1.077  0.052 -20.827 &lt; 2.2e-16 ***
+x1    0.937  0.051  18.391 &lt; 2.2e-16 ***
+x2   -1.077  0.051 -21.274 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Coefficients (hazard):
    Estimate StdErr z.value   p.value    
-x1    1.168  0.137   8.506 &lt; 2.2e-16 ***
-x2   -1.064  0.100 -10.585 &lt; 2.2e-16 ***
+x1    1.168  0.124   9.386 &lt; 2.2e-16 ***
+x2   -1.064  0.092 -11.540 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<div id="reference" class="section level2 unnumbered">
+<h2>Reference</h2>
+<div id="refs" class="references">
+<div id="ref-ghosh2003">
+<p>Ghosh, Debashis, and D Y Lin. 2003. “Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.” <em>Biometrics</em> 59 (4): 877–85.</p>
+</div>
+<div id="ref-ghosh2002">
+<p>Ghosh, Debashis, and DY Lin. 2002. “Marginal Regression Models for Recurrent and Terminal Events.” <em>Statistica Sinica</em> 12 (3): 663–88.</p>
+</div>
+<div id="ref-Huang2004">
+<p>Huang, Chiung-Yu, and Mei-Cheng Wang. 2004. “Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.” <em>Journal of the American Statistical Association</em> 99 (468): 1153–65.</p>
+</div>
+<div id="ref-lin1998">
+<p>Lin, D Y, L J Wei, and Zhiliang Ying. 1998. “Accelerated Failure Time Models for Counting Processes.” <em>Biometrika</em> 85 (3): 605–18.</p>
+</div>
+<div id="ref-xu2017joint">
+<p>Xu, Gongjun, Sy Han Chiou, Chiung-Yu Huang, Mei-Cheng Wang, and Jun Yan. 2017. “Joint Scale-Change Models for Recurrent Events and Failure Time.” <em>Journal of the American Statistical Association</em> 112 (518). Taylor &amp; Francis: 794–805.</p>
+</div>
+<div id="ref-xu2018Generalized">
+<p>Xu, Gongjun, Sy Han Chiou, Jun Yan, Kieren Marr, and Chiung-Yu Huang. 2018. “Generalized Scale-Change Models for Recurrent Event Processes Under Informative Censoring.” <em>Statistica Sinica</em>.</p>
+</div>
 </div>
 </div>
 

@@ -43,7 +43,7 @@ for using `simSC` to generate recurrent event data.
 ## Point estimation
 We give brief description on each of the available methods below.
 
-### `cox.LWYY`
+### @lin1998 `cox.LWYY` 
 
 ```{r cox-lwyy}
 set.seed(123)
@@ -51,23 +51,23 @@ dat.cox <- simSC(n = 500, a = c(1, -1), b = c(1, -1))
 fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox)
 summary(fit)
 ```
-### `cox.GL`
+### @ghosh2002 `cox.GL` 
 
-```{r cox-GL, tidy = TRUE}
+```{r cox-GL, cache = TRUE, tidy = TRUE}
 fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
              method = "cox.GL")
 summary(fit)
 ```
 
-### `cox.HW`
-```{r cox-HW, tidy = TRUE}
+### @Huang2004 `cox.HW` 
+```{r cox-HW, cache = TRUE, tidy = TRUE}
 fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
              method = "cox.HW")
 summary(fit)
 ```
 
-### `am.GL`
-```{r am-GL, tidy = TRUE}
+### @ghosh2003 `am.GL` 
+```{r am-GL, cache = TRUE, tidy = TRUE}
 set.seed(123)
 dat.am <- simSC(n = 500, a = c(1, -1), b = c(1, -1), type = "am")
 fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
@@ -75,23 +75,23 @@ fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am,
 summary(fit)
 ```
 
-### `am.XCHWY`
-```{r am-XCHWY, tidy = TRUE}
+### @xu2017joint `am.XCHWY` 
+```{r am-XCHWY, cache = TRUE, tidy = TRUE}
 fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
              method = "am.XCHWY")
 summary(fit)
 ```
 
-### `sc.XCYH`
+### @xu2018Generalized `sc.XCYH` 
 Fitting recurrent event data generated from the Cox model:
-```{r sc-XCYH-cox, tidy = TRUE}
+```{r sc-XCYH-cox, cache = TRUE, tidy = TRUE}
 fit1 <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
               method = "sc.XCYH")
 summary(fit1)
 ```
 Fitting recurrent event data generated from the accelerated model:
-```{r sc-XCYH-am, tidy = TRUE}
-fit2 <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+```{r sc-XCYH-am, cache = TRUE, tidy = TRUE}
+fit2 <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
               method = "sc.XCYH")
 summary(fit2)
 ```
@@ -102,30 +102,32 @@ However, the package provides several approaches for variance estimation.
 We will take `cox.HW` for example.
 
 ### Bootstrap
-```{r bootstrap, tidy = TRUE}
+```{r bootstrap, cache = TRUE, tidy = TRUE}
 system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-                         method = "cox.HW", se = "bootstrap"))
+                         method = "cox.HW", se = "bootstrap", B = 100))
 summary(fit)
 ```
 
 ### Bootstrap with parallel computing
 Detect the number of CPU cores on the current host.
 ```{r bootstrap-detect}
-parallel::detectCores()
+(core <- parallel::detectCores())
 ```
 The default number of CPU cores used in the parallel computing is half of the available CPU cores.
-We will use all the CPU cores available.
+We will use all the CPU cores available in this example.
 ```{r bootstrap-para, cache = TRUE, tidy = TRUE}
 system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-                         method = "cox.HW", se = "bootstrap", 
-                         control = list(parallel = TRUE, parCl = 8)))
+                         method = "cox.HW", se = "bootstrap", B = 100,
+                         control = list(parallel = TRUE, parCl = core)))
 summary(fit)
 ```
 
 ### Sandwich (resampling) variance estimator
 
-```{r bootstrap-resampling, tidy = TRUE}
+```{r bootstrap-resampling, cache = TRUE, tidy = TRUE}
 system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
-                         method = "cox.HW", se = "resampling"))
+                         method = "cox.HW", se = "resampling", B = 100))
 summary(fit)
 ```
+
+## Reference
