@@ -1,4 +1,8 @@
 2018-06-11 Sy Han Chiou <schiou@utdallas.edu>
+	* Version 1.1.7
+	* Added a draft for regression vignettes
+	* Changed function name `simDat` to `simSC`
+2018-06-11 Sy Han Chiou <schiou@utdallas.edu>
 	* Version 1.1.6
 	* Added sandwish variance estimations 
 	* Added vignettes on simulation and plots
