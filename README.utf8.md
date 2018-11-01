@@ -10,17 +10,11 @@ output: github_document
 [![packageversion](https://img.shields.io/badge/Package%20version-1.1.6-orange.svg?style=flat-square)](commits/master)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/stc04003/reReg?branch=master&svg=true)](https://ci.appveyor.com/project/stc04003/reReg)
 [![Travis-CI Build Status](https://travis-ci.org/stc04003/reReg.svg?branch=master)](https://travis-ci.org/stc04003/reReg)
-[![Last-changedate](https://img.shields.io/badge/last%20change-`r gsub('-', '--', Sys.Date())`-yellowgreen.svg)](/commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2018--10--31-yellowgreen.svg)](/commits/master)
 <!-- [![Build Status](https://travis-ci.org/user/pkg.svg?branch=master)](https://travis-ci.org/user/pkg) -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r, echo = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "README-"
-)
-```
+
 
 ### Regression models for recurrent event data
 ***reReg*** implements a collection of regression models for recurrent event process and failure time.
@@ -30,14 +24,16 @@ The package is still under active development.
 
 You can install and load **reReg** from CRAN using
 
-```{r cran-installation, eval = FALSE}
+
+```r
 install.packages("reReg")
 library(reReg)
 ```
 
 You can install reReg from github with:
 
-```{r gh-installation, eval = FALSE}
+
+```r
 ## install.packages("devtools")
 devtools::install_github("stc04003/reReg")
 ```

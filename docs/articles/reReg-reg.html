@@ -29,7 +29,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">1.1.6</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">1.1.7</span>
       </span>
     </div>
 
@@ -95,12 +95,289 @@
     
     
 <p>In this vignette, we demonstrate how to use the <code>reReg</code> function in <strong><code>reReg</code></strong> package to fit semiparametric regression model to recurrent event data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">library</span>(reReg)
+&gt;<span class="st"> </span><span class="kw">args</span>(reReg)</code></pre></div>
+<pre><code>function (formula, data, B = 200, method = c("cox.LWYY", "cox.GL", 
+    "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"), se = c("NULL", 
+    "bootstrap", "resampling"), contrasts = NULL, control = list()) 
+NULL</code></pre>
+<p>The arguments are as follows</p>
+<ul>
+<li>
+<code>formula</code> a formula object, with the response on the left of a “~” operator, and the predictors on the right. The response must be a recurrent event survival object as returned by function <code>reSurv</code>. See the vignette on <a href="https://www.sychiou.com/reReg/articles/reReg-plots.html">Visualization of recurrent event data</a> for examples in creating <code>reSurv</code> objects.</li>
+<li>
+<code>data</code> an optional data frame in which to interpret the variables occurring in the <code>formula</code>.</li>
+<li>
+<code>B</code> a numeric value specifies the number of resampling for variance estimation. When <code>B = 0</code>, variance estimation will not be performed.</li>
+<li>
+<code>method</code> a character string specifying the underlying model.</li>
+<li>
+<code>se</code> a character string specifying the method for standard error estimation.</li>
+<li>
+<code>contrasts</code> an optional list.</li>
+<li>
+<code>control</code> a list of control parameters.</li>
+</ul>
+<p>We will illustrate the usage of <code>reReg</code> with simulated data generated from <code>simSC</code>. Readers are referred to the vignette on <a href="https://www.sychiou.com/reReg/articles/reReg-sims.html">Simulating recurrent event data</a> for using <code>simSC</code> to generate recurrent event data.</p>
+<div id="point-estimation" class="section level2">
+<h2 class="hasAnchor">
+<a href="#point-estimation" class="anchor"></a>Point estimation</h2>
+<p>We give brief description on each of the available methods below.</p>
+<div id="cox-lwyy" class="section level3">
+<h3 class="hasAnchor">
+<a href="#cox-lwyy" class="anchor"></a><code>cox.LWYY</code>
+</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">set.seed</span>(<span class="dv">123</span>)
+&gt;<span class="st"> </span>dat.cox &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dt">n =</span> <span class="dv">500</span>, <span class="dt">a =</span> <span class="kw">c</span>(<span class="dv">1</span>, -<span class="dv">1</span>), <span class="dt">b =</span> <span class="kw">c</span>(<span class="dv">1</span>, -<span class="dv">1</span>))
+&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox)
+&gt;<span class="st"> </span><span class="kw">summary</span>(fit)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox)
+
+Method: Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)
+
+Coefficients effect:
+   Estimate StdErr z.value   p.value    
+x1    0.960  0.032  30.025 &lt; 2.2e-16 ***
+x2   -1.010  0.022 -45.580 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div id="cox-gl" class="section level3">
+<h3 class="hasAnchor">
+<a href="#cox-gl" class="anchor"></a><code>cox.GL</code>
+</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">              </span><span class="dt">method =</span> <span class="st">"cox.GL"</span>)
+&gt;<span class="st"> </span><span class="kw">summary</span>(fit)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+    method = "cox.GL")
+
+Coefficients (rate):
+   Estimate StdErr z.value p.value
+x1    0.905     NA      NA      NA
+x2   -0.973     NA      NA      NA
+
+Coefficients (hazard):
+   Estimate StdErr z.value p.value
+x1    1.193     NA      NA      NA
+x2   -0.993     NA      NA      NA</code></pre>
+</div>
+<div id="cox-hw" class="section level3">
+<h3 class="hasAnchor">
+<a href="#cox-hw" class="anchor"></a><code>cox.HW</code>
+</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">              </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>)
+&gt;<span class="st"> </span><span class="kw">summary</span>(fit)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+    method = "cox.HW")
+
+Method: Huang-Wang Model 
+
+Coefficients (rate):
+   Estimate StdErr z.value p.value
+x1    0.937     NA      NA      NA
+x2   -1.077     NA      NA      NA
+
+Coefficients (hazard):
+   Estimate StdErr z.value p.value
+x1    1.168     NA      NA      NA
+x2   -1.064     NA      NA      NA</code></pre>
+</div>
+<div id="am-gl" class="section level3">
+<h3 class="hasAnchor">
+<a href="#am-gl" class="anchor"></a><code>am.GL</code>
+</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">set.seed</span>(<span class="dv">123</span>)
+&gt;<span class="st"> </span>dat.am &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dt">n =</span> <span class="dv">500</span>, <span class="dt">a =</span> <span class="kw">c</span>(<span class="dv">1</span>, -<span class="dv">1</span>), <span class="dt">b =</span> <span class="kw">c</span>(<span class="dv">1</span>, -<span class="dv">1</span>), <span class="dt">type =</span> <span class="st">"am"</span>)
+&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.am, 
++<span class="st">              </span><span class="dt">method =</span> <span class="st">"am.GL"</span>)
+&gt;<span class="st"> </span><span class="kw">summary</span>(fit)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
+    method = "am.GL")
+
+Method: Ghosh-Lin Model 
+
+Coefficients (rate):
+   Estimate StdErr z.value p.value
+x1    0.906     NA      NA      NA
+x2   -0.912     NA      NA      NA
+
+Coefficients (hazard):
+   Estimate StdErr z.value p.value
+x1    0.496     NA      NA      NA
+x2   -1.556     NA      NA      NA</code></pre>
+</div>
+<div id="am-xchwy" class="section level3">
+<h3 class="hasAnchor">
+<a href="#am-xchwy" class="anchor"></a><code>am.XCHWY</code>
+</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.am, 
++<span class="st">              </span><span class="dt">method =</span> <span class="st">"am.XCHWY"</span>)
+&gt;<span class="st"> </span><span class="kw">summary</span>(fit)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
+    method = "am.XCHWY")
+
+Method: Xu et al. (2016) Model 
+
+Coefficients (rate):
+   Estimate StdErr z.value p.value
+x1    1.075     NA      NA      NA
+x2   -0.844     NA      NA      NA
+
+Coefficients (hazard):
+   Estimate StdErr z.value p.value
+x1    0.754     NA      NA      NA
+x2   -1.475     NA      NA      NA</code></pre>
+</div>
+<div id="sc-xcyh" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sc-xcyh" class="anchor"></a><code>sc.XCYH</code>
+</h3>
+<p>Fitting recurrent event data generated from the Cox model:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">               </span><span class="dt">method =</span> <span class="st">"sc.XCYH"</span>)
+&gt;<span class="st"> </span><span class="kw">summary</span>(fit1)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+    method = "sc.XCYH")
+
+Method: Generalized Scale-Change Model 
+
+Scale-change effect:
+   Estimate StdErr z.value p.value
+x1    0.120     NA      NA      NA
+x2   -0.003     NA      NA      NA
+
+Multiplicative coefficients:
+   Estimate StdErr z.value p.value
+x1    0.966     NA      NA      NA
+x2   -1.052     NA      NA      NA</code></pre>
+<p>Fitting recurrent event data generated from the accelerated model:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">               </span><span class="dt">method =</span> <span class="st">"sc.XCYH"</span>)
+&gt;<span class="st"> </span><span class="kw">summary</span>(fit2)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+    method = "sc.XCYH")
+
+Method: Generalized Scale-Change Model 
+
+Scale-change effect:
+   Estimate StdErr z.value p.value
+x1    0.120     NA      NA      NA
+x2   -0.003     NA      NA      NA
+
+Multiplicative coefficients:
+   Estimate StdErr z.value p.value
+x1    0.966     NA      NA      NA
+x2   -1.052     NA      NA      NA</code></pre>
+</div>
+</div>
+<div id="variance-estimation" class="section level2">
+<h2 class="hasAnchor">
+<a href="#variance-estimation" class="anchor"></a>Variance estimation</h2>
+<p>The variance estimation was not performed in the examples above. However, the package provides several approaches for variance estimation. We will take <code>cox.HW</code> for example.</p>
+<div id="bootstrap" class="section level3">
+<h3 class="hasAnchor">
+<a href="#bootstrap" class="anchor"></a>Bootstrap</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">system.time</span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">                          </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"bootstrap"</span>))</code></pre></div>
+<pre><code>   user  system elapsed 
+762.828   0.288 763.330 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">summary</span>(fit)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+    method = "cox.HW", se = "bootstrap")
+
+Method: Huang-Wang Model 
+
+Coefficients (rate):
+   Estimate StdErr z.value   p.value    
+x1    0.937  0.065  14.372 &lt; 2.2e-16 ***
+x2   -1.077  0.061 -17.657 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Coefficients (hazard):
+   Estimate StdErr z.value   p.value    
+x1    1.168  0.150   7.774 &lt; 2.2e-16 ***
+x2   -1.064  0.115  -9.217 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div id="bootstrap-with-parallel-computing" class="section level3">
+<h3 class="hasAnchor">
+<a href="#bootstrap-with-parallel-computing" class="anchor"></a>Bootstrap with parallel computing</h3>
+<p>Detect the number of CPU cores on the current host.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>parallel::<span class="kw">detectCores</span>()</code></pre></div>
+<pre><code>[1] 8</code></pre>
+<p>The default number of CPU cores used in the parallel computing is half of the available CPU cores. We will use all the CPU cores available.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">system.time</span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">                          </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"bootstrap"</span>, 
++<span class="st">                          </span><span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">parallel =</span> <span class="ot">TRUE</span>, <span class="dt">parCl =</span> <span class="dv">8</span>)))</code></pre></div>
+<pre><code>   user  system elapsed 
+ 94.544   0.176 234.767 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">summary</span>(fit)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+    method = "cox.HW", se = "bootstrap", control = list(parallel = TRUE, 
+        parCl = 8))
+
+Method: Huang-Wang Model 
+
+Coefficients (rate):
+   Estimate StdErr z.value   p.value    
+x1    0.937  0.063  14.941 &lt; 2.2e-16 ***
+x2   -1.077  0.059 -18.306 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Coefficients (hazard):
+   Estimate StdErr z.value   p.value    
+x1    1.168  0.163   7.162 &lt; 2.2e-16 ***
+x2   -1.064  0.123  -8.624 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div id="sandwich-resampling-variance-estimator" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sandwich-resampling-variance-estimator" class="anchor"></a>Sandwich (resampling) variance estimator</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">system.time</span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/reSurv.html">reSurv</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">                          </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"resampling"</span>))</code></pre></div>
+<pre><code>   user  system elapsed 
+146.040   0.116 146.174 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw">summary</span>(fit)</code></pre></div>
+<pre><code>Call: reReg(formula = reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+    method = "cox.HW", se = "resampling")
+
+Method: Huang-Wang Model 
+
+Coefficients (rate):
+   Estimate StdErr z.value   p.value    
+x1    0.937  0.053  17.533 &lt; 2.2e-16 ***
+x2   -1.077  0.052 -20.827 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Coefficients (hazard):
+   Estimate StdErr z.value   p.value    
+x1    1.168  0.137   8.506 &lt; 2.2e-16 ***
+x2   -1.064  0.100 -10.585 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div id="refs" class="references">
 
+</div>
+</div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#point-estimation">Point estimation</a></li>
+      <li><a href="#variance-estimation">Variance estimation</a></li>
+      </ul>
+</div>
       </div>
 
 </div>
