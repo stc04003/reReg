@@ -42,8 +42,9 @@ The argument \code{control} consists of options with argument defaults to a list
 The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 }
 \examples{
-data(readmission, package = "frailtypack")
-reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, id, event, death))
+set.seed(1)
+dat <- simSC(30, c(-1, 1), c(-1, 1))
+reObj <- with(dat, reSurv(Time, id, event, status))
 
 ## Event plots:
 ## Default labels
@@ -52,9 +53,9 @@ plot(reObj, order = FALSE)
 ## User specified labels
 plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 
-## With multiple hypothetical event types
+## With hypothetical multiple event types
 set.seed(1)
-reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
+reObj2 <- with(dat, reSurv(Time, id, event * sample(1:3, 203, TRUE), status))
 plot(reObj2)
 
 ## CSM plots

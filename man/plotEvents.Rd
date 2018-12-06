@@ -42,18 +42,19 @@ list with the following values:
 The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
-data(readmission, package = "frailtypack")
-plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
+set.seed(1)
+dat <- simSC(30, c(-1, 1), c(-1, 1))
+plotEvents(reSurv(Time, id, event, status) ~ 1, data = dat)
 
-## Separate plots by gender
-plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
+## Separate plots by x1
+plotEvents(reSurv(Time, id, event, status) ~ x1, data = dat)
 
-## Separate plots by gender and chemo type
-plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
-
+## Separate plots by x1 and x3
+dat$x3 <- ifelse(dat$x2 < 0, "x2 < 0", "x2 > 0")
+plotEvents(reSurv(Time, id, event, status) ~ x1 + x3, data = dat)
 ## With multiple hypothetical event types
-plotEvents(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
-  sex + chemo, data = readmission)
+plotEvents(reSurv(Time, id, event * sample(1:3, 203, TRUE), status) ~
+  x1, data = dat)
 }
 \seealso{
 \code{\link{reSurv}}, \code{\link{plot.reSurv}}

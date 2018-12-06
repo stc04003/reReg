@@ -205,3 +205,73 @@ f6 <- parSapply(NULL, 1:500, function(z)
              error = function(e) rep(NA, 40)))
 stopCluster(cl)
 
+
+
+## ------------------------------------------------------------------------------------------
+## checking R examples
+## ------------------------------------------------------------------------------------------
+library(reReg)
+set.seed(123)
+dat <- simSC(500, c(-1, 1), c(-1, 1))
+
+attach(dat)
+reSurv(Time, id, event, status)
+detach(dat)
+
+
+set.seed(1)
+dat <- simSC(100, c(-1, 1), c(-1, 1), type = "am")
+(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, 
+         data = dat, method = "am.XCHWY", se = "resampling", B = 20))
+summary(fit)
+
+set.seed(1)
+dat <- simSC(100, c(-1, 1), c(-1, 1), type = "sc")
+(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, 
+         data = dat, method = "sc.XCYH", se = "resampling", B = 20))
+summary(fit)
+
+set.seed(1)
+dat <- simSC(30, c(-1, 1), c(-1, 1))
+reObj <- reSurv(Time, id, event, status)
+
+plot(reObj)
+plot(reObj, order = FALSE)
+plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
+
+set.seed(1)
+reObj2 <- with(dat, reSurv(Time, id, event * sample(1:3, 203, TRUE), status))
+plot(reObj2)
+
+plot(reObj, CSM = TRUE)
+
+
+set.seed(1)
+dat <- simSC(30, c(-1, 1), c(-1, 1))
+plotEvents(reSurv(Time, id, event, status) ~ 1, data = dat)
+plotEvents(reSurv(Time, id, event, status) ~ x1, data = dat)
+dat$x3 <- ifelse(dat$x2 < 0, "x2 < 0", "x2 > 0")
+plotEvents(reSurv(Time, id, event, status) ~ x1 + x3, data = dat)
+plotEvents(reSurv(Time, id, event * sample(1:3, 203, TRUE), status) ~ x1, data = dat)
+
+plotCSM(reSurv(Time, id, event, status) ~ 1, data = dat)
+plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat)
+plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
+
+
+
+set.seed(1)
+dat <- simSC(50, c(-1, 1), c(-1, 1))
+fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat, method = "cox.HW")
+plot(fit, baseline = "rate")
+plot(fit, baseline = "rate", xlab = "Time (days)")
+
+
+set.seed(1)
+dat <- simSC(50, c(-1, 1), c(-1, 1))
+fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat,
+             method = "am.XCHWY", se = "resampling", B = 20)
+plot(fit)
+plotRate(fit)
+plotRate(fit, xlab = "User xlab", ylab = "User ylab", main = "User title")
+plotHaz(fit)

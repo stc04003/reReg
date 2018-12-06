@@ -17,4 +17,3 @@ Imports: BB, nleqslv, SQUAREM, survival, plyr, ggplot2, purrr, dplyr, tidyr, MAS
 RoxygenNote: 6.1.0
 NeedsCompilation: yes
 Packaged: 2018-06-03 00:41:51 UTC; schiou
-Suggests: frailtypack

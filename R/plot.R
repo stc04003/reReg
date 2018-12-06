@@ -36,8 +36,9 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #'
 #' @return A \code{ggplot} object.
 #' @examples
-#' data(readmission, package = "frailtypack")
-#' reObj <- with(subset(readmission, id <= 10), reSurv(t.stop, id, event, death))
+#' set.seed(1)
+#' dat <- simSC(30, c(-1, 1), c(-1, 1))
+#' reObj <- with(dat, reSurv(Time, id, event, status))
 #'
 #' ## Event plots:
 #' ## Default labels
@@ -46,9 +47,9 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' ## User specified labels
 #' plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 #'
-#' ## With multiple hypothetical event types
+#' ## With hypothetical multiple event types
 #' set.seed(1)
-#' reObj2 <- with(readmission, reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death))
+#' reObj2 <- with(dat, reSurv(Time, id, event * sample(1:3, 203, TRUE), status))
 #' plot(reObj2)
 #'
 #' ## CSM plots
@@ -109,18 +110,19 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 #' @return A \code{ggplot} object.
 #' 
 #' @examples
-#' data(readmission, package = "frailtypack")
-#' plotEvents(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
+#' set.seed(1)
+#' dat <- simSC(30, c(-1, 1), c(-1, 1))
+#' plotEvents(reSurv(Time, id, event, status) ~ 1, data = dat)
 #'
-#' ## Separate plots by gender
-#' plotEvents(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
+#' ## Separate plots by x1
+#' plotEvents(reSurv(Time, id, event, status) ~ x1, data = dat)
 #'
-#' ## Separate plots by gender and chemo type
-#' plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
-#'
+#' ## Separate plots by x1 and x3
+#' dat$x3 <- ifelse(dat$x2 < 0, "x2 < 0", "x2 > 0")
+#' plotEvents(reSurv(Time, id, event, status) ~ x1 + x3, data = dat)
 #' ## With multiple hypothetical event types
-#' plotEvents(reSurv(t.stop, id, event * sample(1:3, 861, TRUE), death) ~
-#'   sex + chemo, data = readmission)
+#' plotEvents(reSurv(Time, id, event * sample(1:3, 203, TRUE), status) ~
+#'   x1, data = dat)
 plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
@@ -260,10 +262,11 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #' @importFrom ggplot2 guides guide_legend
 #' 
 #' @examples
-#' data(readmission, package = "frailtypack")
-#' plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
-#' plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
-#' plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE)
+#' set.seed(1)
+#' dat <- simSC(30, c(-1, 1), c(-1, 1))
+#' plotCSM(reSurv(Time, id, event, status) ~ 1, data = dat)
+#' plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat)
+#' plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
 plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = list(), ...) {
     call <- match.call()
     ctrl <- plotCSM.control()
@@ -408,9 +411,10 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
 #' @importFrom dplyr bind_rows
 #' @importFrom ggplot2 geom_smooth geom_step
 #' @examples
-#' data(readmission, package = "frailtypack")
-#' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
-#'              data = subset(readmission, id < 50))
+#' set.seed(1)
+#' dat <- simSC(50, c(-1, 1), c(-1, 1))
+#' fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2,
+#'   data = dat, method = "cox.HW")
 #' plot(fit, baseline = "rate")
 #' plot(fit, baseline = "rate", xlab = "Time (days)")
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
@@ -503,12 +507,10 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' @keywords Plots
 #' 
 #' @examples
-#' ## readmission data
-#' data(readmission, package = "frailtypack")
-#' set.seed(123)
-#' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
-#'                    data = subset(readmission, id < 50),
-#'                    method = "am.XCHWY", se = "resampling", B = 20)
+#' set.seed(1)
+#' dat <- simSC(50, c(-1, 1), c(-1, 1))
+#' fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat,
+#'                    method = "cox.HW", se = "resampling", B = 20)
 #' ## Plot both the baseline cumulative rate and hazard function
 #' plot(fit)
 #' ## Plot baseline cumulative rate function
@@ -581,12 +583,10 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' @keywords Plots
 #' 
 #' @examples
-#' ## readmission data
-#' data(readmission, package = "frailtypack")
-#' set.seed(123)
-#' fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
-#'              data = subset(readmission, id < 50),
-#'              method = "am.XCHWY", se = "resampling", B = 20)
+#' set.seed(1)
+#' dat <- simSC(50, c(-1, 1), c(-1, 1))
+#' fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat,
+#'   method = "cox.HW", se = "resampling", B = 20)
 #' ## Plot both the baseline cumulative rate and hazard function
 #' plot(fit)
 #' ## Plot baseline cumulative hazard function

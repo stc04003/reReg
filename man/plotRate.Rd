@@ -33,12 +33,10 @@ to a list with the following values:
 These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
-## readmission data
-data(readmission, package = "frailtypack")
-set.seed(123)
-fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
-                   data = subset(readmission, id < 50),
-                   method = "am.XCHWY", se = "resampling", B = 20)
+set.seed(1)
+dat <- simSC(50, c(-1, 1), c(-1, 1))
+fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat,
+                   method = "cox.HW", se = "resampling", B = 20)
 ## Plot both the baseline cumulative rate and hazard function
 plot(fit)
 ## Plot baseline cumulative rate function

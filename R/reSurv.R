@@ -21,11 +21,9 @@ NULL
 #' @rdname reSurv
 #' @export
 #' @examples
-#' data(readmission, package = "frailtypack")
-#' attach(readmission)
-#' reSurv(t.stop, id, event, death)
-#' reSurv(t.start, t.stop, id, event, death)
-#' detach(readmission)
+#' set.seed(1)
+#' dat <- simSC(200, c(-1, 1), c(-1, 1))
+#' with(dat, reSurv(Time, id, event, status))
 reSurv <- function(time1, time2, id, event, status, origin = 0) {
     if (missing(time1) & missing(time2)) stop("Must have a time argument.")
     if (!is.numeric(time1)) stop("Time argument (time1) must be numeric.")

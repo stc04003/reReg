@@ -89,20 +89,18 @@ The default value is half the CPU cores on the current host.}
 }
 }
 \examples{
-## readmission data
-data(readmission, package = "frailtypack")
-set.seed(123)
+set.seed(1)
+dat <- simSC(80, c(-1, 1), c(-1, 1), type = "am")
 ## Accelerated Mean Model
-(fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
-              data = subset(readmission, id < 50),
-              method = "am.XCHWY", se = "resampling", B = 20))
+(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, 
+        data = dat, method = "am.XCHWY", se = "resampling", B = 20))
 summary(fit)
 
 ## Generalized Scale-Change Model
-set.seed(123)
-(fit <- reReg(reSurv(t.stop, id, event, death) ~ sex + chemo,
-              data = subset(readmission, id < 50),
-              method = "sc.XCYH", se = "resampling", B = 20))
+set.seed(1)
+dat <- simSC(100, c(-1, 1), c(-1, 1), type = "sc")
+(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, 
+              data = dat, method = "sc.XCYH", se = "resampling", B = 20))
 summary(fit)
 }
 \references{

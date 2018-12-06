@@ -33,9 +33,7 @@ This argument is only needed when "\code{time2}" is missing.}
 Create a recurrent event survival object, used as a response variable in \code{reReg}.
 }
 \examples{
-data(readmission, package = "frailtypack")
-attach(readmission)
-reSurv(t.stop, id, event, death)
-reSurv(t.start, t.stop, id, event, death)
-detach(readmission)
+set.seed(1)
+dat <- simSC(200, c(-1, 1), c(-1, 1))
+with(dat, reSurv(Time, id, event, status))
 }

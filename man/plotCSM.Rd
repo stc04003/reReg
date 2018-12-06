@@ -46,10 +46,11 @@ to a list with the following values:
 The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 }
 \examples{
-data(readmission, package = "frailtypack")
-plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission)
-plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission)
-plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, onePanel = TRUE)
+set.seed(1)
+dat <- simSC(30, c(-1, 1), c(-1, 1))
+plotCSM(reSurv(Time, id, event, status) ~ 1, data = dat)
+plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat)
+plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
 }
 \seealso{
 \code{\link{reSurv}}, \code{\link{plot.reSurv}}
