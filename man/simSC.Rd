@@ -5,7 +5,7 @@
 \title{Function to generate simulated data}
 \usage{
 simSC(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60,
-  summary = FALSE)
+  zVar = 0.25, summary = FALSE)
 }
 \arguments{
 \item{n}{number of observation.}
@@ -16,12 +16,16 @@ simSC(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60,
 
 \item{indCen}{a logical value indicating whether the censoring assumption is imposed.
 When \code{indCen = TRUE}, we set \eqn{Z = 1}.
-Otherwise, \eqn{Z} is generated from a gamma distribution with mean 1 and variance 0.25
-(e.g., \code{rgamma(1, 4, 4)}). See \bold{Details}.}
+Otherwise, \eqn{Z} is generated from a unit-mean gamma distribution 
+See \bold{Details}.}
 
 \item{type}{a character string specifying the underlying model. See \bold{Details}}
 
 \item{tau}{a numeric value specifying the maximum observation time.}
+
+\item{zVar}{a numeric varaible specifying the variance of \eqn{Z}.
+This is only needed when \eqn{indCen} is TRUE.
+The default value is 0.25.}
 
 \item{summary}{a logical value indicating whether a brief data summary will be printed.}
 }

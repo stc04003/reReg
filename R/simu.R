@@ -46,8 +46,11 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' @param b a numeric vector of parameter of length 2.
 #' @param indCen a logical value indicating whether the censoring assumption is imposed.
 #' When \code{indCen = TRUE}, we set \eqn{Z = 1}.
-#' Otherwise, \eqn{Z} is generated from a gamma distribution with mean 1 and variance 0.25
-#' (e.g., \code{rgamma(1, 4, 4)}). See \bold{Details}.
+#' Otherwise, \eqn{Z} is generated from a unit-mean gamma distribution 
+#' See \bold{Details}. 
+#' @param zVar a numeric varaible specifying the variance of \eqn{Z}.
+#' This is only needed when \eqn{indCen} is TRUE.
+#' The default value is 0.25.
 #' @param type a character string specifying the underlying model. See \bold{Details}
 #' @param tau a numeric value specifying the maximum observation time.
 #' @param summary a logical value indicating whether a brief data summary will be printed.
@@ -60,12 +63,12 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' @examples
 #' set.seed(123)
 #' simSC(200, c(-1, 1), c(-1, 1), summary = TRUE)
-simSC <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60, summary = FALSE) {
+simSC <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60, zVar = .25, summary = FALSE) {
     type <- match.arg(type)
     if (length(a) != 2L) stop("Require length(a) = 2.")
     if (length(b) != 2L) stop("Require length(b) = 2.")
     simOne <- function(id) {
-        z <- ifelse(indCen, 1, rgamma(1, 4, 4))
+        z <- ifelse(indCen, 1, rgamma(1, 1/zVar, 1/zVar))
         x <- c(sample(0:1, 1), rnorm(1))
         exa <- c(exp(x %*% a))
         exb <- c(exp(x %*% b))
