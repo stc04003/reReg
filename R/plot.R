@@ -163,6 +163,8 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
             suppressMessages(dat <- left_join(obj$reTb, unique(select(DF, id, paste(formula[[3]][-1])))))
         }
     }
+    dat$status <- ifelse(is.na(dat$status), 0, dat$status)
+    dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
     if (order) {
         if (nX == 0 || formula[[3]] == 1) dat <- dat %>% mutate(id = rank(Yi, ties.method = "first"))
         else dat <- dat %>% group_by_at(6:ncol(dat)) %>% mutate(id = rank(Yi, ties.method = "first")) 
@@ -205,7 +207,7 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
             ##     labels = shp.lab, breaks = c("Yi", rec.lab)) +
             ## scale_color_manual(name = "", values = clr.val,
             ##     labels = shp.lab, breaks = c("Yi", rec.lab))
-    if (sum(dat$status) > 0)
+    if (sum(dat$status, na.rm = TRUE) > 0)
         gg <- gg + geom_point(data = dat %>% filter(status > 0),
                               aes(id, Yi, shape = "Yi", color = "Yi"), size = sz) 
     if (nX > 0 && formula[[3]] != 1) 
