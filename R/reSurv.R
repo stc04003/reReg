@@ -70,20 +70,17 @@ reSurv <- function(time1, time2, id, event, status, origin = 0) {
     }
     if (msArg == 1) {
         if (missing(time2)) time2 <- NULL
-        if (missing(status) & !is.null(time2) & all(time2 >= time1)) {
-            if (missing(id))
-                eval(parse(text = default.reSurv(c("id"))))
-            else if (missing(event))
-                eval(parse(text = default.reSurv(c("event"))))
-            else if (missing(status))
-                eval(parse(text = default.reSurv(c("status"))))
+        if (missing(id)) eval(parse(text = default.reSurv(c("id"))))
+        if (missing(event)) eval(parse(text = default.reSurv(c("event"))))        
+        if (missing(status) & !is.null(time2) & !(length(unique(time2)) == sum(id == 0))) {
+            eval(parse(text = default.reSurv(c("status"))))
         }
-        if (missing(status) & !is.null(time2) & !all(time2 >= time1)) {
+        if (missing(status) & !is.null(time2) & (length(unique(time2)) == sum(id == 0))) {
             status <- event
             event <- id
             id <- time2
             time2 <- NULL
-        }
+        }        
         if (missing(event)) stop("Recurrent event indicator (event) is missing.")
         if (missing(status)) stop("Censoring indicator (status) is missing.")
     }
