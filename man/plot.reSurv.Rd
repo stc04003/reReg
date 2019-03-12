@@ -55,7 +55,7 @@ plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User 
 
 ## With hypothetical multiple event types
 set.seed(1)
-reObj2 <- with(dat, reSurv(Time, id, event * sample(1:3, 203, TRUE), status))
+reObj2 <- with(dat, reSurv(Time, id, event * sample(1:3, nrow(dat), TRUE), status))
 plot(reObj2)
 
 ## CSM plots
