@@ -108,8 +108,13 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     V2 <- V[1:p + p, 1:p + p]
     lmfit1 <- t(apply(Z, 2, function(x) Sn(-res$alpha + x / sqrt(n), -res$beta, rep(1, n), "s1")))
     lmfit2 <- t(apply(Z, 2, function(x) Sn(-res$alpha, -res$beta + x / sqrt(n), rep(1, n), "s2")))
-    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
-    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
+    if (p == 1) {
+        J1 <- coef(lm(sqrt(n) * c(lmfit1) ~ c(Z)))[-1]
+        J2 <- coef(lm(sqrt(n) * c(lmfit2) ~ c(Z)))[-1]
+    } else {        
+        J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
+        J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
+    }
     if (qr(J1)$rank == p) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
     else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
     if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
@@ -318,7 +323,8 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     betaVar <- var(betaMatrix[converged, ], na.rm = TRUE)
     betaSE <- sqrt(diag(as.matrix(betaVar)))
     c(res, list(alphaSE = betaSE[1:p], betaSE = betaSE[1:p + p],
-                alphaVar = betaVar[1:p, 1:p], betaVar = betaVar[1:p + p, 1:p + p],
+                alphaVar = as.matrix(betaVar[1:p, 1:p]),
+                betaVar = as.matrix(betaVar[1:p + p, 1:p + p]),
                 SEmat = betaMatrix, B = length(converged)))
 }
 
@@ -346,7 +352,7 @@ regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
         zHat <- ifelse(zHat > 1e5, (mt + .01) / (lam * exp(as.matrix(X[,-1]) %*% g[-1]) + .01), zHat)
         zHat <- ifelse(is.na(zHat), 0, zHat)
         ## s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat / g[1], rep(w, mt + 1))
-        s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat, w) ## rep(w, mt + 1))
+        s2 <- HWeq2(b, as.matrix(X[,-1]), Y[event == 0], status[event == 0], zHat, w) 
         if (r == "s2") return(s2)
         return(c(s1, s2))
     }
@@ -354,14 +360,18 @@ regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     V <- var(t(apply(E, 2, function(x) Sn(g, res$beta, x))))
     V1 <- V[2:(p + 1), 2:(p + 1)]
     V2 <- V[1 + p + 1:p, 1 + p + 1:p]
-    lmfit1 <- t(apply(Z, 2, function(x) Sn(g + c(0, x[-1]) / sqrt(n), res$beta, rep(1, n), "s1")[-1]))
     ## V1 <- V[1:(p + 1), 1:(p + 1)]
     ## V2 <- V[1 + p + 1:p, 1 + p + 1:p]
     ## lmfit1 <- t(apply(Z, 2, function(x) Sn(g + x / sqrt(n), res$beta, rep(1, n), "s1")))
+    lmfit1 <- t(apply(Z, 2, function(x) Sn(g + c(0, x[-1]) / sqrt(n), res$beta, rep(1, n), "s1")[-1]))
     lmfit2 <- t(apply(Z, 2, function(x) Sn(g, res$beta + x[-1] / sqrt(n), rep(1, n), "s2")))
-    ## J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
-    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z[-1,])))[-1,]
-    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,])))[-1,]
+    if (p == 1) { ## Z has one extra column here
+        J1 <- coef(lm(sqrt(n) * c(lmfit1) ~ c(Z[-1,])))[-1]
+        J2 <- coef(lm(sqrt(n) * c(lmfit2) ~ c(Z[-1,])))[-1]
+    } else {        
+        J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z[-1,])))[-1,]
+        J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,])))[-1,]
+    }    
     if (qr(J1)$rank == (p + 1)) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
     else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
     if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
@@ -417,8 +427,13 @@ regFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
     V2 <- V[1:p + p, 1:p + p]
     lmfit1 <- t(apply(Z, 2, function(x) Sn(res$alpha + x / sqrt(n), res$beta, rep(1, n), "s1")))
     lmfit2 <- t(apply(Z, 2, function(x) Sn(res$alpha, res$beta + x / sqrt(n), rep(1, n), "s2")))
-    J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
-    J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
+    if (p == 1) {
+        J1 <- coef(lm(sqrt(n) * c(lmfit1) ~ c(Z)))[-1]
+        J2 <- coef(lm(sqrt(n) * c(lmfit2) ~ c(Z)))[-1]
+    } else {        
+        J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
+        J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
+    }
     if (qr(J1)$rank == p) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
     else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
     if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
@@ -474,22 +489,32 @@ regFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
     }
     V <- var(t(apply(E, 2, function(x) U12(a, b, x))))
     tmp <- t(apply(Z, 2, function(x) n^.5 * U12(a + x[1:p] * n^-.5, b + x[-(1:p)] * n^-.5, rep(1, n))))
-    J0 <- t(coef(lm(tmp[,1:p] ~ t(Z[1:p,])))[-1,])
+    if (p == 1) {
+        J0 <- as.matrix(coef(lm(c(tmp[,1:p]) ~ c(Z[1:p,])))[-1])
+    } else { 
+        J0 <- t(coef(lm(tmp[,1:p] ~ t(Z[1:p,])))[-1,])
+    }
     Jtmp <- t(coef(lm(tmp[,-(1:p)] ~ t(Z)))[-1,])
     J <- rbind(cbind(J0, matrix(0, ncol = p + 1, nrow = nrow(J0))), cbind(Jtmp))
     if (qr(J)$rank == nrow(J)) J <- solve(J) else J <- ginv(J)
     if (qr(J0)$rank == nrow(J0)) J0 <- solve(J0) else J0 <- ginv(J0)
-    ase <- J %*% V %*% t(J)    
+    ase <- J %*% V %*% t(J)
+    betaSE <- ase[1:p, 1:p] + ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)] +
+        2 * ase[1:p, (p + 2):(2 * p + 1)]
+    if (is.null(dim(betaSE))) betaSE <- sqrt(betaSE)
+    else betaSE <- sqrt(diag(betaSE))
+    alphaSE <- sqrt(diag(J0 %*% V[1:p, 1:p] %*% t(J0)))
+    if (all(alphaSE == 0)) alphaSE <- ase[1:p, 1:p]    
     list(alpha = a, beta = res$beta,
-         alphaSE = sqrt(diag(J0 %*% V[1:p, 1:p] %*% t(J0))),
-         betaSE = sqrt(diag(ase[1:p, 1:p] + ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)] +
-                            2 * ase[1:p, (p + 2):(2 * p + 1)])),
+         alphaSE = alphaSE, betaSE = betaSE,
          gamma = b,
          varMat = ase,
          log.muZ = res$log.muZ,
          values = c(res$a.value, res$b.value),
-         alphaVar = ase[1:p, 1:p],
-         betaVar = ase[1:p, 1:p] + ase[(p+2):(2*p+1), (p+2):(2*p+1)] + 2 * ase[1:p, (p+2):(2*p+1)])
+         alphaVar = as.matrix(ase[1:p, 1:p]),
+         betaVar = as.matrix(ase[1:p, 1:p] +
+                             ase[(p+2):(2*p+1), (p+2):(2*p+1)] +
+                             2 * ase[1:p, (p+2):(2*p+1)]))
 }
 
 ##############################################################################
@@ -1207,6 +1232,7 @@ reReg <- function(formula, data, B = 200,
 #' equation wrapper
 #'
 #' @noRd
+#' @importFrom BB spg
 #' @keywords internal
 eqSolve <- function(par, fn, solver, ...) {
     if (solver == "dfsane") {
