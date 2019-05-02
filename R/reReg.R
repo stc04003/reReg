@@ -878,9 +878,9 @@ npFit.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     ##                                      status[event == 0]))
     hy <- baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0])
     win.hy <- max(hy)
-    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
+    list(rate0 = approxfun(t0, ly * muZ, yleft = min(ly * muZ, na.rm = TRUE), yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
          rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
-         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
+         haz0 = approxfun(t0, hy, yleft = min(hy, na.rm = TRUE), yright = max(hy, na.rm = TRUE), method = "constant"),
          haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
 }
 

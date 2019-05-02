@@ -36,12 +36,10 @@ print.reReg <- function(x, ...) {
         n <- length(unique(x$DF$id))
         nevent <- sum(x$DF$event)
         avg.event <- sum(x$DF$event) / n
-        tab <- data.frame(n = n, event = nevent, avg.event = avg.event)
-        colnames(tab) <- c("n", "number of recurrent events", "average recurrent events per subject")
+        cat("\nNumber of subjects:", n)
+        cat("\nNumber of recurrent events:", nevent)
+        cat("\nAverage recurrent events per subject:", avg.event)
         cat("\n")
-        print(tab, row.names = FALSE)
-        cat("\n")            
-        ## cat(capture.output(tab), sep = "\n")
     }
 }
 
