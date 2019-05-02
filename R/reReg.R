@@ -205,7 +205,8 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                   alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
-    list(alpha = out$par, beta = coef(fit.coxph), betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
+    list(alpha = out$par, beta = coef(fit.coxph),
+         betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
          wgt = wgt, haz0 = with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant")))
 }
 
@@ -539,8 +540,8 @@ npFit.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
         engine@muZ <- sum(m / approx(t0.rate, exp(-rate), yi, yleft = 0, yright = max(rate),
                                      method = "constant")$y, na.rm = TRUE) / n
     rate <- exp(-rate) * engine@muZ
-    rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
-    list(rate0 = rate0,  rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
+    list(rate0 = approxfun(exp(t0.rate), rate, rule = 2, method = "constant"),
+         rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
          haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
 }
 
@@ -563,7 +564,6 @@ npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
         engine@muZ <- sum(m / approx(t0.rate, exp(-rate), yi, yleft = 0, yright = max(rate),
                                      method = "constant")$y, na.rm = TRUE) / n
     rate <- exp(-rate) * engine@muZ
-    rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
     B <- stdErr@B
     rateMat <- matrix(NA, B, length(t0.rate))
     for (i in 1:B) {
@@ -576,7 +576,7 @@ npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     }
     rl <- apply(rateMat, 2, quantile, prob = .025)
     ru <- apply(rateMat, 2, quantile, prob = .975)
-    list(rate0 = rate0,
+    list(rate0 = approxfun(exp(t0.rate), rate, rule = 2, method = "constant"),
          rate0.lower = approxfun(exp(t0.rate), rl, yleft = 0, yright = max(rl), method = "constant"),
          rate0.upper = approxfun(exp(t0.rate), ru, yleft = 0, yright = max(ru), method = "constant"),
          t0.rate = exp(t0.rate),
@@ -598,11 +598,11 @@ npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
                as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
                as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
                as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
-    rate0 <- approxfun(t0.rate, rate, yleft = 0, yright = max(rate), method = "constant")
     fit.coxph <- coxph(Surv(Time, status) ~ ., data = subset(DF, !event, select = -c(id, event)))
     cumHaz <- basehaz(fit.coxph)
     haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
-    list(rate0 = rate0, rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0.rate,
+    list(rate0 = approxfun(t0.rate, rate, rule = 2, method = "constant"),
+         rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0.rate,
          haz0 = haz0, haz0.lower = NULL, haz0.upper = NULL, t0.haz = cumHaz$time)
 }
 
@@ -873,14 +873,11 @@ npFit.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     win.ly <- max(ly)
     Yb <- log(Y) ## + X %*% beta
     Yb <- Yb[event == 0]
-    ## hy <- sapply(t0, function(z) baseHaz(z, exp(Yb),
-    ##                                      exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ,
-    ##                                      status[event == 0]))
     hy <- baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0])
     win.hy <- max(hy)
-    list(rate0 = approxfun(t0, ly * muZ, yleft = min(ly * muZ, na.rm = TRUE), yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
+    list(rate0 = approxfun(t0, ly * muZ, rule = 2, method = "constant"),
          rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
-         haz0 = approxfun(t0, hy, yleft = min(hy, na.rm = TRUE), yright = max(hy, na.rm = TRUE), method = "constant"),
+         haz0 = approxfun(t0, hy, rule = 2, method = "constant"),
          haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
 }
 
@@ -925,17 +922,14 @@ npFit.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     hytmp <- apply(E, 2, function(z) baseHaz(t0, exp(Yb), zHat / muZ, status[event == 0], z))
     hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
     hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
-    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
-         rate0.lower = approxfun(t0, lyL * muZ,
-                                 yleft = 0, yright = max(lyL * muZ, na.rm = TRUE), method = "constant"),
-         rate0.upper = approxfun(t0, lyU * muZ,
-                                 yleft = 0, yright = max(lyU * muZ, na.rm = TRUE), method = "constant"),
+    list(rate0 = approxfun(t0, ly * muZ, rule = 2, method = "constant"), 
+         rate0.lower = approxfun(t0, lyL * muZ, rule = 2, method = "constant"),
+         rate0.upper = approxfun(t0, lyU * muZ, rule = 2, method = "constant"),
          t0.rate = t0,
-         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
-         haz0.lower = approxfun(t0, hyL,
-                                yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
-         haz0.upper = approxfun(t0, hyU,
-                                yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
+         haz0 = approxfun(t0, hy, rule = 2, method = "constant"),
+         ## yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
+         haz0.lower = approxfun(t0, hyL, rule = 2, method = "constant"),
+         haz0.upper = approxfun(t0, hyU, rule = 2, method = "constant"),
          t0.haz = t0)
 }
 
@@ -978,15 +972,13 @@ npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     hytmp <- apply(E, 2, function(z) baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0], z))
     hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
     hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
-    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ, na.rm = TRUE), method = "constant"),
-         rate0.lower = approxfun(t0, lyL * muZ,
-                                 yleft = 0, yright = max(lyL * muZ, na.rm = TRUE), method = "constant"),
-         rate0.upper = approxfun(t0, lyU * muZ,
-                                 yleft = 0, yright = max(lyU * muZ, na.rm = TRUE), method = "constant"),
+    list(rate0 = approxfun(t0, ly * muZ, rule = 2, method = "constant"),
+         rate0.lower = approxfun(t0, lyL * muZ, rule = 2, method = "constant"),
+         rate0.upper = approxfun(t0, lyU * muZ, rule = 2, method = "constant"),
          t0.rate = t0,
-         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
-         haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
-         haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
+         haz0 = approxfun(t0, hy, rule = 2, method = "constant"),
+         haz0.lower = approxfun(t0, hyL, rule = 2, method = "constant"),
+         haz0.upper = approxfun(t0, hyU, rule = 2, method = "constant"),
          t0.haz = t0)
 }
 
