@@ -110,11 +110,11 @@ simSC <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60,
         x1 <- base$x1
         print(summary(base$m))
         cat("\n")
-        cat(paste("Number of failures: ", sum(d), " (", 100 * sum(d) / length(d), "%); ",
-                  "Number of censored events: ", sum(d < 1), " (", 100 * sum(d < 1) / length(d), "%)\n\n",
+        cat(paste("Number of failures: ", sum(d), " (", round(100 * sum(d) / length(d), 2), "%); ",
+                  "Number of censored events: ", sum(d < 1), " (", round(100 * sum(d < 1) / length(d), 2), "%)\n\n",
                   sep = ""))
-        cat(paste("Number of x1 == 1: ", sum(x1), " (", 100 * sum(x1) / length(x1), "%); ",
-                  "Number of x1 == 0: ", sum(x1 < 1), " (", 100 * sum(x1 < 1) / length(x1), "%)\n", sep = ""))
+        cat(paste("Number of x1 == 1: ", sum(x1), " (", round(100 * sum(x1) / length(x1), 2), "%); ",
+                  "Number of x1 == 0: ", sum(x1 < 1), " (", round(100 * sum(x1 < 1) / length(x1), 2), "%)\n", sep = ""))
         cat("Summary results for x2:\n")
         print(summary(base$x2))
         cat("\n\n")

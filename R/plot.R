@@ -260,7 +260,7 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #'
 #' @return A \code{ggplot} object.
 #' 
-#' @importFrom dplyr summarise rowwise
+#' @importFrom dplyr summarise rowwise bind_rows distinct
 #' @importFrom ggplot2 guides guide_legend
 #' 
 #' @examples
@@ -309,34 +309,50 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
     }
     rText1 <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time)")
     tmp1 <- eval(parse(text = rText1))
-    if (ncol(dat1) > 5) { ## any covariates?
+    k <- length(unique(unlist(tmp1$recType))) - 1 # remove recType = 0
+    if (ncol(dat1) > 5) { ## any covariates/stratifications?
         rText2 <- paste("dat1 %>% group_by(", paste(names(dat1)[6:ncol(dat1)], collapse = ","),")",
                         "%>% summarise(n = length(unique(id)))")
         tmp2 <- eval(parse(text = rText2))
         tmp1 <- left_join(tmp1, tmp2, by = paste(names(dat1)[6:ncol(dat1)])) %>%
-            mutate(GrpInd = as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":")))))
+            mutate(GrpInd = as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":")))))        
         rec0 <- tmp1 %>% filter(recType == 0)
-        dat0 <- tmp1 %>% filter(recType > 0) %>% rowwise() %>%
-            mutate(adjrisk = n.y - sum(rec0$n.x[Time > rec0$Time & rec0$GrpInd == GrpInd])) %>% unrowwise
-        if (adjrisk) {
-            dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")"))) %>%
-                mutate(mu = n.x / adjrisk, CSM = cumsum(mu))
+        dat0 <- tmp1 %>% rowwise() %>%
+            mutate(adjrisk = n.y - sum(rec0$n.x[Time > rec0$Time & rec0$GrpInd == GrpInd])) %>% unrowwise %>%
+            mutate(n.x = n.x * (recType > 0))
+        dat0 <- bind_rows(dat0, rec0 %>% mutate(Time = 0, n.x = 0, adjrisk = 1)) %>% distinct()   
+        if (k > 1) {
+            tmp <- dat0 %>% filter(recType == 0)
+            dat0 <- bind_rows(dat0 %>% filter(recType > 0),
+                              do.call(rbind, lapply(split(tmp, tmp$GrpInd), function(x) x[rep(1:NROW(x), k),] %>% mutate(recType = rep(1:k, each = NROW(x))))))
         } else {
-            dat0 <- eval(parse(text = paste("dat0 %>% group_by(", paste(names(dat1)[5:ncol(dat1)], collapse = ","), ")"))) %>%
-                mutate(mu = n.x / n.y, CSM = cumsum(mu))
+            dat0$recType <- dat0$recType[1]
         }
-    } else {
-        rec0 <- tmp1 %>% filter(recType == 0)
-        dat0 <- tmp1 %>% filter(recType > 0) %>% rowwise() %>%
-            mutate(n.y = length(unique(dat1$id)), adjrisk = n.y - sum(rec0$n[Time > rec0$Time]))  %>%
-            unrowwise
         if (adjrisk) {
-            dat0 <- dat0 %>% mutate(mu = n / adjrisk, CSM = cumsum(mu))
+            dat0 <- dat0 %>% arrange(recType, GrpInd, Time) %>% group_by(recType, GrpInd) %>% mutate(mu = n.x / adjrisk, CSM = cumsum(mu))
         } else {
-            dat0 <- dat0 %>% mutate(mu = n / n.y, CSM = cumsum(mu))
+            dat0 <- dat0 %>% arrange(recType, GrpInd, Time) %>% group_by(recType, GrpInd) %>% mutate(mu = n.x / n.y, CSM = cumsum(mu))
+        }
+    } else { ## no covariates
+        rec0 <- tmp1 %>% filter(recType == 0)
+        dat0 <- tmp1 %>% rowwise() %>%
+            mutate(n.y = length(unique(dat1$id)), adjrisk = n.y - sum(rec0$n[Time > rec0$Time])) %>% unrowwise %>%
+            mutate(n = n * (recType > 0))
+        if (adjrisk) {
+            dat0 <- dat0 %>% arrange(Time) %>% mutate(mu = n / adjrisk, CSM = cumsum(mu))
+        } else {
+            dat0 <- dat0 %>% arrange(Time) %>% mutate(mu = n / n.y, CSM = cumsum(mu))
         }
     }
-    k <- length(unique(unlist(dat0$recType)))
+    ## ## added (0, 0)
+    ## dat0 <- bind_rows(dat0, rec0 %>% mutate(Time = 0, CSM = 0)) %>% distinct()   
+    ## if (k > 1) {
+    ##     tmp <- dat0 %>% filter(recType == 0)
+    ##     dat0 <- bind_rows(dat0 %>% filter(recType > 0),
+    ##                       do.call(rbind, lapply(split(tmp, tmp$GrpInd), function(x) x[rep(1:NROW(x), k),] %>% mutate(recType = rep(1:k, each = NROW(x))))))
+    ## } else {
+    ##     dat0$recType <- dat0$recType[1]
+    ## }   
     if (k == 1) dat0$recType <- factor(dat0$recType, labels = ctrl$recurrent.name)
     if (k > 1 & is.null(ctrl$recurrent.type))
         dat0$recType <- factor(dat0$recType, labels = paste(ctrl$recurrent.name, 1:k))
@@ -345,7 +361,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
             dat0$recType <- factor(dat0$recType, labels = ctrl$recurrent.type)
         } else {
             cat('The length of "recurrent.type" mismatched, default names are used.\n')
-            dat0$recType <- factor(recType, labels = paste(ctrl$recurrent.name, 1:k))
+            dat0$recType <- factor(dat0$recType, labels = paste(ctrl$recurrent.name, 1:k))
         }
     }
     gg <- ggplot(data = dat0, aes(x = Time, y = CSM))
@@ -371,8 +387,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
     if (onePanel & k == 1)
         gg <- gg + scale_color_discrete(name = "",
                                         labels = levels(interaction(dat0[,(5 + 1):ncol(dat1) - 4])))
-    if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")
-    
+    if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")  
     gg + theme(axis.line = element_line(color = "black"),
                 legend.key = element_rect(fill = "white", color = "white")) +
         ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)

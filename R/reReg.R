@@ -241,7 +241,7 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
     yi <- log(DF0$Time) + X %*% ahat
     tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% ahat
     tij <- tij[DF$event == 1]
-    t0.rate <- unique(sort(c(tij, yi)))
+    t0.rate <- sort(unique(c(tij, yi)))
     rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
@@ -474,7 +474,7 @@ regFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
             s1 <- .C("sc1Gehan", as.integer(n), as.integer(p), as.integer(index - 1),
                      as.integer(m), as.double(yi), as.double(tij), as.double(X), as.double(w), 
                      result = double(p), PACKAGE = "reReg")$result / n
-        t0.rate <- unique(sort(c(tij, yi)))
+        t0.rate <- sort(unique(c(tij, yi)))
         rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
                    as.integer(length(t0.rate)), as.double(w), as.double(yi),
                    as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
@@ -531,7 +531,7 @@ npFit.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     tij <- tij[DF$event == 1]
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
-    t0.rate <- unique(sort(c(tij, yi))) ## log scale
+    t0.rate <- sort(unique(c(tij, yi))) ## log scale
     rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
@@ -555,7 +555,7 @@ npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     tij <- tij[DF$event == 1]
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
-    t0.rate <- unique(sort(c(tij, yi))) ## log scale
+    t0.rate <- sort(unique(c(tij, yi))) ## log scale
     rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
                as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
                as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
@@ -591,7 +591,7 @@ npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     T <- DF$Time
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[!event], mt + 1)
-    t0.rate <- unique(sort(T))
+    t0.rate <- sort(unique(T))
     xb <- exp(X[!event,] %*% beta) 
     cl <- mt + 1
     rate <- .C("glCoxRate", as.double(ifelse(T == Y, 1e5, T)), as.double(Y[!event]),
@@ -614,7 +614,7 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     T <- DF$Time
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[!event], mt + 1)
-    t0.rate <- unique(sort(T))
+    t0.rate <- sort(unique(T))
     xb <- exp(X[!event,] %*% beta) 
     cl <- mt + 1
     rate <- .C("glCoxRate", as.double(ifelse(T == Y, 1e5, T)), as.double(Y[!event]),
@@ -678,8 +678,8 @@ npFit.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     yi <- log(DF0$Time) - X %*% beta ## beta or alpha?
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
-    t0.rate <- unique(sort(tij)) # log scale
-    t0.haz <- unique(sort(yi))
+    t0.rate <- sort(unique(tij)) # log scale
+    t0.haz <- sort(unique(yi))
     rate <- .C("glRate", as.integer(n), as.integer(index - 1), as.integer(m),
                as.integer(length(t0.rate)),
                as.double(yi - d), as.double(tij), as.double(t0.rate), 
@@ -734,7 +734,7 @@ npFit.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     Y <- rep(DF$Time[event == 0], mt + 1)
     ## cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
-    t0 <- sort(unique(T, Y))
+    t0 <- sort(unique(c(T, Y)))
     ng <- length(t0)
     Ya <- log(Y) + X %*% alpha
     Ta <- log(T) + X %*% alpha
@@ -767,7 +767,7 @@ npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
     status <- DF$status
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[event == 0], mt + 1)  
-    t0 <- sort(unique(T, Y))
+    t0 <- sort(unique(c(T, Y)))
     ng <- length(t0)
     event <- DF$event
     status <- DF$status
@@ -858,7 +858,7 @@ npFit.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     if (all(X == 0)) alpha <- beta <- 0
     delta <- DF$event
     ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
-    t0 <- sort(unique(T, Y))
+    t0 <- sort(unique(c(T, Y)))
     ng <- length(t0)
     Ya <- ifelse(Y <= 0, 0, log(Y))
     Ta <- ifelse(T <= 0, 0, log(T))
@@ -894,7 +894,7 @@ npFit.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    t0 <- sort(unique(T, Y))
+    t0 <- sort(unique(c(T, Y)))
     ng <- length(t0)
     ## Ya <- log(Y) + X %*% alpha
     ## Ta <- log(T) + X %*% alpha
@@ -948,7 +948,7 @@ npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     if (all(X == 0)) alpha <- beta <- 0
     delta <- DF$event
-    t0 <- sort(unique(T, Y))
+    t0 <- sort(unique(c(T, Y)))
     ng <- length(t0)
     Ya <- log(Y)
     Ta <- log(T)

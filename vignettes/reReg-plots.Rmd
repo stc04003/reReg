@@ -130,9 +130,9 @@ The nonparametric cumulative sample mean (CSM) function can be used to aid event
 to determine visually whether a trend or other pattern exists.
 The CSM function is defined as follows:
 $$\begin{array}{c}
-\hat \mu_n(t) = \sum_{i = 1}^n\int_0^tY_\cdot^{-1}(t)dN_i(t),
+\hat \mu_n(t) = \int_0^tY_\cdot^{-1}(t)dN_i(t),
 \end{array}$$
-where $Y_\cdot(t) = \sum_{j=1}^nY_i(t)$ is the total number of subjects who are at risk at time $t$ and
+where $Y_\cdot(t) = \sum_{i=1}^nY_i(t)$ is the total number of subjects who are at risk over $[t, t + dt)$ and
 $N_i(t)$ is the number of events over the time interval [0, t] for the *i*th process.
 This estimator is also known as the Nelson-Aalen estimator [@nelson2003recurrent] and 
 is also implemented in the `mcf` function in the **`reda`** package [@R:reda].
@@ -150,28 +150,25 @@ Both `plotEvents` and `plotCSM` return **`ggplot2`** objects.
 A side-by-side CSM plot, showing the CSM functions with and without risk adjustment, is shown in Figure 6.
 ```{r plot-csm2, fig.cap = "Figure 6: Creating a CSM plot from a `reSurv` object."}
 library(gridExtra)
-p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission, 
-              CSM = TRUE, main = "")
+p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission, main = "")
 p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ 1, data = readmission, 
-              CSM = TRUE, adjrisk = FALSE, main = "")
+              adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
 ```
 As with the `plotEvents`, `plotCSM` can generate CSM plots given covariates. 
 Figure 7 depicts the CSM plots grouped by `sex`.
 ```{r plot-csm-sex, fig.cap = "Figure 7: CSM plot grouped by `sex`."}
-p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, 
-              CSM = TRUE, main = "")
+p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, main = "")
 p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex, data = readmission, 
-              CSM = TRUE, adjrisk = FALSE, main = "")
+              adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
 ```
 As in `plotEvents`, the more complicated 
 Figure 8 depicts the CSM plots grouped by `sex` and `chemo`.
 ```{r plot-csm-sex-chemo, fig.cap = "Figure 8: CSM plots grouped by `sex` and `chemo`."}
-p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
-              CSM = TRUE, main = "")
+p1 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, main = "")
 p2 <- plotCSM(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
-              CSM = TRUE, adjrisk = FALSE, main = "")
+              adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
 ```
 
