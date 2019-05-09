@@ -14,7 +14,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}{inputenc}
 ---
 
-```{r default, include = FALSE}
+```{r default, include = FALSE, collapse = TRUE}
 knitr::opts_chunk$set(prompt = TRUE, comment = "")
 ```
 In this vignette, we demonstrate how to create a `reSurv` object in __`reReg`__ package.
@@ -25,8 +25,12 @@ The data contains re-hospitalization times after surgery in patients diagnosed w
 In this data set, the recurrent event is the readmission and the terminal event is either death or end of study.
 See `?readmission` for data details.
 
-```{r data}
+```{r load-pkg, message = FALSE}
 library(reReg)
+packageVersion("reReg")
+```
+
+```{r data}
 data(readmission, package = "frailtypack")
 head(readmission)
 attach(readmission)
@@ -66,7 +70,7 @@ The function `reSurv` prints a list-column `tibble`.
 ```{r reSurv-obj-short2, eval = TRUE}
 reSurv(t.stop, id, event, death)
 ```
-The example above shows patient id \#1 experienced 2 readmissions (`tij[1]` is a list of two `double`s) with a terminal event at `t = 1037` (days).
+The example above shows patient id \#1 experienced 2 readmission (`tij[1]` is a list of two `double`s) with a terminal event at `t = 1037` (days).
 The terminal event was censored (`status = 0`).
 Similarly, patient id \#3 has one readmission and died at `t = 783` (days).
 On the other hand patient id \# 4 has 4 readmission and was censored at `t = 2048` (days).
@@ -126,7 +130,7 @@ plotEvents(reSurv(t.stop, id, event, death) ~ sex + chemo, data = readmission)
 
 
 ## CSM plots {-}
-The nonparametric cumulative sample mean (CSM) function can be used to aid event plots 
+The non-parametric cumulative sample mean (CSM) function can be used to aid event plots 
 to determine visually whether a trend or other pattern exists.
 The CSM function is defined as follows:
 $$\begin{array}{c}
