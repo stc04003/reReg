@@ -5,7 +5,7 @@
 \title{Produce Cumulative Sample Mean Function Plots}
 \usage{
 plotCSM(formula, data, onePanel = FALSE, adjrisk = TRUE,
-  control = list(), ...)
+  smooth = FALSE, control = list(), ...)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
@@ -17,6 +17,9 @@ The response must be a recurrent event survival object as returned by function \
 This is useful when comparing CSM from different groups.}
 
 \item{adjrisk}{an optional logical value indicating whether risk set will be adjusted. See \bold{Details}.}
+
+\item{smooth}{an optional logical value indicating whether a smoothed curve will be added to the plot.
+This feature only works for data with one recurrent event type.}
 
 \item{control}{a list of control parameters.}
 

@@ -248,6 +248,8 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
 #' @param adjrisk an optional logical value indicating whether risk set will be adjusted. See \bold{Details}.
+#' @param smooth an optional logical value indicating whether a smoothed curve will be added to the plot.
+#' This feature only works for data with one recurrent event type.
 #' @param onePanel an optional logical value indicating whether cumulative sample means (CSM) will be plotted in the same panel.
 #' This is useful when comparing CSM from different groups.
 #' @param control a list of control parameters.
@@ -269,7 +271,7 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #' plotCSM(reSurv(Time, id, event, status) ~ 1, data = dat)
 #' plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat)
 #' plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
-plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = list(), ...) {
+plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, smooth = FALSE, control = list(), ...) {
     call <- match.call()
     ctrl <- plotCSM.control()
     namc <- names(control)
@@ -338,21 +340,14 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
         dat0 <- tmp1 %>% rowwise() %>%
             mutate(n.y = length(unique(dat1$id)), adjrisk = n.y - sum(rec0$n[Time > rec0$Time])) %>% unrowwise %>%
             mutate(n = n * (recType > 0))
+        dat0 <- bind_rows(dat0, rec0 %>% mutate(Time = 0, n = 0, adjrisk = 1)) %>% distinct()
+        dat0$recType <- dat0$recType[1]
         if (adjrisk) {
             dat0 <- dat0 %>% arrange(Time) %>% mutate(mu = n / adjrisk, CSM = cumsum(mu))
         } else {
             dat0 <- dat0 %>% arrange(Time) %>% mutate(mu = n / n.y, CSM = cumsum(mu))
         }
     }
-    ## ## added (0, 0)
-    ## dat0 <- bind_rows(dat0, rec0 %>% mutate(Time = 0, CSM = 0)) %>% distinct()   
-    ## if (k > 1) {
-    ##     tmp <- dat0 %>% filter(recType == 0)
-    ##     dat0 <- bind_rows(dat0 %>% filter(recType > 0),
-    ##                       do.call(rbind, lapply(split(tmp, tmp$GrpInd), function(x) x[rep(1:NROW(x), k),] %>% mutate(recType = rep(1:k, each = NROW(x))))))
-    ## } else {
-    ##     dat0$recType <- dat0$recType[1]
-    ## }   
     if (k == 1) dat0$recType <- factor(dat0$recType, labels = ctrl$recurrent.name)
     if (k > 1 & is.null(ctrl$recurrent.type))
         dat0$recType <- factor(dat0$recType, labels = paste(ctrl$recurrent.name, 1:k))
@@ -365,11 +360,11 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
         }
     }
     gg <- ggplot(data = dat0, aes(x = Time, y = CSM))
-    if (ncol(dat1) == 5 & length(unique(dat1$recType)) == 2) {
+    if (ncol(dat1) == 5 & k == 1) {
         gg <- gg + geom_step(size = ctrl$lwd)
     } else {
-        if (!onePanel & length(unique(dat1$recType)) == 2) gg <- gg + geom_step(size = ctrl$lwd)
-        if (!onePanel & length(unique(dat1$recType)) > 2) 
+        if (!onePanel & k == 1) gg <- gg + geom_step(size = ctrl$lwd)
+        if (!onePanel & k > 1) 
             gg <- gg + geom_step(aes(color = recType), direction = "hv", size = ctrl$lwd) +
                 guides(color = guide_legend(title = ctrl$recurrent.name))
         if (onePanel) {
@@ -387,7 +382,9 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, control = l
     if (onePanel & k == 1)
         gg <- gg + scale_color_discrete(name = "",
                                         labels = levels(interaction(dat0[,(5 + 1):ncol(dat1) - 4])))
-    if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")  
+    if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")
+    if (smooth & k == 1) gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
+    if (smooth & k > 1) cat('Smoothing only works for data with one recurrent event type.\n')
     gg + theme(axis.line = element_line(color = "black"),
                 legend.key = element_rect(fill = "white", color = "white")) +
         ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
