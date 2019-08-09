@@ -40,7 +40,7 @@ attach(readmission)
 The usage of `reSurv` is similar to the
 `Surv` function in the __`survival`__ package.
 There are five arguments in `reSurv` but not all of them need to be specified.
-The arguments of `reSurv` is as follow
+The arguments of `reSurv` are as follow
 ```{r reSurv}
 args(reSurv)
 ```

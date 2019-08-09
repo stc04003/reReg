@@ -61,7 +61,7 @@ The observed follow-up time is then taken to be $Y = \min(D, C, \tau)$.
 We further assume the baseline functions
 $$\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.$$
 
-The complete list of arguments in `simSC` are as follow
+The arguments in `simSC` are as follow
 ```{r simSC}
 library(reReg)
 args(simSC)

@@ -131,7 +131,7 @@ The function is similar to <code>plot.reSurv</code> but with more flexible optio
     </div>
 
     <pre class="usage"><span class='fu'>plotCSM</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>adjrisk</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(), <span class='no'>...</span>)</pre>
+  <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(), <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -153,6 +153,11 @@ This is useful when comparing CSM from different groups.</p></td>
     <tr>
       <th>adjrisk</th>
       <td><p>an optional logical value indicating whether risk set will be adjusted. See <b>Details</b>.</p></td>
+    </tr>
+    <tr>
+      <th>smooth</th>
+      <td><p>an optional logical value indicating whether a smoothed curve will be added to the plot.
+This feature only works for data with one recurrent event type.</p></td>
     </tr>
     <tr>
       <th>control</th>
