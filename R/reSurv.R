@@ -20,10 +20,7 @@ NULL
 
 #' @rdname reSurv
 #' @export
-#' @examples
-#' set.seed(1)
-#' dat <- simSC(200, c(-1, 1), c(-1, 1))
-#' with(dat, reSurv(Time, id, event, status))
+#' @example inst/examples/ex_reSurv.R
 reSurv <- function(time1, time2, id, event, status, origin = 0) {
     if (missing(time1) & missing(time2)) stop("Must have a time argument.")
     if (!is.numeric(time1)) stop("Time argument (time1) must be numeric.")

@@ -53,8 +53,7 @@ plotEvents(reSurv(Time, id, event, status) ~ x1, data = dat)
 dat$x3 <- ifelse(dat$x2 < 0, "x2 < 0", "x2 > 0")
 plotEvents(reSurv(Time, id, event, status) ~ x1 + x3, data = dat)
 ## With multiple hypothetical event types
-plotEvents(reSurv(Time, id, event * sample(1:3, nrow(dat), TRUE), status) ~
-  x1, data = dat)
+plotEvents(reSurv(Time, id, event * sample(1:3, nrow(dat), TRUE), status) ~ x1, data = dat)
 }
 \seealso{
 \code{\link{reSurv}}, \code{\link{plot.reSurv}}

@@ -60,9 +60,7 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #'
 #' @importFrom tibble as_tibble
 #'
-#' @examples
-#' set.seed(123)
-#' simSC(200, c(-1, 1), c(-1, 1), summary = TRUE)
+#' @example inst/examples/ex_simu.R
 simSC <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60, zVar = .25, summary = FALSE) {
     type <- match.arg(type)
     if (length(a) != 2L) stop("Require length(a) = 2.")

@@ -35,25 +35,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' @export
 #'
 #' @return A \code{ggplot} object.
-#' @examples
-#' set.seed(1)
-#' dat <- simSC(30, c(-1, 1), c(-1, 1))
-#' reObj <- with(dat, reSurv(Time, id, event, status))
-#'
-#' ## Event plots:
-#' ## Default labels
-#' plot(reObj)
-#' plot(reObj, order = FALSE)
-#' ## User specified labels
-#' plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
-#'
-#' ## With hypothetical multiple event types
-#' set.seed(1)
-#' reObj2 <- with(dat, reSurv(Time, id, event * sample(1:3, nrow(dat), TRUE), status))
-#' plot(reObj2)
-#'
-#' ## CSM plots
-#' plot(reObj, CSM = TRUE)
+#' @example inst/examples/ex_plot_reSurv.R
 plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
     if (!is.reSurv(x)) stop("Response must be a reSurv class")
     if (!CSM) ctrl <- plotEvents.control()
@@ -109,20 +91,7 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 #' 
 #' @return A \code{ggplot} object.
 #' 
-#' @examples
-#' set.seed(1)
-#' dat <- simSC(30, c(-1, 1), c(-1, 1))
-#' plotEvents(reSurv(Time, id, event, status) ~ 1, data = dat)
-#'
-#' ## Separate plots by x1
-#' plotEvents(reSurv(Time, id, event, status) ~ x1, data = dat)
-#'
-#' ## Separate plots by x1 and x3
-#' dat$x3 <- ifelse(dat$x2 < 0, "x2 < 0", "x2 > 0")
-#' plotEvents(reSurv(Time, id, event, status) ~ x1 + x3, data = dat)
-#' ## With multiple hypothetical event types
-#' plotEvents(reSurv(Time, id, event * sample(1:3, nrow(dat), TRUE), status) ~
-#'   x1, data = dat)
+#' @example inst/examples/ex_plot_event.R
 plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
     ctrl <- plotEvents.control()
     namc <- names(control)
@@ -265,12 +234,7 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
 #' @importFrom dplyr summarise rowwise bind_rows distinct
 #' @importFrom ggplot2 guides guide_legend
 #' 
-#' @examples
-#' set.seed(1)
-#' dat <- simSC(30, c(-1, 1), c(-1, 1))
-#' plotCSM(reSurv(Time, id, event, status) ~ 1, data = dat)
-#' plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat)
-#' plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
+#' @example inst/examples/ex_plot_CSM.R
 plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, smooth = FALSE, control = list(), ...) {
     call <- match.call()
     ctrl <- plotCSM.control()
@@ -424,13 +388,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, smooth = FA
 #' 
 #' @importFrom dplyr bind_rows
 #' @importFrom ggplot2 geom_smooth geom_step
-#' @examples
-#' set.seed(1)
-#' dat <- simSC(50, c(-1, 1), c(-1, 1))
-#' fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2,
-#'   data = dat, method = "cox.HW")
-#' plot(fit, baseline = "rate")
-#' plot(fit, baseline = "rate", xlab = "Time (days)")
+#' @example inst/examples/ex_plot_reReg.R
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                        smooth = FALSE, control = list(), ...) {
     baseline <- match.arg(baseline)
@@ -520,18 +478,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #'
 #' @keywords Plots
 #' 
-#' @examples
-#' set.seed(1)
-#' dat <- simSC(50, c(-1, 1), c(-1, 1))
-#' fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat,
-#'                    method = "cox.HW", se = "resampling", B = 20)
-#' ## Plot both the baseline cumulative rate and hazard function
-#' plot(fit)
-#' ## Plot baseline cumulative rate function
-#' plotRate(fit)
-#' ## Plot with user-specified labels
-#' plotRate(fit, xlab = "User xlab", ylab = "User ylab", main = "User title")
-#' plotRate(fit, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
+#' @example inst/examples/ex_plot_rate.R
 plotRate <- function(x, smooth = FALSE, control = list(), ...) {
     ctrl <- plotRate.control()
     namc <- names(control)
@@ -596,17 +543,7 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
 #' @return A \code{ggplot} object.
 #' @keywords Plots
 #' 
-#' @examples
-#' set.seed(1)
-#' dat <- simSC(50, c(-1, 1), c(-1, 1))
-#' fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat,
-#'   method = "cox.HW", se = "resampling", B = 20)
-#' ## Plot both the baseline cumulative rate and hazard function
-#' plot(fit)
-#' ## Plot baseline cumulative hazard function
-#' plotHaz(fit)
-#' ## Plot with user-specified labels
-#' plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))  
+#' @example inst/examples/ex_plot_Haz.R
 plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
     if (x$method %in% c("cox.LWYY", "sc.XCYH")) {
         cat(paste("Baseline cumulative hazard function is not available for method = ", x$method, ".", sep = ""))

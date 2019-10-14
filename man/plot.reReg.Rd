@@ -42,7 +42,7 @@ The argument \code{control} consists of options with argument defaults to a list
 set.seed(1)
 dat <- simSC(50, c(-1, 1), c(-1, 1))
 fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2,
-  data = dat, method = "cox.HW")
+             data = dat, method = "cox.HW")
 plot(fit, baseline = "rate")
 plot(fit, baseline = "rate", xlab = "Time (days)")
 }
