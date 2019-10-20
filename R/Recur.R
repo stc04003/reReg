@@ -9,6 +9,17 @@
 #' @export Recur
 NULL
 
+#' \code{is.Recur} function imported from \code{reda}
+#'
+#' This is a placeholder.
+#' 
+#' @importFrom reda is.Recur
+#' @name export_is.Recur
+#' @noRd
+#' @aliases is.Recur
+#' @export is.Recur
+NULL
+
 
 #' \code{%2%} function imported from \code{reda}
 #'
