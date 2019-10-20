@@ -92,8 +92,10 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 #' @return A \code{ggplot} object.
 #' 
 #' @example inst/examples/ex_plot_event.R
-plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
-    ctrl <- plotEvents.control()
+plotEvents <- function(formula, data, result = c("increasing", "decreasing", "asis"),
+                       control = list(), ...) {
+    result <- match.arg(result)
+    ctrl <- reReg:::plotEvents.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -105,20 +107,21 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
         ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
     }
     nX <- 0
-    if (is.reSurv(formula)) {dat <- formula$reTb
+    if (is.Recur(formula)) {
+        DF <- as.data.frame(formula@.Data)
     } else {
         if (missing(data)) obj <- eval(formula[[2]], parent.frame())
         else obj <- eval(formula[[2]], data)
-        dat <- obj$reTb
         nX <- length(formula[[3]])
+        if (formula[[3]] == 1) DF <- as.data.frame(obj@.Data)
         if (formula[[3]] != 1 && nX == 1) {
-            if (missing(data)) DF <- cbind(obj$reDF, eval(formula[[3]], parent.frame()))
-            if (!missing(data)) DF <- cbind(obj$reDF, eval(formula[[3]], data))
-            colnames(DF) <- c(names(obj$reDF), paste0(formula[[3]], collapse = ""))
-            suppressMessages(dat <- left_join(obj$reTb, unique(select(DF, id, paste(formula[[3]])))))
+            if (missing(data)) DF <- cbind(obj@.Data, eval(formula[[3]], parent.frame()))
+            if (!missing(data)) DF <- cbind(obj@.Data, eval(formula[[3]], data))
+            colnames(DF) <- c(colnames(obj@.Data), paste0(formula[[3]], collapse = ""))
+            DF <- as.data.frame(DF)
         }
         if (formula[[3]] != 1 && nX > 1) {
-            DF <- obj$reDF
+            DF <- as.data.frame(obj@.Data)
             if (missing(data)) {
                 for (i in 2:nX) {
                     DF <- cbind(DF, eval(formula[[3]][[i]], parent.frame()))
@@ -128,19 +131,29 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
                     DF <- cbind(DF, eval(formula[[3]][[i]], data))
                 }
             }
-            colnames(DF) <- c(names(obj$reDF), sapply(2:nX, function(x) paste0(formula[[3]][[x]], collapse = "")))
-            suppressMessages(dat <- left_join(obj$reTb, unique(select(DF, id, paste(formula[[3]][-1])))))
+            colnames(DF) <- c(colnames(obj@.Data),
+                              sapply(2:nX, function(x) paste0(formula[[3]][[x]], collapse = "")))
         }
-    }
-    dat$status <- ifelse(is.na(dat$status), 0, dat$status)
-    dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
-    if (order) {
-        if (nX == 0 || formula[[3]] == 1) dat <- dat %>% mutate(id = rank(Yi, ties.method = "first"))
-        else dat <- dat %>% group_by_at(6:ncol(dat)) %>% mutate(id = rank(Yi, ties.method = "first")) 
-    }
-    if (ctrl$cex == "Default") sz <- 1 + 8 / (1 + exp(length(unique(dat$id)) / 30))
+    }    
+    ## dat$status <- ifelse(is.na(dat$status), 0, dat$status)
+    ## dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
+    if (result != "asis") {
+        newIDtime2 <- function(dat, result = "increasing") {
+            tmp <- rank(dat$time2[dat$event == 0], ties.method = "first")
+            if (result == "decreasing") tmp <- length(tmp) - tmp + 1
+            dat$id <- rep(tmp, table(dat$id))
+            return(dat)
+        }
+        if (nX == 0 || formula[[3]] == 1) {
+            DF <- newIDtime2(DF)
+        } else {
+            DF <- do.call(rbind, lapply(split(DF, DF[, 7:ncol(DF)], drop = TRUE), newIDtime2))
+            rownames(DF) <- NULL
+        }
+    }    
+    if (ctrl$cex == "Default") sz <- 1 + 8 / (1 + exp(length(unique(DF$id)) / 30)) / max(1, nX)
     else sz <- ctrl$cex
-    k <- length(unique(unlist(dat$recType)))
+    k <- length(unique(DF$event)) - 1 ## exclude event = 0
     shp.val <- c(17, rep(19, k))
     clr.val <- c(alpha("red", ctrl$alpha), hcl(h = seq(120, 360, length.out = k), l = 60, alpha = ctrl$alpha))
     rec.lab <- paste("r", 1:k, sep = "")
@@ -158,34 +171,31 @@ plotEvents <- function(formula, data, order = TRUE, control = list(), ...) {
             shp.lab <- c(ctrl$terminal.name, paste(ctrl$recurrent.name, 1:k))            
         }
     }
-    names(shp.val) <- names(clr.val) <- c("Yi", rec.lab)
-    gg <- ggplot(dat, aes(id, Yi)) +
+    names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
+    gg <- ggplot(subset(DF, event == 0), aes(id, time2)) +
         geom_bar(stat = "identity", fill = "gray75") +
         coord_flip() + 
         theme(axis.line.y = element_blank(),
               axis.title.y = element_text(vjust = 0),
               axis.text.y = element_blank(),
               axis.ticks.y = element_blank())
-    if (sum(!is.na(dat$tij)) > 0) 
-        gg <- gg + geom_point(data = dat %>% filter(!map_lgl(tij, is.null)) %>%
-                                  unnest(tij, recType), # %>% select(id, tij, recType),
-                              aes(id, tij, shape = factor(recType, labels = rec.lab), 
-                                  color = factor(recType, labels = rec.lab)), size = sz)  
-            ## ## position = position_jitter(w = 0.1, h = 0)) +
-            ## scale_shape_manual(name = "", values = shp.val,
-            ##     labels = shp.lab, breaks = c("Yi", rec.lab)) +
-            ## scale_color_manual(name = "", values = clr.val,
-            ##     labels = shp.lab, breaks = c("Yi", rec.lab))
-    if (sum(dat$status, na.rm = TRUE) > 0)
-        gg <- gg + geom_point(data = dat %>% filter(status > 0),
-                              aes(id, Yi, shape = "Yi", color = "Yi"), size = sz) 
-    if (nX > 0 && formula[[3]] != 1) 
+    if (any(table(DF$id) > 0))
+        gg <- gg + geom_point(data = subset(DF, event > 0),
+                              aes(id, time2,
+                                  shape = factor(event, labels = rec.lab),
+                                  color = factor(event, labels = rec.lab)),
+                              size = sz)    
+    if (sum(DF$terminal, na.rm = TRUE) > 0)
+        gg <- gg + geom_point(data = subset(DF, terminal > 0), 
+                              aes(id, time2, shape = "terminal", color = "terminal"),
+                              size = sz)    
+    if (nX > 0 && formula[[3]] != 1)        
         gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
                               scales = "free", space = "free", switch = "both")
     gg <- gg + scale_shape_manual(name = "", values = shp.val,
-                                  labels = shp.lab, breaks = c("Yi", rec.lab)) +
+                                  labels = shp.lab, breaks = c("terminal", rec.lab)) +
         scale_color_manual(name = "", values = clr.val,
-                           labels = shp.lab, breaks = c("Yi", rec.lab))
+                           labels = shp.lab, breaks = c("terminal", rec.lab))
     gg + theme(panel.background = element_blank(),
                axis.line = element_line(color = "black"),
                legend.key = element_rect(fill = "white", color = "white")) +
