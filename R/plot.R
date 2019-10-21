@@ -3,7 +3,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 
 #' Produce Event Plot or Cumulative Sample Mean Function Plot
 #'
-#' Plot the event plot or the cumulative sample mean (CSM) function for an \code{reSurv} object.
+#' Plot the event plot or the cumulative sample mean (CSM) function for an \code{Recur} object.
 #'
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
@@ -18,7 +18,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' }
 #' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 #' 
-#' @param x an object of class \code{reSurv}, usually returned by the \code{reSurv} function.
+#' @param x an object of class \code{Recur}, usually returned by the \code{Recur} function.
 ## #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
 #' @param order an optional logical value indicating whether the event plot (when \code{CSM = FALSE})
 #' will be sorted by the terminal times.
@@ -36,8 +36,10 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #'
 #' @return A \code{ggplot} object.
 #' @example inst/examples/ex_plot_reSurv.R
-plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
-    if (!is.reSurv(x)) stop("Response must be a reSurv class")
+plot.Recur <- function(x, CSM = FALSE, result = c("increasing", "decreasing", "asis"),
+                       control = list(), ...) {
+    result <- match.arg(result)
+    if (!is.Recur(x)) stop("Response must be a `Recur` object.")
     if (!CSM) ctrl <- plotEvents.control()
     if (CSM) ctrl <- plotCSM.control()
     call <- match.call()
@@ -95,8 +97,9 @@ plot.reSurv <- function(x, CSM = FALSE, order = TRUE, control = list(), ...) {
 plotEvents <- function(formula, data, result = c("increasing", "decreasing", "asis"),
                        control = list(), ...) {
     result <- match.arg(result)
-    ctrl <- reReg:::plotEvents.control()
+    ctrl <- plotEvents.control()
     namc <- names(control)
+    if (!is.Recur(x)) stop("Response must be a `Recur` object.")
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
@@ -137,20 +140,25 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     }    
     ## dat$status <- ifelse(is.na(dat$status), 0, dat$status)
     ## dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
-    if (result != "asis") {
-        newIDtime2 <- function(dat, result = "increasing") {
-            tmp <- rank(dat$time2[dat$event == 0], ties.method = "first")
-            if (result == "decreasing") tmp <- length(tmp) - tmp + 1
-            dat$id <- rep(tmp, table(dat$id))
+    newIDtime2 <- function(dat, result = "increasing") {
+        if (result == "asis") {
+            tmp <- table(dat$id)
+            dat$id <- rep(1:length(tmp), tmp[match(unique(dat$id), names(tmp))])
             return(dat)
-        }
-        if (nX == 0 || formula[[3]] == 1) {
-            DF <- newIDtime2(DF)
         } else {
-            DF <- do.call(rbind, lapply(split(DF, DF[, 7:ncol(DF)], drop = TRUE), newIDtime2))
-            rownames(DF) <- NULL
+            tmp <- rank(dat$time2[dat$event == 0], ties.method = "first")
         }
-    }    
+        if (result == "decreasing") tmp <- length(tmp) - tmp + 1
+        dat$id <- rep(tmp, table(dat$id))
+        return(dat)
+    }
+    if (nX == 0 || formula[[3]] == 1) {
+        DF <- newIDtime2(DF, result = result)
+    } else {
+        DF <- do.call(rbind,
+                      lapply(split(DF, DF[, 7:ncol(DF)], drop = TRUE), newIDtime2, result = result))
+        rownames(DF) <- NULL
+    }
     if (ctrl$cex == "Default") sz <- 1 + 8 / (1 + exp(length(unique(DF$id)) / 30)) / max(1, nX)
     else sz <- ctrl$cex
     k <- length(unique(DF$event)) - 1 ## exclude event = 0
