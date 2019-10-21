@@ -20,7 +20,6 @@ NULL
 #' @export is.Recur
 NULL
 
-
 #' \code{%2%} function imported from \code{reda}
 #'
 #' This is a placeholder.

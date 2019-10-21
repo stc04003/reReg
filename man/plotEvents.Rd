@@ -4,7 +4,8 @@
 \alias{plotEvents}
 \title{Produce Event Plots}
 \usage{
-plotEvents(formula, data, order = TRUE, control = list(), ...)
+plotEvents(formula, data, result = c("increasing", "decreasing", "asis"),
+  control = list(), ...)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator,
@@ -13,12 +14,12 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
-\item{order}{an optional logical value indicating whether the event plot will be sorted by the terminal times.}
-
 \item{control}{a list of control parameters.}
 
 \item{...}{graphical parameters to be passed to methods.
 These include \code{xlab}, \code{ylab} and \code{main}.}
+
+\item{order}{an optional logical value indicating whether the event plot will be sorted by the terminal times.}
 }
 \value{
 A \code{ggplot} object.

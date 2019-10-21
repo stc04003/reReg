@@ -15,7 +15,7 @@ If \code{baseline = "both"} (default), both the baseline cumulative rate and bas
 if \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
 if \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.}
 
-\item{smooth}{an optional logical value indicating whether to add a smooth curve (\emph{loess} smooth).}
+\item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 

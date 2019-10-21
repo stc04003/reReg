@@ -1,5 +1,5 @@
-globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd", "n.x", "mu", "n", "CSM"))
-globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for plot.reReg
+## globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd", "n.x", "mu", "n", "CSM"))
+## globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for plot.reReg
 
 #' Produce Event Plot or Cumulative Sample Mean Function Plot
 #'
@@ -99,7 +99,6 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     result <- match.arg(result)
     ctrl <- plotEvents.control()
     namc <- names(control)
-    if (!is.Recur(x)) stop("Response must be a `Recur` object.")
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
@@ -112,9 +111,11 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     nX <- 0
     if (is.Recur(formula)) {
         DF <- as.data.frame(formula@.Data)
+        vNames <- NULL
     } else {
         if (missing(data)) obj <- eval(formula[[2]], parent.frame())
         else obj <- eval(formula[[2]], data)
+        if (!is.Recur(obj)) stop("Response must be a `Recur` object.")
         nX <- length(formula[[3]])
         if (formula[[3]] == 1) DF <- as.data.frame(obj@.Data)
         if (formula[[3]] != 1 && nX == 1) {
@@ -134,9 +135,11 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
                     DF <- cbind(DF, eval(formula[[3]][[i]], data))
                 }
             }
-            colnames(DF) <- c(colnames(obj@.Data),
-                              sapply(2:nX, function(x) paste0(formula[[3]][[x]], collapse = "")))
+            vNames <- attr(terms(formula), "term.labels")
+            colnames(DF) <- c(colnames(obj@.Data), vNames)
         }
+        vNames <- attr(terms(formula), "term.labels")
+        if (length(vNames) == 0) vNames <- NULL
     }    
     ## dat$status <- ifelse(is.na(dat$status), 0, dat$status)
     ## dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
@@ -179,6 +182,10 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
             shp.lab <- c(ctrl$terminal.name, paste(ctrl$recurrent.name, 1:k))            
         }
     }
+    if (nX > 0) {
+        for (i in vNames) {
+            DF[,i] <- factor(DF[,i], labels = paste(i, "=", unique(DF[,i])))
+        }}
     names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
     gg <- ggplot(subset(DF, event == 0), aes(id, time2)) +
         geom_bar(stat = "identity", fill = "gray75") +
@@ -249,11 +256,12 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #'
 #' @return A \code{ggplot} object.
 #' 
-#' @importFrom dplyr summarise rowwise bind_rows distinct
 #' @importFrom ggplot2 guides guide_legend
+#' @importFrom scam scam
 #' 
 #' @example inst/examples/ex_plot_CSM.R
-plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, smooth = FALSE, control = list(), ...) {
+plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
+                     smooth = FALSE, control = list(), ...) {
     call <- match.call()
     ctrl <- plotCSM.control()
     namc <- names(control)
@@ -266,94 +274,131 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, smooth = FA
         ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
     }
     nX <- 0
-    if(is.reSurv(formula)) {
-        dat1 <- formula$reDF
+    if(is.Recur(formula)) {
+        DF <- as.data.frame(formula@.Data)
+        vNames <- NULL
     } else {
         if (missing(data)) obj <- eval(formula[[2]], parent.frame())
         else obj <- eval(formula[[2]], data)
-        dat1 <- obj$reDF
+        if (!is.Recur(obj)) stop("Response must be a `Recur` object.")
+        DF <- as.data.frame(obj@.Data)
         nX <- length(formula[[3]])
         if (formula[[3]] != 1 && nX == 1) {
-            if (missing(data)) dat1 <- bind_cols(dat1, tmp = eval(formula[[3]], parent.frame()))
-            if (!missing(data)) dat1 <- bind_cols(dat1, tmp = eval(formula[[3]], data))
-            names(dat1) <- c(names(dat1)[1:5], paste0(formula[[3]], collapse = ""))
+            if (missing(data)) DF <- cbind(obj@.Data, tmp = eval(formula[[3]], parent.frame()))
+            if (!missing(data)) DF <- cbind(obj@.Data, tmp = eval(formula[[3]], data))
+            colnames(DF) <-  c(colnames(obj@.Data), paste0(formula[[3]], collapse = ""))
+            DF <- as.data.frame(DF)
         }
         if (formula[[3]] != 1 && nX > 1) {
+            DF <- as.data.frame(obj@.Data)
             if (missing(data)) {
                 for (i in 2:nX) {
-                    dat1 <- cbind(dat1, eval(formula[[3]][[i]], parent.frame()))
+                    DF <- cbind(DF, eval(formula[[3]][[i]], parent.frame()))
                 }
             } else {
                 for (i in 2:nX) {
-                    dat1 <- cbind(dat1, eval(formula[[3]][[i]], data))
+                    DF <- cbind(DF, eval(formula[[3]][[i]], data))
                 }
             }
-            names(dat1) <- c(names(dat1)[1:5], sapply(2:nX, function(x) paste0(formula[[3]][[x]], collapse = "")))
+            colnames(DF) <- c(colnames(obj@.Data), attr(terms(formula), "term.labels"))
         }
-    }
-    rText1 <- paste("dat1 %>% count(", paste(names(dat1)[5:ncol(dat1)], collapse = ","),", Time)")
-    tmp1 <- eval(parse(text = rText1))
-    k <- length(unique(unlist(tmp1$recType))) - 1 # remove recType = 0
-    if (ncol(dat1) > 5) { ## any covariates/stratifications?
-        rText2 <- paste("dat1 %>% group_by(", paste(names(dat1)[6:ncol(dat1)], collapse = ","),")",
-                        "%>% summarise(n = length(unique(id)))")
-        tmp2 <- eval(parse(text = rText2))
-        tmp1 <- left_join(tmp1, tmp2, by = paste(names(dat1)[6:ncol(dat1)])) %>%
-            mutate(GrpInd = as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":")))))        
-        rec0 <- tmp1 %>% filter(recType == 0)
-        dat0 <- tmp1 %>% rowwise() %>%
-            mutate(adjrisk = n.y - sum(rec0$n.x[Time > rec0$Time & rec0$GrpInd == GrpInd])) %>% unrowwise %>%
-            mutate(n.x = n.x * (recType > 0))
-        dat0 <- bind_rows(dat0, rec0 %>% mutate(Time = 0, n.x = 0, adjrisk = 1)) %>% distinct()   
+        vNames <- attr(terms(formula), "term.labels")
+        if (length(vNames) == 0) vNames <- NULL
+    }   
+    dd <- subset(DF, select = c("event", vNames, "time2"))
+    dd <- dd[do.call(order, dd),]
+    nn <- table(apply(dd, 1, paste, collapse = ""))
+    dd <- unique(dd)
+    dd$n <- as.integer(nn) ## tmp1 in the 1st version
+    rownames(dd) <- NULL
+    k <- length(unique(dd$event)) - 1    
+    if (!is.null(vNames)) { ## any covariates/stratifications?
+        dd2 <- subset(DF, event == 0, select = vNames)
+        dd2 <- dd2[do.call(order, dd2),, drop = FALSE]
+        nn <- table(apply(dd2, 1, paste, collapse = ""))
+        dd2 <- unique(dd2)
+        dd2$n <- as.integer(nn) ## tmp2 in the 1st version
+        rownames(dd2) <- NULL
+        dd$GrpInd <- match(apply(dd[,vNames, drop = FALSE], 1, paste, collapse = ""),
+                           apply(dd2[,vNames, drop = FALSE], 1, paste, collapse = ""))
+        tmp1 <- merge(dd, dd2, by = vNames)
+        ## as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":"))))
+        rec0 <- subset(tmp1, event == 0)       
+        dat0 <- do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
+            x$adjrisk = apply(x, 1, function(y)
+                y['n.y'] - sum(rec0$n.x[y['time2'] > rec0$time2 & rec0$GrpInd == y['GrpInd']]))
+            return(x)}))
+        dat0$n.x <- dat0$n.x * (dat0$event > 0)
+        rec0$time2 <- rec0$n.x <- 0
+        rec0$adjrisk <- 1
+        dat0 <- unique(rbind(dat0, rec0))
+        rownames(dat0) <- NULL
+        ## Number of recurrent types
         if (k > 1) {
-            tmp <- dat0 %>% filter(recType == 0)
-            dat0 <- bind_rows(dat0 %>% filter(recType > 0),
-                              do.call(rbind, lapply(split(tmp, tmp$GrpInd), function(x) x[rep(1:NROW(x), k),] %>% mutate(recType = rep(1:k, each = NROW(x))))))
+            tmp <- subset(dat0, event == 0)
+            tmp <- tmp[rep(1:NROW(tmp), k),]
+            tmp$event <- rep(1:k, each = sum(dat0$event == 0))
+            dat0 <- rbind(subset(dat0, event > 0), tmp)            
         } else {
-            dat0$recType <- dat0$recType[1]
+            dat0$event <- dat0$event[1]
         }
+        dat0 <- dat0[order(dat0$event, dat0$GrpInd, dat0$time2),]
         if (adjrisk) {
-            dat0 <- dat0 %>% arrange(recType, GrpInd, Time) %>% group_by(recType, GrpInd) %>% mutate(mu = n.x / adjrisk, CSM = cumsum(mu))
+            dat0 <- do.call(rbind, 
+                            lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
+                                x$mu <- x$n.x / x$adjrisk
+                                x$CSM <- cumsum(x$mu)
+                                return(x)}))
         } else {
-            dat0 <- dat0 %>% arrange(recType, GrpInd, Time) %>% group_by(recType, GrpInd) %>% mutate(mu = n.x / n.y, CSM = cumsum(mu))
+            dat0 <- do.call(rbind, 
+                            lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
+                                x$mu <- x$n.x / x$n.y
+                                x$CSM <- cumsum(x$mu)
+                                return(x)}))
         }
     } else { ## no covariates
-        rec0 <- tmp1 %>% filter(recType == 0)
-        dat0 <- tmp1 %>% rowwise() %>%
-            mutate(n.y = length(unique(dat1$id)), adjrisk = n.y - sum(rec0$n[Time > rec0$Time])) %>% unrowwise %>%
-            mutate(n = n * (recType > 0))
-        dat0 <- bind_rows(dat0, rec0 %>% mutate(Time = 0, n = 0, adjrisk = 1)) %>% distinct()
-        dat0$recType <- dat0$recType[1]
-        if (adjrisk) {
-            dat0 <- dat0 %>% arrange(Time) %>% mutate(mu = n / adjrisk, CSM = cumsum(mu))
-        } else {
-            dat0 <- dat0 %>% arrange(Time) %>% mutate(mu = n / n.y, CSM = cumsum(mu))
+        dd$n.y <- length(unique(DF$id))
+        rec0 <- subset(dd, event == 0)
+        dd$adjrisk <- apply(dd, 1, function(x) x[4] - sum(rec0$n[x[2] > rec0$time2]))
+        dd$n <- dd$n * (dd$event > 0)
+        rec0$time2 <- rec0$n <- 0
+        rec0$adjrisk <- 1
+        dat0 <- unique(rbind(dd, rec0))
+        dat0$event <- dat0$event[1]
+        dat0 <- dat0[order(dat0$time2),]
+        dat0$mu <- dat0$n / (adjrisk * dat0$adjrisk + !adjrisk * dat0$n.y)
+        dat0$CSM <- cumsum(dat0$mu)
+    }
+    if (k == 1) dat0$event <- factor(dat0$event, labels = ctrl$recurrent.name)
+    if (k > 1) {
+        if (is.null(ctrl$recurrent.type))
+            dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
+        if (!is.null(ctrl$recurrent.type)) {
+            if (length(ctrl$recurrent.type) == k) {
+                dat0$event <- factor(dat0$event, labels = ctrl$recurrent.type)
+            } else {
+                cat('The length of "recurrent.type" mismatched, default names are used.\n')
+                dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
+            }
         }
     }
-    if (k == 1) dat0$recType <- factor(dat0$recType, labels = ctrl$recurrent.name)
-    if (k > 1 & is.null(ctrl$recurrent.type))
-        dat0$recType <- factor(dat0$recType, labels = paste(ctrl$recurrent.name, 1:k))
-    if (k > 1 & !is.null(ctrl$recurrent.type)) {
-        if (length(ctrl$recurrent.type) == k) {
-            dat0$recType <- factor(dat0$recType, labels = ctrl$recurrent.type)
-        } else {
-            cat('The length of "recurrent.type" mismatched, default names are used.\n')
-            dat0$recType <- factor(dat0$recType, labels = paste(ctrl$recurrent.name, 1:k))
-        }
-    }
-    gg <- ggplot(data = dat0, aes(x = Time, y = CSM))
-    if (ncol(dat1) == 5 & k == 1) {
+    if (nX > 0) {
+        for (i in vNames) {
+            dat0[,i] <- factor(dat0[,i], labels = paste(i, "=", unique(dat0[,i])))
+        }}
+    gg <- ggplot(data = dat0, aes(x = time2, y = CSM))
+    if (is.null(vNames) & k == 1) {
         gg <- gg + geom_step(size = ctrl$lwd)
     } else {
         if (!onePanel & k == 1) gg <- gg + geom_step(size = ctrl$lwd)
         if (!onePanel & k > 1) 
-            gg <- gg + geom_step(aes(color = recType), direction = "hv", size = ctrl$lwd) +
+            gg <- gg + geom_step(aes(color = event), direction = "hv", size = ctrl$lwd) +
                 guides(color = guide_legend(title = ctrl$recurrent.name))
         if (onePanel) {
-            rText <- paste("geom_step(aes(color = interaction(",
-                           paste(names(dat0)[5:ncol(dat1) - 4], collapse = ","),
-                           ")), direction = \"hv\")")
-            gg <- gg + eval(parse(text = rText))
+            dat0$GrpInd <- factor(dat0$GrpInd)
+            levels(dat0$GrpInd) <- apply(unique(dat0[,vNames, drop = FALSE]), 1, paste, collapse = ", ")
+            gg <- gg + geom_step(aes(color = dat0$GrpInd), direction = "hv", size = ctrl$lwd) +
+                guides(color = guide_legend(title = ""))
         }
     }
     if (!onePanel && nX > 0 && formula[[3]] != 1) 
@@ -361,17 +406,22 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, smooth = FA
                               scales = "free", space = "free", switch = "x")
     if (!onePanel & k == 1)
         gg <- gg + theme(legend.position="none")
-    if (onePanel & k == 1)
-        gg <- gg + scale_color_discrete(name = "",
-                                        labels = levels(interaction(dat0[,(5 + 1):ncol(dat1) - 4])))
-    if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")
-    if (smooth & k == 1) gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
+    ## if (onePanel & k == 1)
+    ##     gg <- gg + scale_color_discrete(name = "", labels = levels(interaction(vNames)))
+    ## if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")
+    if (smooth & k == 1 & !onePanel) {
+        if (is.null(dat0$GrpInd)) dat0$GrpInd <- 1
+        dat0 <- do.call(rbind, lapply(split(dat0, dat0$GrpInd), function(x){
+            x$bs <- with(x, scam(CSM ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+            return(x)}))       
+        gg <- gg + geom_line(aes(time2, y = dat0$bs), color = 4, size = ctrl$lwd)
+        ## geom_smooth(method = "scam", formula = y ~ s(x, k = 10, bs = "mpi"), size = ctrl$lwd, se = FALSE)
+    }
+    ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
     if (smooth & k > 1) cat('Smoothing only works for data with one recurrent event type.\n')
     gg + theme(axis.line = element_line(color = "black"),
                 legend.key = element_rect(fill = "white", color = "white")) +
         ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
-    ## scale_color_discrete(name = "") +
-    ## scale_y_continuous(expand = c(0, 1)) +
 }
 
 #' Plotting Baseline Cumulative Rate Function and Baseline Cumulative Hazard Function
@@ -389,7 +439,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, smooth = FA
 ## #' These arguments can also be passed down without specifying a \code{control} list.
 #' 
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
-#' @param smooth an optional logical value indicating whether to add a smooth curve (\emph{loess} smooth).
+#' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param baseline a character string specifying which baseline function to plot.
 #' If \code{baseline = "both"} (default), both the baseline cumulative rate and baseline cumulative hazard function will be plotted in separate panels within the same display;
 #' if \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
@@ -404,7 +454,6 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE, smooth = FA
 #'
 #' @return A \code{ggplot} object.
 #' 
-#' @importFrom dplyr bind_rows
 #' @importFrom ggplot2 geom_smooth geom_step
 #' @example inst/examples/ex_plot_reReg.R
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
