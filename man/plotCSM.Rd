@@ -18,7 +18,7 @@ This is useful when comparing CSM from different groups.}
 
 \item{adjrisk}{an optional logical value indicating whether risk set will be adjusted. See \bold{Details}.}
 
-\item{smooth}{an optional logical value indicating whether a smoothed curve will be added to the plot.
+\item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 This feature only works for data with one recurrent event type.}
 
 \item{control}{a list of control parameters.}

@@ -14,12 +14,17 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
+\item{result}{an optional character string specifying how to sort the ids. The available options are
+\describe{
+  \item{increasing}{sort the ids by }
+  \item{decreasing}{sort the ids by }
+  \item{asis}{present the as is, without sorting.}
+}}
+
 \item{control}{a list of control parameters.}
 
 \item{...}{graphical parameters to be passed to methods.
 These include \code{xlab}, \code{ylab} and \code{main}.}
-
-\item{order}{an optional logical value indicating whether the event plot will be sorted by the terminal times.}
 }
 \value{
 A \code{ggplot} object.

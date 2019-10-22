@@ -4,8 +4,9 @@
 \alias{plot.Recur}
 \title{Produce Event Plot or Cumulative Sample Mean Function Plot}
 \usage{
-\method{plot}{Recur}(x, CSM = FALSE, result = c("increasing",
-  "decreasing", "asis"), control = list(), ...)
+\method{plot}{Recur}(x, CSM = FALSE, event.result = c("increasing",
+  "decreasing", "asis"), csm.adjrisk = TRUE, csm.smooth = FALSE,
+  control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{Recur}, usually returned by the \code{Recur} function.}
@@ -13,13 +14,21 @@
 \item{CSM}{an optional logical value indicating whether the cumulative sample mean (CSM) function will
 be plotted instead of the event plot (default).}
 
+\item{event.result}{an optional character string specifying how to sort the ids. The available options are
+\describe{
+  \item{increasing}{sort the ids by }
+  \item{decreasing}{sort the ids by }
+  \item{asis}{present the as is, without sorting.}
+}}
+
+\item{csm.adjrisk}{an optional logical value indicating whether risk set will be adjusted.}
+
+\item{csm.smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
+
 \item{control}{a list of control parameters. See \bold{Details}.}
 
 \item{...}{graphical parameters to be passed to methods.
 These include \code{xlab}, \code{ylab} and \code{main}.}
-
-\item{order}{an optional logical value indicating whether the event plot (when \code{CSM = FALSE})
-will be sorted by the terminal times.}
 }
 \value{
 A \code{ggplot} object.
@@ -62,6 +71,6 @@ plot(reObj2)
 plot(reObj, CSM = TRUE)
 }
 \seealso{
-\code{\link{reSurv}}
+\code{\link{Recur}}
 }
 \keyword{Plots}

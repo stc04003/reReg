@@ -101,6 +101,11 @@ plotCSM(Recur(Time, id, event, status) ~ 1, data = dat, smooth = TRUE)
 plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, smooth = TRUE)
 plotCSM(Recur(Time, id, event, status) ~ x1 + x3, data = dat, smooth = TRUE)
 
+plotCSM(with(dat, Recur(Time, id, event, status)), adjrisk = FALSE, smooth = TRUE)
+plotCSM(Recur(Time, id, event, status) ~ 1, data = dat, adjrisk = FALSE, smooth = TRUE)
+plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, adjrisk = FALSE, smooth = TRUE)
+plotCSM(Recur(Time, id, event, status) ~ x1 + x3, data = dat, adjrisk = FALSE, smooth = TRUE)
+
 plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
 plotCSM(Recur(Time, id, event, status) ~ x1 + x3, data = dat, onePanel = TRUE)
 
@@ -109,3 +114,19 @@ plotEvents(Recur(Time, id, event, status) ~ 1, data = dat)
 plotEvents(Recur(Time, id, event, status) ~ x1, data = dat)
 plotEvents(Recur(Time, id, event, status) ~ x1 + x3, data = dat)
 
+fit2 <- with(dat, Recur(Time, id, event, status))
+
+plot(fit2)
+plot(fit2, event.result = "increasing")
+plot(fit2, result = "decreasing")
+plot(fit2, result = "asis")
+
+plot(fit2, CSM = TRUE)
+plot(fit2, CSM = TRUE, csm.smooth = TRUE)
+plot(fit2, CSM = TRUE, csm.smooth = FALSE)
+plot(fit2, CSM = TRUE, csm.adjrisk = TRUE)
+plot(fit2, CSM = TRUE, csm.adjrisk = FALSE)
+plot(fit2, CSM = TRUE, csm.adjrisk = TRUE, csm.smooth = TRUE)
+plot(fit2, CSM = TRUE, csm.adjrisk = FALSE, csm.smooth = TRUE)
+plot(fit2, CSM = TRUE, csm.adjrisk = TRUE, csm.smooth = FALSE)
+plot(fit2, CSM = TRUE, csm.adjrisk = FALSE, csm.smooth = FALSE)

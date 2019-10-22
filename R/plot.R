@@ -19,26 +19,32 @@
 #' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 #' 
 #' @param x an object of class \code{Recur}, usually returned by the \code{Recur} function.
-## #' @param data an optional data frame in which to interpret the variables occurring in the "formula".
-#' @param order an optional logical value indicating whether the event plot (when \code{CSM = FALSE})
-#' will be sorted by the terminal times.
+#' @param event.result an optional character string specifying how to sort the ids. The available options are
+#' \describe{
+#'   \item{increasing}{sort the ids by }
+#'   \item{decreasing}{sort the ids by }
+#'   \item{asis}{present the as is, without sorting.}
+#' }
 ## #' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.
 #' @param control a list of control parameters. See \bold{Details}.
+#' @param csm.smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
+#' @param csm.adjrisk an optional logical value indicating whether risk set will be adjusted. 
 #' @param CSM an optional logical value indicating whether the cumulative sample mean (CSM) function will
 #' be plotted instead of the event plot (default).
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab} and \code{main}.
 #' 
-#' @seealso \code{\link{reSurv}}
+#' @seealso \code{\link{Recur}}
 #' 
 #' @keywords Plots
 #' @export
 #'
 #' @return A \code{ggplot} object.
 #' @example inst/examples/ex_plot_reSurv.R
-plot.Recur <- function(x, CSM = FALSE, result = c("increasing", "decreasing", "asis"),
+plot.Recur <- function(x, CSM = FALSE, event.result = c("increasing", "decreasing", "asis"),
+                       csm.adjrisk = TRUE, csm.smooth = FALSE,
                        control = list(), ...) {
-    result <- match.arg(result)
+    result <- match.arg(event.result)
     if (!is.Recur(x)) stop("Response must be a `Recur` object.")
     if (!CSM) ctrl <- plotEvents.control()
     if (CSM) ctrl <- plotCSM.control()
@@ -53,10 +59,10 @@ plot.Recur <- function(x, CSM = FALSE, result = c("increasing", "decreasing", "a
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
     if (!CSM) {
-        return(plotEvents(x, order = order, control = ctrl))
+        return(plotEvents(x, result = event.result, control = ctrl))
     }
     if (CSM)
-        return(plotCSM(x, onePanel = TRUE, control = ctrl))
+        return(plotCSM(x, adjrisk = csm.adjrisk, smooth = csm.smooth, control = ctrl))
 }
 
 #' Produce Event Plots
@@ -81,7 +87,12 @@ plot.Recur <- function(x, CSM = FALSE, result = c("increasing", "decreasing", "a
 #' and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
-#' @param order an optional logical value indicating whether the event plot will be sorted by the terminal times.
+#' @param result an optional character string specifying how to sort the ids. The available options are
+#' \describe{
+#'   \item{increasing}{sort the ids by }
+#'   \item{decreasing}{sort the ids by }
+#'   \item{asis}{present the as is, without sorting.}
+#' }
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab} and \code{main}.
@@ -242,7 +253,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' The response must be a recurrent event survival object as returned by function \code{reSurv}.
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
 #' @param adjrisk an optional logical value indicating whether risk set will be adjusted. See \bold{Details}.
-#' @param smooth an optional logical value indicating whether a smoothed curve will be added to the plot.
+#' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' This feature only works for data with one recurrent event type.
 #' @param onePanel an optional logical value indicating whether cumulative sample means (CSM) will be plotted in the same panel.
 #' This is useful when comparing CSM from different groups.
