@@ -130,3 +130,51 @@ plot(fit2, CSM = TRUE, csm.adjrisk = TRUE, csm.smooth = TRUE)
 plot(fit2, CSM = TRUE, csm.adjrisk = FALSE, csm.smooth = TRUE)
 plot(fit2, CSM = TRUE, csm.adjrisk = TRUE, csm.smooth = FALSE)
 plot(fit2, CSM = TRUE, csm.adjrisk = FALSE, csm.smooth = FALSE)
+
+
+with(dat, reSurv(Time, id, event, status))
+
+debug(reSurv)
+with(dat, reSurv(Time, id, event, status))
+
+
+args(Recur)
+
+
+attach(dat)
+
+Recur(Time, id, event, status)
+reSurv(Time, id, event, status)
+
+Recur(Time, id, event)
+reSurv(Time, id, event)
+
+Recur(Time, id)
+reSurv(Time, id)
+
+Recur(Time)
+reSurv(Time)
+
+detach(dat)
+
+
+time1 <- c(1, 5, 7, 2, 9)
+time2 <- c(3, 7, 9, 3, 17)
+id <- c(1, 1, 1, 2, 2)
+event <- c(1, 1, 0, 1, 0)
+status <- c(0, 0, 0, 0, 1)
+
+Recur(time1 %to% time2, id = id, event = event, terminal = status)
+Recur(time1 %to% time2, id, event, status)
+
+reSurv(time1, time2, id, event, status)
+
+
+reSurv2 <- function(time1, time2, id, event, status, origin = 0) {
+    warning("'reSurv()' is being deprecated in Version 1.1.7. Output is prepared by 'Recur()'.\n See '?Recur()' for details.\n")
+    nArg <- length(match.call()) - 1
+    if (nArg >= 5) return(Recur(time1 %2% time2, id, event, status))
+    if (nArg < 5) return(Recur(time1, time2, id, event, origin = origin))
+}
+
+reSurv2(time1, time2, id, event, status)
