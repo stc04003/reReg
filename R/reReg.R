@@ -9,13 +9,13 @@ globalVariables(c("event", "vcov", "wgt")) ## global variables for reReg
 regFit.am.XCHWY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    status <- DF$status
-    X <- as.matrix(DF[,-c(1:4)])
+    status <- DF$terminal
+    X <- as.matrix(DF[,-c(1:6)])
     n <- length(unique(id))
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     outA <- eqSolve(engine@a0, alphaEq, engine@solver,
                     X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)
@@ -36,11 +36,11 @@ regFit.am.XCHWY <- function(DF, engine, stdErr) {
 
 regFit.am.GL <- function(DF, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
-    p <- ncol(DF0) - 4
+    p <- ncol(DF0) - 6
     alpha <- beta <- gamma <- rep(0, p)
-    Y <- log(DF0$Time)
+    Y <- log(DF0$time2)
     X <- as.matrix(DF0[,-(1:4)])
-    status <- DF0$status
+    status <- DF0$terminal
     n <- nrow(DF0)
     log.est <- function(b) {
         .C("log_ns_est", as.double(b), as.double(Y), as.double(X), as.double(status),
@@ -54,7 +54,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     index <- c(1, cumsum(m)[-n] + 1)
     ghoshU2 <- function(a) {
         d <- max(X %*% (a - bhat))
-        tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
+        tij <- log(DF$time2) - as.matrix(DF[,-(1:6)]) %*% a
         tij <- tij[DF$event == 1]
         ## yi <- Y - X %*% a - d ## Correct version
         yi <- Y - X %*% bhat - d ## Paper version
@@ -74,11 +74,11 @@ regFit.am.GL <- function(DF, engine, stdErr) {
 regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     DF0 <- subset(DF, event == 0)
-    p <- ncol(DF0) - 4
+    p <- ncol(DF0) - 6
     alpha <- beta <- gamma <- rep(0, p)
-    Y <- log(DF0$Time)
-    X <- as.matrix(DF0[,-(1:4)])
-    status <- DF0$status
+    Y <- log(DF0$time2)
+    X <- as.matrix(DF0[,-(1:6)])
+    status <- DF0$terminal
     n <- nrow(DF0)
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
@@ -91,7 +91,7 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
                  as.double(w), as.double(rep(1, n)), 
                  result = double(p), PACKAGE = "reReg")$result
         d <- max(X %*% (a - b))
-        tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% a
+        tij <- log(DF$time2) - as.matrix(DF[,-(1:6)]) %*% a
         tij <- tij[DF$event == 1]
         ## yi <- Y - X %*% a - d ## Correct version
         yi <- Y - X %*% b - d ## Paper version
@@ -127,13 +127,13 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
 regFit.cox.HW <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    status <- DF$status
-    X <- as.matrix(DF[,-c(1:4)])    
+    status <- DF$terminal
+    X <- as.matrix(DF[,-c(1:6)])    
     n <- length(unique(id))
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     X <- cbind(1, X[event == 0,])
     engine@a0 <- c(0, engine@a0)
@@ -157,9 +157,9 @@ regFit.cox.HW <- function(DF, engine, stdErr) {
 regFit.cox.LWYY <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    X <- as.matrix(DF[,-c(1:4)])
+    X <- as.matrix(DF[,-c(1:6)])
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
     fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
     list(alpha = coef(fit.coxph), alphaSE = sqrt(diag(vcov(fit.coxph))),
@@ -185,14 +185,14 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
 regFit.cox.GL <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    X <- as.matrix(DF[,-c(1:4)])
+    X <- as.matrix(DF[,-c(1:6)])
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     ## T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
     ## fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
-    fit.coxph <- coxph(Surv(Time, status) ~ ., data = subset(DF, !event, select = -c(id, event)))
+    fit.coxph <- coxph(Surv(Time, terminal) ~ ., data = subset(DF, !event, select = -c(id, event)))
     cumHaz <- basehaz(fit.coxph)
     ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
     X0 <- subset(X, !event)
@@ -216,14 +216,14 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
         engine@solver <- "dfsane"
     }
     DF0 <- subset(DF, event == 0)
-    p <- ncol(DF) - 4
-    X <- as.matrix(DF0[,-(1:4)])
+    p <- ncol(DF) - 6
+    X <- as.matrix(DF0[,-(1:6)])
     n <- nrow(DF0)
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
     U1 <- function(a) {
-        yi <- log(DF0$Time) + X %*% a
-        tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% a
+        yi <- log(DF0$time2) + X %*% a
+        tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% a
         tij <- tij[DF$event == 1]
         if (engine@eqType %in% c("Logrank", "logrank")) 
             return(.C("sc1Log", as.integer(n), as.integer(p), as.integer(index - 1),
@@ -238,8 +238,8 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
     }
     fit.a <- eqSolve(engine@a0, U1, engine@solver)
     ahat <- fit.a$par
-    yi <- log(DF0$Time) + X %*% ahat
-    tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% ahat
+    yi <- log(DF0$time2) + X %*% ahat
+    tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% ahat
     tij <- tij[DF$event == 1]
     t0.rate <- sort(unique(c(tij, yi)))
     rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
@@ -271,17 +271,17 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     ## engine@b0 <- res$beta
     id <- DF$id
     event <- DF$event
-    status <- DF$status
-    X <- as.matrix(DF[,-c(1:4)])    
+    status <- DF$terminal
+    X <- as.matrix(DF[,-c(1:6)])    
     n <- length(unique(id))
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
     clsz <- mt + 1
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     B <- stdErr@B
-    uID <- unique(DF$ID)
+    uID <- unique(DF$id) # unique(DF$ID)
     if (stdErr@parallel) {
         cl <- makeCluster(stdErr@parCl)
         clusterExport(cl = cl,
@@ -333,13 +333,13 @@ regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
-    status <- DF$status
-    X <- as.matrix(DF[,-c(1:4)])    
+    status <- DF$terminal
+    X <- as.matrix(DF[,-c(1:6)])    
     n <- length(unique(id))
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     X <- cbind(1, X[event == 0,])
     B <- stdErr@B
@@ -387,13 +387,13 @@ regFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
-    status <- DF$status
+    status <- DF$terminal
     X <- as.matrix(DF[,-c(1:4)])    
     n <- length(unique(id))
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))        
     B <- stdErr@B
     E <- matrix(rexp(n * B), nrow = n)
@@ -452,8 +452,8 @@ regFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
     }
     res <- regFit(DF, engine, NULL)
     DF0 <- subset(DF, event == 0)
-    p <- ncol(DF) - 4
-    X <- as.matrix(DF0[,-(1:4)])
+    p <- ncol(DF) - 6
+    X <- as.matrix(DF0[,-(1:6)])
     n <- nrow(DF0)
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
@@ -463,8 +463,8 @@ regFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
     a <- res$alpha
     b <- c(res$log.muZ, res$beta - res$alpha)
     U12 <- function(a, b, w) {
-        yi <- log(DF0$Time) + X %*% a
-        tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% a
+        yi <- log(DF0$time2) + X %*% a
+        tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% a
         tij <- tij[DF$event == 1]
         if (engine@eqType %in% c("Logrank", "logrank")) 
             s1 <- .C("sc1Log", as.integer(n), as.integer(p), as.integer(index - 1),
@@ -523,11 +523,11 @@ regFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
 ##############################################################################
 npFit.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
-    p <- ncol(DF) - 4
-    X <- as.matrix(DF0[,-(1:4)])
-    yi <- log(DF0$Time) + X %*% alpha
+    p <- ncol(DF) - 6
+    X <- as.matrix(DF0[,-(1:6)])
+    yi <- log(DF0$time2) + X %*% alpha
     n <- nrow(DF0)
-    tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% alpha
+    tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% alpha
     tij <- tij[DF$event == 1]
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
@@ -547,11 +547,11 @@ npFit.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
 
 npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
-    p <- ncol(DF) - 4
-    X <- as.matrix(DF0[,-(1:4)])
-    yi <- log(DF0$Time) + X %*% alpha
+    p <- ncol(DF) - 6
+    X <- as.matrix(DF0[,-(1:6)])
+    yi <- log(DF0$time2) + X %*% alpha
     n <- nrow(DF0)
-    tij <- log(DF$Time) + as.matrix(DF[,-(1:4)]) %*% alpha
+    tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% alpha
     tij <- tij[DF$event == 1]
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
@@ -586,11 +586,11 @@ npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
 npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    X <- as.matrix(DF[,-c(1:4)])
+    X <- as.matrix(DF[,-c(1:6)])
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[!event], mt + 1)
+    Y <- rep(DF$time2[!event], mt + 1)
     t0.rate <- sort(unique(T))
     xb <- exp(X[!event,] %*% beta) 
     cl <- mt + 1
@@ -598,7 +598,7 @@ npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
                as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
                as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
                as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
-    fit.coxph <- coxph(Surv(Time, status) ~ ., data = subset(DF, !event, select = -c(id, event)))
+    fit.coxph <- coxph(Surv(time2, terminal) ~ ., data = subset(DF, !event, select = -c(id, event)))
     cumHaz <- basehaz(fit.coxph)
     haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
     list(rate0 = approxfun(t0.rate, rate, rule = 2, method = "constant"),
@@ -609,9 +609,9 @@ npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
 npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     id <- DF$id
     event <- DF$event
-    X <- as.matrix(DF[,-c(1:4)])
+    X <- as.matrix(DF[,-c(1:6)])
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$Time[!event], mt + 1)
     t0.rate <- sort(unique(T))
@@ -639,7 +639,7 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
         fit.coxphB <- coxph(Surv(Time, status) ~ ., data = subset(DF2, !event, select = -c(id, event)))
         cumHaz <- basehaz(fit.coxphB)
         ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
-        X0 <- as.matrix(DF2[!DF2$event, -(1:4)])
+        X0 <- as.matrix(DF2[!DF2$event, -(1:6)])
         wgt <- sapply(exp(X0 %*% coef(fit.coxphB)), function(x)
             with(cumHaz, approxfun(time, exp(-hazard * x), yleft = 1, yright = min(exp(-hazard * x)),
                                    method = "constant"))(DF2$Time))
@@ -667,15 +667,15 @@ npFit.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     alpha <- -alpha
     beta <- -beta
     DF0 <- subset(DF, event == 0)
-    p <- ncol(DF0) - 4
-    X <- as.matrix(DF0[,-(1:4)])
-    status <- DF0$status
+    X <- as.matrix(DF0[,-(1:6)])
+    p <- ncol(X)
+    status <- DF0$terminal
     n <- nrow(DF0)
     ## d <- max(X %*% (alpha - beta), 0)
     d <- max(X %*% (alpha - beta))
-    tij <- log(DF$Time) - as.matrix(DF[,-(1:4)]) %*% alpha
+    tij <- log(DF$time2) - as.matrix(DF[,-(1:6)]) %*% alpha
     tij <- tij[DF$event == 1]
-    yi <- log(DF0$Time) - X %*% beta ## beta or alpha?
+    yi <- log(DF0$time2) - X %*% beta ## beta or alpha?
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
     t0.rate <- sort(unique(tij)) # log scale
@@ -725,13 +725,13 @@ npFit.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
     event <- DF$event
-    status <- DF$status
-    X <- as.matrix(DF[,-c(1:4)])    
+    status <- DF$terminal
+    X <- as.matrix(DF[,-c(1:6)])
     n <- length(unique(id))
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     ## cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
     t0 <- sort(unique(c(T, Y)))
@@ -761,24 +761,24 @@ npFit.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
 
 npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
     ## t0 <- seq(0, max(DF$Time), length.out = 5 * nrow(DF))
-    T <- DF$Time
+    T <- DF$time2
     id <- DF$id
     event <- DF$event
-    status <- DF$status
+    status <- DF$terminal
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)  
+    Y <- rep(DF$time2[event == 0], mt + 1)  
     t0 <- sort(unique(c(T, Y)))
     ng <- length(t0)
     event <- DF$event
-    status <- DF$status
+    status <- DF$terminal
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
     cluster <- unlist(lapply(split(id, id), function(z) 1:length(z)))
-    X <- as.matrix(DF[,-(1:4)])
-    DF$T0 <- with(DF, unlist(lapply(split(Time, id), function(x) c(0, x)[1:length(x)])))
+    X <- as.matrix(DF[,-(1:6)])
+    DF$T0 <- with(DF, unlist(lapply(split(time2, id), function(x) c(0, x)[1:length(x)])))
     if (!all(X == 0)) {
         tmp <- coxph(as.formula(paste("Surv(T0, Time, event)~",
-                                      paste(colnames(DF)[-c(1:4, ncol(DF))], collapse = "+"))),
+                                      paste(colnames(DF)[-c(1:6, ncol(DF))], collapse = "+"))),
                      data = DF)
         base <- data.frame(matrix(0, nrow = 1, ncol = ncol(X)))
         names(base) <- names(coef(tmp))
@@ -787,7 +787,7 @@ npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
         lyU <- -log(with(tmp0, approx(time, upper, t0)$y))
         lyL <- -log(with(tmp0, approx(time, lower, t0)$y))
         tmp <- coxph(as.formula(paste("Surv(Time, status)~",
-                                      paste(colnames(DF)[-c(1:4, ncol(DF))], collapse = "+"))),
+                                      paste(colnames(DF)[-c(1:6, ncol(DF))], collapse = "+"))),
                      data = DF[event == 0,])
         ## tmp0 <- survfit(tmp, newdata = base)
         ## hy <- with(tmp0, approx(time, cumhaz, t0)$y)
@@ -795,7 +795,7 @@ npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
         ## hyL <- -log(with(tmp0, approx(time, lower, t0)$y))
     }
     if (all(X == 0)) {
-        tmp <- coxph(Surv(T0, Time, event) ~ 1, data = DF)
+        tmp <- coxph(Surv(T0, time2, terminal) ~ 1, data = DF)
         ly <- with(basehaz(tmp), approx(time, hazard, t0)$y)
         lyU <- -log(with(survfit(tmp), approx(time, upper, t0)$y))
         lyL <- -log(with(survfit(tmp), approx(time, lower, t0)$y))
@@ -849,12 +849,12 @@ npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
 npFit.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
-    T <- DF$Time
-    X <- as.matrix(DF[,-c(1:4)])
+    T <- DF$time2
+    X <- as.matrix(DF[,-c(1:6)])
     event <- DF$event
-    status <- DF$status
+    status <- DF$terminal
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     if (all(X == 0)) alpha <- beta <- 0
     delta <- DF$event
     ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
@@ -886,13 +886,13 @@ npFit.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
     event <- DF$event
-    status <- DF$status
+    status <- DF$terminal
     X <- as.matrix(DF[,-c(1:4)])    
     n <- length(unique(id))
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     t0 <- sort(unique(c(T, Y)))
     ng <- length(t0)
@@ -938,13 +938,13 @@ npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
     id <- DF$id
     event <- DF$event
-    status <- DF$status
-    X <- as.matrix(DF[,-c(1:4)])    
+    status <- DF$terminal
+    X <- as.matrix(DF[,-c(1:6)])    
     n <- length(unique(id))
     p <- ncol(X)
-    T <- DF$Time
+    T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[event == 0], mt + 1)
+    Y <- rep(DF$time2[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     if (all(X == 0)) alpha <- beta <- 0
     delta <- DF$event
@@ -1153,19 +1153,19 @@ reReg <- function(formula, data, B = 200,
     Call <- match.call()
     if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 
     if (!missing(data)) obj <- eval(formula[[2]], data) 
-    if (!is.reSurv(obj)) stop("Response must be a reSurv object")
+    if (!is.Recur(obj)) stop("Response must be a `Recur` object")
     formula[[2]] <- NULL
     if (formula == ~ 1) {
-        DF <- cbind(obj$reDF[, -5], zero=0)
+        DF <- as.data.frame(cbind(obj@.Data, zero = 0))
     } else {
         ## remove intercept
-        if (!missing(data)) DF <- cbind(obj$reDF[,-5], model.matrix(formula, data))
-        if (missing(data)) DF <- cbind(obj$reDF[,-5], model.matrix(formula, parent.frame()))
+        if (!missing(data)) DF <- as.data.frame(cbind(obj@.Data, model.matrix(formula, data)))
+        if (missing(data)) DF <- as.data.frame(cbind(obj@.Data, model.matrix(formula, parent.frame())))
         DF <- DF[,-which(colnames(DF) == "(Intercept)")]
     }
-    DF <- DF[order(DF$id, DF$Time), ]
-    ## reset ID
-    DF$id <- rep(1:length(unique(DF$id)), table(DF$id))
+    DF <- DF[order(DF$id, DF$time2), ]
+    ## ## reset ID / not needed for Recur()
+    ## DF$id <- rep(1:length(unique(DF$id)), table(DF$id))
     engine.control <- control[names(control) %in% names(attr(getClass(method), "slots"))]
     engine <- do.call("new", c(list(Class = method), engine.control))
     if (se == "NULL")
@@ -1175,7 +1175,7 @@ reReg <- function(formula, data, B = 200,
         stdErr <- do.call("new", c(list(Class = se), stdErr.control))
         stdErr@B <- B
     }
-    p <- ncol(DF) - 4
+    p <- ncol(DF) - ncol(obj@.Data)
     if (length(engine@a0) == 1) engine@a0 <- rep(engine@a0, p)
     if (length(engine@b0) == 1) engine@b0 <- rep(engine@b0, p)
     if (method %in% "sc.XCYH") {
@@ -1193,10 +1193,10 @@ reReg <- function(formula, data, B = 200,
         fit <- c(fit, npFit(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = stdErr))
     }
     class(fit) <- "reReg"
-    fit$reTb <- obj$reTb
+    fit$reTb <- obj@.Data
     fit$DF <- DF
     fit$call <- Call
-    fit$varNames <- names(DF)[-(1:4)]
+    fit$varNames <- names(DF)[-(1:6)]
     fit$method <- method
     fit$se <- se
     if (!is.null(fit$alphaVar)) rownames(fit$alphaVar) <- colnames(fit$alphaVar) <- fit$varNames
