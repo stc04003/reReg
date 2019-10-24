@@ -99,7 +99,7 @@ dat.sc <- simSC(200, c(-1, 1), c(-1, 1), type = "sc", summary = TRUE)
 The output of `simSC` are `tibble` objects.
 ```{R cox-display}
 class(dat.cox)
-dat.cox
+head(dat.cox)
 ```
 ```{R cox-DT}
 library(DT)

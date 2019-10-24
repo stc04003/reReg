@@ -77,6 +77,7 @@ plot(reObj2, event.result = "asis")
 plot(reObj2, CSM = TRUE)
 plot(reObj2, CSM = TRUE, csm.adjrisk = FALSE)
 plot(reObj2, CSM = TRUE, csm.smooth = TRUE)
+
 }
 \seealso{
 \code{\link{Recur}}

@@ -1,19 +1,23 @@
 #' The \code{Recur} function is imported from \code{reda}.
 #'
-#' This is a placeholder.
+#' See \code{?reda::Recur} for more details.
 #' 
 #' @importFrom reda Recur
-#' @noRd
 #' @aliases Recur
 #' @export Recur
 NULL
 
 #' The \code{is.Recur} function is imported from \code{reda}.
 #'
-#' This is a placeholder.
+#' See \code{?reda::is.Recur} for more details.
+#'
+#' \itemize{
+#' \item \code{\link[reda]{is.Recur}}: imported from the \code{reda}
+#' package.
+#' }
+#'
 #' 
 #' @importFrom reda is.Recur
-#' @noRd
 #' @aliases is.Recur
 #' @export is.Recur
 NULL

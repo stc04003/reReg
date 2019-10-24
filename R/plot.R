@@ -1,5 +1,6 @@
-## globalVariables(c("Time", "Yi", "id", "recType", "status", "tij", "n.y", "GrpInd", "n.x", "mu", "n", "CSM"))
-## globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for plot.reReg
+globalVariables(c("time1", "time2", "Yi", "id", "status", "origin", "event", "terminal",
+                  "tij", "n.y", "GrpInd", "n.x", "mu", "n", "CSM"))
+globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for plot.reReg
 
 #' Produce Event Plot or Cumulative Sample Mean Function Plot
 #'
@@ -337,7 +338,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         rec0 <- subset(tmp1, event == 0)       
         dat0 <- do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
             x$adjrisk = apply(x, 1, function(y)
-                y['n.y'] - sum(rec0$n.x[y['time2'] > rec0$time2 & rec0$GrpInd == y['GrpInd']]))
+                as.numeric(y['n.y']) - sum(rec0$n.x[y['time2'] > rec0$time2 & rec0$GrpInd == y['GrpInd']]))
             return(x)}))
         dat0$n.x <- dat0$n.x * (dat0$event > 0)
         rec0$time2 <- rec0$n.x <- 0
@@ -374,14 +375,21 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         dd$n <- dd$n * (dd$event > 0)
         rec0$time2 <- rec0$n <- 0
         rec0$adjrisk <- 1
-        dat0 <- unique(rbind(dd, rec0))
-        dat0$event <- dat0$event[1]
+        dat0 <- unique(rbind(dd, rec0))       
         dat0 <- dat0[order(dat0$time2),]
         dat0$mu <- dat0$n / (adjrisk * dat0$adjrisk + !adjrisk * dat0$n.y)
         dat0$CSM <- cumsum(dat0$mu)
     }
-    if (k == 1) dat0$event <- factor(dat0$event, labels = ctrl$recurrent.name)
+    if (k == 1) {
+        dat0$event <- dat0$event[1]
+        dat0$event <- factor(dat0$event, labels = ctrl$recurrent.name)
+    }
     if (k > 1) {
+        dat00 <- subset(dat0, event == 0)
+        dat0 <- subset(dat0, event > 0)
+        dat00 <- dat00[rep(1:nrow(dat00), k),]
+        dat00$event <- rep(1:k, each = nrow(dat00) / k)
+        dat0 <- rbind(dat0, dat00)
         if (is.null(ctrl$recurrent.type))
             dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
         if (!is.null(ctrl$recurrent.type)) {

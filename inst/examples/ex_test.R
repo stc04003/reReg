@@ -181,3 +181,27 @@ reSurv2 <- function(time1, time2, id, event, status, origin = 0) {
 }
 
 reSurv2(time1, time2, id, event, status)
+
+data(readmission, package = "frailtypack")
+readmission <- subset(readmission, !(id %in% c(60, 109, 280)))
+plotCSM(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, main = "")
+
+
+do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
+    x$adjrisk = apply(x, 1, function(y) y["n.y"] - sum(rec0$n.x[y["time2"] > rec0$time2 & rec0$GrpInd == y["GrpInd"]]))}))
+
+
+
+ttt <- split(tmp1, tmp1$GrpInd)[[1]]
+head(ttt)
+str(ttt)
+apply(ttt, 1, function(y) y["n.y"])
+apply(ttt, 1, function(y) y$n.y)
+head(rec0)
+
+apply(ttt, 1, function(y) 
+    as.numeric(y["n.y"]) - sum(rec0$n.x[y["time2"] > rec0$time2 & rec0$GrpInd == y["GrpInd"]]))
+
+ttt[1,]["n.y"]
+
+str(ttt)
