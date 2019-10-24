@@ -9,7 +9,7 @@ plotCSM(formula, data, onePanel = FALSE, adjrisk = TRUE,
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
-The response must be a recurrent event survival object as returned by function \code{reSurv}.}
+The response must be a recurrent event survival object as returned by function \code{Recur}.}
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
@@ -30,8 +30,8 @@ These include \code{xlab}, \code{ylab} and \code{main}.}
 A \code{ggplot} object.
 }
 \description{
-Plot the cumulative sample mean function (CSM) for an \code{reSurv} object.
-The function is similar to \code{plot.reSurv} but with more flexible options.
+Plot the cumulative sample mean function (CSM) for an \code{Recur} object.
+The function is similar to \code{plot.Recur} but with more flexible options.
 }
 \details{
 When \code{adjrisk = TRUE}, the \code{plotCSM} is equivalent to
@@ -51,13 +51,13 @@ The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down 
 \examples{
 set.seed(1)
 dat <- simSC(30, c(-1, 1), c(-1, 1))
-plotCSM(reSurv(Time, id, event, status) ~ 1, data = dat)
-plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat)
-plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
+plotCSM(Recur(Time, id, event, status) ~ 1, data = dat)
+plotCSM(Recur(Time, id, event, status) ~ x1, data = dat)
+plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
 
 
 }
 \seealso{
-\code{\link{reSurv}}, \code{\link{plot.reSurv}}
+\code{\link{Recur}}, \code{\link{plot.Recur}}
 }
 \keyword{Plots}

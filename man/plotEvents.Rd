@@ -10,7 +10,7 @@ plotEvents(formula, data, result = c("increasing", "decreasing", "asis"),
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator,
 and the predictors on the right.
-The response must be a recurrent event survival object as returned by function \code{reSurv}.}
+The response must be a recurrent event survival object as returned by function \code{Recur}.}
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
@@ -30,8 +30,8 @@ These include \code{xlab}, \code{ylab} and \code{main}.}
 A \code{ggplot} object.
 }
 \description{
-Plot the event plot for an \code{reSurv} object.
-The function is similar to \code{plot.reSurve} but with more flexible options.
+Plot the event plot for an \code{Recur} object.
+The function is similar to \code{plot.Recur} but with more flexible options.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a
@@ -50,18 +50,18 @@ The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down 
 \examples{
 set.seed(1)
 dat <- simSC(30, c(-1, 1), c(-1, 1))
-plotEvents(reSurv(Time, id, event, status) ~ 1, data = dat)
+plotEvents(Recur(Time, id, event, status) ~ 1, data = dat)
 
 ## Separate plots by x1
-plotEvents(reSurv(Time, id, event, status) ~ x1, data = dat)
+plotEvents(Recur(Time, id, event, status) ~ x1, data = dat)
 
-## Separate plots by x1 and x3
+## For multiple recurrent events
 dat$x3 <- ifelse(dat$x2 < 0, "x2 < 0", "x2 > 0")
-plotEvents(reSurv(Time, id, event, status) ~ x1 + x3, data = dat)
-## With multiple hypothetical event types
-plotEvents(reSurv(Time, id, event * sample(1:3, nrow(dat), TRUE), status) ~ x1, data = dat)
+plotEvents(Recur(Time, id, event, status) ~ x1 + x3, data = dat)
+plotEvents(Recur(Time, id, event * sample(1:3, nrow(dat), TRUE), status) ~ x1, data = dat)
+plotEvents(Recur(Time, id, event * sample(1:3, nrow(dat), TRUE), status) ~ x1 + x3, data = dat)
 }
 \seealso{
-\code{\link{reSurv}}, \code{\link{plot.reSurv}}
+\code{\link{Recur}}, \code{\link{plot.Recur}}
 }
 \keyword{Plots}

@@ -1,4 +1,4 @@
-globalVariables(c("event", "vcov", "wgt")) ## global variables for reReg
+## globalVariables(c("event", "vcov", "wgt")) ## global variables for reReg
 
 ##############################################################################
 ## Functions for different methods
@@ -39,7 +39,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     p <- ncol(DF0) - 6
     alpha <- beta <- gamma <- rep(0, p)
     Y <- log(DF0$time2)
-    X <- as.matrix(DF0[,-(1:4)])
+    X <- as.matrix(DF0[,-(1:6)])
     status <- DF0$terminal
     n <- nrow(DF0)
     log.est <- function(b) {
@@ -192,7 +192,8 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
     Y <- rep(DF$time2[event == 0], mt + 1)
     ## T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
     ## fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
-    fit.coxph <- coxph(Surv(Time, terminal) ~ ., data = subset(DF, !event, select = -c(id, event)))
+    fit.coxph <- coxph(Surv(time2, terminal) ~ .,
+                       data = subset(DF, !event, select = -c(id, event, time1, origin)))
     cumHaz <- basehaz(fit.coxph)
     ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
     X0 <- subset(X, !event)
@@ -388,7 +389,7 @@ regFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:4)])    
+    X <- as.matrix(DF[,-c(1:6)])    
     n <- length(unique(id))
     p <- ncol(X)
     T <- DF$time2
@@ -598,7 +599,8 @@ npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
                as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
                as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
                as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
-    fit.coxph <- coxph(Surv(time2, terminal) ~ ., data = subset(DF, !event, select = -c(id, event)))
+    fit.coxph <- coxph(Surv(time2, terminal) ~ .,
+                       data = subset(DF, !event, select = -c(id, event, time1, origin)))
     cumHaz <- basehaz(fit.coxph)
     haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
     list(rate0 = approxfun(t0.rate, rate, rule = 2, method = "constant"),
@@ -613,7 +615,7 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     p <- ncol(X)
     T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$Time[!event], mt + 1)
+    Y <- rep(DF$time2[!event], mt + 1)
     t0.rate <- sort(unique(T))
     xb <- exp(X[!event,] %*% beta) 
     cl <- mt + 1
@@ -622,7 +624,8 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
                as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
                as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
     rate0 <- approxfun(t0.rate, rate, yleft = 0, yright = max(rate), method = "constant")
-    fit.coxph <- coxph(Surv(Time, status) ~ ., data = subset(DF, !event, select = -c(id, event)))
+    fit.coxph <- coxph(Surv(time2, terminal) ~ .,
+                       data = subset(DF, !event, select = -c(id, event, time1, origin)))
     cumHaz <- basehaz(fit.coxph)
     t0.haz <- cumHaz$time
     haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
@@ -636,13 +639,14 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
         DF2 <- DF[ind,]
         DF2$id <- rep(1:length(id0), table(DF$id)[sampled.id])
         rownames(DF2) <- NULL
-        fit.coxphB <- coxph(Surv(Time, status) ~ ., data = subset(DF2, !event, select = -c(id, event)))
+        fit.coxphB <- coxph(Surv(time2, terminal) ~ .,
+                            data = subset(DF2, !event, select = -c(id, event, time1, origin)))
         cumHaz <- basehaz(fit.coxphB)
         ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
         X0 <- as.matrix(DF2[!DF2$event, -(1:6)])
         wgt <- sapply(exp(X0 %*% coef(fit.coxphB)), function(x)
             with(cumHaz, approxfun(time, exp(-hazard * x), yleft = 1, yright = min(exp(-hazard * x)),
-                                   method = "constant"))(DF2$Time))
+                                   method = "constant"))(DF2$time2))
         engine@wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
         engine@wgt <- ifelse(engine@wgt > 1e5, 1e5, engine@wgt)
         tmp <- npFit.cox.GL(DF2, alpha, beta, engine, NULL)
@@ -777,7 +781,7 @@ npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
     X <- as.matrix(DF[,-(1:6)])
     DF$T0 <- with(DF, unlist(lapply(split(time2, id), function(x) c(0, x)[1:length(x)])))
     if (!all(X == 0)) {
-        tmp <- coxph(as.formula(paste("Surv(T0, Time, event)~",
+        tmp <- coxph(as.formula(paste("Surv(T0, time2, event)~",
                                       paste(colnames(DF)[-c(1:6, ncol(DF))], collapse = "+"))),
                      data = DF)
         base <- data.frame(matrix(0, nrow = 1, ncol = ncol(X)))
@@ -786,7 +790,7 @@ npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
         ly <- with(tmp0, approx(time, cumhaz, t0)$y)
         lyU <- -log(with(tmp0, approx(time, upper, t0)$y))
         lyL <- -log(with(tmp0, approx(time, lower, t0)$y))
-        tmp <- coxph(as.formula(paste("Surv(Time, status)~",
+        tmp <- coxph(as.formula(paste("Surv(time2, terminal)~",
                                       paste(colnames(DF)[-c(1:6, ncol(DF))], collapse = "+"))),
                      data = DF[event == 0,])
         ## tmp0 <- survfit(tmp, newdata = base)
@@ -887,7 +891,7 @@ npFit.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
     id <- DF$id
     event <- DF$event
     status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:4)])    
+    X <- as.matrix(DF[,-c(1:6)])    
     n <- length(unique(id))
     p <- ncol(X)
     T <- DF$time2
@@ -1017,7 +1021,9 @@ setGeneric("regFit", function(DF, engine, stdErr) {standardGeneric("regFit")})
 
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "NULL"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "resampling"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.GL", stdErr = "NULL"), regFit.cox.GL)
+setMethod("regFit", signature(engine = "cox.GL", stdErr = "resampling"), regFit.cox.GL)
 setMethod("regFit", signature(engine = "cox.HW", stdErr = "NULL"), regFit.cox.HW)
 setMethod("regFit", signature(engine = "am.XCHWY", stdErr = "NULL"), regFit.am.XCHWY)
 setMethod("regFit", signature(engine = "am.GL", stdErr = "NULL"), regFit.am.GL)
@@ -1035,7 +1041,9 @@ setMethod("regFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
 
 setGeneric("npFit", function(DF, alpha, beta, engine, stdErr) {standardGeneric("npFit")})
 setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "NULL"), npFit.cox.NA)
+setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "resampling"), npFit.cox.NA)
 setMethod("npFit", signature(engine = "cox.GL", stdErr = "NULL"), npFit.cox.GL)
+setMethod("npFit", signature(engine = "cox.GL", stdErr = "resampling"), npFit.cox.GL)
 setMethod("npFit", signature(engine = "cox.HW", stdErr = "NULL"), npFit.cox.HW)
 setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "NULL"), npFit.am.XCHWY)
 setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), npFit.cox.NA)
