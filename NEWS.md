@@ -21,9 +21,6 @@
 	* Major make over
 	* Cleaned codes
 	* New data structure required for `reSurv`: Time, id, event, status
-	* Added cox.LWYY and generalized scale model
-	* Added nonparametric methods
-	* Added event plot
-	* updated maintainer contact
 # `reReg` 1.0.0
 	* Version updated to published version.   
+ 
