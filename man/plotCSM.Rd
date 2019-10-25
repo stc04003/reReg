@@ -9,29 +9,30 @@ plotCSM(formula, data, onePanel = FALSE, adjrisk = TRUE,
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
-The response must be a recurrent event survival object as returned by function \code{reSurv}.}
+The response must be a recurrent event survival object returned by the \code{Recur()} function.}
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
-\item{onePanel}{an optional logical value indicating whether cumulative sample means (CSM) will be plotted in the same panel.
-This is useful when comparing CSM from different groups.}
+\item{onePanel}{an optional logical value indicating whether the cumulative sample means (CSM) will be plotted in the same panel.
+This is only useful when there are multiple recurrent event types or in the presese of (discrete) covariates.}
 
-\item{adjrisk}{an optional logical value indicating whether risk set will be adjusted. See \bold{Details}.}
+\item{adjrisk}{an optional logical value indicating whether risk set will be adjusted,
+e.g., if \code{TRUE}, subjects leave the risk set after terminal times. See \bold{Details}.}
 
-\item{smooth}{an optional logical value indicating whether a smoothed curve will be added to the plot.
+\item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 This feature only works for data with one recurrent event type.}
 
 \item{control}{a list of control parameters.}
 
 \item{...}{graphical parameters to be passed to methods.
-These include \code{xlab}, \code{ylab} and \code{main}.}
+These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
-Plot the cumulative sample mean function (CSM) for an \code{reSurv} object.
-The function is similar to \code{plot.reSurv} but with more flexible options.
+Plot the cumulative sample mean function (CSM) for an \code{Recur} object.
+The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
 }
 \details{
 When \code{adjrisk = TRUE}, the \code{plotCSM} is equivalent to
@@ -51,11 +52,13 @@ The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down 
 \examples{
 set.seed(1)
 dat <- simSC(30, c(-1, 1), c(-1, 1))
-plotCSM(reSurv(Time, id, event, status) ~ 1, data = dat)
-plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat)
-plotCSM(reSurv(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
+plotCSM(Recur(Time, id, event, status) ~ 1, data = dat)
+plotCSM(Recur(Time, id, event, status) ~ x1, data = dat)
+plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
+
+
 }
 \seealso{
-\code{\link{reSurv}}, \code{\link{plot.reSurv}}
+\code{\link{Recur}}, \code{\link{plot.Recur}}
 }
 \keyword{Plots}

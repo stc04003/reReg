@@ -48,20 +48,20 @@ We give brief description on each of the available methods below.
 ```{r cox-lwyy}
 set.seed(123)
 dat.cox <- simSC(n = 500, a = c(1, -1), b = c(1, -1))
-fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox)
+fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox)
 summary(fit)
 ```
 ### @ghosh2002 `cox.GL` 
 
 ```{r cox-GL, cache = TRUE, tidy = TRUE}
-fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
              method = "cox.GL")
 summary(fit)
 ```
 
 ### @Huang2004 `cox.HW` 
 ```{r cox-HW, cache = TRUE, tidy = TRUE}
-fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
              method = "cox.HW")
 summary(fit)
 ```
@@ -70,14 +70,14 @@ summary(fit)
 ```{r am-GL, cache = TRUE, tidy = TRUE}
 set.seed(123)
 dat.am <- simSC(n = 500, a = c(1, -1), b = c(1, -1), type = "am")
-fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
+fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.am, 
              method = "am.GL")
 summary(fit)
 ```
 
 ### @xu2017joint `am.XCHWY` 
 ```{r am-XCHWY, cache = TRUE, tidy = TRUE}
-fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
+fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.am, 
              method = "am.XCHWY")
 summary(fit)
 ```
@@ -85,13 +85,13 @@ summary(fit)
 ### @xu2018Generalized `sc.XCYH` 
 Fitting recurrent event data generated from the Cox model:
 ```{r sc-XCYH-cox, cache = TRUE, tidy = TRUE}
-fit1 <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+fit1 <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
               method = "sc.XCYH")
 summary(fit1)
 ```
 Fitting recurrent event data generated from the accelerated model:
 ```{r sc-XCYH-am, cache = TRUE, tidy = TRUE}
-fit2 <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.am, 
+fit2 <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.am, 
               method = "sc.XCYH")
 summary(fit2)
 ```
@@ -103,7 +103,7 @@ We will take `cox.HW` for example.
 
 ### Bootstrap
 ```{r bootstrap, cache = TRUE, tidy = TRUE}
-system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+system.time(fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
                          method = "cox.HW", se = "bootstrap", B = 100))
 summary(fit)
 ```
@@ -116,7 +116,7 @@ Detect the number of CPU cores on the current host.
 The default number of CPU cores used in the parallel computing is half of the available CPU cores.
 We will use all the CPU cores available in this example.
 ```{r bootstrap-para, cache = TRUE, tidy = TRUE}
-system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+system.time(fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
                          method = "cox.HW", se = "bootstrap", B = 100,
                          control = list(parallel = TRUE, parCl = core)))
 summary(fit)
@@ -125,7 +125,7 @@ summary(fit)
 ### Sandwich (resampling) variance estimator
 
 ```{r bootstrap-resampling, cache = TRUE, tidy = TRUE}
-system.time(fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
+system.time(fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
                          method = "cox.HW", se = "resampling", B = 100))
 summary(fit)
 ```

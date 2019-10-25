@@ -1,7 +1,7 @@
 #' reReg: Recurrent Event Regression
 #'
 #' The package provides easy access to fit regression models to recurrent event data.
-#' The available implementations allow users to explore recurrent data through event plot and cumulative sample mean function plot,
+#' The available implementations allow users to explore recurrent data through event plot and the cumulative sample mean function plot,
 #' fit semiparametric regression models under different assumptions,
 #' and simulate recurrent event data. 
 #'
@@ -30,10 +30,6 @@
 #' @importFrom survival Surv basehaz coxph survfit
 #' @importFrom ggplot2 ggplot geom_point aes geom_line geom_bar ggtitle scale_color_manual scale_shape_manual theme element_text labs facet_grid theme_bw coord_flip 
 #' @importFrom ggplot2 element_blank element_line element_rect xlab ylab scale_x_continuous alpha guides guide_legend geom_step scale_color_discrete
-#' @importFrom tidyr unnest nest
-#' @importFrom purrr map_lgl
-#' @importFrom dplyr "%>%" group_by group_by_at filter summarize mutate full_join left_join arrange select tibble count bind_cols
-#' @importFrom plyr ddply 
 #' @importFrom grDevices hcl
 #' @importFrom parallel makeCluster clusterExport stopCluster detectCores parSapply
 #' 

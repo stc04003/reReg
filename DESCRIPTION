@@ -13,7 +13,7 @@ Encoding: UTF-8
 LazyData: true
 URL: http://github.com/stc04003/reReg
 BugReports: http://github.com/stc04003/reReg/issues
-Imports: BB, nleqslv, SQUAREM, survival, plyr, ggplot2, purrr, dplyr, tidyr, MASS, methods, tibble
+Imports: BB, nleqslv, SQUAREM, survival, ggplot2, MASS, methods, reda, scam
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
 Packaged: 2018-06-03 00:41:51 UTC; schiou

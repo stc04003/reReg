@@ -1,36 +1,26 @@
-2018-06-11 Sy Han Chiou <schiou@utdallas.edu>
-	* Version 1.1.7
+# `reReg` 1.1.7
+  	* Adopt `Recur()` from package `reda`
 	* Added a draft for regression vignettes
 	* Changed function name `simDat` to `simSC`
 	* Fixed bug with only 1 covariate
-2018-06-11 Sy Han Chiou <schiou@utdallas.edu>
-	* Version 1.1.6
-	* Added sandwish variance estimations 
+# `reReg` 1.1.6
+	* Added sandwish variance estimations to most implementations
 	* Added vignettes on simulation and plots
-2018-06-11 Sy Han Chiou <schiou@utdallas.edu>
-	* Version 1.1.5
+# `reReg` 1.1.5
 	* Cleaned reSurv and am.GL codes
 	* updated event plot, baseline function plots
 	* added CMF plot
-2018-05-29 Sy Han Chiou <schiou@utdallas.edu>
-	* Version 1.1.4
+# `reReg` 1.1.4
 	* Rebuild with oxygen
-2018-05-23 Sy Han Chiou <schiou@utdallas.edu>
-	* Version 1.1-3
+# `reReg` 1.1.3
 	* Removed plotEvent function and add its features to plot.reSurv
 	* Updated reSurv so it split out tibble df
-2018-04-17 Sy Han Chiou <schiou@utdallas.edu>	
-	* Version 1.1-2
+# `reReg` 1.1.2
 	* Fixed bugs reported in CRAN regarding r-devel
-2017-11-03 Sy Han Chiou <schiou@utdallas.edu>
+# `reReg` 1.1.0
 	* Major make over
-	* Cleaned the R codes
-	* New data structure: Time, id, event, status
-	* Added cox.LWYY and generalized scale model
-	* Added nonparametric methods
-	* Added event plot
-	* updated maintainer contact
-2015-10-30 Sy Han Chiou <schiou@hsph.harvard.edu>
-	* Version updated to published version. 
-	
-	
+	* Cleaned codes
+	* New data structure required for `reSurv`: Time, id, event, status
+# `reReg` 1.0.0
+	* Version updated to published version.   
+ 

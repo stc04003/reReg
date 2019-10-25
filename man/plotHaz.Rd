@@ -2,32 +2,34 @@
 % Please edit documentation in R/plot.R
 \name{plotHaz}
 \alias{plotHaz}
-\title{Produce the Baseline Cumulative Hazard Function for the Censoring Time}
+\title{Plot the Baseline Cumulative Hazard Function for the Terminal Time}
 \usage{
 plotHaz(x, smooth = FALSE, control = list(), ...)
 }
 \arguments{
-\item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
+\item{x}{an object of class \code{reReg}, returned by the \code{reReg} function.}
 
-\item{smooth}{an optional logical value indicating whether the \emph{loess} smoothing will be applied.}
+\item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters.}
 
 \item{...}{graphical parameters to be passed to methods.
-These include \code{xlab}, \code{ylab} and \code{main}.}
+These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
 Plot the baseline cumulative hazard function for an \code{reReg} object.
+The 95\% confidence interval on the baseline cumulative  hazard function
+is provided when the \code{reReg} object is fitted with standard error estimation.
 }
 \details{
 The argument \code{control} consists of options with argument
 defaults to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
-  \item{ylab}{customizable y-label, default value is empty, e.g., "".}
+  \item{ylab}{customizable y-label, default value is empty.}
   \item{main}{customizable title, default value is "Baseline cumulative hazard function".}
 }
 These arguments can also be passed down without specifying a \code{control} list.
@@ -36,14 +38,21 @@ See \bold{Examples}.
 \examples{
 set.seed(1)
 dat <- simSC(50, c(-1, 1), c(-1, 1))
-fit <- reReg(reSurv(Time, id, event, status) ~ x1 + x2, data = dat,
-  method = "cox.HW", se = "resampling", B = 20)
+fm <- Recur(Time, id, event, status) ~ x1 + x2
+
+fit <- reReg(fm, data = dat, method = "cox.HW")
 ## Plot both the baseline cumulative rate and hazard function
 plot(fit)
 ## Plot baseline cumulative hazard function
 plotHaz(fit)
+plotHaz(fit, smooth = TRUE)
 ## Plot with user-specified labels
-plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))  
+plotHaz(fit, xlab = "User xlab", ylab = "User ylab", main = "User title")
+plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
+
+## With 95\% confidence interval when `se` is enabled
+fit <- reReg(fm, data = dat, method = "cox.HW", se = "resampling", B = 20)
+plotHaz(fit)
 }
 \seealso{
 \code{\link{reReg}} \code{\link{plot.reReg}}

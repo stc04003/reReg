@@ -58,11 +58,8 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' @seealso \code{\link{reReg}}
 #' @export
 #'
-#' @importFrom tibble as_tibble
 #'
-#' @examples
-#' set.seed(123)
-#' simSC(200, c(-1, 1), c(-1, 1), summary = TRUE)
+#' @example inst/examples/ex_simu.R
 simSC <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60, zVar = .25, summary = FALSE) {
     type <- match.arg(type)
     if (length(a) != 2L) stop("Require length(a) = 2.")
@@ -100,13 +97,14 @@ simSC <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60,
                               Z = z, m = m, x1 = x[1], x2 = x[2]))
         }
     }
-    dat <- as_tibble(do.call(rbind, lapply(1:n, simOne)))
+    dat <- data.frame(do.call(rbind, lapply(1:n, simOne)))
     if (summary) {
         cat("\n")
         cat("Summary results for number of recurrent event per subject:\n")
-        base <- dat %>% group_by(id) %>% summarize(m = unique(m), d = max(status),
-                                                   x1 = unique(x1), x2 = unique(x2))
-        d <- base$d
+        dat <- dat[order(dat$id),]
+        base <- dat[cumsum(table(dat$id)),] 
+        ## base <- do.call(rbind, lapply(split(subset(dat, select = -c(Time, event, status, Z)), dat$id), unique))
+        d <- base$status
         x1 <- base$x1
         print(summary(base$m))
         cat("\n")
@@ -119,5 +117,5 @@ simSC <- function(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60,
         print(summary(base$x2))
         cat("\n\n")
     }
-    return(dat %>% select(-m, -Z))
+    return(subset(dat, select = c(-m, -Z)))
 }
