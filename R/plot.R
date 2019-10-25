@@ -391,9 +391,11 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
     if (k > 1) {
         dat00 <- subset(dat0, event == 0)
         dat0 <- subset(dat0, event > 0)
-        dat00 <- dat00[rep(1:nrow(dat00), k),]
-        dat00$event <- rep(1:k, each = nrow(dat00) / k)
-        dat0 <- rbind(dat0, dat00)
+        if (nrow(dat00) > 0) {
+            dat00 <- dat00[rep(1:nrow(dat00), k),]
+            dat00$event <- rep(1:k, each = nrow(dat00) / k)
+            dat0 <- rbind(dat0, dat00)
+        }
         if (is.null(ctrl$recurrent.type))
             dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
         if (!is.null(ctrl$recurrent.type)) {

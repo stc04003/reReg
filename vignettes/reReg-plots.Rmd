@@ -15,7 +15,28 @@ vignette: >
 ---
 
 ```{r default, include = FALSE, collapse = TRUE}
-knitr::opts_chunk$set(prompt = TRUE, comment = "")
+library(knitr)
+opts_chunk$set(prompt = TRUE, comment = "")
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
 ```
 In this vignette, we demonstrate how to create a `reSurv` object in __`reReg`__ package.
 The `reSurv` object is then used to create event plots and cumulative sample mean (CSM) plots.
@@ -37,11 +58,15 @@ readmission <- subset(readmission, !(id %in% c(60, 109, 280)))
 attach(readmission)
 ```
 
-## `reSurv` objects {-}
-The usage of `reSurv` is similar to the
-`Surv` function in the __`survival`__ package.
-There are five arguments in `reSurv` but not all of them need to be specified.
-The arguments of `reSurv` are as follow
+## `reSurv`/`Recur` objects 
+**<span style="color:red">The `reSurv()` function is being deprecated in Version 1.1.7.</span>**
+A replacement of this function is the `Recur()` function imported from the [`reda`](https://github.com/wenjie2wang/reda) package. 
+A brief introduction of the `Recur()` function is included here. 
+
+The usage of `reSurv()` is similar to the
+`Surv()` function in the __`survival`__ package.
+There are five arguments in `reSurv()` but not all of them need to be specified.
+The arguments of `reSurv()` are as follow
 ```{r reSurv}
 args(reSurv)
 ```
@@ -54,9 +79,23 @@ The five arguments are as follows
 * `status` a binary vector used as the status indicator for the terminal event; `status = 0` for censored time
 * `origin` a numerical vector indicating the time origin of subjects
 
-There are a few ways to create an `reSurv` object.
+The arguments of `Recur` are as follow
+```{r Recur}
+args(Recur)
+```
+The main arguments of `Recur()` come directly from `reSurv()`, but `Recur()` comes with a comprehensive check for recurrent event data. 
+Moreover, `Recur()` returns a `S4` class object that can be used for functions in both the `reReg` package and the `reda` package. 
+The `Recur` object can be constructed in the same way as an `reSurv` object.
+In the current version (1.1.7), the `reSurv()` function can still be used, but the `reSurv` object will be automatically transform into the corresponding `Recur` object.
+For example: 
+```{r reSurv2Recur}
+invisible(reSurv(t.stop, id, event, death))
+identical(suppressWarnings(reSurv(t.stop, id, event, death)), Recur(t.stop, id, event, death))
+```
+The usage of `Recur()` is very similar to that of `reSurv()`. 
+In the following, we introduced different ways to create an `Resurv` object.
 When the starting times and the ending times of recurrent events are known, 
-one can specify both times in `reSurv`. 
+one can specify both times in `Recur`. 
  <!--If the time origins of subjects are equal, as in the `readmission` data, the argument `time2` can be deprecated. --> 
 ```{r Recur-obj, eval = FALSE}
 Recur(t.start %to% t.stop, id = id, event = event, status = death)
@@ -68,13 +107,20 @@ Recur(t.start %to% t.stop, id, event, death)
 Recur(t.stop, id, event, death)
 ```
 The function `Recur` prints a list-column `tibble`.
-```{r Recur-obj-short2, eval = TRUE}
+```{r Recur-obj-short2, eval = TRUE, output.lines = 1:15}
 Recur(t.stop, id, event, death)
 ```
-The example above shows patient id \#1 experienced 2 readmission (`tij[1]` is a list of two `double`s) with a terminal event at `t = 1037` (days).
-The terminal event was censored (`status = 0`).
-Similarly, patient id \#3 has one readmission and died at `t = 783` (days).
-On the other hand patient id \# 4 has 4 readmission and was censored at `t = 2048` (days).
+The example above shows patient id \#1 experienced 2 readmission with a terminal event at `t = 1037` (days).
+The `+` at `t = 1037` indicates the terminal time was censored, e.g., this patient did not experience the event of interest (death) at `t = 1037`.
+Similarly, patient id \#3 has one readmission and died at `t = 783` (days) as indicated by `*` at `783`.
+On the other hand patient id \# 4 has more than 3 readmissions and was censored at `t = 2048` (days).
+The readmission intervals was suppressed to prevent printing results wider than the screen allowance.
+The number of intervals to be printted can be tuned using the `options` and argument `reda.Recur.maxPrint`. 
+For example, 
+```{r Recur-obj-short2-2, output.lines = 1:15}
+options(reda.Recur.maxPrint = 6)
+Recur(t.stop, id, event, death)
+```
 
 ## Event plots {-}
 Event plots are a quick and easy way to glance at recurrent event data.
@@ -181,9 +227,8 @@ grid.arrange(p1, p2, ncol=2)
 The functions `plotEvents` and `plotCSM` can be used to accommodate recurrent event data with multiple recurrent types.
 To illustrate this, we generate hypothetical event types and store these in `event2`.
 ```{r multi-events, message = FALSE}
-library(dplyr)
 set.seed(1)
-readmission <- readmission %>% mutate(event2 = event * sample(1:3, 861, TRUE))
+readmission$event2 <- readmission$event * sample(1:3, 852, TRUE)
 ```
 `plotEvents` and `plotCSM` functions can still be applied when `event` is replaced by `event2`. 
 Different recurrent events will be denoted by different colors and shapes.
