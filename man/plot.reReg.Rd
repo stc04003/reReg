@@ -2,25 +2,27 @@
 % Please edit documentation in R/plot.R
 \name{plot.reReg}
 \alias{plot.reReg}
-\title{Plotting Baseline Cumulative Rate Function and Baseline Cumulative Hazard Function}
+\title{Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function}
 \usage{
 \method{plot}{reReg}(x, baseline = c("both", "rate", "hazard"),
   smooth = FALSE, control = list(), ...)
 }
 \arguments{
-\item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
+\item{x}{an object of class \code{reReg}, returned by the \code{reReg} function.}
 
 \item{baseline}{a character string specifying which baseline function to plot.
-If \code{baseline = "both"} (default), both the baseline cumulative rate and baseline cumulative hazard function will be plotted in separate panels within the same display;
-if \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
-if \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.}
+\describe{
+  \item{\code{baseline = "both"}}{plot both the baseline cumulative rate and the baseline cumulative hazard function in separate panels within the same display (default).}
+  \item{\code{baseline = "rate"}}{plot the baseline cumulative rate function.}
+  \item{\code{baseline = "hazard"}}{plot the baseline cumulative hazard function.}
+}}
 
 \item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
 \item{...}{graphical parameters to be passed to methods.
-These include \code{xlab}, \code{ylab} and \code{main}.}
+These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
 }
 \value{
 A \code{ggplot} object.
@@ -28,12 +30,14 @@ A \code{ggplot} object.
 \description{
 Plot the baseline cumulative rate function and the baseline cumulative hazard function
 (if applicable) for an \code{reReg} object.
+The 95\% confidence intervals on the baseline cumulative rate function and the baseline cumulative hazard function
+are provided when the \code{reReg} object is fitted with standard error estimation.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
-  \item{ylab}{customizable y-label, default value is empty, e.g., "".}
+  \item{ylab}{customizable y-label, default value is empty.}
   \item{main}{customizable title, default value are "Baseline cumulative rate and hazard function" when \code{baseline = "both"},
 "Baseline cumulative rate function" when \code{baseline = "rate"}, and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 }
@@ -41,10 +45,17 @@ The argument \code{control} consists of options with argument defaults to a list
 \examples{
 set.seed(1)
 dat <- simSC(50, c(-1, 1), c(-1, 1))
+fm <- Recur(Time, id, event, status) ~ x1 + x2
 
-fit <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat, method = "cox.HW")
+fit <- reReg(fm, data = dat, method = "cox.HW")
+plot(fit)
 plot(fit, baseline = "rate")
 plot(fit, baseline = "rate", xlab = "Time (days)")
+plot(fit, baseline = "rate", smooth = TRUE)
+
+
+fit <- reReg(fm, data = dat, method = "cox.HW", se = "resampling", B = 20)
+plot(fit)
 }
 \seealso{
 \code{\link{reReg}}

@@ -1126,7 +1126,7 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #' }
 #' 
 #' @param formula a formula object, with the response on the left of a "~" operator, and the predictors on the right.
-#' The response must be a recurrent event survival object as returned by function \code{reSurv}.
+#' The response must be a recurrent event survival object as returned by function \code{Recur}.
 #' @param data  an optional data frame in which to interpret the variables occurring in the \code{"formula"}.
 #' @param B a numeric value specifies the number of resampling for variance estimation.
 #' When \code{B = 0}, variance estimation will not be performed.
@@ -1149,7 +1149,7 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #'
 #' @importFrom stats approxfun optim
 #' 
-#' @seealso \code{\link{reSurv}}, \code{\link{simSC}}
+#' @seealso \code{\link{Recur}}, \code{\link{simSC}}
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, B = 200, 

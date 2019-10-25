@@ -9,32 +9,36 @@
   control = list(), ...)
 }
 \arguments{
-\item{x}{an object of class \code{Recur}, usually returned by the \code{Recur} function.}
+\item{x}{an object of class \code{Recur} returned by the \code{Recur()} function.}
 
 \item{CSM}{an optional logical value indicating whether the cumulative sample mean (CSM) function will
 be plotted instead of the event plot (default).}
 
-\item{event.result}{an optional character string specifying how to sort the ids. The available options are
+\item{event.result}{an optional character string that is passed to the \code{plotEvents()} function as \code{result}, e.g., see \code{\link{plotEvents}}.
+This argument is used to specify whether the event plot is sorted by the subjects' terminal time.
+The available options are
 \describe{
-  \item{increasing}{sort the ids by }
-  \item{decreasing}{sort the ids by }
-  \item{asis}{present the as is, without sorting.}
+  \item{\code{increasing}}{sort the terminal time from in increasing order (default). This places longer terminal times on top. }
+  \item{\code{decreasing}}{sort the terminal time from in decreasing order (default). This places shorter terminal times on top. }
+  \item{\code{asis}}{present the as is, without sorting.}
 }}
 
-\item{csm.adjrisk}{an optional logical value indicating whether risk set will be adjusted.}
+\item{csm.adjrisk}{an optional logical value that is passed to the \code{plotCSM()} function as \code{adjrisk}, e.g., see \code{\link{plotCSM}}.
+This argument indicates whether risk set will be adjusted, e.g., if \code{TRUE}, subjects leave the risk set after terminal times.}
 
-\item{csm.smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
+\item{csm.smooth}{an optional logical value that is passed to the \code{plotCSM()} function as \code{smooth}, e.g., see \code{\link{plotCSM}}.
+This argument indicates whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
 \item{...}{graphical parameters to be passed to methods.
-These include \code{xlab}, \code{ylab} and \code{main}.}
+These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
-Plot the event plot or the cumulative sample mean (CSM) function for an \code{Recur} object.
+Plot whether the event plot or the cumulative sample mean (CSM) function for an \code{Recur} object.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a list with the following values:
@@ -48,7 +52,7 @@ The argument \code{control} consists of options with argument defaults to a list
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
-The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
+The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
 set.seed(1)

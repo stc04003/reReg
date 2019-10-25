@@ -1,7 +1,7 @@
 #' reReg: Recurrent Event Regression
 #'
 #' The package provides easy access to fit regression models to recurrent event data.
-#' The available implementations allow users to explore recurrent data through event plot and cumulative sample mean function plot,
+#' The available implementations allow users to explore recurrent data through event plot and the cumulative sample mean function plot,
 #' fit semiparametric regression models under different assumptions,
 #' and simulate recurrent event data. 
 #'

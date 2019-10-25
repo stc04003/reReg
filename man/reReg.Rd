@@ -10,7 +10,7 @@ reReg(formula, data, B = 200, method = c("cox.LWYY", "cox.GL",
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
-The response must be a recurrent event survival object as returned by function \code{reSurv}.}
+The response must be a recurrent event survival object as returned by function \code{Recur}.}
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the \code{"formula"}.}
 
@@ -124,5 +124,5 @@ Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent
 \emph{Journal of the American Statistical Association}, \bold{99}(468): 1153--1165.
 }
 \seealso{
-\code{\link{reSurv}}, \code{\link{simSC}}
+\code{\link{Recur}}, \code{\link{simSC}}
 }

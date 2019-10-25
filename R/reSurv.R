@@ -3,6 +3,9 @@
 #' @title Create an \code{reSurv} Object
 #'
 #' @description Create a recurrent event survival object, used as a response variable in \code{reReg}.
+#' This function is being deprecated in Version 1.1.7.
+#' A recurrent event object is now being created with \code{Recur()}.
+#' See '?Recur()' for details.
 #'
 #' @param time1 when "\code{time2}" is provided, this vector is treated as the starting time for the gap time between two successive recurrent events.
 #' In the absence of "\code{time2}", this is the observation time of recurrence on calendar time scale, in which, the time corresponds to the time since entry/inclusion in the study.
@@ -15,9 +18,7 @@
 #' Otherwise, \code{origin} needs to be a numerical vector, with length equals to the number of subjects.
 #' In this case, each element corresponds to different origins for different subjects.
 #' This argument is only needed when "\code{time2}" is missing.
-#' @param x an \code{reSurv} object.
-NULL
-
+#' 
 #' @rdname reSurv
 #' @export
 #' @example inst/examples/ex_reSurv.R
@@ -27,9 +28,5 @@ reSurv <- function(time1, time2, id, event, status, origin = 0) {
     if (nArg >= 5) return(Recur(time1 %2% time2, id, event, status))
     if (nArg < 5) return(Recur(time1, time2, id, event, origin = origin))
 }
-
-#' @rdname reSurv
-#' @export
-is.reSurv <- function(x) inherits(x, "reSurv")
 
 is.reReg <- function(x) inherits(x, "reReg")

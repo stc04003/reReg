@@ -1,7 +1,9 @@
 #' The \code{Recur} function is imported from \code{reda}.
 #'
 #' See \code{?reda::Recur} for more details.
-#' 
+#'
+#' @rdname Recur
+#' @name Recur
 #' @importFrom reda Recur
 #' @aliases Recur
 #' @export Recur
@@ -16,7 +18,8 @@ NULL
 #' package.
 #' }
 #'
-#' 
+#' @rdname Recur
+#' @name Recur
 #' @importFrom reda is.Recur
 #' @aliases is.Recur
 #' @export is.Recur
@@ -29,8 +32,8 @@ NULL
 ##' This function is intended to be used for specifying the argument \code{time}
 ##' in function \code{\link{Recur}}.
 ##'
-##' @name Recur-to
-##'
+##' @name %to%
+##' @rdname Recur-to
 ##' @param time1 The left end-points of the recurrent episodes.
 ##' @param time2 The right end-points of the recurrent episodes.
 ##'
@@ -44,5 +47,6 @@ NULL
 
 
 ##' @rdname Recur-to
+##' @name %2%
 ##' @export
 `%2%` <- `%to%`

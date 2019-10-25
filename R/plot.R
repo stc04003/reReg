@@ -4,7 +4,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 
 #' Produce Event Plot or Cumulative Sample Mean Function Plot
 #'
-#' Plot the event plot or the cumulative sample mean (CSM) function for an \code{Recur} object.
+#' Plot whether the event plot or the cumulative sample mean (CSM) function for an \code{Recur} object.
 #'
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
@@ -17,23 +17,26 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
-#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
+#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #' 
-#' @param x an object of class \code{Recur}, usually returned by the \code{Recur} function.
-#' @param event.result an optional character string specifying how to sort the ids. The available options are
+#' @param x an object of class \code{Recur} returned by the \code{Recur()} function.
+#' @param event.result an optional character string that is passed to the \code{plotEvents()} function as \code{result}, e.g., see \code{\link{plotEvents}}.
+#' This argument is used to specify whether the event plot is sorted by the subjects' terminal time.
+#' The available options are
 #' \describe{
-#'   \item{increasing}{sort the ids by }
-#'   \item{decreasing}{sort the ids by }
-#'   \item{asis}{present the as is, without sorting.}
+#'   \item{\code{increasing}}{sort the terminal time from in increasing order (default). This places longer terminal times on top. }
+#'   \item{\code{decreasing}}{sort the terminal time from in decreasing order (default). This places shorter terminal times on top. }
+#'   \item{\code{asis}}{present the as is, without sorting.}
 #' }
-## #' @param return.grob an optional logical value indicating whether a \code{ggplot2} plot grob will be returned.
 #' @param control a list of control parameters. See \bold{Details}.
-#' @param csm.smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
-#' @param csm.adjrisk an optional logical value indicating whether risk set will be adjusted. 
+#' @param csm.smooth an optional logical value that is passed to the \code{plotCSM()} function as \code{smooth}, e.g., see \code{\link{plotCSM}}.
+#' This argument indicates whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
+#' @param csm.adjrisk an optional logical value that is passed to the \code{plotCSM()} function as \code{adjrisk}, e.g., see \code{\link{plotCSM}}.
+#' This argument indicates whether risk set will be adjusted, e.g., if \code{TRUE}, subjects leave the risk set after terminal times.
 #' @param CSM an optional logical value indicating whether the cumulative sample mean (CSM) function will
 #' be plotted instead of the event plot (default).
 #' @param ... graphical parameters to be passed to methods.
-#' These include \code{xlab}, \code{ylab} and \code{main}.
+#' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
 #' 
 #' @seealso \code{\link{Recur}}
 #' 
@@ -69,7 +72,7 @@ plot.Recur <- function(x, CSM = FALSE, event.result = c("increasing", "decreasin
 #' Produce Event Plots
 #'
 #' Plot the event plot for an \code{Recur} object.
-#' The function is similar to \code{plot.Recur} but with more flexible options.
+#' The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
 #'
 #' The argument \code{control} consists of options with argument defaults to a
 #' list with the following values:
@@ -86,17 +89,17 @@ plot.Recur <- function(x, CSM = FALSE, event.result = c("increasing", "decreasin
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator,
 #' and the predictors on the right.
-#' The response must be a recurrent event survival object as returned by function \code{Recur}.
+#' The response must be a recurrent event survival object as returned by function \code{Recur()}.
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
-#' @param result an optional character string specifying how to sort the ids. The available options are
+#' @param result an optional character string specifying whether the event plot is sorted by the subjects' terminal time. The available options are
 #' \describe{
-#'   \item{increasing}{sort the ids by }
-#'   \item{decreasing}{sort the ids by }
-#'   \item{asis}{present the as is, without sorting.}
+#'   \item{\code{increasing}}{sort the terminal time from in increasing order (default). This places longer terminal times on top. }
+#'   \item{\code{decreasing}}{sort the terminal time from in decreasing order (default). This places shorter terminal times on top. }
+#'   \item{\code{asis}}{present the as is, without sorting.}
 #' }
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
-#' These include \code{xlab}, \code{ylab} and \code{main}.
+#' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
 #'
 #' @seealso \code{\link{Recur}}, \code{\link{plot.Recur}}
 #' 
@@ -234,7 +237,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' Produce Cumulative Sample Mean Function Plots
 #'
 #' Plot the cumulative sample mean function (CSM) for an \code{Recur} object.
-#' The function is similar to \code{plot.Recur} but with more flexible options.
+#' The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
 #'
 #' When \code{adjrisk = TRUE}, the \code{plotCSM} is equivalent to
 #' the Nelson-Aalen estimator for the intensity function of the recurrent event process.
@@ -251,16 +254,17 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator, and the predictors on the right.
-#' The response must be a recurrent event survival object as returned by function \code{Recur}.
+#' The response must be a recurrent event survival object returned by the \code{Recur()} function.
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
-#' @param adjrisk an optional logical value indicating whether risk set will be adjusted. See \bold{Details}.
+#' @param adjrisk an optional logical value indicating whether risk set will be adjusted,
+#' e.g., if \code{TRUE}, subjects leave the risk set after terminal times. See \bold{Details}.
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' This feature only works for data with one recurrent event type.
-#' @param onePanel an optional logical value indicating whether cumulative sample means (CSM) will be plotted in the same panel.
-#' This is useful when comparing CSM from different groups.
+#' @param onePanel an optional logical value indicating whether the cumulative sample means (CSM) will be plotted in the same panel.
+#' This is only useful when there are multiple recurrent event types or in the presese of (discrete) covariates.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
-#' These include \code{xlab}, \code{ylab} and \code{main}.
+#' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
 #' 
 #' @seealso \code{\link{Recur}}, \code{\link{plot.Recur}}
 #' @keywords Plots
@@ -443,29 +447,33 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
 }
 
-#' Plotting Baseline Cumulative Rate Function and Baseline Cumulative Hazard Function
+#' Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function
 #'
 #' Plot the baseline cumulative rate function and the baseline cumulative hazard function
 #' (if applicable) for an \code{reReg} object.
+#' The 95\% confidence intervals on the baseline cumulative rate function and the baseline cumulative hazard function
+#' are provided when the \code{reReg} object is fitted with standard error estimation.
 #'
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is empty, e.g., "".}
+#'   \item{ylab}{customizable y-label, default value is empty.}
 #'   \item{main}{customizable title, default value are "Baseline cumulative rate and hazard function" when \code{baseline = "both"},
 #' "Baseline cumulative rate function" when \code{baseline = "rate"}, and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 #' }
 ## #' These arguments can also be passed down without specifying a \code{control} list.
 #' 
-#' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
+#' @param x an object of class \code{reReg}, returned by the \code{reReg} function.
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param baseline a character string specifying which baseline function to plot.
-#' If \code{baseline = "both"} (default), both the baseline cumulative rate and baseline cumulative hazard function will be plotted in separate panels within the same display;
-#' if \code{baseline = "rate"}, only the baseline cumulative rate function will be plotted;
-#' if \code{baseline = "hazard"}, only the baseline cumulative hazard function will be plotted.
+#' \describe{
+#'   \item{\code{baseline = "both"}}{plot both the baseline cumulative rate and the baseline cumulative hazard function in separate panels within the same display (default).}
+#'   \item{\code{baseline = "rate"}}{plot the baseline cumulative rate function.}
+#'   \item{\code{baseline = "hazard"}}{plot the baseline cumulative hazard function.}
+#' }
 #' @param control a list of control parameters. See \bold{Details}.
 #' @param ... graphical parameters to be passed to methods.
-#' These include \code{xlab}, \code{ylab} and \code{main}.
+#' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
 #' 
 #' @seealso \code{\link{reReg}}
 #' @export
@@ -478,9 +486,12 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                        smooth = FALSE, control = list(), ...) {
     baseline <- match.arg(baseline)
-    if (baseline == "both") ctrl <- plotRe.control()
-    if (baseline == "rate") ctrl <- plotRate.control()
-    if (baseline == "hazard") ctrl <- plotHaz.control()
+    if (baseline == "both") {
+        ctrl <- plot.reReg.control(main = "Baseline cumulative rate and cumulative hazard functions")
+        smooth  <- FALSE
+    }
+    if (baseline == "rate") ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
+    if (baseline == "hazard") ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -549,21 +560,23 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' Plotting the Baseline Cumulative Rate Function for the Recurrent Event Process
 #'
 #' Plot the baseline rate function for an \code{reReg} object.
+#' The 95\% confidence interval on the baseline cumulative rate function
+#' is provided when the \code{reReg} object is fitted with standard error estimation.
 #' 
 #' The argument \code{control} consists of options with argument defaults
 #' to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is empty, e.g., "".}
+#'   \item{ylab}{customizable y-label, default value is empty.}
 #'   \item{main}{customizable title, default value is "Baseline cumulative rate function".}
 #' }
 #' These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
-#' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
+#' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
-#' These include \code{xlab}, \code{ylab} and \code{main}.
+#' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
 #'
 #' @seealso \code{\link{reReg}} \code{\link{plot.reReg}}
 #' @export
@@ -574,7 +587,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' 
 #' @example inst/examples/ex_plot_rate.R
 plotRate <- function(x, smooth = FALSE, control = list(), ...) {
-    ctrl <- plotRate.control()
+    ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -612,25 +625,27 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
     gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
 }
 
-#' Produce the Baseline Cumulative Hazard Function for the Censoring Time
+#' Plot the Baseline Cumulative Hazard Function for the Terminal Time
 #'
 #' Plot the baseline cumulative hazard function for an \code{reReg} object.
+#' The 95\% confidence interval on the baseline cumulative  hazard function
+#' is provided when the \code{reReg} object is fitted with standard error estimation.
 #'
 #' The argument \code{control} consists of options with argument
 #' defaults to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is empty, e.g., "".}
+#'   \item{ylab}{customizable y-label, default value is empty.}
 #'   \item{main}{customizable title, default value is "Baseline cumulative hazard function".}
 #' }
 #' These arguments can also be passed down without specifying a \code{control} list.
 #' See \bold{Examples}.
 #'
-#' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
-#' @param smooth an optional logical value indicating whether the \emph{loess} smoothing will be applied.
+#' @param x an object of class \code{reReg}, returned by the \code{reReg} function.
+#' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
-#' These include \code{xlab}, \code{ylab} and \code{main}.
+#' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
 #' 
 #' @seealso \code{\link{reReg}} \code{\link{plot.reReg}}
 #' @export
@@ -644,7 +659,7 @@ plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
         cat(paste("Baseline cumulative hazard function is not available for method = ", x$method, ".", sep = ""))
         return()
     }
-    ctrl <- plotHaz.control()
+    ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -709,15 +724,7 @@ plotCSM.control <- function(xlab = "Time", ylab = "Cumulative mean",
          recurrent.type = recurrent.type)         
 }
 
-plotHaz.control <- function(xlab = "Time", ylab = "", main = "Baseline cumulative hazard function") {
-    list(xlab = xlab, ylab = ylab, main = main)
-}
-
-plotRate.control <- function(xlab = "Time", ylab = "", main = "Baseline cumulative rate function") {
-    list(xlab = xlab, ylab = ylab, main = main)
-}
-
-plotRe.control <- function(xlab = "Time", ylab = "", main = "Baseline cumulative rate and hazard functions") {
+plot.reReg.control <- function(xlab = "Time", ylab = "", main = "") {
     list(xlab = xlab, ylab = ylab, main = main)
 }
 

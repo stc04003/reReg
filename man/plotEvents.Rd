@@ -10,28 +10,28 @@ plotEvents(formula, data, result = c("increasing", "decreasing", "asis"),
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator,
 and the predictors on the right.
-The response must be a recurrent event survival object as returned by function \code{Recur}.}
+The response must be a recurrent event survival object as returned by function \code{Recur()}.}
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
-\item{result}{an optional character string specifying how to sort the ids. The available options are
+\item{result}{an optional character string specifying whether the event plot is sorted by the subjects' terminal time. The available options are
 \describe{
-  \item{increasing}{sort the ids by }
-  \item{decreasing}{sort the ids by }
-  \item{asis}{present the as is, without sorting.}
+  \item{\code{increasing}}{sort the terminal time from in increasing order (default). This places longer terminal times on top. }
+  \item{\code{decreasing}}{sort the terminal time from in decreasing order (default). This places shorter terminal times on top. }
+  \item{\code{asis}}{present the as is, without sorting.}
 }}
 
 \item{control}{a list of control parameters.}
 
 \item{...}{graphical parameters to be passed to methods.
-These include \code{xlab}, \code{ylab} and \code{main}.}
+These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
 Plot the event plot for an \code{Recur} object.
-The function is similar to \code{plot.Recur} but with more flexible options.
+The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a
@@ -51,6 +51,7 @@ The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down 
 set.seed(1)
 dat <- simSC(30, c(-1, 1), c(-1, 1))
 plotEvents(Recur(Time, id, event, status) ~ 1, data = dat)
+plotEvents(Recur(Time, id, event, status) ~ 1, data = dat, xlab = "Time in days", ylab = "Subjects arranged by terminal time")
 
 ## Separate plots by x1
 plotEvents(Recur(Time, id, event, status) ~ x1, data = dat)
