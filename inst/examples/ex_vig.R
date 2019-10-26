@@ -1,4 +1,7 @@
 library(reReg)
+library(ggplot2)
+library(gridExtra)
+
 packageVersion("reReg")
 
 data(readmission, package = "frailtypack")
@@ -37,7 +40,6 @@ plotEvents(Recur(t.stop, id, event, death) ~ sex, data = readmission)
 plotEvents(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission)
 plot(reObj, CSM = TRUE)
 
-library(gridExtra)
 p1 <- plotCSM(Recur(t.stop, id, event, death) ~ 1, data = readmission, main = "")
 p2 <- plotCSM(Recur(t.stop, id, event, death) ~ 1, data = readmission, 
               adjrisk = FALSE, main = "")
@@ -56,7 +58,6 @@ plotCSM(Recur(t.stop, id, event2, death) ~ sex, adjrisk = FALSE, data = readmiss
         recurrent.name = "Event types", recurrent.type = c("Type 1", "Type 2", "Type 3"))
 
 
-library(ggplot2)
 p1 <- plotCSM(Recur(t.stop, id, event2, death) ~ sex, data = readmission, main = "") +
   theme(legend.position="none")
 p2 <- plotCSM(Recur(t.stop, id, event2, death) ~ sex, data = readmission, 
