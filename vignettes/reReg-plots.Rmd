@@ -61,7 +61,7 @@ attach(readmission)
 ## `reSurv`/`Recur` objects 
 **<span style="color:red">The `reSurv()` function is being deprecated in Version 1.1.7.</span>**
 A replacement of this function is the `Recur()` function imported from the [`reda`](https://github.com/wenjie2wang/reda) package. 
-A brief introduction of the `Recur()` function is included here. 
+We give some background on the `reSurv()` function and a brief introduction of the `Recur()` function is included here. 
 
 The usage of `reSurv()` is similar to the
 `Surv()` function in the __`survival`__ package.
@@ -75,7 +75,7 @@ The five arguments are as follows
 * `time1` starting time for the gap time between two successive recurrent events
 * `time2` ending time for the gap time between two successive recurrent events
 * `id` subject's id
-* `event` a binary vector used as the recurrent event indicator; `event = 0` for non-recurrent times (such as the censoring times)
+* `event` a vector used as the recurrent event indicator; `event = 0` for non-recurrent times (such as the censoring times)
 * `status` a binary vector used as the status indicator for the terminal event; `status = 0` for censored time
 * `origin` a numerical vector indicating the time origin of subjects
 
@@ -83,20 +83,28 @@ The arguments of `Recur` are as follow
 ```{r Recur}
 args(Recur)
 ```
+The six arguments are as follows 
+
+* `time` is a numerical vector representing the time of reccurence event or censoring, or a list with elements named `time1` and `time2` for specifying the follow-up of recurrent events. In the latter case, function `%to%` (or `%2%`) can be used to construct such list.  In addition to numeric values, `Date` and `difftime` are allowed and converted to numeric values. An error will be thrown if this argument is not specified.
+* `id` specifies the subject identificators. It can be numeric vector, character vector, or a factor vector.  If it is left unspecified, `Recur()` will assume that each row represents a subject.
+* `event` is a numeric vector that represents the types of the recurrent events. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.
+* `terminal` is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector.  Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified `terminal` should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of `terminal` at the last recurrent episode.
+* `origin` a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value.  The length of the specified `origin` should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins.  However, one subject must have the same origin. In addition to numeric values, `Date` and `difftime` are also supported and converted to numeric values.
+* `check` is a character value specifying how to perform the checks for recurrent event data.  Errors or warnings will be thrown, respectively, if the `check` is specified to be `"hard""’"` (default) or `"soft""’"`.  If `check = "none"` is specified, no data checking procedure will be run.
+
 The main arguments of `Recur()` come directly from `reSurv()`, but `Recur()` comes with a comprehensive check for recurrent event data. 
 Moreover, `Recur()` returns a `S4` class object that can be used for functions in both the `reReg` package and the `reda` package. 
 The `Recur` object can be constructed in the same way as an `reSurv` object.
-In the current version (1.1.7), the `reSurv()` function can still be used, but the `reSurv` object will be automatically transform into the corresponding `Recur` object.
+In the current version (1.1.7), the `reSurv()` function can still be used, but the `reSurv` object will be automatically transformed to the corresponding `Recur` object.
 For example: 
 ```{r reSurv2Recur}
 invisible(reSurv(t.stop, id, event, death))
 identical(suppressWarnings(reSurv(t.stop, id, event, death)), Recur(t.stop, id, event, death))
 ```
 The usage of `Recur()` is very similar to that of `reSurv()`. 
-In the following, we introduced different ways to create an `Resurv` object.
+In the following, we introduced different ways to create an `Recur` object.
 When the starting times and the ending times of recurrent events are known, 
 one can specify both times in `Recur`. 
- <!--If the time origins of subjects are equal, as in the `readmission` data, the argument `time2` can be deprecated. --> 
 ```{r Recur-obj, eval = FALSE}
 Recur(t.start %to% t.stop, id = id, event = event, status = death)
 Recur(time = t.stop, id = id, event = event, status = death)
@@ -106,7 +114,7 @@ The same `Recur` objects can be achieved without specifying the argument names:
 Recur(t.start %to% t.stop, id, event, death)
 Recur(t.stop, id, event, death)
 ```
-The function `Recur` prints a list-column `tibble`.
+For each subject, the function `Recur()` prints intervals to represent the durtion until the next event (a recurrent event or a terminal event).
 ```{r Recur-obj-short2, eval = TRUE, output.lines = 1:15}
 Recur(t.stop, id, event, death)
 ```

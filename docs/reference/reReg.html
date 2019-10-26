@@ -8,13 +8,11 @@
 
 <title>Fits Semiparametric Regression Models for Recurrent Event Data — reReg • reReg</title>
 
-
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -32,14 +30,13 @@
 
 
 
-
 <meta property="og:title" content="Fits Semiparametric Regression Models for Recurrent Event Data — reReg" />
+
 <meta property="og:description" content="Fits a semiparametric regression model for the recurrent event data.
 The rate function of the underlying process for the recurrent event process
 can be specified as a Cox-type model, an accelerated mean model, or a generalized scale-change model.
 See details for model specifications." />
 <meta name="twitter:card" content="summary" />
-
 
 
 
@@ -106,6 +103,7 @@ See details for model specifications." />
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
+      
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/stc04003/reReg">
@@ -131,16 +129,18 @@ See details for model specifications." />
     </div>
 
     <div class="ref-description">
+    
     <p>Fits a semiparametric regression model for the recurrent event data.
 The rate function of the underlying process for the recurrent event process
 can be specified as a Cox-type model, an accelerated mean model, or a generalized scale-change model.
 See details for model specifications.</p>
+    
     </div>
 
     <pre class="usage"><span class='fu'>reReg</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>200</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"cox.LWYY"</span>, <span class='st'>"cox.GL"</span>,
   <span class='st'>"cox.HW"</span>, <span class='st'>"am.GL"</span>, <span class='st'>"am.XCHWY"</span>, <span class='st'>"sc.XCYH"</span>), <span class='kw'>se</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"NULL"</span>, <span class='st'>"bootstrap"</span>,
   <span class='st'>"resampling"</span>), <span class='kw'>contrasts</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>())</pre>
-
+    
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
@@ -175,7 +175,7 @@ When <code>B = 0</code>, variance estimation will not be performed.</p></td>
       <td><p>a list of control parameters.</p></td>
     </tr>
     </table>
-
+    
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>Suppose the recurrent event process and the failure events are observed in the time interval \(t\in[0,\tau]\),
@@ -217,6 +217,7 @@ The available options are <code><a href='https://www.rdocumentation.org/packages
   <dt><code>parCl</code></dt><dd><p>an integer value specifying the number of CPU cores to be used when <code>parallel = TRUE</code>.
 The default value is half the CPU cores on the current host.</p></dd>
 </dl>
+    
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
     <p>Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
@@ -229,9 +230,11 @@ The default value is half the CPU cores on the current host.</p></dd>
 <em>Biometrics</em>, <b>59</b>: 877--885.</p>
 <p>Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 <em>Journal of the American Statistical Association</em>, <b>99</b>(468): 1153--1165.</p>
+    
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='Recur.html'>Recur</a></code>, <code><a href='simSC.html'>simSC</a></code></p></div>
+    
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/library'>library</a></span>(<span class='no'>reReg</span>)
@@ -307,9 +310,13 @@ The default value is half the CPU cores on the current host.</p></dd>
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
+      
       <li><a href="#details">Details</a></li>
+
       <li><a href="#references">References</a></li>
+
       <li><a href="#see-also">See also</a></li>
+      
       <li><a href="#examples">Examples</a></li>
     </ul>
 
