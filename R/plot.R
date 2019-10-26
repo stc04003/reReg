@@ -339,11 +339,13 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
                            apply(dd2[,vNames, drop = FALSE], 1, paste, collapse = ""))
         tmp1 <- merge(dd, dd2, by = vNames)
         ## as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":"))))
+
         rec0 <- subset(tmp1, event == 0)       
         dat0 <- do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
             x$adjrisk = apply(x, 1, function(y)
-                as.numeric(y['n.y']) - sum(rec0$n.x[y['time2'] > rec0$time2 & rec0$GrpInd == y['GrpInd']]))
+                as.numeric(y['n.y']) - sum(rec0$n.x[as.numeric(y['time2'])> rec0$time2 & rec0$GrpInd == as.numeric(y['GrpInd'])]))
             return(x)}))
+
         dat0$n.x <- dat0$n.x * (dat0$event > 0)
         rec0$time2 <- rec0$n.x <- 0
         rec0$adjrisk <- 1

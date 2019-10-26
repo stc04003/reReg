@@ -42,6 +42,7 @@ p1 <- plotCSM(Recur(t.stop, id, event, death) ~ 1, data = readmission, main = ""
 p2 <- plotCSM(Recur(t.stop, id, event, death) ~ 1, data = readmission, 
               adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
+
 p1 <- plotCSM(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, main = "")
 p2 <- plotCSM(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
               adjrisk = FALSE, main = "")
