@@ -59,7 +59,7 @@ attach(readmission)
 ```
 
 ## `reSurv`/`Recur` objects 
-**<span style="color:red">The `reSurv()` function is being deprecated in Version 1.1.7.</span>**
+**<span style="color:red">The `reSurv()` function is being deprecated in Version 1.2.0.</span>**
 A replacement of this function is the `Recur()` function imported from the [`reda`](https://github.com/wenjie2wang/reda) package. 
 We give some background on the `reSurv()` function and a brief introduction of the `Recur()` function is included here. 
 
@@ -85,8 +85,8 @@ args(Recur)
 ```
 The six arguments are as follows 
 
-* `time` is a numerical vector representing the time of reccurence event or censoring, or a list with elements named `time1` and `time2` for specifying the follow-up of recurrent events. In the latter case, function `%to%` (or `%2%`) can be used to construct such list.  In addition to numeric values, `Date` and `difftime` are allowed and converted to numeric values. An error will be thrown if this argument is not specified.
-* `id` specifies the subject identificators. It can be numeric vector, character vector, or a factor vector.  If it is left unspecified, `Recur()` will assume that each row represents a subject.
+* `time` is a numerical vector representing the time of recurrence event or censoring, or a list with elements named `time1` and `time2` for specifying the follow-up of recurrent events. In the latter case, function `%to%` (or `%2%`) can be used to construct such list.  In addition to numeric values, `Date` and `difftime` are allowed and converted to numeric values. An error will be thrown if this argument is not specified.
+* `id` specifies the subject identity. It can be numeric vector, character vector, or a factor vector.  If it is left unspecified, `Recur()` will assume that each row represents a subject.
 * `event` is a numeric vector that represents the types of the recurrent events. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.
 * `terminal` is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector.  Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified `terminal` should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of `terminal` at the last recurrent episode.
 * `origin` a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value.  The length of the specified `origin` should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins.  However, one subject must have the same origin. In addition to numeric values, `Date` and `difftime` are also supported and converted to numeric values.
@@ -114,7 +114,7 @@ The same `Recur` objects can be achieved without specifying the argument names:
 Recur(t.start %to% t.stop, id, event, death)
 Recur(t.stop, id, event, death)
 ```
-For each subject, the function `Recur()` prints intervals to represent the durtion until the next event (a recurrent event or a terminal event).
+For each subject, the function `Recur()` prints intervals to represent the duration until the next event (a recurrent event or a terminal event).
 ```{r Recur-obj-short2, eval = TRUE, output.lines = 1:15}
 Recur(t.stop, id, event, death)
 ```
@@ -123,7 +123,7 @@ The `+` at `t = 1037` indicates the terminal time was censored, e.g., this patie
 Similarly, patient id \#3 has one readmission and died at `t = 783` (days) as indicated by `*` at `783`.
 On the other hand patient id \# 4 has more than 3 readmissions and was censored at `t = 2048` (days).
 The readmission intervals was suppressed to prevent printing results wider than the screen allowance.
-The number of intervals to be printted can be tuned using the `options` and argument `reda.Recur.maxPrint`. 
+The number of intervals to be printed can be tuned using the `options` and argument `reda.Recur.maxPrint`. 
 For example, 
 ```{r Recur-obj-short2-2, output.lines = 1:15}
 options(reda.Recur.maxPrint = 6)

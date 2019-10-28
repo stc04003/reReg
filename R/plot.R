@@ -261,7 +261,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' This feature only works for data with one recurrent event type.
 #' @param onePanel an optional logical value indicating whether the cumulative sample means (CSM) will be plotted in the same panel.
-#' This is only useful when there are multiple recurrent event types or in the presese of (discrete) covariates.
+#' This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.

@@ -48,7 +48,7 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' When \code{indCen = TRUE}, we set \eqn{Z = 1}.
 #' Otherwise, \eqn{Z} is generated from a unit-mean gamma distribution 
 #' See \bold{Details}. 
-#' @param zVar a numeric varaible specifying the variance of \eqn{Z}.
+#' @param zVar a numeric variable specifying the variance of \eqn{Z}.
 #' This is only needed when \eqn{indCen} is TRUE.
 #' The default value is 0.25.
 #' @param type a character string specifying the underlying model. See \bold{Details}

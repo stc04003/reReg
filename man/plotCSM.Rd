@@ -14,7 +14,7 @@ The response must be a recurrent event survival object returned by the \code{Rec
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
 \item{onePanel}{an optional logical value indicating whether the cumulative sample means (CSM) will be plotted in the same panel.
-This is only useful when there are multiple recurrent event types or in the presese of (discrete) covariates.}
+This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.}
 
 \item{adjrisk}{an optional logical value indicating whether risk set will be adjusted,
 e.g., if \code{TRUE}, subjects leave the risk set after terminal times. See \bold{Details}.}

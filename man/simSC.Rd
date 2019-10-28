@@ -23,7 +23,7 @@ See \bold{Details}.}
 
 \item{tau}{a numeric value specifying the maximum observation time.}
 
-\item{zVar}{a numeric varaible specifying the variance of \eqn{Z}.
+\item{zVar}{a numeric variable specifying the variance of \eqn{Z}.
 This is only needed when \eqn{indCen} is TRUE.
 The default value is 0.25.}
 

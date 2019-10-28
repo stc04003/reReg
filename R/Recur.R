@@ -27,7 +27,7 @@ NULL
 
 ##' Recurrent Episodes
 ##'
-##' Specify time segements or recurrent episodes by endpoints.
+##' Specify time segments or recurrent episodes by endpoints.
 ##'
 ##' This function is intended to be used for specifying the argument \code{time}
 ##' in function \code{\link{Recur}}.

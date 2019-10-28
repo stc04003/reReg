@@ -107,4 +107,4 @@ datatable(dat.cox, options = list(pageLength = 10, scrollX=TRUE)) %>%
   formatRound(c("Time", "x2"), 3)
 ```
 In this example, subject \#1 experienced 3 recurrent events (at time 0.074, 0.152, and 0.190) and died at time 0.224. 
-Similary, subject \#2 experienced 3 recurrent events (at time 1.136, 4.917, and 8.839) and is alive when censored at time 60.
+Similarly, subject \#2 experienced 3 recurrent events (at time 1.136, 4.917, and 8.839) and is alive when censored at time 60.

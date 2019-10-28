@@ -1,6 +1,6 @@
 Package: reReg
 Title: Recurrent Event Regression
-Version: 1.1.7
+Version: 1.2.0
 Authors@R: c(person(given = "Sy Han (Steven)", family = "Chiou",
 	   email = "schiou@utdallas.edu",
 	   role = c("aut", "cre")),

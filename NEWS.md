@@ -1,4 +1,4 @@
-# `reReg` 1.1.7
+# `reReg` 1.2.0
   	* Adopt `Recur()` from package `reda`
 	* Added a draft for regression vignettes
 	* Changed function name `simDat` to `simSC`

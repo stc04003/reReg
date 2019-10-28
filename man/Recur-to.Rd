@@ -19,7 +19,7 @@ A list that consists of two elements named
     \code{"time1"} and \code{"time2"}.
 }
 \description{
-Specify time segements or recurrent episodes by endpoints.
+Specify time segments or recurrent episodes by endpoints.
 }
 \details{
 This function is intended to be used for specifying the argument \code{time}
