@@ -3,7 +3,7 @@
 #' @title Create an \code{reSurv} Object
 #'
 #' @description Create a recurrent event survival object, used as a response variable in \code{reReg}.
-#' This function is being deprecated in Version 1.1.7.
+#' This function is being deprecated in Version 1.1.6.
 #' A recurrent event object is now being created with \code{Recur()}.
 #' See '?Recur()' for details.
 #'

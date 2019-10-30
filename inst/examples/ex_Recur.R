@@ -1,3 +1,3 @@
-set.seed(1)
-dat <- simSC(200, c(-1, 1), c(-1, 1))
-with(dat, Recur(Time, id, event, status))
+Recur(2:6, id = c(1, 1, 1, 2, 2))
+Recur(2:6, id = c(1, 1, 1, 2, 2))
+Recur(1:5 %2% 2:6, id = c(1, 1, 1, 2, 2))

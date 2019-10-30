@@ -2,16 +2,17 @@
 % Please edit documentation in R/Recur.R
 \name{Recur}
 \alias{Recur}
-\alias{is.Recur}
 \title{The \code{Recur} function is imported from \code{reda}.}
 \description{
+Create a recurrent event survival object, used as a response variable in \code{reReg}.
+This function is replacing the original \code{reSurv()} in version 1.1.6.
 See \code{?reda::Recur} for more details.
-
-See \code{?reda::is.Recur} for more details.
 }
-\details{
-\itemize{
-\item \code{\link[reda]{is.Recur}}: imported from the \code{reda}
-package.
+\examples{
+Recur(2:6, id = c(1, 1, 1, 2, 2))
+Recur(2:6, id = c(1, 1, 1, 2, 2))
+Recur(1:5 \%2\% 2:6, id = c(1, 1, 1, 2, 2))
 }
+\seealso{
+\code{\link{\%2\%}}
 }
