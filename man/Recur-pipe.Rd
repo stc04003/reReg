@@ -2,6 +2,8 @@
 % Please edit documentation in R/Recur.R
 \name{Recur-pipe}
 \alias{Recur-pipe}
+\alias{\%to\%}
+\alias{\%2\%}
 \title{The \code{\%to\%} function is imported from \code{reda}}
 \description{
 This pipe operator specifies the time segments or recurrent episodes by endpoints.

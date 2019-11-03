@@ -6,6 +6,7 @@
 #'
 #' @rdname Recur
 #' @name Recur
+#' @aliases is.Recur
 #' @importFrom reda Recur is.Recur
 #' @seealso \code{\link{\%2\%}}
 #' @export Recur is.Recur
@@ -19,7 +20,8 @@ NULL
 #'
 #' @name Recur-pipe
 #' @rdname Recur-pipe
+#' @aliases %to% %2%
 #' @importFrom reda %to% %2%
-#' @export %to%
+#' @export %to% %2%
 #' @example inst/examples/ex_Recur.R
 NULL
