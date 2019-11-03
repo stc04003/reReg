@@ -2,6 +2,7 @@
 % Please edit documentation in R/Recur.R
 \name{Recur}
 \alias{Recur}
+\alias{is.Recur}
 \title{The \code{Recur} function is imported from \code{reda}.}
 \description{
 Create a recurrent event survival object, used as a response variable in \code{reReg}.
