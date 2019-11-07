@@ -60,8 +60,8 @@ attach(readmission)
 
 ## `reSurv`/`Recur` objects 
 **<span style="color:red">The `reSurv()` function is being deprecated in Version 1.2.0.</span>**
-A replacement of this function is the `Recur()` function imported from the [`reda`](https://github.com/wenjie2wang/reda) package. 
-We give some background on the `reSurv()` function and a brief introduction of the `Recur()` function is included here. 
+A replacement of this function is the `Recur()` function imported from the [`reda`](https://github.com/wenjie2wang/reda) package [@R:reda]. 
+We give some background on the `reSurv()` function and a brief introduction to the `Recur()` function here.
 
 The usage of `reSurv()` is similar to the
 `Surv()` function in the __`survival`__ package.
@@ -79,7 +79,7 @@ The five arguments are as follows
 * `status` a binary vector used as the status indicator for the terminal event; `status = 0` for censored time
 * `origin` a numerical vector indicating the time origin of subjects
 
-The arguments of `Recur` are as follow
+The arguments of `Recur()` are similar to those of `reSurv()`. THey are listed as follow
 ```{r Recur}
 args(Recur)
 ```
@@ -94,6 +94,9 @@ The six arguments are as follows
 
 The main arguments of `Recur()` come directly from `reSurv()`, but `Recur()` comes with a comprehensive check for recurrent event data. 
 Moreover, `Recur()` returns a `S4` class object that can be used for functions in both the `reReg` package and the `reda` package. 
+Readers are referred to a separate [vignette on `Recur()`](ttps://wenjie-stat.me/reda/articles/reda-recur) for a detailed introduction of `Recur()`.
+
+
 The `Recur` object can be constructed in the same way as an `reSurv` object.
 In the current version (1.1.7), the `reSurv()` function can still be used, but the `reSurv` object will be automatically transformed to the corresponding `Recur` object.
 For example: 
@@ -189,12 +192,12 @@ The non-parametric cumulative sample mean (CSM) function can be used to aid even
 to determine visually whether a trend or other pattern exists.
 The CSM function is defined as follows:
 $$\begin{array}{c}
-\hat \mu_n(t) = \int_0^tY_\cdot^{-1}(t)dN_i(t),
+\hat \mu_n(t) = \int_0^tY_\cdot^{-1}(t)dN_\cdot(t),
 \end{array}$$
 where $Y_\cdot(t) = \sum_{i=1}^nY_i(t)$ is the total number of subjects who are at risk over $[t, t + dt)$ and
-$N_i(t)$ is the number of events over the time interval [0, t] for the *i*th process.
+$dN_\cdot(t) = \sum_{i=1}^n dN_i(t)$ is the total number of events over the time interval [0, t].
 This estimator is also known as the Nelson-Aalen estimator [@nelson2003recurrent] and 
-is also implemented in the `mcf` function in the **`reda`** package [@R:reda].
+is also implemented in the `mcf()` function in the **`reda`** package [@R:reda].
 Another variation of the CSM function is discussed in [@cook2007statistical] assuming $Y_i(t) = n$ for all $t$.
 This variation is equivalent to the Nelson-Aalen estimator without adjusting for risk set. 
 We refer the Nelson-Aalen estimator and the Cook-Lawless estimator as the CSM function with (default) and without adjusting for risk set, respectively.
