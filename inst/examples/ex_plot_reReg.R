@@ -8,6 +8,3 @@ plot(fit, baseline = "rate")
 plot(fit, baseline = "rate", xlab = "Time (days)")
 plot(fit, baseline = "rate", smooth = TRUE)
 
-
-fit <- reReg(fm, data = dat, method = "cox.HW", se = "resampling", B = 20)
-plot(fit)

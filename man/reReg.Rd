@@ -89,8 +89,6 @@ The default value is half the CPU cores on the current host.}
 }
 }
 \examples{
-library(reReg)
-
 set.seed(1)
 dat <- simSC(80, c(-1, 1), c(-1, 1), type = "am")
 fm <- Recur(Time, id, event, status) ~ x1 + x2

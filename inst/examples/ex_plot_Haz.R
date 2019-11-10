@@ -11,7 +11,3 @@ plotHaz(fit, smooth = TRUE)
 ## Plot with user-specified labels
 plotHaz(fit, xlab = "User xlab", ylab = "User ylab", main = "User title")
 plotHaz(fit, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
-
-## With 95% confidence interval when `se` is enabled
-fit <- reReg(fm, data = dat, method = "cox.HW", se = "resampling", B = 20)
-plotHaz(fit)
