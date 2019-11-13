@@ -12,3 +12,4 @@ skipcheck*
 ^\.git$
 ^appveyor\.yml$
 ^\.travis\.yml$
+^inst$
