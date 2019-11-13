@@ -1,5 +1,4 @@
-set.seed(1)
-dat <- simSC(30, c(-1, 1), c(-1, 1))
+data(simDat)
 reObj <- with(dat, Recur(Time, id, event, status))
 
 ## Event plots:

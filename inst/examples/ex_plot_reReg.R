@@ -1,8 +1,7 @@
-set.seed(1)
-dat <- simSC(50, c(-1, 1), c(-1, 1))
+data(simDat)
 fm <- Recur(Time, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = dat, method = "cox.HW")
+fit <- reReg(fm, data = simDat, method = "cox.HW")
 plot(fit)
 plot(fit, baseline = "rate")
 plot(fit, baseline = "rate", xlab = "Time (days)")

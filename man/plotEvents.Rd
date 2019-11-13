@@ -48,20 +48,19 @@ list with the following values:
 The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
-set.seed(1)
-dat <- simSC(30, c(-1, 1), c(-1, 1))
-plotEvents(Recur(Time, id, event, status) ~ 1, data = dat)
-plotEvents(Recur(Time, id, event, status) ~ 1, data = dat,
+data(simDat)
+plotEvents(Recur(Time, id, event, status) ~ 1, data = simDat)
+plotEvents(Recur(Time, id, event, status) ~ 1, data = simDat,
            xlab = "Time in days", ylab = "Subjects arranged by terminal time")
 
 ## Separate plots by x1
-plotEvents(Recur(Time, id, event, status) ~ x1, data = dat)
+plotEvents(Recur(Time, id, event, status) ~ x1, data = simDat)
 
 ## For multiple recurrent events
-dat$x3 <- ifelse(dat$x2 < 0, "x2 < 0", "x2 > 0")
-plotEvents(Recur(Time, id, event, status) ~ x1 + x3, data = dat)
-plotEvents(Recur(Time, id, event * sample(1:3, nrow(dat), TRUE), status) ~ x1, data = dat)
-plotEvents(Recur(Time, id, event * sample(1:3, nrow(dat), TRUE), status) ~ x1 + x3, data = dat)
+simDat$x3 <- ifelse(simDat$x2 < 0, "x2 < 0", "x2 > 0")
+plotEvents(Recur(Time, id, event, status) ~ x1 + x3, data = simDat)
+plotEvents(Recur(Time, id, event * sample(1:3, nrow(simDat), TRUE), status) ~ x1, data = simDat)
+plotEvents(Recur(Time, id, event * sample(1:3, nrow(simDat), TRUE), status) ~ x1 + x3, data = simDat)
 }
 \seealso{
 \code{\link{Recur}}, \code{\link{plot.Recur}}

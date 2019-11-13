@@ -35,11 +35,10 @@ to a list with the following values:
 These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
-set.seed(1)
-dat <- simSC(50, c(-1, 1), c(-1, 1))
+data(simDat)
 fm <- Recur(Time, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = dat, method = "cox.HW")
+fit <- reReg(fm, data = simDat, method = "cox.HW")
 ## Plot both the baseline cumulative rate and hazard function
 plot(fit)
 ## Plot baseline cumulative rate function

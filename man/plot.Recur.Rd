@@ -55,8 +55,7 @@ The argument \code{control} consists of options with argument defaults to a list
 The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
-set.seed(1)
-dat <- simSC(30, c(-1, 1), c(-1, 1))
+data(simDat)
 reObj <- with(dat, Recur(Time, id, event, status))
 
 ## Event plots:
