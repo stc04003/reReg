@@ -15,6 +15,7 @@
 #' See \code{\link{simSC}} for instruction on simulating recurrent event data from
 #' scale-change models.
 #'
+#' @usage data(simDat)
 #' @docType data
 #' @name simDat
 #' @format A data frame with 274 rows and 6 variables.

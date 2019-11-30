@@ -1,4 +1,6 @@
 # `reReg` 1.2.0
+  	* Fixed memory errors (checked with valgrind 3.15)
+# `reReg` 1.2.0
   	* Adopt `Recur()` from package `reda`
 	* Added a draft for regression vignettes
 	* Changed function name `simDat` to `simSC`
