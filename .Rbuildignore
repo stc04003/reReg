@@ -13,3 +13,5 @@ skipcheck*
 ^appveyor\.yml$
 ^\.travis\.yml$
 ^inst$
+^CRAN-RELEASE$
+^cran-comments\.md$

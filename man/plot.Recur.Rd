@@ -56,7 +56,7 @@ The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down 
 }
 \examples{
 data(simDat)
-reObj <- with(dat, Recur(Time, id, event, status))
+reObj <- with(simDat, Recur(Time, id, event, status))
 
 ## Event plots:
 plot(reObj)
@@ -72,7 +72,7 @@ plot(reObj, CSM = TRUE, control = list(xlab = "User xlab", ylab = "User ylab", m
 
 ## With (hypothetical) multiple event types
 set.seed(1)
-reObj2 <- with(dat, Recur(Time, id, event * sample(1:3, nrow(dat), TRUE), status))
+reObj2 <- with(simDat, Recur(Time, id, event * sample(1:3, nrow(simDat), TRUE), status))
 plot(reObj2)
 plot(reObj2, event.result = "decreasing")
 plot(reObj2, event.result = "asis")

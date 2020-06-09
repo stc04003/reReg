@@ -59,8 +59,9 @@ plotEvents(Recur(Time, id, event, status) ~ x1, data = simDat)
 ## For multiple recurrent events
 simDat$x3 <- ifelse(simDat$x2 < 0, "x2 < 0", "x2 > 0")
 plotEvents(Recur(Time, id, event, status) ~ x1 + x3, data = simDat)
-plotEvents(Recur(Time, id, event * sample(1:3, nrow(simDat), TRUE), status) ~ x1, data = simDat)
-plotEvents(Recur(Time, id, event * sample(1:3, nrow(simDat), TRUE), status) ~ x1 + x3, data = simDat)
+simDat$event <- simDat$event * sample(1:3, nrow(simDat), TRUE)
+plotEvents(Recur(Time, id,  event, status) ~ x1, data = simDat)
+plotEvents(Recur(Time, id,  event, status) ~ x1 + x3, data = simDat)
 }
 \seealso{
 \code{\link{Recur}}, \code{\link{plot.Recur}}
