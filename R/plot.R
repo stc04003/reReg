@@ -339,7 +339,6 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
                            apply(dd2[,vNames, drop = FALSE], 1, paste, collapse = ""))
         tmp1 <- merge(dd, dd2, by = vNames)
         ## as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":"))))
-
         rec0 <- subset(tmp1, event == 0)       
         dat0 <- do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
             x$adjrisk = apply(x, 1, function(y)
@@ -371,7 +370,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
             dat0 <- do.call(rbind, 
                             lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
                                 x$mu <- x$n.x / x$n.y
-                                x$CSM <- cumsum(x$mu)
+                                x$CSM <- cumsum(x$mu) 
                                 return(x)}))
         }
     } else { ## no covariates
@@ -383,7 +382,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         rec0$adjrisk <- 1
         dat0 <- unique(rbind(dd, rec0))       
         dat0 <- dat0[order(dat0$time2),]
-        dat0$mu <- dat0$n / (adjrisk * dat0$adjrisk + !adjrisk * dat0$n.y)
+        dat0$mu <- dat0$n / (adjrisk * dat0$adjrisk + (!adjrisk) * dat0$n.y)
         dat0$CSM <- cumsum(dat0$mu)
     }
     if (k == 1) {
