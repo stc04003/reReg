@@ -2,10 +2,10 @@
 % Please edit documentation in R/simu.R
 \name{simSC}
 \alias{simSC}
-\title{Function to generate simulated data}
+\title{Function to generate simulated recurrent event data}
 \usage{
-simSC(n, a, b, indCen = TRUE, type = c("cox", "am", "sc"), tau = 60,
-  zVar = 0.25, summary = FALSE)
+simSC(n, a, b, indCen = TRUE, type = "cox", tau = 60, zVar = 0.25,
+  summary = FALSE)
 }
 \arguments{
 \item{n}{number of observation.}
@@ -19,7 +19,8 @@ When \code{indCen = TRUE}, we set \eqn{Z = 1}.
 Otherwise, \eqn{Z} is generated from a unit-mean gamma distribution 
 See \bold{Details}.}
 
-\item{type}{a character string specifying the underlying model. See \bold{Details}}
+\item{type}{a character string specifying the underlying model.
+See \bold{Details}}
 
 \item{tau}{a numeric value specifying the maximum observation time.}
 
@@ -32,29 +33,43 @@ The default value is 0.25.}
 \description{
 The function \code{simSC} generates simulated recurrent event data from either
 a Cox-type model, an accelerated mean model, or a scale-change model.
+For all scenarios, two covariates are considered; \eqn{X = (X_1, X_2)}, where
+\eqn{X_1} follows a Bernoulli distribution with probability 0.5 and
+\eqn{X_2} follows a standard normal distribution.
 The censoring time could be either independent (given covariates) or informative.
 The simulated data is used for illustration.
 }
 \details{
-The function \code{simSC} generates simulated recurrent event data under different
-scenarios based on the following assumptions.
-See \bold{Details} in \code{\link{reReg}} for a more complete model assumptions.
+The function \code{simSC()} generates simulated recurrent event data over
+the interval \eqn{(0, \tau)} based on the specification of the recurrent process and
+the terminal events.
+Specifically, the rate function, \eqn{\lambda(t)}, of the recurrent process
+can be specified as one of the following model:
 \describe{
-  \item{\code{type = "cox"}}{generates recurrent event data from a Cox-type model with
-\deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top a}, h(t) = Zh_0(t)e^{X^\top b}.}}
-  \item{\code{type = "am"}}{generates recurrent event data from an accelerated mean model with
-\deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top a}, h(t) = Zh_0(te^{X^\top b})e^{X^\top b}.}}
-  \item{\code{type = "sc"}}{generates recurrent event data from a generalized scale-change model with
-\deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top b}, h(t) = Zh_0(te^{X^\top a})e^{X^\top b}.}}
+  \item{Cox-type model}{
+\deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top a}.}}
+  \item{Accelerated mean model}{
+\deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top a}.}}
+  \item{Scale-change model}{
+\deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top b}.}}
 }
-Let \eqn{D} be the informative failure time with the above hazard function.
-An non-informative failure time, \eqn{C}, is generated separately from an
-exponential distribution with mean 80.
-The observed follow-up time is then taken to be \eqn{min(D, C, \tau)}.
-We further assume
+Similarly, the hazard function, \eqn{h(t)}, of the terminal event 
+can be specified as one of the following model:
+\describe{
+  \item{Cox-type model}{
+\deqn{h(t) = Zh_0(t)e^{X^\top b}.}}
+  \item{Accelerated mean model}{
+\deqn{h(t) = Zh_0(te^{X^\top b})e^{X^\top b}.}}
+  \item{Scale-change model}{
+\deqn{h(t) = Zh_0(te^{X^\top a})e^{X^\top b}.}}
+}
+Am informative censoring time, \eqn{C}, is generated separately from an
+exponential distribution with a rate parameter of 1 / 60 if \eqn{X_1} is 1,
+or \eqn{Z^2 / 30} if \eqn{X_1} is 0.
+The observed recurrent events is then observed up to the minimum of \eqn{C},
+terminal event, and \eqn{\tau}.
+Lastly, we assume the baseline functions
 \deqn{\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.}
-Two covariates are considered; \code{x1} follows a Bernoulli distribution
-with probability 0.5 and \code{x2} follows a standard normal distribution.
 }
 \examples{
 set.seed(123)
