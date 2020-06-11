@@ -8,13 +8,11 @@
 
 <title>Produce Event Plots — plotEvents • reReg</title>
 
-
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -32,12 +30,11 @@
 
 
 
-
 <meta property="og:title" content="Produce Event Plots — plotEvents" />
+
 <meta property="og:description" content="Plot the event plot for an Recur object.
 The usage of the function is similar to that of plot.Recur but with more flexible options." />
 <meta name="twitter:card" content="summary" />
-
 
 
 
@@ -104,6 +101,7 @@ The usage of the function is similar to that of plot.Recur but with more flexibl
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
+      
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/stc04003/reReg">
@@ -129,13 +127,15 @@ The usage of the function is similar to that of plot.Recur but with more flexibl
     </div>
 
     <div class="ref-description">
+    
     <p>Plot the event plot for an <code>Recur</code> object.
 The usage of the function is similar to that of <code>plot.Recur</code> but with more flexible options.</p>
+    
     </div>
 
     <pre class="usage"><span class='fu'>plotEvents</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>result</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"increasing"</span>, <span class='st'>"decreasing"</span>, <span class='st'>"asis"</span>),
   <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(), <span class='no'>...</span>)</pre>
-
+    
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
@@ -167,10 +167,11 @@ The response must be a recurrent event survival object as returned by function <
 These include <code>xlab</code>, <code>ylab</code>, <code>main</code>, and more. See <b>Details</b>.</p></td>
     </tr>
     </table>
-
+    
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>A <code>ggplot</code> object.</p>
+    
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>The argument <code>control</code> consists of options with argument defaults to a
@@ -183,9 +184,11 @@ list with the following values:</p><dl class='dl-horizontal'>
   <dt>recurrent.types</dt><dd><p>customizable label for recurrent event type, default value is <code>NULL</code>.</p></dd>
   <dt>alpha</dt><dd><p>between 0 and 1, controls the transparency of points.</p></dd>
 </dl><p>The <code>xlab</code>, <code>ylab</code> and <code>main</code> parameters can also be passed down without specifying a <code>control</code> list. See <b>Examples</b>.</p>
+    
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='Recur.html'>Recur</a></code>, <code><a href='plot.Recur.html'>plot.Recur</a></code></p></div>
+    
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/data'>data</a></span>(<span class='no'>simDat</span>)
@@ -202,9 +205,13 @@ list with the following values:</p><dl class='dl-horizontal'>
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
+      
       <li><a href="#value">Value</a></li>
+
       <li><a href="#details">Details</a></li>
+
       <li><a href="#see-also">See also</a></li>
+      
       <li><a href="#examples">Examples</a></li>
     </ul>
 

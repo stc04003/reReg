@@ -39,30 +39,39 @@ In the following, we suppress the index for the ease of discussion.
    
 ## The `simSC` function {-}
 The function `simSC` generates the recurrent times from a recurrent event process, $N(t)$,
-with a pre-specified rate function, $\lambda(t)$, and the failure time, $D$,
+from a pre-specified rate function, $\lambda(t)$, and the failure time, $D$,
 from a pre-specified hazard function, $h(t)$.
-By specifying the argument `type` in the function `simSC`,
-recurrent times and failure time can be generated from the following models:
+The rate function can be chosen from one of the three models: 
 
- * `type = "cox"` for Cox-type models:
-  $$\lambda(t) = Z\lambda_0(t) e^{X^\top\alpha}, h(t) = Zh_0(t) e^{X^\top\beta}.$$
- * `type = "am"` for accelerated mean models:
-  $$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
- * `type = "sc"` for scale-change models:
-  $$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta}, h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
+ * Cox-type model:
+  $$\lambda(t) = Z\lambda_0(t) e^{X^\top\alpha}.$$
+ * Accelerated mean model:
+  $$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}.$$
+ * Scale-change model:
+  $$\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta}.$$
 
-The $Z$ is a latent frailty variable.
+Similarly, the hazard function can be chosen from one of the three models:
+
+ * Cox-type model:
+  $$h(t) = Zh_0(t) e^{X^\top\beta}.$$
+ * Accelerated mean model:
+  $$h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.$$
+ * Scale-change model:
+  $$h(t) = Zh_0(te^{X^\top\alpha})e^{X^\top\beta}.$$
+
+The frailty variable $Z$ is used to capture the association between 
+the rate function and the hazard function.
 In `simSC` currently only allows two covariates, i.e., $X = (X_{1}, X_{2})^\top$,
 where $X_1$ is a Bernoulli random variable with probability 0.5 and
 $X_2$ is a standard normal random variable.
-The non-informative censoring time, $C$, is generated separately from an exponential distribution 
-with mean 80.
+The non-informative censoring time, $C$, 
+is generated separately from an exponential distribution with mean 80.
 The observed follow-up time is then taken to be $Y = \min(D, C, \tau)$.
 We further assume the baseline functions
 $$\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.$$
 
 The arguments in `simSC` are as follow
-```{r simSC}
+```{r simSC, message = FALSE}
 library(reReg)
 args(simSC)
 ```
@@ -70,41 +79,63 @@ The arguments are as follows
 
 * `n` number of individual
 * `a, b` numeric vectors of parameter of length two.
-* `indCen` a logical value indicating whether the censoring assumption is imposed.
-  When `indCen = TRUE`, we set $Z = 1$.
-  Otherwise, $Z$ is generated from a gamma distribution with mean 1 and variance 0.25
-  (e.g., `rgamma(1, 4, 4)`).
-* `type` a character string specifying the underlying model.
+* `type` a character string specifying the underlying model. The type is distinguished by a vertical bar `|`, with the rate function on the left. For example, setting `type = "cox|am"` generates the recurrent process from a Cox model and the terminal event from an accelerated mean model. Setting `type = "cox"` gives `type = "cox|cox"`.
 * `tau` a numeric value specifying the maximum observation time, or $\tau$ in the above notation.
 * `summary` a logical value indicating whether a brief data summary will be printed.
 
 ## Examples
-In the following examples, we simulate recurrent event using `simSC`, with `summary = TRUE`.
-```{R set-seed, echo = FALSE}
-set.seed(123)
-```
-Cox-type model:
-```{R cox}
+In the following examples, we simulate recurrent event data when both the rate function and the hazard function
+are Cox-type models and use `summary = TRUE` to display some descriptive statistics about the simulated data.
+```{R set-seed}
+set.seed(273)
 dat.cox <- simSC(200, c(-1, 1), c(-1, 1), summary = TRUE)
 ```
-Accelerated mean model:
-```{R am}
-dat.am <- simSC(200, c(-1, 1), c(-1, 1), type = "am", summary = TRUE)
-```
-Scale-change model:
-```{R sc}
-dat.sc <- simSC(200, c(-1, 1), c(-1, 1), type = "sc", summary = TRUE)
-```
 
-The output of `simSC` are `tibble` objects.
-```{R cox-display}
-class(dat.cox)
-head(dat.cox)
-```
+The output of `simSC()` is a data frame. 
+In this example, subject \#1 experienced `r sum(subset(dat.cox, id == 1)$event)` recurrent events 
+(at times `r round(subset(dat.cox, id == 1)$Time[1:sum(subset(dat.cox, id == 1)$event)], 3)`)
+and died at time `r round(tail(subset(dat.cox, id == 1)$Time, 1), 3)`.
+Similarly, subject \#2 experienced `r sum(subset(dat.cox, id == 2)$event)` 
+recurrent events (at times `r round(subset(dat.cox, id == 2)$Time[1:sum(subset(dat.cox, id == 2)$event)], 3)`)
+and is alive when censored at time `r round(tail(subset(dat.cox, id == 2)$Time, 1), 3)`.
 ```{R cox-DT}
 library(DT)
-datatable(dat.cox, options = list(pageLength = 10, scrollX=TRUE)) %>% 
+datatable(dat.cox, options = list(pageLength = 10, scrollX = TRUE)) %>% 
   formatRound(c("Time", "x2"), 3)
 ```
-In this example, subject \#1 experienced 3 recurrent events (at time 0.074, 0.152, and 0.190) and died at time 0.224. 
-Similarly, subject \#2 experienced 3 recurrent events (at time 1.136, 4.917, and 8.839) and is alive when censored at time 60.
+The event plot for the above simulated data is
+```{R cox-event}
+plotEvents(Recur(Time, id, event, status) ~ 1, data = dat.cox)
+```
+
+
+With the same random seed, the following example generates recurrent event data
+when the rate function is an accelerated mean model while the hazard function is a Cox model. 
+Compare to the previous example, the difference is in the model structure of the rate function. 
+```{R set-seed2}
+set.seed(273)
+dat.amcox <- simSC(200, c(-1, 1), c(-1, 1), type = "am|cox")
+datatable(dat.amcox, options = list(pageLength = 10, scrollX = TRUE)) %>% 
+  formatRound(c("Time", "x2"), 3)
+```
+Here, subject \#1 experienced `r sum(subset(dat.amcox, id == 1)$event)` recurrent events 
+(at times `r round(subset(dat.amcox, id == 1)$Time[1:sum(subset(dat.amcox, id == 1)$event)], 3)`)
+and died at time `r round(tail(subset(dat.amcox, id == 1)$Time, 1), 3)`.
+Similarly, subject \#2 experienced `r sum(subset(dat.amcox, id == 2)$event)` 
+recurrent events (at times `r round(subset(dat.amcox, id == 2)$Time[1:sum(subset(dat.amcox, id == 2)$event)], 3)`)
+and is alive when censored at time `r round(tail(subset(dat.amcox, id == 2)$Time, 1), 3)`.
+
+A side-by-side event plot shows the difference in the recurrent process.
+```{R comp, message = FALSE}
+library(ggplot2)
+library(gridExtra)
+grid.arrange(plotEvents(Recur(Time, id, event, status) ~ 1, 
+                        data = dat.cox,
+                        main = "type = cox") + 
+               theme(legend.position = "none"),
+             plotEvents(Recur(Time, id, event, status) ~ 1, 
+                        data = dat.amcox,
+                        main = "type = am|cox") + 
+               theme(legend.position = "none"),
+             ncol = 2)
+```

@@ -47,7 +47,7 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #'   \item{Scale-change model}{
 #' \deqn{h(t) = Zh_0(te^{X^\top a})e^{X^\top b}.}}
 #' }
-#' Am informative censoring time, \eqn{C}, is generated separately from an
+#' An informative censoring time, \eqn{C}, is generated separately from an
 #' exponential distribution with a rate parameter of 1 / 60 if \eqn{X_1} is 1,
 #' or \eqn{Z^2 / 30} if \eqn{X_1} is 0.
 #' The observed recurrent events is then observed up to the minimum of \eqn{C},
@@ -58,15 +58,10 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' @param n number of observation.
 #' @param a a numeric vector of parameter of length 2.
 #' @param b a numeric vector of parameter of length 2.
-#' @param indCen a logical value indicating whether the censoring assumption is imposed.
-#' When \code{indCen = TRUE}, we set \eqn{Z = 1}.
-#' Otherwise, \eqn{Z} is generated from a unit-mean gamma distribution 
-#' See \bold{Details}. 
-#' @param zVar a numeric variable specifying the variance of \eqn{Z}.
-#' This is only needed when \eqn{indCen} is TRUE.
-#' The default value is 0.25.
 #' @param type a character string specifying the underlying model.
 #' See \bold{Details}
+#' @param zVar a numeric variable specifying the variance of the fraility variable,\eqn{Z}, when \code{zVar} > 0.
+#' When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.
 #' @param tau a numeric value specifying the maximum observation time.
 #' @param summary a logical value indicating whether a brief data summary will be printed.
 #'
@@ -75,7 +70,7 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #'
 #'
 #' @example inst/examples/ex_simu.R
-simSC <- function(n, a, b, indCen = TRUE, type = "cox", tau = 60, zVar = .25, summary = FALSE) {
+simSC <- function(n, a, b, type = "cox", zVar = .25, tau = 60, summary = FALSE) {
     if (length(a) != 2L) stop("Require length(a) = 2.")
     if (length(b) != 2L) stop("Require length(b) = 2.")
     allcomb <- apply(expand.grid(c("cox", "am", "sc"), c("cox", "am", "sc")), 1, paste, collapse = "|")
@@ -85,17 +80,18 @@ simSC <- function(n, a, b, indCen = TRUE, type = "cox", tau = 60, zVar = .25, su
         temType <- substring(type, regexpr("[|]", type) + 1)
     } else {
         recType <- temType <- type
-    }    
-    simOne <- function(id) {
-        z <- ifelse(indCen, 1, rgamma(1, 1/zVar, 1/zVar))
-        x <- c(sample(0:1, 1), rnorm(1))
+    }
+    if (zVar <= 0) Z <- rep(1, n)
+    else Z <- rgamma(n, 1/zVar, 1/zVar)
+    X <- cbind(sample(0:1, n, TRUE), rnorm(n))
+    Cen <- sapply(1:n, function(x) rexp(1, X[x, 1] / 60 + (1 - X[x, 1]) * Z[x]^2 / 30))
+    rr <- rexp(n)
+    simOne <- function(id, z, x, cen, rr) {
         exa <- c(exp(x %*% a))
         exb <- c(exp(x %*% b))
-        ## cen <- rexp(1, 1 / 80)
-        cen <- rexp(1, x[1] / 60 + (1 - x[1]) * z^2 / 30)
-        if (temType == "cox") D <- invHaz(rexp(1), z, 1, exb)
-        if (temType == "am") D <- invHaz(rexp(1), z, exb, exb)
-        if (temType == "sc") D <- invHaz(rexp(1), z, exa, exb)
+        if (temType == "cox") D <- invHaz(rr, z, 1, exb)
+        if (temType == "am") D <- invHaz(rr, z, exb, exb)
+        if (temType == "sc") D <- invHaz(rr, z, exa, exb)
         y <- min(cen, tau, D) 
         status <- 1 * (y == D)
         m <- -1
@@ -119,7 +115,7 @@ simSC <- function(n, a, b, indCen = TRUE, type = "cox", tau = 60, zVar = .25, su
                               Z = z, m = m, x1 = x[1], x2 = x[2]))
         }
     }
-    dat <- data.frame(do.call(rbind, lapply(1:n, simOne)))
+    dat <- data.frame(do.call(rbind, lapply(1:n, function(y) simOne(y, Z[y], X[y,], Cen[y], rr[y]))))
     if (summary) {
         cat("\n")
         cat("Summary results for number of recurrent event per subject:\n")

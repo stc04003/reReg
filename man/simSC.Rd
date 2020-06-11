@@ -4,7 +4,7 @@
 \alias{simSC}
 \title{Function to generate simulated recurrent event data}
 \usage{
-simSC(n, a, b, indCen = TRUE, type = "cox", tau = 60, zVar = 0.25,
+simSC(n, a, b, type = "cox", zVar = 0.25, tau = 60,
   summary = FALSE)
 }
 \arguments{
@@ -14,19 +14,13 @@ simSC(n, a, b, indCen = TRUE, type = "cox", tau = 60, zVar = 0.25,
 
 \item{b}{a numeric vector of parameter of length 2.}
 
-\item{indCen}{a logical value indicating whether the censoring assumption is imposed.
-When \code{indCen = TRUE}, we set \eqn{Z = 1}.
-Otherwise, \eqn{Z} is generated from a unit-mean gamma distribution 
-See \bold{Details}.}
-
 \item{type}{a character string specifying the underlying model.
 See \bold{Details}}
 
-\item{tau}{a numeric value specifying the maximum observation time.}
+\item{zVar}{a numeric variable specifying the variance of the fraility variable,\eqn{Z}, when \code{zVar} > 0.
+When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.}
 
-\item{zVar}{a numeric variable specifying the variance of \eqn{Z}.
-This is only needed when \eqn{indCen} is TRUE.
-The default value is 0.25.}
+\item{tau}{a numeric value specifying the maximum observation time.}
 
 \item{summary}{a logical value indicating whether a brief data summary will be printed.}
 }
@@ -63,7 +57,7 @@ can be specified as one of the following model:
   \item{Scale-change model}{
 \deqn{h(t) = Zh_0(te^{X^\top a})e^{X^\top b}.}}
 }
-Am informative censoring time, \eqn{C}, is generated separately from an
+An informative censoring time, \eqn{C}, is generated separately from an
 exponential distribution with a rate parameter of 1 / 60 if \eqn{X_1} is 1,
 or \eqn{Z^2 / 30} if \eqn{X_1} is 0.
 The observed recurrent events is then observed up to the minimum of \eqn{C},

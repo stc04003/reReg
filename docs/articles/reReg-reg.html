@@ -89,7 +89,7 @@
       <h1>Fitting semiparametric regression model to recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2019-11-30</h4>
+            <h4 class="date">2020-06-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stc04003/reReg/blob/master/vignettes/reReg-reg.Rmd"><code>vignettes/reReg-reg.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-reg.Rmd</code></div>
@@ -99,8 +99,13 @@
     
     
 <p>In this vignette, we demonstrate how to use the <code>reReg</code> function in <strong><code>reReg</code></strong> package to fit semiparametric regression model to recurrent event data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(reReg)
-<span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/args">args</a></span>(reReg)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(reReg)</code></pre></div>
+<pre><code>Registered S3 methods overwritten by 'ggplot2':
+  method         from 
+  [.quosures     rlang
+  c.quosures     rlang
+  print.quosures rlang</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/args">args</a></span>(reReg)</code></pre></div>
 <pre><code>function (formula, data, B = 200, method = c("cox.LWYY", "cox.GL", 
     "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"), se = c("NULL", 
     "bootstrap", "resampling"), contrasts = NULL, control = list()) 
@@ -131,18 +136,18 @@ NULL</code></pre>
 <h3 class="hasAnchor">
 <a href="#lin1998-cox-lwyy" class="anchor"></a><span class="citation">D. Y. Lin, Wei, and Ying (1998)</span> <code>cox.LWYY</code>
 </h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">123</span>)
-<span class="op">&gt;</span><span class="st"> </span>dat.cox &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dt">n =</span> <span class="dv">500</span>, <span class="dt">a =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, <span class="dv">-1</span>), <span class="dt">b =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, <span class="dv">-1</span>))
-<span class="op">&gt;</span><span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.cox)
-<span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">123</span>)
+&gt;<span class="st"> </span>dat.cox &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dt">n =</span> <span class="dv">500</span>, <span class="dt">a =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, -<span class="dv">1</span>), <span class="dt">b =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, -<span class="dv">1</span>))
+&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox)
+&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox)
 
 Method: Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)
 
 Coefficients effect:
    Estimate StdErr z.value   p.value    
-x1    0.965  0.031  31.109 &lt; 2.2e-16 ***
-x2   -1.004  0.018 -57.072 &lt; 2.2e-16 ***
+x1    0.814  0.067  12.129 &lt; 2.2e-16 ***
+x2   -0.861  0.040 -21.632 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
@@ -150,27 +155,27 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <h3 class="hasAnchor">
 <a href="#ghosh2002-cox-gl" class="anchor"></a><span class="citation">Ghosh and Lin (2002)</span> <code>cox.GL</code>
 </h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, <span class="dt">method =</span> <span class="st">"cox.GL"</span>)
-<span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, <span class="dt">method =</span> <span class="st">"cox.GL"</span>)
+&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     method = "cox.GL")
 
 Coefficients (rate):
    Estimate StdErr z.value p.value
-x1    0.974     NA      NA      NA
-x2   -0.963     NA      NA      NA
+x1    0.531     NA      NA      NA
+x2   -0.795     NA      NA      NA
 
 Coefficients (hazard):
    Estimate StdErr z.value p.value
-x1    1.009     NA      NA      NA
-x2   -0.951     NA      NA      NA</code></pre>
+x1    0.772     NA      NA      NA
+x2   -0.867     NA      NA      NA</code></pre>
 </div>
 <div id="huang2004-cox-hw" class="section level3">
 <h3 class="hasAnchor">
 <a href="#huang2004-cox-hw" class="anchor"></a><span class="citation">Huang and Wang (2004)</span> <code>cox.HW</code>
 </h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, <span class="dt">method =</span> <span class="st">"cox.HW"</span>)
-<span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, <span class="dt">method =</span> <span class="st">"cox.HW"</span>)
+&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     method = "cox.HW")
 
@@ -178,22 +183,22 @@ Method: Huang-Wang Model
 
 Coefficients (rate):
    Estimate StdErr z.value p.value
-x1    0.975     NA      NA      NA
-x2   -1.016     NA      NA      NA
+x1    0.874     NA      NA      NA
+x2   -0.951     NA      NA      NA
 
 Coefficients (hazard):
    Estimate StdErr z.value p.value
-x1    1.021     NA      NA      NA
-x2   -0.962     NA      NA      NA</code></pre>
+x1    0.831     NA      NA      NA
+x2   -0.951     NA      NA      NA</code></pre>
 </div>
 <div id="ghosh2003-am-gl" class="section level3">
 <h3 class="hasAnchor">
 <a href="#ghosh2003-am-gl" class="anchor"></a><span class="citation">Ghosh and Lin (2003)</span> <code>am.GL</code>
 </h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">123</span>)
-<span class="op">&gt;</span><span class="st"> </span>dat.am &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dt">n =</span> <span class="dv">500</span>, <span class="dt">a =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, <span class="dv">-1</span>), <span class="dt">b =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, <span class="dv">-1</span>), <span class="dt">type =</span> <span class="st">"am"</span>)
-<span class="op">&gt;</span><span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.am, <span class="dt">method =</span> <span class="st">"am.GL"</span>)
-<span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">123</span>)
+&gt;<span class="st"> </span>dat.am &lt;-<span class="st"> </span><span class="kw"><a href="../reference/simSC.html">simSC</a></span>(<span class="dt">n =</span> <span class="dv">500</span>, <span class="dt">a =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, -<span class="dv">1</span>), <span class="dt">b =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, -<span class="dv">1</span>), <span class="dt">type =</span> <span class="st">"am"</span>)
+&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.am, <span class="dt">method =</span> <span class="st">"am.GL"</span>)
+&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.am, 
     method = "am.GL")
 
@@ -201,20 +206,20 @@ Method: Ghosh-Lin Model
 
 Coefficients (rate):
    Estimate StdErr z.value p.value
-x1    1.047     NA      NA      NA
-x2   -0.965     NA      NA      NA
+x1    1.386     NA      NA      NA
+x2   -1.040     NA      NA      NA
 
 Coefficients (hazard):
    Estimate StdErr z.value p.value
-x1    0.825     NA      NA      NA
-x2   -0.798     NA      NA      NA</code></pre>
+x1    0.729     NA      NA      NA
+x2   -1.406     NA      NA      NA</code></pre>
 </div>
 <div id="xu2017joint-am-xchwy" class="section level3">
 <h3 class="hasAnchor">
 <a href="#xu2017joint-am-xchwy" class="anchor"></a><span class="citation">Xu et al. (2017)</span> <code>am.XCHWY</code>
 </h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.am, <span class="dt">method =</span> <span class="st">"am.XCHWY"</span>)
-<span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.am, <span class="dt">method =</span> <span class="st">"am.XCHWY"</span>)
+&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.am, 
     method = "am.XCHWY")
 
@@ -222,21 +227,21 @@ Method: Xu et al. (2016) Model
 
 Coefficients (rate):
    Estimate StdErr z.value p.value
-x1    1.196     NA      NA      NA
-x2   -0.845     NA      NA      NA
+x1    1.122     NA      NA      NA
+x2   -1.040     NA      NA      NA
 
 Coefficients (hazard):
    Estimate StdErr z.value p.value
-x1    1.006     NA      NA      NA
-x2   -0.605     NA      NA      NA</code></pre>
+x1    0.531     NA      NA      NA
+x2   -1.369     NA      NA      NA</code></pre>
 </div>
 <div id="xu2018generalized-sc-xcyh" class="section level3">
 <h3 class="hasAnchor">
 <a href="#xu2018generalized-sc-xcyh" class="anchor"></a><span class="citation">Xu et al. (2018)</span> <code>sc.XCYH</code>
 </h3>
 <p>Fitting recurrent event data generated from the Cox model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span>fit1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, <span class="dt">method =</span> <span class="st">"sc.XCYH"</span>)
-<span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit1)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, <span class="dt">method =</span> <span class="st">"sc.XCYH"</span>)
+&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit1)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     method = "sc.XCYH")
 
@@ -244,16 +249,16 @@ Method: Generalized Scale-Change Model
 
 Scale-change effect:
    Estimate StdErr z.value p.value
-x1   -0.180     NA      NA      NA
-x2   -0.029     NA      NA      NA
+x1    0.044     NA      NA      NA
+x2   -0.015     NA      NA      NA
 
 Multiplicative coefficients:
    Estimate StdErr z.value p.value
-x1    0.875     NA      NA      NA
-x2   -1.011     NA      NA      NA</code></pre>
+x1    0.878     NA      NA      NA
+x2   -0.944     NA      NA      NA</code></pre>
 <p>Fitting recurrent event data generated from the accelerated model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span>fit2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.am, <span class="dt">method =</span> <span class="st">"sc.XCYH"</span>)
-<span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit2)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>fit2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.am, <span class="dt">method =</span> <span class="st">"sc.XCYH"</span>)
+&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit2)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.am, 
     method = "sc.XCYH")
 
@@ -261,13 +266,13 @@ Method: Generalized Scale-Change Model
 
 Scale-change effect:
    Estimate StdErr z.value p.value
-x1    0.884     NA      NA      NA
-x2   -0.971     NA      NA      NA
+x1    1.015     NA      NA      NA
+x2   -0.899     NA      NA      NA
 
 Multiplicative coefficients:
    Estimate StdErr z.value p.value
-x1    1.031     NA      NA      NA
-x2   -0.898     NA      NA      NA</code></pre>
+x1    1.078     NA      NA      NA
+x2   -0.965     NA      NA      NA</code></pre>
 </div>
 </div>
 <div id="variance-estimation" class="section level2">
@@ -277,11 +282,11 @@ x2   -0.898     NA      NA      NA</code></pre>
 <div id="bootstrap" class="section level3">
 <h3 class="hasAnchor">
 <a href="#bootstrap" class="anchor"></a>Bootstrap</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
-<span class="op">+</span><span class="st">     </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"bootstrap"</span>, <span class="dt">B =</span> <span class="dv">100</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">     </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"bootstrap"</span>, <span class="dt">B =</span> <span class="dv">100</span>))</code></pre></div>
 <pre><code>   user  system elapsed 
-265.813   0.032 265.963 </code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
+277.988   0.180 278.316 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     B = 100, method = "cox.HW", se = "bootstrap")
 
@@ -289,15 +294,15 @@ Method: Huang-Wang Model
 
 Coefficients (rate):
    Estimate StdErr z.value   p.value    
-x1    0.975  0.054  18.134 &lt; 2.2e-16 ***
-x2   -1.016  0.024 -41.690 &lt; 2.2e-16 ***
+x1    0.874  0.091   9.639 &lt; 2.2e-16 ***
+x2   -0.951  0.045 -21.224 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Coefficients (hazard):
    Estimate StdErr z.value   p.value    
-x1    1.021  0.142   7.171 &lt; 2.2e-16 ***
-x2   -0.962  0.066 -14.598 &lt; 2.2e-16 ***
+x1    0.831  0.161   5.176 &lt; 2.2e-16 ***
+x2   -0.951  0.091 -10.420 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
@@ -305,15 +310,15 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <h3 class="hasAnchor">
 <a href="#bootstrap-with-parallel-computing" class="anchor"></a>Bootstrap with parallel computing</h3>
 <p>Detect the number of CPU cores on the current host.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span>(core &lt;-<span class="st"> </span>parallel<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/parallel/topics/detectCores">detectCores</a></span>())</code></pre></div>
-<pre><code>[1] 16</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span>(core &lt;-<span class="st"> </span>parallel::<span class="kw">detectCores</span>())</code></pre></div>
+<pre><code>[1] 8</code></pre>
 <p>The default number of CPU cores used in the parallel computing is half of the available CPU cores. We will use all the CPU cores available in this example.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
-<span class="op">+</span><span class="st">     </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"bootstrap"</span>, <span class="dt">B =</span> <span class="dv">100</span>, <span class="dt">control =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">parallel =</span> <span class="ot">TRUE</span>, 
-<span class="op">+</span><span class="st">         </span><span class="dt">parCl =</span> core)))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">     </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"bootstrap"</span>, <span class="dt">B =</span> <span class="dv">100</span>, <span class="dt">control =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">parallel =</span> <span class="ot">TRUE</span>, 
++<span class="st">         </span><span class="dt">parCl =</span> core)))</code></pre></div>
 <pre><code>   user  system elapsed 
- 81.544   0.373 113.792 </code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
+ 47.932   0.132 103.245 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     B = 100, method = "cox.HW", se = "bootstrap", control = list(parallel = TRUE, 
         parCl = core))
@@ -322,26 +327,26 @@ Method: Huang-Wang Model
 
 Coefficients (rate):
    Estimate StdErr z.value   p.value    
-x1    0.975  0.049  19.872 &lt; 2.2e-16 ***
-x2   -1.016  0.026 -38.700 &lt; 2.2e-16 ***
+x1    0.874  0.084  10.387 &lt; 2.2e-16 ***
+x2   -0.951  0.043 -21.923 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Coefficients (hazard):
    Estimate StdErr z.value   p.value    
-x1    1.021  0.131   7.785 &lt; 2.2e-16 ***
-x2   -0.962  0.077 -12.497 &lt; 2.2e-16 ***
+x1    0.831  0.146   5.699 &lt; 2.2e-16 ***
+x2   -0.951  0.093 -10.172 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <div id="sandwich-resampling-variance-estimator" class="section level3">
 <h3 class="hasAnchor">
 <a href="#sandwich-resampling-variance-estimator" class="anchor"></a>Sandwich (resampling) variance estimator</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
-<span class="op">+</span><span class="st">     </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"resampling"</span>, <span class="dt">B =</span> <span class="dv">100</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/reReg.html">reReg</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span>x1 +<span class="st"> </span>x2, <span class="dt">data =</span> dat.cox, 
++<span class="st">     </span><span class="dt">method =</span> <span class="st">"cox.HW"</span>, <span class="dt">se =</span> <span class="st">"resampling"</span>, <span class="dt">B =</span> <span class="dv">100</span>))</code></pre></div>
 <pre><code>   user  system elapsed 
-111.568   0.172 111.781 </code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
+ 66.460   0.024  66.494 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(fit)</code></pre></div>
 <pre><code>Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat.cox, 
     B = 100, method = "cox.HW", se = "resampling")
 
@@ -349,15 +354,15 @@ Method: Huang-Wang Model
 
 Coefficients (rate):
    Estimate StdErr z.value   p.value    
-x1    0.975  0.040  24.133 &lt; 2.2e-16 ***
-x2   -1.016  0.027 -37.199 &lt; 2.2e-16 ***
+x1    0.874  0.062  14.019 &lt; 2.2e-16 ***
+x2   -0.951  0.038 -25.057 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Coefficients (hazard):
    Estimate StdErr z.value   p.value    
-x1    1.021  0.156   6.541 &lt; 2.2e-16 ***
-x2   -0.962  0.088 -10.970 &lt; 2.2e-16 ***
+x1    0.831  0.148   5.595 &lt; 2.2e-16 ***
+x2   -0.951  0.080 -11.874 &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
@@ -389,7 +394,6 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-
         <div id="tocnav">
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
