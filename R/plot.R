@@ -491,6 +491,8 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
     baseline <- match.arg(baseline)
     if (baseline == "both") {
         ctrl <- plot.reReg.control(main = "Baseline cumulative rate and cumulative hazard functions")
+        if (x$method == "cox.LWYY")
+            ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
         smooth  <- FALSE
     }
     if (baseline == "rate") ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
