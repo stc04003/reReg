@@ -1132,7 +1132,6 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #' When \code{B = 0}, variance estimation will not be performed.
 #' @param method a character string specifying the underlying model. See \bold{Details}.
 #' @param se a character string specifying the method for standard error estimation. See \bold{Details}.
-#' @param contrasts an optional list.
 #' @param control a list of control parameters.
 #'
 #' @export
@@ -1154,8 +1153,7 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, B = 200, 
                   method = c("cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"),
-                  se = c("NULL", "bootstrap", "resampling"), 
-                  contrasts = NULL, control = list()) {
+                  se = c("NULL", "bootstrap", "resampling"), control = list()) {
     method <- match.arg(method)
     se <- match.arg(se)
     Call <- match.call()

@@ -6,7 +6,7 @@
 \usage{
 reReg(formula, data, B = 200, method = c("cox.LWYY", "cox.GL",
   "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"), se = c("NULL", "bootstrap",
-  "resampling"), contrasts = NULL, control = list())
+  "resampling"), control = list())
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
@@ -20,8 +20,6 @@ When \code{B = 0}, variance estimation will not be performed.}
 \item{method}{a character string specifying the underlying model. See \bold{Details}.}
 
 \item{se}{a character string specifying the method for standard error estimation. See \bold{Details}.}
-
-\item{contrasts}{an optional list.}
 
 \item{control}{a list of control parameters.}
 }

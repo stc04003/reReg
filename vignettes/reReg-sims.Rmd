@@ -132,10 +132,10 @@ library(gridExtra)
 grid.arrange(plotEvents(Recur(Time, id, event, status) ~ 1, 
                         data = dat.cox,
                         main = "type = cox") + 
-               theme(legend.position = "none"),
+             theme(legend.position = "none"),
              plotEvents(Recur(Time, id, event, status) ~ 1, 
                         data = dat.amcox,
                         main = "type = am|cox") + 
-               theme(legend.position = "none"),
+             theme(legend.position = "none"),
              ncol = 2)
 ```
