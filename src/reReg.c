@@ -211,7 +211,8 @@ void scRate(int *n, int *start, int *M, int *nt0, double *W,
   for (r = 0; r < *nt0; r++) {
     for (i = 0; i < *n; i++) {
       for (k = 0; k < M[i]; k++) {
-	if (tij[start[i] + k] >= t0[r] && risk[start[i] + k] > 0) result[r] += W[i] / risk[start[i] + k];
+	if (tij[start[i] + k] >= t0[r] && risk[start[i] + k] > 0)
+	  result[r] += W[i] / risk[start[i] + k];
       }
     }
   }
