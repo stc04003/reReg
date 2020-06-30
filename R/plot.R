@@ -1,17 +1,17 @@
 globalVariables(c("time1", "time2", "Yi", "id", "status", "origin", "event", "terminal",
-                  "tij", "n.y", "GrpInd", "n.x", "mu", "n", "CSM"))
+                  "tij", "n.y", "GrpInd", "n.x", "mu", "n", "MCF"))
 globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for plot.reReg
 
-#' Produce Event Plot or Cumulative Sample Mean Function Plot
+#' Produce Event Plot or Mean Cumulative Function Plot
 #'
-#' Plot whether the event plot or the cumulative sample mean (CSM) function for an \code{Recur} object.
+#' Plot whether the event plot or the mean cumulative function (MCF) for an \code{Recur} object.
 #'
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is "Subject" for event plot and "Cumulative mean" for CSM plot.}
-#'   \item{main}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
-#' "Sample cumulative mean function plot" when \code{CSM = TRUE}.}
+#'   \item{ylab}{customizable y-label, default value is "Subject" for event plot and "Cumulative mean" for MCF plot.}
+#'   \item{main}{customizable title, the default value is "Recurrent event plot" when \code{mcf = FALSE} and
+#' "Sample cumulative mean function plot" when \code{mcf = TRUE}.}
 #'   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
 #'   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
@@ -29,11 +29,11 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #'   \item{\code{asis}}{present the as is, without sorting.}
 #' }
 #' @param control a list of control parameters. See \bold{Details}.
-#' @param csm.smooth an optional logical value that is passed to the \code{plotCSM()} function as \code{smooth}, e.g., see \code{\link{plotCSM}}.
+#' @param mcf.smooth an optional logical value that is passed to the \code{plotMCF()} function as \code{smooth}, e.g., see \code{\link{plotMCF}}.
 #' This argument indicates whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
-#' @param csm.adjrisk an optional logical value that is passed to the \code{plotCSM()} function as \code{adjrisk}, e.g., see \code{\link{plotCSM}}.
+#' @param mcf.adjrisk an optional logical value that is passed to the \code{plotMCF()} function as \code{adjrisk}, e.g., see \code{\link{plotMCF}}.
 #' This argument indicates whether risk set will be adjusted, e.g., if \code{TRUE}, subjects leave the risk set after terminal times.
-#' @param CSM an optional logical value indicating whether the cumulative sample mean (CSM) function will
+#' @param MCF an optional logical value indicating whether the mean cumulative function (MCF) will
 #' be plotted instead of the event plot (default).
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
@@ -45,13 +45,13 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #'
 #' @return A \code{ggplot} object.
 #' @example inst/examples/ex_plot_reSurv.R
-plot.Recur <- function(x, CSM = FALSE, event.result = c("increasing", "decreasing", "asis"),
-                       csm.adjrisk = TRUE, csm.smooth = FALSE,
+plot.Recur <- function(x, MCF = FALSE, event.result = c("increasing", "decreasing", "asis"),
+                       mcf.adjrisk = TRUE, mcf.smooth = FALSE,
                        control = list(), ...) {
     result <- match.arg(event.result)
     if (!is.Recur(x)) stop("Response must be a `Recur` object.")
-    if (!CSM) ctrl <- plotEvents.control()
-    if (CSM) ctrl <- plotCSM.control()
+    if (!MCF) ctrl <- plotEvents.control()
+    if (MCF) ctrl <- plotMCF.control()
     call <- match.call()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -62,11 +62,11 @@ plot.Recur <- function(x, CSM = FALSE, event.result = c("increasing", "decreasin
         namp <- namp[namp %in% names(ctrl)]
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
-    if (!CSM) {
+    if (!MCF) {
         return(plotEvents(x, result = event.result, control = ctrl))
     }
-    if (CSM)
-        return(plotCSM(x, adjrisk = csm.adjrisk, smooth = csm.smooth, control = ctrl))
+    if (MCF)
+        return(plotMCF(x, adjrisk = mcf.adjrisk, smooth = mcf.smooth, control = ctrl))
 }
 
 #' Produce Event Plots
@@ -84,6 +84,7 @@ plot.Recur <- function(x, CSM = FALSE, event.result = c("increasing", "decreasin
 #'   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
+#'   \item{legend}{a character string specifying the position of the legend (if any). The default value is "right".}
 #' }
 #' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #' 
@@ -181,7 +182,8 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     else sz <- ctrl$cex
     k <- length(unique(DF$event)) - 1 ## exclude event = 0
     shp.val <- c(17, rep(19, k))
-    clr.val <- c(alpha("red", ctrl$alpha), hcl(h = seq(120, 360, length.out = k), l = 60, alpha = ctrl$alpha))
+    clr.val <- c(alpha("red", ctrl$alpha), hcl(h = seq(120, 360, length.out = k),
+                                               l = 60, alpha = ctrl$alpha))
     rec.lab <- paste("r", 1:k, sep = "")
     if (k == 1) {
         shp.lab <- c(ctrl$terminal.name, ctrl$recurrent.name)
@@ -227,7 +229,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
         scale_color_manual(name = "", values = clr.val,
                            labels = shp.lab, breaks = c("terminal", rec.lab))
     gg + theme(panel.background = element_blank(),
-               axis.line = element_line(color = "black"),
+               axis.line = element_line(color = "black"), legend.position = ctrl$legend, 
                legend.key = element_rect(fill = "white", color = "white")) +
         scale_x_continuous(expand = c(0, 1)) +
         ggtitle(ctrl$main) + labs(x = ctrl$ylab, y = ctrl$xlab) +
@@ -236,12 +238,12 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 
 #' Produce Cumulative Sample Mean Function Plots
 #'
-#' Plot the cumulative sample mean function (CSM) for an \code{Recur} object.
+#' Plot the mean cumulative function (MCF) for an \code{Recur} object.
 #' The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
 #'
-#' When \code{adjrisk = TRUE}, the \code{plotCSM} is equivalent to
+#' When \code{adjrisk = TRUE}, the \code{plotMCF} is equivalent to
 #' the Nelson-Aalen estimator for the intensity function of the recurrent event process.
-#' When \code{adjrisk = FALSE}, the \code{plotCSM} does not adjust for the risk set and
+#' When \code{adjrisk = FALSE}, the \code{plotMCF} does not adjust for the risk set and
 #' assumes all subjects remain at risk after the last observed recurrent event.
 #' This is known as the survivor rate function.
 #' The argument \code{control} consists of options with argument defaults
@@ -260,7 +262,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' e.g., if \code{TRUE}, subjects leave the risk set after terminal times. See \bold{Details}.
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' This feature only works for data with one recurrent event type.
-#' @param onePanel an optional logical value indicating whether the cumulative sample means (CSM) will be plotted in the same panel.
+#' @param onePanel an optional logical value indicating whether the mean cumulative functions will be plotted in the same panel.
 #' This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
@@ -275,11 +277,11 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' @importFrom ggplot2 guides guide_legend
 #' @importFrom scam scam
 #' 
-#' @example inst/examples/ex_plot_CSM.R
-plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
+#' @example inst/examples/ex_plot_MCF.R
+plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
                      smooth = FALSE, control = list(), ...) {
     call <- match.call()
-    ctrl <- plotCSM.control()
+    ctrl <- plotMCF.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -364,13 +366,13 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
             dat0 <- do.call(rbind, 
                             lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
                                 x$mu <- x$n.x / x$adjrisk
-                                x$CSM <- cumsum(x$mu)
+                                x$MCF <- cumsum(x$mu)
                                 return(x)}))
         } else {
             dat0 <- do.call(rbind, 
                             lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
                                 x$mu <- x$n.x / x$n.y
-                                x$CSM <- cumsum(x$mu) 
+                                x$MCF <- cumsum(x$mu) 
                                 return(x)}))
         }
     } else { ## no covariates
@@ -383,7 +385,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         dat0 <- unique(rbind(dd, rec0))       
         dat0 <- dat0[order(dat0$time2),]
         dat0$mu <- dat0$n / (adjrisk * dat0$adjrisk + (!adjrisk) * dat0$n.y)
-        dat0$CSM <- cumsum(dat0$mu)
+        dat0$MCF <- cumsum(dat0$mu)
     }
     if (k == 1) {
         dat0$event <- dat0$event[1]
@@ -412,7 +414,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         for (i in vNames) {
             dat0[,i] <- factor(dat0[,i], labels = paste(i, "=", unique(dat0[,i])))
         }}
-    gg <- ggplot(data = dat0, aes(x = time2, y = CSM))
+    gg <- ggplot(data = dat0, aes(x = time2, y = MCF))
     if (is.null(vNames) & k == 1) {
         gg <- gg + geom_step(size = ctrl$lwd)
     } else {
@@ -438,7 +440,7 @@ plotCSM <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
     if (smooth & k == 1 & !onePanel) {
         if (is.null(dat0$GrpInd)) dat0$GrpInd <- 1
         dat0 <- do.call(rbind, lapply(split(dat0, dat0$GrpInd), function(x){
-            x$bs <- with(x, scam(CSM ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+            x$bs <- with(x, scam(MCF ~ s(time2, k = 10, bs = "mpi")))$fitted.values
             return(x)}))       
         gg <- gg + geom_line(aes(time2, y = dat0$bs), color = 4, size = ctrl$lwd)
         ## geom_smooth(method = "scam", formula = y ~ s(x, k = 10, bs = "mpi"), size = ctrl$lwd, se = FALSE)
@@ -712,21 +714,23 @@ plotEvents.control <- function(xlab = "Time", ylab = "Subject",
                                cex = "Default", 
                                terminal.name = "Terminal event",
                                recurrent.name = "Recurrent events",
-                               recurrent.type = NULL, alpha = .7) {
+                               recurrent.type = NULL, alpha = .7,
+                               legend = "right") {
     list(xlab = xlab, ylab = ylab, main = main, cex = cex,
          terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type, alpha = alpha)
+         recurrent.type = recurrent.type, alpha = alpha, legend = legend)
 }
 
-plotCSM.control <- function(xlab = "Time", ylab = "Cumulative mean",
+plotMCF.control <- function(xlab = "Time", ylab = "Cumulative mean",
                             main = "Sample cumulative mean function plot",
                             lwd = 1,
                             terminal.name = "Terminal event",
                             recurrent.name = "Recurrent events",
-                            recurrent.type = NULL) {
+                            recurrent.type = NULL,
+                            legend = "right") {
     list(xlab = xlab, ylab = ylab, main = main, lwd = lwd, 
          terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type)         
+         recurrent.type = recurrent.type, legend = legend)
 }
 
 plot.reReg.control <- function(xlab = "Time", ylab = "", main = "") {
