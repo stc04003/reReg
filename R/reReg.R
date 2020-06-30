@@ -216,51 +216,38 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
-    DF0 <- subset(DF, event == 0)
-    p <- ncol(DF) - 6
-    X <- as.matrix(DF0[,-(1:6)])
-    n <- nrow(DF0)
+    df0 <- subset(DF, event == 0)
+    df1 <- subset(DF, event == 1)
+    rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
-    index <- c(1, cumsum(m)[-n] + 1)
-    U1 <- function(a) {
-        yi <- log(DF0$time2) + X %*% a
-        tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% a
-        tij <- tij[DF$event == 1]
-        if (engine@eqType %in% c("Logrank", "logrank")) 
-            return(.C("sc1Log", as.integer(n), as.integer(p), as.integer(index - 1),
-                      as.integer(m), as.double(yi), as.double(tij), as.double(X),
-                      as.double(rep(1, length(index))), 
-                      result = double(p), PACKAGE = "reReg")$result)
-        if (engine@eqType %in% c("Gehan", "gehan"))
-            return(.C("sc1Gehan", as.integer(n), as.integer(p), as.integer(index - 1),
-                      as.integer(m), as.double(yi), as.double(tij), as.double(X),
-                      as.double(rep(1, length(index))), 
-                      result = double(p), PACKAGE = "reReg")$result / n)
-    }
+    xi <- as.matrix(df1[,grep("x", names(df1))])
+    di <- rep(df0$terminal, m)
+    yi <- rep(df0$time2, m)
+    ti <- df1$time2
+    wi <- rep(1, sum(m))
+    if (engine@eqType == "logrank") U1 <- function(a) as.numeric(sc1Log3(a, xi, ti, yi))
+    if (engine@eqType == "gehan") U1 <- function(a) as.numeric(sc1Gehan2(a, xi, ti, yi))
     fit.a <- eqSolve(engine@a0, U1, engine@solver)
     ahat <- fit.a$par
-    yi <- log(DF0$time2) + X %*% ahat
-    tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% ahat
-    tij <- tij[DF$event == 1]
-    t0.rate <- sort(unique(c(tij, yi)))
-    rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
-               as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
-               as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
-               PACKAGE = "reReg")$result
-    Lam <- exp(-approx(t0.rate, rate, yi)$y)
-    U2 <- function(b) {
-        tmp <- m / Lam
-        tmp <- ifelse(tmp > 1e5, (m + .01) / (Lam + .01), tmp)
-        xb <- exp(cbind(1, X) %*% b)
-        xb <- ifelse(xb == Inf, 1e5, xb)
-        .C("sc2", as.integer(n), as.integer(p + 1), as.double(cbind(1, X)),
-           as.double(xb), as.double(tmp), as.double(rep(1, n)),
-           result = double(p + 1), PACKAGE = "reReg")$result / n
-    }
+    texa <- log(ti) + xi %*% ahat
+    yexa <- log(yi) + xi %*% ahat
+    T0 <- sort(unique(c(texa, yexa)))
+    rate <- c(scRate1(texa, yexa, wi, T0))
+    yexa2 <- c(log(df0$time2) + as.matrix(df0[,grep("x", names(df0))]) %*% ahat)
+    Lam <- exp(-rate[findInterval(yexa2, T0, all.inside = TRUE)])
+    R <- m / Lam
+    R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+    Xi <- as.matrix(cbind(1, df0[,grep("x", names(df0))]))
+    Wi <- rep(1, nrow(Xi))
+    U2 <- function(b) as.numeric(sc22(b, R, Xi, Wi))
     fit.b <- eqSolve(engine@b0, U2, engine@solver)
     list(alpha = fit.a$par, beta = fit.b$par[-1] + fit.a$par,
          aconv = fit.a$convergence, bconv = fit.b$convergence,
          log.muZ = fit.b$par[1])
+}
+
+regFit.general <- function(DF, engine, stdErr) {
+    NULL
 }
 
 ##############################################################################
@@ -582,6 +569,11 @@ npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
          rate0.upper = approxfun(exp(t0.rate), ru, yleft = 0, yright = max(ru), method = "constant"),
          t0.rate = exp(t0.rate),
          haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
+}
+
+
+npFit.general <- function(DF, engine, stdErr) {
+    NULL
 }
 
 npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
@@ -991,16 +983,18 @@ npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
 ##############################################################################
 
 setClass("Engine",
-         representation(tol = "numeric", a0 = "numeric", b0 = "numeric", solver = "character"),
+         representation(tol = "numeric", a0 = "numeric", b0 = "numeric",
+                        solver = "character", recType = "character", temType = "character"),
          prototype(tol = 1e-7, a0 = 0, b0 = 0, solver = "dfsane"),
          contains = "VIRTUAL")
+setClass("general", contains = "Engine")
 setClass("cox.LWYY", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
 setClass("am.GL", contains = "Engine")
 setClass("sc.XCYH",
          representation(eqType = "character", muZ = "numeric"),
-         prototype(eqType = "Logrank", muZ = 0),
+         prototype(eqType = "logrank", muZ = 0),
          contains = "Engine")
 setClass("cox.GL",
          representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
@@ -1019,6 +1013,7 @@ setClass("resampling", contains="stdErr")
 ##############################################################################
 setGeneric("regFit", function(DF, engine, stdErr) {standardGeneric("regFit")})
 
+setMethod("regFit", signature(engine = "general", stdErr = "NULL"), regFit.general)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "NULL"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "resampling"), regFit.cox.LWYY)
@@ -1040,6 +1035,7 @@ setMethod("regFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
           regFit.sc.XCYH.resampling)
 
 setGeneric("npFit", function(DF, alpha, beta, engine, stdErr) {standardGeneric("npFit")})
+setMethod("npFit", signature(engine = "general", stdErr = "NULL"), npFit.general)
 setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "NULL"), npFit.cox.NA)
 setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "resampling"), npFit.cox.NA)
 setMethod("npFit", signature(engine = "cox.GL", stdErr = "NULL"), npFit.cox.GL)
@@ -1152,9 +1148,7 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, B = 200, 
-                  method = c("cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH"),
-                  se = c("NULL", "bootstrap", "resampling"), control = list()) {
-    method <- match.arg(method)
+                  method = "cox.LWYY", se = c("NULL", "bootstrap", "resampling"), control = list()) {
     se <- match.arg(se)
     Call <- match.call()
     if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 
@@ -1170,8 +1164,20 @@ reReg <- function(formula, data, B = 200,
         DF <- DF[,-which(colnames(DF) == "(Intercept)")]
     }
     DF <- DF[order(DF$id, DF$time2), ]
-    ## ## reset ID / not needed for Recur()
-    ## DF$id <- rep(1:length(unique(DF$id)), table(DF$id))
+    allMethod <- apply(expand.grid(c("cox", "am", "sc"), c("cox", "am", "sc")), 1,
+                       paste, collapse = "|")
+    allMethod <- c(allMethod, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
+    method <- match.arg(method, c("cox", "am", "sc", allMethod))
+    recType <- temType <- NULL
+    if (grepl("|", method, fixed = TRUE)) {
+        recType <- substring(method, 1, regexpr("[|]", method) - 1)
+        temType <- substring(method, regexpr("[|]", method) + 1)
+        method <- "general"
+    }
+    if (method %in% c("cox", "am", "sc")) {
+        recType <- temType <- method
+        method <- "general"
+    }        
     engine.control <- control[names(control) %in% names(attr(getClass(method), "slots"))]
     engine <- do.call("new", c(list(Class = method), engine.control))
     if (se == "NULL")

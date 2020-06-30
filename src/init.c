@@ -28,6 +28,12 @@ extern void sc1Log(void *, void *, void *, void *, void *, void *, void *, void 
 extern void sc2(void *, void *, void *, void *, void *, void *, void *);
 extern void scRate(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
+/* .Call calls */
+extern SEXP _reReg_sc1Gehan2(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_sc1Log3(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_sc22(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_scRate1(SEXP, SEXP, SEXP, SEXP);
+
 static const R_CMethodDef CEntries[] = {
     {"alphaEqC",   (DL_FUNC) &alphaEqC,    6},
     {"betaEst",    (DL_FUNC) &betaEst,     8},
@@ -48,8 +54,16 @@ static const R_CMethodDef CEntries[] = {
     {NULL, NULL, 0}
 };
 
+static const R_CallMethodDef CallEntries[] = {
+    {"_reReg_sc1Gehan2", (DL_FUNC) &_reReg_sc1Gehan2, 4},
+    {"_reReg_sc1Log3", (DL_FUNC) &_reReg_sc1Log3, 4},
+    {"_reReg_sc22",    (DL_FUNC) &_reReg_sc22,    4},
+    {"_reReg_scRate1", (DL_FUNC) &_reReg_scRate1, 4},
+    {NULL, NULL, 0}
+};
+
 void R_init_reReg(DllInfo *dll)
 {
-    R_registerRoutines(dll, CEntries, NULL, NULL, NULL);
+    R_registerRoutines(dll, CEntries, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }
