@@ -2,22 +2,49 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @noRd
-scRate1 <- function(T, Y, W, T0) {
-    .Call('_reReg_scRate1', PACKAGE = 'reReg', T, Y, W, T0)
+reRate <- function(T, Y, W, T0) {
+    .Call('_reReg_reRate', PACKAGE = 'reReg', T, Y, W, T0)
 }
 
 #' @noRd
-sc1Log3 <- function(a, X, T, Y) {
-    .Call('_reReg_sc1Log3', PACKAGE = 'reReg', a, X, T, Y)
+reLog <- function(a, X, T, Y, W) {
+    .Call('_reReg_reLog', PACKAGE = 'reReg', a, X, T, Y, W)
 }
 
 #' @noRd
-sc22 <- function(b, R, X, W) {
-    .Call('_reReg_sc22', PACKAGE = 'reReg', b, R, X, W)
+re2 <- function(b, R, X, W) {
+    .Call('_reReg_re2', PACKAGE = 'reReg', b, R, X, W)
 }
 
 #' @noRd
-sc1Gehan2 <- function(a, X, T, Y) {
-    .Call('_reReg_sc1Gehan2', PACKAGE = 'reReg', a, X, T, Y)
+reGehan <- function(a, X, T, Y, W) {
+    .Call('_reReg_reGehan', PACKAGE = 'reReg', a, X, T, Y, W)
+}
+
+#' @noRd
+am1 <- function(a, T, Y, W, X, m) {
+    .Call('_reReg_am1', PACKAGE = 'reReg', a, T, Y, W, X, m)
+}
+
+#' @noRd
+temHaz <- function(a, b, X, Y, Z, D, W, T0) {
+    .Call('_reReg_temHaz', PACKAGE = 'reReg', a, b, X, Y, Z, D, W, T0)
+}
+
+#' @noRd
+temScLog <- function(a, b, X, Y, Z, D, W) {
+    .Call('_reReg_temScLog', PACKAGE = 'reReg', a, b, X, Y, Z, D, W)
+}
+
+temScGehan <- function(a, b, X, Y, Z, D, W) {
+    .Call('_reReg_temScGehan', PACKAGE = 'reReg', a, b, X, Y, Z, D, W)
+}
+
+temLog <- function(a, b, X, Y, Z, D, W) {
+    .Call('_reReg_temLog', PACKAGE = 'reReg', a, b, X, Y, Z, D, W)
+}
+
+temGehan <- function(a, b, X, Y, Z, D, W) {
+    .Call('_reReg_temGehan', PACKAGE = 'reReg', a, b, X, Y, Z, D, W)
 }
 

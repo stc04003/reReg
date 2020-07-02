@@ -6,9 +6,9 @@
 
 using namespace Rcpp;
 
-// scRate1
-arma::vec scRate1(const arma::vec& T, const arma::vec& Y, const arma::vec& W, const arma::vec& T0);
-RcppExport SEXP _reReg_scRate1(SEXP TSEXP, SEXP YSEXP, SEXP WSEXP, SEXP T0SEXP) {
+// reRate
+arma::vec reRate(const arma::vec& T, const arma::vec& Y, const arma::vec& W, const arma::vec& T0);
+RcppExport SEXP _reReg_reRate(SEXP TSEXP, SEXP YSEXP, SEXP WSEXP, SEXP T0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -16,13 +16,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type T0(T0SEXP);
-    rcpp_result_gen = Rcpp::wrap(scRate1(T, Y, W, T0));
+    rcpp_result_gen = Rcpp::wrap(reRate(T, Y, W, T0));
     return rcpp_result_gen;
 END_RCPP
 }
-// sc1Log3
-arma::rowvec sc1Log3(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y);
-RcppExport SEXP _reReg_sc1Log3(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP) {
+// reLog
+arma::rowvec reLog(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
+RcppExport SEXP _reReg_reLog(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,13 +30,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type T(TSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
-    rcpp_result_gen = Rcpp::wrap(sc1Log3(a, X, T, Y));
+    Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(reLog(a, X, T, Y, W));
     return rcpp_result_gen;
 END_RCPP
 }
-// sc22
-arma::rowvec sc22(const arma::vec& b, const arma::vec& R, const arma::mat& X, const arma::vec& W);
-RcppExport SEXP _reReg_sc22(SEXP bSEXP, SEXP RSEXP, SEXP XSEXP, SEXP WSEXP) {
+// re2
+arma::rowvec re2(const arma::vec& b, const arma::vec& R, const arma::mat& X, const arma::vec& W);
+RcppExport SEXP _reReg_re2(SEXP bSEXP, SEXP RSEXP, SEXP XSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -44,13 +45,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type R(RSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
-    rcpp_result_gen = Rcpp::wrap(sc22(b, R, X, W));
+    rcpp_result_gen = Rcpp::wrap(re2(b, R, X, W));
     return rcpp_result_gen;
 END_RCPP
 }
-// sc1Gehan2
-arma::rowvec sc1Gehan2(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y);
-RcppExport SEXP _reReg_sc1Gehan2(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP) {
+// reGehan
+arma::rowvec reGehan(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
+RcppExport SEXP _reReg_reGehan(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -58,7 +59,110 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type T(TSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
-    rcpp_result_gen = Rcpp::wrap(sc1Gehan2(a, X, T, Y));
+    Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(reGehan(a, X, T, Y, W));
+    return rcpp_result_gen;
+END_RCPP
+}
+// am1
+arma::rowvec am1(const arma::vec& a, const arma::vec& T, const arma::vec& Y, const arma::vec& W, const arma::mat& X, const arma::vec& m);
+RcppExport SEXP _reReg_am1(SEXP aSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP, SEXP XSEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type T(TSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(am1(a, T, Y, W, X, m));
+    return rcpp_result_gen;
+END_RCPP
+}
+// temHaz
+arma::vec temHaz(const arma::vec& a, const arma::vec& b, const arma::mat& X, const arma::vec& Y, const arma::vec& Z, const arma::vec& D, const arma::vec& W, const arma::vec& T0);
+RcppExport SEXP _reReg_temHaz(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP, SEXP T0SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type T0(T0SEXP);
+    rcpp_result_gen = Rcpp::wrap(temHaz(a, b, X, Y, Z, D, W, T0));
+    return rcpp_result_gen;
+END_RCPP
+}
+// temScLog
+arma::mat temScLog(const arma::vec& a, const arma::vec& b, const arma::mat& X, const arma::vec& Y, const arma::vec& Z, const arma::vec& D, const arma::vec& W);
+RcppExport SEXP _reReg_temScLog(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(temScLog(a, b, X, Y, Z, D, W));
+    return rcpp_result_gen;
+END_RCPP
+}
+// temScGehan
+Rcpp::NumericVector temScGehan(const arma::vec& a, const arma::vec& b, const arma::mat& X, const arma::vec& Y, const arma::vec& Z, const arma::vec& D, const arma::vec& W);
+RcppExport SEXP _reReg_temScGehan(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(temScGehan(a, b, X, Y, Z, D, W));
+    return rcpp_result_gen;
+END_RCPP
+}
+// temLog
+arma::mat temLog(const arma::vec& a, const arma::vec& b, const arma::mat& X, const arma::vec& Y, const arma::vec& Z, const arma::vec& D, const arma::vec& W);
+RcppExport SEXP _reReg_temLog(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(temLog(a, b, X, Y, Z, D, W));
+    return rcpp_result_gen;
+END_RCPP
+}
+// temGehan
+Rcpp::NumericVector temGehan(const arma::vec& a, const arma::vec& b, const arma::mat& X, const arma::vec& Y, const arma::vec& Z, const arma::vec& D, const arma::vec& W);
+RcppExport SEXP _reReg_temGehan(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(temGehan(a, b, X, Y, Z, D, W));
     return rcpp_result_gen;
 END_RCPP
 }

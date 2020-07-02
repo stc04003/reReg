@@ -220,24 +220,24 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
     df1 <- subset(DF, event == 1)
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
-    xi <- as.matrix(df1[,grep("x", names(df1))])
+    xi <- as.matrix(df1[,-c(1:6)])
     di <- rep(df0$terminal, m)
     yi <- rep(df0$time2, m)
     ti <- df1$time2
     wi <- rep(1, sum(m))
-    if (engine@eqType == "logrank") U1 <- function(a) as.numeric(sc1Log3(a, xi, ti, yi))
-    if (engine@eqType == "gehan") U1 <- function(a) as.numeric(sc1Gehan2(a, xi, ti, yi))
+    if (engine@eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yi, wi))
+    if (engine@eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yi, wi))
     fit.a <- eqSolve(engine@a0, U1, engine@solver)
     ahat <- fit.a$par
     texa <- log(ti) + xi %*% ahat
     yexa <- log(yi) + xi %*% ahat
     T0 <- sort(unique(c(texa, yexa)))
-    rate <- c(scRate1(texa, yexa, wi, T0))
-    yexa2 <- c(log(df0$time2) + as.matrix(df0[,grep("x", names(df0))]) %*% ahat)
-    Lam <- exp(-rate[findInterval(yexa2, T0, all.inside = TRUE)])
+    rate <- c(reRate(texa, yexa, wi, T0))
+    yexa2 <- c(log(df0$time2) + as.matrix(df0[,-c(1:6)]) %*% ahat)
+    Lam <- exp(-rate[pmax(1, findInterval(yexa2, T0))])
     R <- m / Lam
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-    Xi <- as.matrix(cbind(1, df0[,grep("x", names(df0))]))
+    Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
     Wi <- rep(1, nrow(Xi))
     U2 <- function(b) as.numeric(sc22(b, R, Xi, Wi))
     fit.b <- eqSolve(engine@b0, U2, engine@solver)
@@ -246,8 +246,30 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
          log.muZ = fit.b$par[1])
 }
 
+
+## #' @importFrom rlang is_empty
 regFit.general <- function(DF, engine, stdErr) {
-    NULL
+    if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
+        print("Warning: Unidentified solver; BB::dfsane is used.")
+        engine@solver <- "dfsane"
+    }
+    if (engine@recType == "sc")
+        out <- reSC(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+    if (engine@recType == "cox")
+        out <- reCox(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+    if (engine@recType == "am")
+        out <- reAM(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+    if (engine@recType == "ar")
+        out <- reAR(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+    if (engine@temType == "sc")
+        out <- c(out, temSC(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+    if (engine@temType == "cox")
+        out <- c(out, temCox(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+    if (engine@temType == "am")
+        out <- c(out, temAM(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+    if (engine@temType == "ar")
+        out <- c(out, temAR(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+    return(out)
 }
 
 ##############################################################################
@@ -572,7 +594,7 @@ npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
 }
 
 
-npFit.general <- function(DF, engine, stdErr) {
+npFit.general <- function(DF, alpha, beta, engine, stdErr) {
     NULL
 }
 
@@ -984,18 +1006,17 @@ npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
 
 setClass("Engine",
          representation(tol = "numeric", a0 = "numeric", b0 = "numeric",
-                        solver = "character", recType = "character", temType = "character"),
-         prototype(tol = 1e-7, a0 = 0, b0 = 0, solver = "dfsane"),
+                        solver = "character", eqType = "character", 
+                        recType = "character", temType = "character"),
+         prototype(eqType = "logrank", tol = 1e-7, a0 = 0, b0 = 0, solver = "dfsane"),
          contains = "VIRTUAL")
 setClass("general", contains = "Engine")
 setClass("cox.LWYY", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
 setClass("am.GL", contains = "Engine")
-setClass("sc.XCYH",
-         representation(eqType = "character", muZ = "numeric"),
-         prototype(eqType = "logrank", muZ = 0),
-         contains = "Engine")
+setClass("sc.XCYH", representation(muZ = "numeric"),
+         prototype(muZ = 0), contains = "Engine")
 setClass("cox.GL",
          representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
 
@@ -1164,22 +1185,26 @@ reReg <- function(formula, data, B = 200,
         DF <- DF[,-which(colnames(DF) == "(Intercept)")]
     }
     DF <- DF[order(DF$id, DF$time2), ]
-    allMethod <- apply(expand.grid(c("cox", "am", "sc"), c("cox", "am", "sc")), 1,
+    allMethod <- apply(expand.grid(c("cox", "am", "sc", "ar"), c("cox", "am", "sc", "ar")), 1,
                        paste, collapse = "|")
     allMethod <- c(allMethod, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
-    method <- match.arg(method, c("cox", "am", "sc", allMethod))
+    method <- match.arg(method, c("cox", "am", "sc", "ar", allMethod))
     recType <- temType <- NULL
     if (grepl("|", method, fixed = TRUE)) {
         recType <- substring(method, 1, regexpr("[|]", method) - 1)
         temType <- substring(method, regexpr("[|]", method) + 1)
         method <- "general"
     }
-    if (method %in% c("cox", "am", "sc")) {
+    if (method %in% c("cox", "am", "sc", "ar")) {
         recType <- temType <- method
         method <- "general"
     }        
     engine.control <- control[names(control) %in% names(attr(getClass(method), "slots"))]
     engine <- do.call("new", c(list(Class = method), engine.control))
+    if (method == "general") {
+        engine@recType <- recType
+        engine@temType <- temType
+    }
     if (se == "NULL")
         stdErr <- NULL
     else {
@@ -1202,7 +1227,8 @@ reReg <- function(formula, data, B = 200,
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
         if (method == "sc.XCYH") engine@muZ <- exp(fit$log.muZ)
         if (method == "cox.GL") engine@wgt <- fit$wgt
-        fit <- c(fit, npFit(DF = DF, alpha = fit$alpha, beta = fit$beta, engine = engine, stdErr = stdErr))
+        fit <- c(fit, npFit(DF = DF, alpha = fit$alpha, beta = fit$beta,
+                            engine = engine, stdErr = stdErr))
     }
     class(fit) <- "reReg"
     fit$reTb <- obj@.Data
