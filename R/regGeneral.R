@@ -22,8 +22,8 @@ reSC <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
         Wi <- wgt
         wi <- rep(wgt, m)
     }
-    if (eqType == "logrank") U1 <- function(a) as.numeric(relog(a, xi, ti, yi, wi))
-    if (eqType == "gehan") U1 <- function(a) as.numeric(regehan(a, xi, ti, yi, wi))
+    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yi, wi))
+    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yi, wi))
     fit.a <- eqSolve(a0, U1, solver)
     ahat <- fit.a$par
     texa <- log(ti) + xi %*% ahat
@@ -45,7 +45,7 @@ reSC <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
          Lam0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
 }
 
-reAR <- function(DF, eqType, solver, a0, b0) {
+reAR <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     df0 <- subset(DF, event == 0)
     df1 <- subset(DF, event == 1)
     rownames(df0) <- rownames(df1) <- NULL
@@ -61,8 +61,8 @@ reAR <- function(DF, eqType, solver, a0, b0) {
         Wi <- wgt
         wi <- rep(wgt, m)
     }
-    if (eqType == "logrank") U1 <- function(a) as.numeric(relog(a, xi, ti, yi, wi))
-    if (eqType == "gehan") U1 <- function(a) as.numeric(regehan(a, xi, ti, yi, wi))
+    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yi, wi))
+    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yi, wi))
     fit.a <- eqSolve(a0, U1, solver)
     ahat <- fit.a$par
     texa <- log(ti) + xi %*% ahat
@@ -92,7 +92,7 @@ reCox <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
         Wi <- rep(1, length(m))
         wi <- rep(Wi, m)
     } else {
-        if (length(wgt) != nrow(Xi)) stop("Weight length mismatch")
+        if (length(wgt) != length(m)) stop("Weight length mismatch")
         Wi <- wgt
         wi <- rep(wgt, m)
     }
@@ -123,19 +123,17 @@ reAM <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     ti <- df1$time2
     if (is.null(wgt)) {
         Wi <- rep(1, length(m))
-        wi <- rep(Wi, m)
     } else {
-        if (length(wgt) != nrow(Xi)) stop("Weight length mismatch")
+        if (length(wgt) != length(m)) stop("Weight length mismatch")
         Wi <- wgt
-        wi <- rep(wgt, m)
     }
-    U1 <- function(a) as.numeric(am1(a, ti, yi, wi, xi, m))
+    U1 <- function(a) as.numeric(am1(a, ti, yi, Wi, xi, m))
     fit.a <- eqSolve(a0, U1, solver)
     ahat <- fit.a$par
     texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% ahat
     yexa <- rep(log(yi) + xi %*% ahat, m)
     T0 <- sort(unique(c(texa, yexa)))
-    rate <- c(reRate(texa, yexa, rep(wi, m), T0))
+    rate <- c(reRate(texa, yexa, rep(Wi, m), T0))
     Lam0 <- exp(-rate)
     Lam <- Lam0[pmax(1, findInterval(yi, T0))]
     R <- m / Lam
@@ -157,14 +155,14 @@ reAM <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
 #' @noRd
 
 temSC <- function(DF, eqType, solver, a0, b0, zi, wgt = NULL) {
-    df0 <- subset(dat, event == 0)
+    df0 <- subset(DF, event == 0)
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-c(1:6)])    
-    di <- df0$status
-    yi <- df0$Time
+    di <- df0$terminal
+    yi <- df0$time2
     p <- ncol(xi)
     if (is.null(wgt)) {
-        wi <- rep(1, nrow(Xi))
+        wi <- rep(1, nrow(xi))
     } else {
         if (length(wgt) != nrow(xi)) stop("Weight length mismatch")
         wi <- wgt
@@ -178,80 +176,80 @@ temSC <- function(DF, eqType, solver, a0, b0, zi, wgt = NULL) {
     Lam0 <- exp(-rate)    
     list(beta = fit.a$par,
          bconv = fit.a$convergence,
-         Haz0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
+         Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0)))
 }
 
 temAM <- function(DF, eqType, solver, a0, b0, zi, wgt = NULL) {
-    df0 <- subset(dat, event == 0)
+    df0 <- subset(DF, event == 0)
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-c(1:6)])    
-    di <- df0$status
-    yi <- df0$Time
+    di <- df0$terminal
+    yi <- df0$time2
     p <- ncol(xi)
     if (is.null(wgt)) {
-        wi <- rep(1, nrow(Xi))
+        wi <- rep(1, nrow(xi))
     } else {
         if (length(wgt) != nrow(xi)) stop("Weight length mismatch")
         wi <- wgt
     }
     if (eqType == "logrank")
-        U1 <- function(x) as.numeric(temScLog(x, x, xi, yi, zi, di, wi))
+        U1 <- function(x) as.numeric(temLog(x, x, xi, yi, zi, di, wi))
     if (eqType == "gehan") 
-        U1 <- function(x) as.numeric(temScGehan(x, x, xi, yi, zi, di, wi))
+        U1 <- function(x) as.numeric(temGehan(x, x, xi, yi, zi, di, wi))
     fit.a <- eqSolve(b0, U1, solver)
     rate <- c(temHaz(fit.a$par, fit.a$par, xi, yi, zi, di, wi, sort(unique(yi))))
     Lam0 <- exp(-rate)    
     list(beta = fit.a$par,
          bconv = fit.a$convergence,
-         Haz0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
+         Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0)))
 }
 
 temCox <- function(DF, eqType, solver, a0, b0, zi, wgt = NULL) {
-    df0 <- subset(dat, event == 0)
+    df0 <- subset(DF, event == 0)
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-c(1:6)])    
-    di <- df0$status
-    yi <- df0$Time
+    di <- df0$terminal
+    yi <- df0$time2
     p <- ncol(xi)
     if (is.null(wgt)) {
-        wi <- rep(1, nrow(Xi))
+        wi <- rep(1, nrow(xi))
     } else {
         if (length(wgt) != nrow(xi)) stop("Weight length mismatch")
         wi <- wgt
     }
     if (eqType == "logrank")
-        U1 <- function(x) as.numeric(temScLog(rep(0, p), x, xi, yi, zi, di, wi))
+        U1 <- function(x) as.numeric(temLog(rep(0, p), x, xi, yi, zi, di, wi))
     if (eqType == "gehan") 
-        U1 <- function(x) as.numeric(temScGehan(rep(0, p), x, xi, yi, zi, di, wi))
+        U1 <- function(x) as.numeric(temGehan(rep(0, p), x, xi, yi, zi, di, wi))
     fit.a <- eqSolve(b0, U1, solver)
     rate <- c(temHaz(rep(0, p), fit.a$par, xi, yi, zi, di, wi, sort(unique(yi))))
     Lam0 <- exp(-rate)    
     list(beta = fit.a$par,
          bconv = fit.a$convergence,
-         Haz0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))    
+         Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0)))    
 }
 
 temAR <- function(DF, eqType, solver, a0, b0, zi, wgt = NULL) {
-    df0 <- subset(dat, event == 0)
+    df0 <- subset(DF, event == 0)
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-c(1:6)])    
-    di <- df0$status
-    yi <- df0$Time
+    di <- df0$terminal
+    yi <- df0$time2
     p <- ncol(xi)
     if (is.null(wgt)) {
-        wi <- rep(1, nrow(Xi))
+        wi <- rep(1, nrow(xi))
     } else {
         if (length(wgt) != nrow(xi)) stop("Weight length mismatch")
         wi <- wgt
     }
     if (eqType == "logrank")
-        U1 <- function(x) as.numeric(temScLog(x, rep(0, p), xi, yi, zi, di, wi))
+        U1 <- function(x) as.numeric(temLog(x, rep(0, p), xi, yi, zi, di, wi))
     if (eqType == "gehan") 
-        U1 <- function(x) as.numeric(temScGehan(x, rep(0, p), xi, yi, zi, di, wi))
+        U1 <- function(x) as.numeric(temGehan(x, rep(0, p), xi, yi, zi, di, wi))
     fit.a <- eqSolve(b0, U1, solver)
     rate <- c(temHaz(fit.a$par, rep(0, p), xi, yi, zi, di, wi, sort(unique(yi))))
     Lam0 <- exp(-rate)    
     list(beta = fit.a$par,
          bconv = fit.a$convergence,
-         Haz0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
+         Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0)))
 }

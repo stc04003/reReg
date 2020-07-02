@@ -172,17 +172,17 @@ arma::vec temHaz(const arma::vec& a,
   arma::vec de(n);
   de.zeros();
   arma::vec ebax = exp(X * (b - a));
-  Y = log(Y) + X * a; 
+  arma::vec Y2 = log(Y) + X * a; 
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
-      if ((Y[i] <= Y[j])) {
+      if ((Y2[i] <= Y2[j])) {
 	de(i) += Z(j) * W(j) * ebax(j);
       }
     }
   }
   for (int k = 0; k < m; k++) {
     for (int i = 0; i < n; i++) {
-      if (T[i] >= T0[k] && de(i) > 0 & D(i) > 0) {
+      if (Y2[i] >= T0[k] && de(i) > 0 & D(i) > 0) {
         out[k] += W(i) / de(i);
       }
     }
