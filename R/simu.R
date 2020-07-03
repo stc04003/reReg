@@ -73,8 +73,8 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 simSC <- function(n, a, b, type = "cox", zVar = .25, tau = 60, summary = FALSE) {
     if (length(a) != 2L) stop("Require length(a) = 2.")
     if (length(b) != 2L) stop("Require length(b) = 2.")
-    allcomb <- apply(expand.grid(c("cox", "am", "sc"), c("cox", "am", "sc")), 1, paste, collapse = "|")
-    type <- match.arg(type, c("cox", "am", "sc", allcomb))
+    allcomb <- apply(expand.grid(c("cox", "am", "sc", "ar"), c("cox", "am", "sc", "ar")), 1, paste, collapse = "|")
+    type <- match.arg(type, c("cox", "am", "sc", "ar", allcomb))
     if (grepl("|", type, fixed = TRUE)) {
         recType <- substring(type, 1, regexpr("[|]", type) - 1)
         temType <- substring(type, regexpr("[|]", type) + 1)
@@ -90,6 +90,7 @@ simSC <- function(n, a, b, type = "cox", zVar = .25, tau = 60, summary = FALSE) 
         exa <- c(exp(x %*% a))
         exb <- c(exp(x %*% b))
         if (temType == "cox") D <- invHaz(rr, z, 1, exb)
+        if (temType == "ar") D <- invHaz(rr, z, exb, 1)
         if (temType == "am") D <- invHaz(rr, z, exb, exb)
         if (temType == "sc") D <- invHaz(rr, z, exa, exb)
         y <- min(cen, tau, D) 
@@ -97,6 +98,7 @@ simSC <- function(n, a, b, type = "cox", zVar = .25, tau = 60, summary = FALSE) 
         m <- -1
         tij <- NULL
         if (recType == "cox") up <- Lam(y, z, 1, exa)
+        if (recType == "ar") up <- Lam(y, z, exa, 1)
         if (recType == "am") up <- Lam(y, z, exa, exa)
         if (recType == "sc") up <- Lam(y, z, exa, exb)
         while(sum(tij) < up) {
@@ -105,6 +107,7 @@ simSC <- function(n, a, b, type = "cox", zVar = .25, tau = 60, summary = FALSE) 
         }
         if (m > 0) {
             if (recType == "cox") tij <- invLam(cumsum(tij[1:m]), z, 1, exa)
+            if (recType == "ar") tij <- invLam(cumsum(tij[1:m]), z, exa, 1)
             if (recType == "am") tij <- invLam(cumsum(tij[1:m]), z, exa, exa)
             if (recType == "sc") tij <- invLam(cumsum(tij[1:m]), z, exa, exb)
             return(data.frame(id = id, Time = c(sort(tij), y),

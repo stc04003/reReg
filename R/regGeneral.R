@@ -41,7 +41,7 @@ reSC <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     list(alpha = c(fit.a$par, fit.b$par[-1] + fit.a$par),
          aconv = c(fit.a$convergence, fit.b$convergence),
          log.muZ = fit.b$par[1],
-         zi = R / exp(fit.b$par[-1]),
+         zi = R / exp(Xi[,-1] %*% fit.b$par[-1]),
          Lam0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
 }
 
@@ -74,7 +74,7 @@ reAR <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     Lam <- Lam0[pmax(1, findInterval(yexa2, T0))]
     R <- m / Lam
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-    zi <- R / exp(fit.a$par[-1])    
+    zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% fit.a$par)
     list(alpha = fit.a$par,
          aconv = fit.a$convergence,
          log.muZ = log(mean(zi)), zi = zi,
@@ -109,7 +109,7 @@ reCox <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     list(alpha = fit.a$par[-1],
          aconv = fit.a$convergence,
          log.muZ = fit.a$par[1],
-         zi = R / exp(fit.a$par[-1]),
+         zi = R / exp(Xi[,-1] %*% fit.a$par[-1]),
          Lam0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
 }
 
@@ -131,11 +131,11 @@ reAM <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     fit.a <- eqSolve(a0, U1, solver)
     ahat <- fit.a$par
     texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% ahat
-    yexa <- rep(log(yi) + xi %*% ahat, m)
+    yexa <- log(yi) + xi %*% ahat
     T0 <- sort(unique(c(texa, yexa)))
-    rate <- c(reRate(texa, yexa, rep(Wi, m), T0))
+    rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), T0))
     Lam0 <- exp(-rate)
-    Lam <- Lam0[pmax(1, findInterval(yi, T0))]
+    Lam <- Lam0[pmax(1, findInterval(yexa, T0))]
     R <- m / Lam
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     list(alpha = fit.a$par,

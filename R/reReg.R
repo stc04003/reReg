@@ -239,7 +239,7 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
     Wi <- rep(1, nrow(Xi))
-    U2 <- function(b) as.numeric(sc22(b, R, Xi, Wi))
+    U2 <- function(b) as.numeric(re2(b, R, Xi, Wi))
     fit.b <- eqSolve(engine@b0, U2, engine@solver)
     list(alpha = fit.a$par, beta = fit.b$par[-1] + fit.a$par,
          aconv = fit.a$convergence, bconv = fit.b$convergence,
@@ -269,6 +269,8 @@ regFit.general <- function(DF, engine, stdErr) {
         out <- c(out, temAM(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
     if (engine@temType == "ar")
         out <- c(out, temAR(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+    out$recType <- engine@recType
+    out$temType <- engine@temType
     return(out)
 }
 
@@ -1185,7 +1187,7 @@ reReg <- function(formula, data, B = 200,
         DF <- DF[,-which(colnames(DF) == "(Intercept)")]
     }
     DF <- DF[order(DF$id, DF$time2), ]
-    allMethod <- apply(expand.grid(c("cox", "am", "sc", "ar"), c("cox", "am", "sc", "ar")), 1,
+    allMethod <- apply(expand.grid(c("cox", "am", "sc", "ar"), c("cox", "am", "sc", "ar", ".")), 1,
                        paste, collapse = "|")
     allMethod <- c(allMethod, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
     method <- match.arg(method, c("cox", "am", "sc", "ar", allMethod))
@@ -1378,7 +1380,7 @@ HWeq <-function(gamma, X, Y, T, cluster, mt, weights = NULL) {
     p <- ncol(X)
     xr <- exp(X %*% gamma)
     .C("sarm1", as.double(X), as.double(weights), as.double(xr), 
-       as.integer(zHat), as.integer(n), as.integer(p),
+       as.double(zHat), as.integer(n), as.integer(p),
        res = double(p), PACKAGE = "reReg")$res / n
 }
 

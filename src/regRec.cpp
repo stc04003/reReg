@@ -253,6 +253,7 @@ arma::mat temLog(const arma::vec& a,
   arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
   arma::mat de = Iij * (ebax % Z % W);
   arma::mat tmp = nu / repmat(de, 1, nu.n_cols);
+  tmp.replace(arma::datum::nan, 0);
   arma::mat D2 = repmat(D % W, 1, X.n_cols);
   return (sum(X % D2, 0) - sum(tmp % D2, 0)) / n;
 }
