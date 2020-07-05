@@ -225,24 +225,75 @@ regFit.general <- function(DF, engine, stdErr) {
         engine@solver <- "dfsane"
     }
     if (engine@recType == "sc")
-        out <- reSC(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+        out <- reSC(DF, engine@eqType, engine@solver, engine@a0)
     if (engine@recType == "cox")
-        out <- reCox(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+        out <- reCox(DF, engine@eqType, engine@solver, engine@a0)
     if (engine@recType == "am")
-        out <- reAM(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+        out <- reAM(DF, engine@eqType, engine@solver, engine@a0)
     if (engine@recType == "ar")
-        out <- reAR(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+        out <- reAR(DF, engine@eqType, engine@solver, engine@a0)
     if (engine@temType == "sc")
-        out <- c(out, temSC(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+        out <- c(out, temSC(DF, engine@eqType, engine@solver, engine@b0, out$zi))
     if (engine@temType == "cox")
-        out <- c(out, temCox(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+        out <- c(out, temCox(DF, engine@eqType, engine@solver, engine@b0, out$zi))
     if (engine@temType == "am")
-        out <- c(out, temAM(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+        out <- c(out, temAM(DF, engine@eqType, engine@solver, engine@b0, out$zi))
     if (engine@temType == "ar")
-        out <- c(out, temAR(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+        out <- c(out, temAR(DF, engine@eqType, engine@solver, engine@b0, out$zi))
     out$recType <- engine@recType
     out$temType <- engine@temType
     return(out)
+}
+
+regFit.general.resampling <- function(DF, engine, stdErr) {
+    if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
+        print("Warning: Unidentified solver; BB::dfsane is used.")
+        engine@solver <- "dfsane"
+    }
+    res <- regFit(DF, engine, NULL)
+    n <- length(unique(id))
+    E <- matrix(rexp(n, stdErr@B), n)
+    p <- ncol(DF) - 6
+    s1 <- function(type, DF, eqType, solver, a0, wgt) {
+        if (type == "sc") reSC(DF, eqType, solver, a0, wgt)
+        if (type == "cox") reCox(DF, eqType, solver, a0, wgt)
+        if (type == "am") reAM(DF, eqType, solver, a0, wgt)
+        if (type == "ar") reAR(DF, eqType, solver, a0, wgt)
+    }
+    s2 <- function(type, DF, eqType, solver, b0, wgt) {
+        if (type == "sc") temSC(DF, eqType, solver, b0, wgt)
+        if (type == "cox") temCox(DF, eqType, solver, b0, wgt)
+        if (type == "am") temAM(DF, eqType, solver, b0, wgt)
+        if (type == "ar") temAR(DF, eqType, solver, b0, wgt)
+    }
+    a0 <- res$alpha
+    if (engine@recType == "sc")
+        a0 <- c(res$alpha[1:p], res$log.muZ, res$alpha[1:p + p] - res$alpha[1:p])
+    if (engine@recType == "cox")
+        a0 <- c(res$log.muZ, res$alpha)    
+    tmpV <- apply(E, 2, function(ee) {
+        tmp <- s1(engine@recType, DF, engine@eqType, NULL, a0, ee)
+        b0 <- res$beta
+        c(tmp$value, s2(engine@temType, DF, engine@eqType, NULL, b0, tmp$zi, ee))        
+    })
+    V <- var(t(tmpV))
+    if (engine@recType == "sc") Z <- matrix(rnorm((2 * p + 1) * B), B)
+    if (engine@recType == "cox") Z <- matrix(rnorm((p + 1) * B), B)
+    if (engine@recType %in% c("ar", "am")) Z <- matrix(rnorm(p * B), B)
+    L <- apply(Z, 1, function(zz) {
+        tmp <- s1(engine@recType, DF, engine@eqType + z / sqrt(n))
+        c(tmp$value, s2(engine@temType, DF, engine@eqType  + z[1:p] / sqrt(n), tmp$zi))
+    })
+    L <- t(L)
+    J <- solve(t(Z) %*% Z) %*% t(Z) %*% (sqrt(n) * L)
+    if (engine@recType == "sc") ind <- c(1:p, (p + 2):(2 * p + 1))
+    if (engine@recType == "cox") ind <- c(2:(p + 1))
+    if (engine@recType %in% c("ar", "am")) ind <- 1:p
+    aVar <- solve(J[ind, ind]) %*% V[ind, ind] %*% t(solve(J[ind, ind]))
+    ind2 <- tail(1:nrow(J), p)
+    bVar <- solve(J[ind2, ind2]) %*% V[ind2, ind2] %*% t(solve(J[ind2, ind2]))
+    return(res, list(alphaSE = sqrt(diag(aVar)), betaSE = sqrt(diag(bVar)),
+                     alphaVar = aVar, betaVar = bVar))
 }
 
 ##############################################################################
@@ -1008,6 +1059,7 @@ setClass("resampling", contains="stdErr")
 setGeneric("regFit", function(DF, engine, stdErr) {standardGeneric("regFit")})
 
 setMethod("regFit", signature(engine = "general", stdErr = "NULL"), regFit.general)
+setMethod("regFit", signature(engine = "general", stdErr = "resampling"), regFit.general.resampling)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "NULL"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "resampling"), regFit.cox.LWYY)
@@ -1186,12 +1238,14 @@ reReg <- function(formula, data, B = 200,
         stdErr@B <- B
     }
     p <- ncol(DF) - ncol(obj@.Data)
-    if (length(engine@a0) == 1) engine@a0 <- rep(engine@a0, p)
-    if (length(engine@b0) == 1) engine@b0 <- rep(engine@b0, p)
-    if (method %in% "sc.XCYH") {
-        if (length(engine@b0) == 1) engine@b0 <- rep(engine@b0, p + 1)
-        if (length(engine@b0) == p) engine@b0 <- c(0, engine@b0)
-    }
+    if (length(engine@a0) == 1 & grepl("sc", method, fixed = TRUE))
+        engine@a <- rep(engine@a0, 2 * p + 1)
+    if (length(engine@a0) == 1 & grepl("cox", method, fixed = TRUE))
+        engine@a <- rep(engine@a0, p + 1)
+    if (length(engine@a0) == 1 & grepl("sc|am", method, fixed = TRUE))    
+        engine@a0 <- rep(engine@a0, p)
+    if (length(engine@b0) == 1 & grepl("sc", method, fixed = TRUE)) engine@b0 <- rep(engine@b0, 2 * p)
+    else engine@b0 <- rep(engine@b0, p)
     if (formula == ~1) {
         fit <- NULL
         fit$alpha <- fit$beta <- rep(NA, p)
