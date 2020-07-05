@@ -13,8 +13,8 @@ arma::vec reRate(const arma::vec& T,
 		 const arma::vec& T0) {
   int n = Y.n_elem;
   int m = T0.n_elem;
-  arma::vec out(m, fill::zeros);
-  arma::vec de(n, fill::zeros);
+  arma::vec out(m, arma::fill::zeros);
+  arma::vec de(n, arma::fill::zeros);
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
       if ((T[i] <= Y[j]) && (T[i] >= T[j])) {
@@ -43,7 +43,7 @@ arma::rowvec reLog(const arma::vec& a,
   int p = a.n_elem;
   arma::vec texa = log(T) + X * a;
   arma::vec yexa = log(Y) + X * a;
-  arma::rowvec out(p, fill::zeros);
+  arma::rowvec out(p, arma::fill::zeros);
   arma::rowvec nu(p);
   for (int i = 0; i < n; i++) {
     nu.zeros();
@@ -77,7 +77,7 @@ arma::vec reGehan(const arma::vec& a,
 		  const arma::vec& W) {
   int n = Y.n_elem;
   int p = a.n_elem;
-  arma::vec out(p, fill::zeros);
+  arma::vec out(p, arma::fill::zeros);
   arma::vec texa = log(T) + X * a;
   arma::vec yexa = log(Y) + X * a;
   for (int i = 0; i < n; i++) {
@@ -102,9 +102,9 @@ arma::rowvec am1(const arma::vec& a,
   int n = X.n_rows;
   int p = X.n_cols;
   arma::vec m2 = cumsum(m); 
-  arma::mat Xi(nm, p, fill::zeros);
-  arma::vec Yi(nm, fill::zeros);
-  arma::vec Wi(nm, fill::zeros);
+  arma::mat Xi(nm, p, arma::fill::zeros);
+  arma::vec Yi(nm, arma::fill::zeros);
+  arma::vec Wi(nm, arma::fill::zeros);
   arma::vec T0 = log(Y) + X * a;
   for (int i = 0; i < m.n_elem; i ++) {
     if (i == 0 && m(i) > 0) {
@@ -120,8 +120,8 @@ arma::rowvec am1(const arma::vec& a,
   }
   arma::vec texa = log(T) + Xi * a;
   arma::vec yexa = log(Yi) + Xi * a;  
-  arma::vec Lam(n, fill::zeros);
-  arma::vec de(nm, fill::zeros);
+  arma::vec Lam(n, arma::fill::zeros);
+  arma::vec de(nm, arma::fill::zeros);
   for (int i = 0; i < nm; i++) {
     for (int j = 0; j < nm; j++) {
       if ((texa[i] <= yexa[j]) && (texa[i] >= texa[j])) {
@@ -158,8 +158,8 @@ arma::vec temHaz(const arma::vec& a,
 		 const arma::vec& T0) {
   int n = Y.n_elem;
   int m = T0.n_elem;
-  arma::vec out(m, fill::zeros);
-  arma::vec de(n, fill::zeros);
+  arma::vec out(m, arma::fill::zeros);
+  arma::vec de(n, arma::fill::zeros);
   arma::vec ebax = exp(X * (b - a));
   arma::vec Y2 = log(Y) + X * a; 
   for (int i = 0; i < n; i++) {

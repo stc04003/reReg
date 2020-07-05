@@ -12,7 +12,7 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
-    p <- ncol(Xi)
+    p <- ncol(xi)
     yi <- df0$time2
     yii <- rep(yi, m)
     ti <- df1$time2
@@ -36,7 +36,7 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
         Lam <- exp(-rate)
         R <- m / Lam
         R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-        zi <- Wi * R / exp(Xi[,-1] %*% tail(a0, p)
+        zi <- Wi * R / exp(Xi[,-1] %*% tail(a0, p))
         return(list(value = c(U1(a0[1:p]), U2(a0[-(1:p)])), zi = zi))
     } else {
         fit.a <- eqSolve(a0[1:p], U1, solver)
@@ -133,7 +133,7 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
     U1 <- function(b) as.numeric(re2(b, R, Xi, Wi))
-     if (is.null(solver)) { 
+    if (is.null(solver)) { 
         return(list(value = U1(a0),
                     zi = R / exp(Xi[,-1] %*% a0[-1])))
     } else {
@@ -162,7 +162,7 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         Wi <- wgt
     }
     U1 <- function(a) as.numeric(am1(a, ti, yi, Wi, xi, m))
-    if (!is.null(solver)) {
+    if (is.null(solver)) {
         texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% a0
         yexa <- log(yi) + xi %*% a0
         rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
@@ -186,7 +186,7 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
                                      yleft = min(Lam), yright = max(Lam))))
     }
 }
-    
+
 #' General estimating equation when the scale-change model is used for terminal event
 #'
 #' Returns:
@@ -223,7 +223,7 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
                     Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0))))
     }
 }
-    
+
 temAM <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     df0 <- subset(DF, event == 0)
     rownames(df0) <- NULL
@@ -251,7 +251,7 @@ temAM <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
                     Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0))))
     }
 }
-    
+
 temCox <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     df0 <- subset(DF, event == 0)
     rownames(df0) <- NULL
@@ -279,7 +279,7 @@ temCox <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
                     Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0))))
     }
 }
-    
+
 temAR <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     df0 <- subset(DF, event == 0)
     rownames(df0) <- NULL

@@ -129,8 +129,8 @@ regFit.cox.HW <- function(DF, engine, stdErr) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
-    out <- reCox(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
-    out <- c(out, temCox(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+    out <- reCox(DF, engine@eqType, engine@solver, engine@a0)
+    out <- c(out, temCox(DF, engine@eqType, engine@solver, engine@b0, out$zi))
     out$recType <- engine@recType
     out$temType <- engine@temType
     return(out)
@@ -193,15 +193,16 @@ regFit.sc.XCYH <- function(DF, engine, stdErr) {
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
     di <- rep(df0$terminal, m)
-    yi <- rep(df0$time2, m)
+    yi <- df0$time2
+    yii <- rep(yi, m)
     ti <- df1$time2
     wi <- rep(1, sum(m))
-    if (engine@eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yi, wi))
-    if (engine@eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yi, wi))
+    if (engine@eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, wi))
+    if (engine@eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, wi))
     fit.a <- eqSolve(engine@a0, U1, engine@solver)
     ahat <- fit.a$par
     texa <- log(ti) + xi %*% ahat
-    yexa <- log(yi) + xi %*% ahat
+    yexa <- log(yii) + xi %*% ahat
     T0 <- sort(unique(c(texa, yexa)))
     rate <- c(reRate(texa, yexa, wi, T0))
     yexa2 <- c(log(df0$time2) + as.matrix(df0[,-c(1:6)]) %*% ahat)
@@ -1238,13 +1239,14 @@ reReg <- function(formula, data, B = 200,
         stdErr@B <- B
     }
     p <- ncol(DF) - ncol(obj@.Data)
-    if (length(engine@a0) == 1 & grepl("sc", method, fixed = TRUE))
-        engine@a <- rep(engine@a0, 2 * p + 1)
-    if (length(engine@a0) == 1 & grepl("cox", method, fixed = TRUE))
-        engine@a <- rep(engine@a0, p + 1)
-    if (length(engine@a0) == 1 & grepl("sc|am", method, fixed = TRUE))    
+    if (length(engine@a0) == 1 & any(grepl("sc", c(method, engine@recType), fixed = FALSE)))
+        engine@a0 <- rep(engine@a0, 2 * p + 1)
+    if (length(engine@a0) == 1 & any(grepl("cox", c(method, engine@recType), fixed = FALSE)))
+        engine@a0 <- rep(engine@a0, p + 1)
+    if (length(engine@a0) == 1 & any(grepl("ar|am", c(method, engine@recType), fixed = FALSE)))    
         engine@a0 <- rep(engine@a0, p)
-    if (length(engine@b0) == 1 & grepl("sc", method, fixed = TRUE)) engine@b0 <- rep(engine@b0, 2 * p)
+    if (length(engine@b0) == 1 & any(grepl("sc", c(method, engine@recType), fixed = FALSE)))
+        engine@b0 <- rep(engine@b0, 2 * p)
     else engine@b0 <- rep(engine@b0, p)
     if (formula == ~1) {
         fit <- NULL
