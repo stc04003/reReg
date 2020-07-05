@@ -125,31 +125,15 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
 }
 
 regFit.cox.HW <- function(DF, engine, stdErr) {
-    id <- DF$id
-    event <- DF$event
-    status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:6)])    
-    n <- length(unique(id))
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)
-    cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    X <- cbind(1, X[event == 0,])
-    engine@a0 <- c(0, engine@a0)
-    outA <- eqSolve(par = engine@a0, fn = HWeq, solver = engine@solver,
-                    X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)
-    muZ <- outA$par[1]
-    alpha <- outA$par <- outA$par[-1]
-    lambda <- npMLE(Y[event == 0], T, Y)
-    zHat <- as.numeric(mt / (lambda * exp(as.matrix(X[, -1]) %*% alpha)))
-    zHat <- ifelse(zHat > 1e5, (mt + .01) / (lambda * exp(as.matrix(X[, -1]) %*% alpha) + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    outB <- eqSolve(par = engine@b0, fn = HWeq2, solver = engine@solver,
-                    X = as.matrix(X[,-1]), Y = Y[event == 0], delta = status[event == 0], zHat = zHat/muZ, weights = NULL)
-    list(alpha = outA$par, aconv = outA$convergence,
-         beta = outB$par, bconv = outB$convergence,
-         muZ = muZ, zHat = zHat / muZ)
+    if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
+        print("Warning: Unidentified solver; BB::dfsane is used.")
+        engine@solver <- "dfsane"
+    }
+    out <- reCox(DF, engine@eqType, engine@solver, engine@a0, engine@b0)
+    out <- c(out, temCox(DF, engine@eqType, engine@solver, engine@a0, engine@b0, out$zi))
+    out$recType <- engine@recType
+    out$temType <- engine@temType
+    return(out)
 }
 
 #' @importFrom survival cluster
@@ -164,19 +148,6 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
     fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
     list(alpha = coef(fit.coxph), alphaSE = sqrt(diag(vcov(fit.coxph))),
          beta = rep(NA, p), betaSE = rep(NA, p), muZ = NA)
-    ## my implementation of coxph estimating equation
-    ##
-    ## status <- DF$status
-    ## n <- length(unique(id))
-    ## p <- ncol(X)
-    ## mt <- aggregate(event ~ id, data = DF, sum)$event
-    ## Y <- rep(DF$Time[event == 0], mt + 1)
-    ## cluster <- unlist(sapply(mt + 1, function(x) 1:x))   
-    ## out <- dfsane(par = engine@a0, fn = LWYYeq, X = as.matrix(X[event == 0, ]),
-    ##               Y = Y[event == 0], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
-    ##               alertConvergence = FALSE, quiet = TRUE,
-    ##               control = list(NM = FALSE, M = 100, noimp = 50, trace = FALSE))
-    ## list(alpha = out$par, beta = rep(0, p), muZ = NA)
 }
 
 #' This is also the ARF in Luo
@@ -1285,8 +1256,9 @@ npMLE <- function(t, tij, yi, weights = NULL) {
     tmp <- rev(tmp)
     tij <- rev(tij)
     yi <- rev(yi)
+    wi <- rev(weights)
     ## print(length(weights))
-    res <- .C("plLambda", as.double(tmp), as.double(tij), as.double(yi), as.double(weights), 
+    res <- .C("plLambda", as.double(tmp), as.double(tij), as.double(yi), as.double(wi), 
               as.integer(length(tmp)), as.integer(length(yi)),
               out = double(length(tmp)),
               PACKAGE = "reReg")$out
@@ -1379,7 +1351,7 @@ HWeq <-function(gamma, X, Y, T, cluster, mt, weights = NULL) {
     zHat <- ifelse(is.na(zHat), 0, zHat) 
     p <- ncol(X)
     xr <- exp(X %*% gamma)
-    .C("sarm1", as.double(X), as.double(weights), as.double(xr), 
+    .C("sarm1", as.double(X), as.double(weights[cumsum(mt + 1)]), as.double(xr), 
        as.double(zHat), as.integer(n), as.integer(p),
        res = double(p), PACKAGE = "reReg")$res / n
 }

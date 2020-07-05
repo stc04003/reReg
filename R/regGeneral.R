@@ -12,7 +12,8 @@ reSC <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
-    yi <- rep(df0$time2, m)
+    yi <- df0$time2
+    yii <- rep(yi, m)
     ti <- df1$time2
     if (is.null(wgt)) {
         Wi <- rep(1, length(m))
@@ -22,17 +23,15 @@ reSC <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
         Wi <- wgt
         wi <- rep(wgt, m)
     }
-    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yi, wi))
-    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yi, wi))
+    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, wi))
+    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, wi))
     fit.a <- eqSolve(a0, U1, solver)
     ahat <- fit.a$par
     texa <- log(ti) + xi %*% ahat
-    yexa <- log(yi) + xi %*% ahat
-    T0 <- sort(unique(c(texa, yexa)))
-    rate <- c(reRate(texa, yexa, wi, T0))
-    yexa2 <- c(log(df0$time2) + as.matrix(df0[,-c(1:6)]) %*% ahat)
-    Lam0 <- exp(-rate)
-    Lam <- Lam0[pmax(1, findInterval(yexa2, T0))]
+    yexa <- log(yii) + xi %*% ahat
+    yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% ahat)
+    rate <- c(reRate(texa, yexa, wi, yexa2))
+    Lam <- exp(-rate)
     R <- m / Lam
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
@@ -42,7 +41,8 @@ reSC <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
          aconv = c(fit.a$convergence, fit.b$convergence),
          log.muZ = fit.b$par[1],
          zi = R / exp(Xi[,-1] %*% fit.b$par[-1]),
-         Lam0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
+         Lam0 = approxfun(yexa2[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
+                          yleft = min(Lam), yright = max(Lam)))
 }
 
 reAR <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
@@ -51,7 +51,8 @@ reAR <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
-    yi <- rep(df0$time2, m)
+    yi <- df0$time2
+    yii <- rep(yi, m)
     ti <- df1$time2    
     if (is.null(wgt)) {
         Wi <- rep(1, length(m))
@@ -61,24 +62,23 @@ reAR <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
         Wi <- wgt
         wi <- rep(wgt, m)
     }
-    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yi, wi))
-    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yi, wi))
+    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, wi))
+    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, wi))
     fit.a <- eqSolve(a0, U1, solver)
     ahat <- fit.a$par
     texa <- log(ti) + xi %*% ahat
-    yexa <- log(yi) + xi %*% ahat
-    T0 <- sort(unique(c(texa, yexa)))
-    rate <- c(reRate(texa, yexa, wi, T0))
-    yexa2 <- c(log(df0$time2) + as.matrix(df0[,-c(1:6)]) %*% ahat)
-    Lam0 <- exp(-rate)
-    Lam <- Lam0[pmax(1, findInterval(yexa2, T0))]
+    yexa <- log(yii) + xi %*% ahat
+    yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% ahat)
+    rate <- c(reRate(texa, yexa, wi, yexa2))
+    Lam <- exp(-rate)
     R <- m / Lam
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% fit.a$par)
     list(alpha = fit.a$par,
          aconv = fit.a$convergence,
          log.muZ = log(mean(zi)), zi = zi,
-         Lam0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
+         Lam0 = approxfun(yexa2[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
+                          yleft = min(Lam), yright = max(Lam)))
 }
 
 reCox <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
@@ -86,7 +86,8 @@ reCox <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     df1 <- subset(DF, event == 1)
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
-    yi <- rep(df0$time2, m)
+    ## yi <- rep(df0$time2, m)
+    yi <- df0$time2
     ti <- df1$time2
     if (is.null(wgt)) {
         Wi <- rep(1, length(m))
@@ -96,11 +97,13 @@ reCox <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
         Wi <- wgt
         wi <- rep(wgt, m)
     }
-    T0 <- sort(unique(c(ti, yi)))
-    rate <- c(reRate(ti, yi, wi, T0))
-    yi2 <- as.numeric(df0$time2)
-    Lam0 <- exp(-rate)
-    Lam <- Lam0[pmax(1, findInterval(yi2, T0))]
+    ## T0 <- sort(unique(c(ti, yi)))
+    ## rate <- c(reRate(ti, yi, wi, T0))
+    ## yi2 <- as.numeric(df0$time2)
+    ## Lam0 <- exp(-rate)
+    ## Lam <- Lam0[pmax(1, findInterval(yi2, T0))]
+    rate <- c(reRate(ti, rep(yi, m), wi, yi))
+    Lam <- exp(-rate)
     R <- m / Lam
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
@@ -110,7 +113,9 @@ reCox <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
          aconv = fit.a$convergence,
          log.muZ = fit.a$par[1],
          zi = R / exp(Xi[,-1] %*% fit.a$par[-1]),
-         Lam0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
+         Lam0 = approxfun(yi[!duplicated(yi)], Lam[!duplicated(yi)],
+                          yleft = min(Lam), yright = max(Lam)))
+         ## Lam0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
 }
 
 reAM <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
@@ -132,16 +137,15 @@ reAM <- function(DF, eqType, solver, a0, b0, wgt = NULL) {
     ahat <- fit.a$par
     texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% ahat
     yexa <- log(yi) + xi %*% ahat
-    T0 <- sort(unique(c(texa, yexa)))
-    rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), T0))
-    Lam0 <- exp(-rate)
-    Lam <- Lam0[pmax(1, findInterval(yexa, T0))]
+    rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
+    Lam <- exp(-rate)
     R <- m / Lam
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     list(alpha = fit.a$par,
          aconv = fit.a$convergence,
          log.muZ = log(mean(R)), zi = R,
-         Lam0 = approxfun(T0, Lam0, yleft = min(Lam0), yright = max(Lam0)))
+         Lam0 = approxfun(yexa[!duplicated(yexa)], Lam[!duplicated(yexa)],
+                          yleft = min(Lam), yright = max(Lam)))
 }
 
 #' General estimating equation when the scale-change model is used for terminal event

@@ -73,14 +73,14 @@ arma::rowvec re2(const arma::vec& b,
 
 //' @noRd
 // [[Rcpp::export]]
-arma::rowvec reGehan(const arma::vec& a,
-		     const arma::mat& X,
-		     const arma::vec& T,
-		     const arma::vec& Y,
-		     const arma::vec& W) {
+arma::vec reGehan(const arma::vec& a,
+		  const arma::mat& X,
+		  const arma::vec& T,
+		  const arma::vec& Y,
+		  const arma::vec& W) {
   int n = Y.n_elem;
   int p = a.n_elem;
-  arma::rowvec out(p);
+  arma::vec out(p);
   out.zeros();
   arma::vec texa = log(T) + X * a;
   arma::vec yexa = log(Y) + X * a;
@@ -97,11 +97,11 @@ arma::rowvec reGehan(const arma::vec& a,
 //' @noRd
 // [[Rcpp::export]]
 arma::rowvec am1(const arma::vec& a,
-		 const arma::vec& T,
-		 const arma::vec& Y,
-		 const arma::vec& W,
-		 const arma::mat& X,
-		 const arma::vec& m) {
+	      const arma::vec& T,
+	      const arma::vec& Y,
+	      const arma::vec& W,
+	      const arma::mat& X,
+	      const arma::vec& m) {
   int nm = accu(m);
   int n = X.n_rows;
   int p = X.n_cols;
@@ -193,13 +193,13 @@ arma::vec temHaz(const arma::vec& a,
 
 //' @noRd
 // [[Rcpp::export]]
-arma::mat temScLog(const arma::vec& a,
-		   const arma::vec& b,
-		   const arma::mat& X,
-		   const arma::vec& Y,
-		   const arma::vec& Z,
-		   const arma::vec& D,
-		   const arma::vec& W) {
+arma::rowvec temScLog(const arma::vec& a,
+		      const arma::vec& b,
+		      const arma::mat& X,
+		      const arma::vec& Y,
+		      const arma::vec& Z,
+		      const arma::vec& D,
+		      const arma::vec& W) {
   int n = Y.n_elem;
   int p = a.n_elem;
   arma::vec yexa = Y % exp(X * a);
@@ -208,6 +208,7 @@ arma::mat temScLog(const arma::vec& a,
   arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
   arma::mat de = Iij * (ebax % Z % W);
   arma::mat tmp = nu / repmat(de, 1, nu.n_cols);
+  tmp.replace(arma::datum::nan, 0);
   arma::mat D2 = repmat(D % W, 1, X.n_cols);
   arma::mat D3 = repmat(yexa % D % W, 1, X.n_cols);
   return join_rows(sum(X % D2, 0) - sum(tmp % D2, 0),
@@ -238,15 +239,14 @@ Rcpp::NumericVector temScGehan(const arma::vec& a,
 }
 
 // [[Rcpp::export]]
-arma::mat temLog(const arma::vec& a,
-		 const arma::vec& b,
-		 const arma::mat& X,
-		 const arma::vec& Y,
-		 const arma::vec& Z,
-		 const arma::vec& D,
-		 const arma::vec& W) {
+arma::rowvec temLog(const arma::vec& a,
+		    const arma::vec& b,
+		    const arma::mat& X,
+		    const arma::vec& Y,
+		    const arma::vec& Z,
+		    const arma::vec& D,
+		    const arma::vec& W) {
   int n = Y.n_elem;
-  int p = a.n_elem;
   arma::vec yexa = Y % exp(X * a);
   arma::vec ebax = exp(X * (b - a)); 
   arma::mat Iij = arma::conv_to<arma::mat>::from(repmat(yexa, 1, n) <= repmat(yexa, 1, n).t());
@@ -279,3 +279,5 @@ Rcpp::NumericVector temGehan(const arma::vec& a,
   }
   return out / n / n;
 }
+
+// Resampling 
