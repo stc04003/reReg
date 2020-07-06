@@ -93,11 +93,11 @@ arma::vec reGehan(const arma::vec& a,
 //' @noRd
 // [[Rcpp::export]]
 arma::rowvec am1(const arma::vec& a,
-	      const arma::vec& T,
-	      const arma::vec& Y,
-	      const arma::vec& W,
-	      const arma::mat& X,
-	      const arma::vec& m) {
+		 const arma::vec& T,
+		 const arma::vec& Y,
+		 const arma::vec& W,
+		 const arma::mat& X,
+		 const arma::vec& m) {
   int nm = accu(m);
   int n = X.n_rows;
   int p = X.n_cols;
@@ -141,7 +141,9 @@ arma::rowvec am1(const arma::vec& a,
   for (int i = 0; i < R.n_elem; i ++) {
     if (R[i] > 100000) R[i] = (m[i] + 0.01) / (Lam[i] + 0.01);
   }
-  return (W % (R - mean(W % R))).t() * X / n;
+  // return (W % (R - mean(W % R))).t() * X / n;
+  return (W % (mean(W) * R - mean(W % R))).t() * X / n;
+  // return (W % (R - mean(R))).t() * X / n;
 }
 
 // Used for terminal events

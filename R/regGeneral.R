@@ -168,7 +168,7 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
         Lam <- exp(-rate)
         R <- Wi * m / Lam
-        R <- ifelse(R > 1e5, (Wi * m + .01) / (Lam + .01), R)
+        R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(value = U1(a0), zi = R))
     } else {
         fit.a <- eqSolve(a0, U1, solver)
@@ -178,7 +178,7 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
         Lam <- exp(-rate)
         R <- Wi * m / Lam
-        R <- ifelse(R > 1e5, (Wi * m + .01) / (Lam + .01), R)
+        R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
                     log.muZ = log(mean(R)), zi = R,
@@ -215,7 +215,7 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     if (eqType == "gehan") 
         U1 <- function(x) as.numeric(temScGehan(x[1:p], x[1:p + p], xi, yi, zi, di, wi))
     if (is.null(solver)) return(U1(b0))
-    else {fit.a <- eqSolve(c(b0, b0), U1, solver)
+    else {fit.a <- eqSolve(b0, U1, solver)
         rate <- c(temHaz(fit.a$par[1:p + p], fit.a$par[1:p], xi, yi, zi, di, wi, sort(unique(yi))))
         Lam0 <- exp(-rate)    
         return(list(beta = fit.a$par,
