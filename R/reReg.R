@@ -6,34 +6,6 @@
 ##        bootstrap otherwise
 ##############################################################################
 
-regFit.am.XCHWY <- function(DF, engine, stdErr) {
-    id <- DF$id
-    event <- DF$event
-    status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:6)])
-    n <- length(unique(id))
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)
-    cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    outA <- eqSolve(engine@a0, alphaEq, engine@solver,
-                    X = X, Y = Y, T = T, cluster = cluster, mt = mt, weights = NULL)
-    alpha <- outA$par
-    Ystar <- log(Y) + X %*% alpha
-    Tstar <- log(T) + X %*% alpha
-    lambda <- npMLE(Ystar[event == 0], Tstar, Ystar)
-    zHat <- as.numeric(mt * npMLE(log(max(Y)), Tstar, Ystar) / lambda)
-    if (any(zHat > 1e5)) zHat <- (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01)
-    ## zHat <- ifelse(zHat > 1e5, (mt * npMLE(log(max(Y)), Tstar, Ystar) + .01) / (lambda + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    outB <- eqSolve(engine@b0, betaEq, engine@solver,
-                    X = X, Y = Y, T = T, cluster = cluster, delta = status[event == 0],
-                    mt = mt, alpha = outA$par, zHat = zHat, weights = NULL)
-    list(alpha = outA$par, aconv = outA$convergence, beta = outB$par, bconv = outB$convergence,
-         muZ = mean(zHat, na.rm = TRUE), zHat = zHat)
-}
-
 regFit.am.GL <- function(DF, engine, stdErr) {
     DF0 <- subset(DF, event == 0)
     p <- ncol(DF0) - 6
@@ -124,18 +96,6 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
 }
 
-regFit.cox.HW <- function(DF, engine, stdErr) {
-    if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
-        print("Warning: Unidentified solver; BB::dfsane is used.")
-        engine@solver <- "dfsane"
-    }
-    out <- reCox(DF, engine@eqType, engine@solver, engine@a0)
-    out <- c(out, temCox(DF, engine@eqType, engine@solver, engine@b0, out$zi))
-    out$recType <- engine@recType
-    out$temType <- engine@temType
-    return(out)
-}
-
 #' @importFrom survival cluster
 #' @importFrom stats vcov
 regFit.cox.LWYY <- function(DF, engine, stdErr) {
@@ -179,45 +139,10 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
                   alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
     list(alpha = out$par, beta = coef(fit.coxph),
          betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
-         wgt = wgt, haz0 = with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant")))
+         wgt = wgt,
+         haz0 = with(cumHaz,
+                     approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant")))
 }
-
-regFit.sc.XCYH <- function(DF, engine, stdErr) {
-    if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
-        print("Warning: Unidentified solver; BB::dfsane is used.")
-        engine@solver <- "dfsane"
-    }
-    df0 <- subset(DF, event == 0)
-    df1 <- subset(DF, event == 1)
-    rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
-    xi <- as.matrix(df1[,-c(1:6)])
-    di <- rep(df0$terminal, m)
-    yi <- df0$time2
-    yii <- rep(yi, m)
-    ti <- df1$time2
-    wi <- rep(1, sum(m))
-    if (engine@eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, wi))
-    if (engine@eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, wi))
-    fit.a <- eqSolve(engine@a0, U1, engine@solver)
-    ahat <- fit.a$par
-    texa <- log(ti) + xi %*% ahat
-    yexa <- log(yii) + xi %*% ahat
-    T0 <- sort(unique(c(texa, yexa)))
-    rate <- c(reRate(texa, yexa, wi, T0))
-    yexa2 <- c(log(df0$time2) + as.matrix(df0[,-c(1:6)]) %*% ahat)
-    Lam <- exp(-rate[pmax(1, findInterval(yexa2, T0))])
-    R <- m / Lam
-    R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-    Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
-    Wi <- rep(1, nrow(Xi))
-    U2 <- function(b) as.numeric(re2(b, R, Xi, Wi))
-    fit.b <- eqSolve(engine@b0, U2, engine@solver)
-    list(alpha = fit.a$par, beta = fit.b$par[-1] + fit.a$par,
-         aconv = fit.a$convergence, bconv = fit.b$convergence,
-         log.muZ = fit.b$par[1])
-}
-
 
 ## #' @importFrom rlang is_empty
 regFit.general <- function(DF, engine, stdErr) {
@@ -357,195 +282,6 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
                 alphaVar = as.matrix(betaVar[1:p, 1:p]),
                 betaVar = as.matrix(betaVar[1:p + p, 1:p + p]),
                 SEmat = betaMatrix, B = length(converged)))
-}
-
-regFit.cox.HW.resampling <- function(DF, engine, stdErr) {
-    res <- regFit(DF, engine, NULL)
-    id <- DF$id
-    event <- DF$event
-    status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:6)])    
-    n <- length(unique(id))
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)
-    cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    X <- cbind(1, X[event == 0,])
-    B <- stdErr@B
-    E <- matrix(rexp(n * B), nrow = n)
-    Z <- matrix(rnorm((p + 1) * B), nrow = p + 1)
-    Sn <- function(g, b, w, r = "both") {
-        s1 <- HWeq(g, X, Y, T, cluster, mt, rep(w, mt + 1))
-        if (r == "s1") return(s1)            
-        lam <- npMLE(Y[event == 0], T, Y, rep(w, mt + 1))
-        zHat <- mt / (lam * exp(as.matrix(X[,-1]) %*% g[-1]))
-        zHat <- ifelse(zHat > 1e5, (mt + .01) / (lam * exp(as.matrix(X[,-1]) %*% g[-1]) + .01), zHat)
-        zHat <- ifelse(is.na(zHat), 0, zHat)
-        ## s2 <- HWeq2(b, X[,-1], Y[event == 0], status[event == 0], zHat / g[1], rep(w, mt + 1))
-        s2 <- HWeq2(b, as.matrix(X[,-1]), Y[event == 0], status[event == 0], zHat, w) 
-        if (r == "s2") return(s2)
-        return(c(s1, s2))
-    }
-    g <- c(res$log.muZ, res$alpha)
-    V <- var(t(apply(E, 2, function(x) Sn(g, res$beta, x))))
-    V1 <- V[2:(p + 1), 2:(p + 1)]
-    V2 <- V[1 + p + 1:p, 1 + p + 1:p]
-    ## V1 <- V[1:(p + 1), 1:(p + 1)]
-    ## V2 <- V[1 + p + 1:p, 1 + p + 1:p]
-    ## lmfit1 <- t(apply(Z, 2, function(x) Sn(g + x / sqrt(n), res$beta, rep(1, n), "s1")))
-    lmfit1 <- t(apply(Z, 2, function(x) Sn(g + c(0, x[-1]) / sqrt(n), res$beta, rep(1, n), "s1")[-1]))
-    lmfit2 <- t(apply(Z, 2, function(x) Sn(g, res$beta + x[-1] / sqrt(n), rep(1, n), "s2")))
-    if (p == 1) { ## Z has one extra column here
-        J1 <- coef(lm(sqrt(n) * c(lmfit1) ~ c(Z[-1,])))[-1]
-        J2 <- coef(lm(sqrt(n) * c(lmfit2) ~ c(Z[-1,])))[-1]
-    } else {        
-        J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z[-1,])))[-1,]
-        J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z[-1,])))[-1,]
-    }    
-    if (qr(J1)$rank == (p + 1)) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
-    else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
-    if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
-    else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))
-    aSE <- sqrt(diag(aVar))
-    bSE <- sqrt(diag(bVar))
-    ## c(res, list(alphaSE = aSE[-1], betaSE = bSE, alphaVar = aVar[-1, -1], betaVar = bVar))
-    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
-}
-
-regFit.am.XCHWY.resampling <- function(DF, engine, stdErr) {
-    res <- regFit(DF, engine, NULL)
-    id <- DF$id
-    event <- DF$event
-    status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:6)])    
-    n <- length(unique(id))
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)
-    cluster <- unlist(sapply(mt + 1, function(x) 1:x))        
-    B <- stdErr@B
-    E <- matrix(rexp(n * B), nrow = n) 
-    Z <- matrix(rnorm(p * B), nrow = p)
-    Sn <- function(a, b, w, r = "both") {
-        Ystar <- log(Y) + X %*% a
-        Tstar <- log(T) + X %*% a
-        Lam <- npMLE(Ystar[event ==  0], Tstar, Ystar, rep(w, mt + 1))
-        zHat <- mt / Lam
-        if (any(zHat > 1e5)) zHat <- (mt + .01) / (Lam + .01)
-        ## zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
-        zHat <- ifelse(is.na(zHat), 0, zHat)
-        s1 <- .C("alphaEqC", as.double(X[event == 0,]), as.double(zHat),
-                 as.integer(n), as.integer(p), as.double(w),
-                 res = double(p), PACKAGE = "reReg")$res / n
-        if (r == "s1") return(s1)
-        Lam <- npMLE(Ystar[event == 0], Tstar, Ystar)
-        zHat <- mt / Lam
-        if (any(zHat > 1e5)) zHat <- (mt + .01) / (Lam + .01)
-        ## zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lam + .01), zHat)
-        zHat <- ifelse(is.na(zHat), 0, zHat)
-        Ystar <- (log(Y) + X %*% b)[event == 0]
-        s2 <- .C("betaEst", as.double(Ystar), as.double(X[event == 0,]),
-                 as.double(status[event == 0]), as.double(zHat),
-                 as.double(w), as.integer(n), as.integer(p), res = double(p),
-                 PACKAGE = "reReg")$res / n
-        if (r == "s2") return(s2)
-        return(c(s1, s2))
-    }
-    V <- var(t(apply(E, 2, function(x) Sn(res$alpha, res$beta, x))))
-    V1 <- V[1:p, 1:p]
-    V2 <- V[1:p + p, 1:p + p]
-    lmfit1 <- t(apply(Z, 2, function(x) Sn(res$alpha + x / sqrt(n), res$beta, rep(1, n), "s1")))
-    lmfit2 <- t(apply(Z, 2, function(x) Sn(res$alpha, res$beta + x / sqrt(n), rep(1, n), "s2")))
-    if (p == 1) {
-        J1 <- coef(lm(sqrt(n) * c(lmfit1) ~ c(Z)))[-1]
-        J2 <- coef(lm(sqrt(n) * c(lmfit2) ~ c(Z)))[-1]
-    } else {        
-        J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
-        J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
-    }
-    if (qr(J1)$rank == p) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
-    else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
-    if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
-    else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))    
-    aSE <- sqrt(diag(aVar))
-    bSE <- sqrt(diag(bVar))
-    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
-    ## c(res, list(alphaSE = aSE, betaSE = bSE, da = da, va = va, db = db, vb = vb, B = stdErr@B))
-}
-
-regFit.sc.XCYH.resampling <- function(DF, engine, stdErr) {
-    if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
-        print("Warning: Unidentified solver; BB::dfsane is used.")
-        engine@solver <- "dfsane"
-    }
-    res <- regFit(DF, engine, NULL)
-    DF0 <- subset(DF, event == 0)
-    p <- ncol(DF) - 6
-    X <- as.matrix(DF0[,-(1:6)])
-    n <- nrow(DF0)
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
-    index <- c(1, cumsum(m)[-n] + 1)
-    B <- stdErr@B
-    E <- matrix(rexp(n * B), nrow = n)
-    Z <- matrix(rnorm((2 * p  + 1) * B), nrow = 2 * p + 1)
-    a <- res$alpha
-    b <- c(res$log.muZ, res$beta - res$alpha)
-    U12 <- function(a, b, w) {
-        yi <- log(DF0$time2) + X %*% a
-        tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% a
-        tij <- tij[DF$event == 1]
-        if (engine@eqType %in% c("Logrank", "logrank")) 
-            s1 <- .C("sc1Log", as.integer(n), as.integer(p), as.integer(index - 1),
-                     as.integer(m), as.double(yi), as.double(tij), as.double(X), as.double(w), 
-                     result = double(p), PACKAGE = "reReg")$result
-        if (engine@eqType %in% c("Gehan", "gehan"))
-            s1 <- .C("sc1Gehan", as.integer(n), as.integer(p), as.integer(index - 1),
-                     as.integer(m), as.double(yi), as.double(tij), as.double(X), as.double(w), 
-                     result = double(p), PACKAGE = "reReg")$result / n
-        t0.rate <- sort(unique(c(tij, yi)))
-        rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
-                   as.integer(length(t0.rate)), as.double(w), as.double(yi),
-                   as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
-                   PACKAGE = "reReg")$result
-        Lam <- exp(-approx(t0.rate, rate, yi)$y)
-        tmp <- m / Lam
-        tmp <- ifelse(tmp > 1e5, (m + .01) / (Lam + .01), tmp)
-        s2 <-  .C("sc2", as.integer(n), as.integer(p + 1), as.double(cbind(1, X)),
-                  as.double(exp(as.matrix(cbind(1, X)) %*% b)),
-                  as.double(tmp), as.double(w),
-                  result = double(p + 1), PACKAGE = "reReg")$result / n
-        return(c(s1, s2))
-    }
-    V <- var(t(apply(E, 2, function(x) U12(a, b, x))))
-    tmp <- t(apply(Z, 2, function(x) n^.5 * U12(a + x[1:p] * n^-.5, b + x[-(1:p)] * n^-.5, rep(1, n))))
-    if (p == 1) {
-        J0 <- as.matrix(coef(lm(c(tmp[,1:p]) ~ c(Z[1:p,])))[-1])
-    } else { 
-        J0 <- t(coef(lm(tmp[,1:p] ~ t(Z[1:p,])))[-1,])
-    }
-    Jtmp <- t(coef(lm(tmp[,-(1:p)] ~ t(Z)))[-1,])
-    J <- rbind(cbind(J0, matrix(0, ncol = p + 1, nrow = nrow(J0))), cbind(Jtmp))
-    if (qr(J)$rank == nrow(J)) J <- solve(J) else J <- ginv(J)
-    if (qr(J0)$rank == nrow(J0)) J0 <- solve(J0) else J0 <- ginv(J0)
-    ase <- J %*% V %*% t(J)
-    betaSE <- ase[1:p, 1:p] + ase[(p + 2):(2 * p + 1), (p + 2):(2 * p + 1)] +
-        2 * ase[1:p, (p + 2):(2 * p + 1)]
-    if (is.null(dim(betaSE))) betaSE <- sqrt(betaSE)
-    else betaSE <- sqrt(diag(betaSE))
-    alphaSE <- sqrt(diag(J0 %*% V[1:p, 1:p] %*% t(J0)))
-    if (all(alphaSE == 0)) alphaSE <- ase[1:p, 1:p]    
-    list(alpha = a, beta = res$beta,
-         alphaSE = alphaSE, betaSE = betaSE,
-         gamma = b,
-         varMat = ase,
-         log.muZ = res$log.muZ,
-         values = c(res$a.value, res$b.value),
-         alphaVar = as.matrix(ase[1:p, 1:p]),
-         betaVar = as.matrix(ase[1:p, 1:p] +
-                             ase[(p+2):(2*p+1), (p+2):(2*p+1)] +
-                             2 * ase[1:p, (p+2):(2*p+1)]))
 }
 
 ##############################################################################
@@ -1061,20 +797,11 @@ setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), regFit
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "resampling"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.GL", stdErr = "NULL"), regFit.cox.GL)
 setMethod("regFit", signature(engine = "cox.GL", stdErr = "resampling"), regFit.cox.GL)
-setMethod("regFit", signature(engine = "cox.HW", stdErr = "NULL"), regFit.cox.HW)
-setMethod("regFit", signature(engine = "am.XCHWY", stdErr = "NULL"), regFit.am.XCHWY)
 setMethod("regFit", signature(engine = "am.GL", stdErr = "NULL"), regFit.am.GL)
-setMethod("regFit", signature(engine = "sc.XCYH", stdErr = "NULL"), regFit.sc.XCYH)
 setMethod("regFit", signature(engine = "Engine", stdErr = "bootstrap"),
           regFit.Engine.Bootstrap)
-setMethod("regFit", signature(engine = "cox.HW", stdErr = "resampling"),
-          regFit.cox.HW.resampling)
 setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
           regFit.am.GL.resampling)
-setMethod("regFit", signature(engine = "am.XCHWY", stdErr = "resampling"),
-          regFit.am.XCHWY.resampling)
-setMethod("regFit", signature(engine = "sc.XCYH", stdErr = "resampling"),
-          regFit.sc.XCYH.resampling)
 
 setGeneric("npFit", function(DF, alpha, beta, engine, stdErr) {standardGeneric("npFit")})
 setMethod("npFit", signature(engine = "general", stdErr = "NULL"), npFit.general)
@@ -1192,7 +919,7 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, B = 200, 
-                  method = "cox.LWYY", se = c("NULL", "bootstrap", "resampling"), control = list()) {
+                  method = "cox.LWYY", se = c("resampling", "bootstrap", "NULL"), control = list()) {
     se <- match.arg(se)
     Call <- match.call()
     if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 
@@ -1221,13 +948,27 @@ reReg <- function(formula, data, B = 200,
     if (method %in% c("cox", "am", "sc", "ar")) {
         recType <- temType <- method
         method <- "general"
-    }        
+    }
+    ## Special cases:
+    if (method == "cox.HW") {
+        recType <- temType <- "cox"
+        method <- "general"
+    }
+    if (method == "am.XCHWY") {
+        recType <- temType <- "am"
+        method <- "general"
+    }
+    if (method == "sc.XCYH") {
+        recType <- "sc"
+        temType <- "."
+        method <- "general"        
+    }
     engine.control <- control[names(control) %in% names(attr(getClass(method), "slots"))]
     engine <- do.call("new", c(list(Class = method), engine.control))
     if (method == "general") {
         engine@recType <- recType
         engine@temType <- temType
-    }
+    }    
     if (se == "NULL")
         stdErr <- NULL
     else {
@@ -1243,7 +984,8 @@ reReg <- function(formula, data, B = 200,
     if (length(engine@a0) == 1 & any(grepl("ar|am", c(method, engine@recType), fixed = FALSE)))    
         engine@a0 <- rep(engine@a0, p)
     if (length(engine@b0) == 1) {
-        if (any(grepl("sc", c(method, engine@recType), fixed = FALSE))) engine@b0 <- rep(engine@b0, 2 * p)
+        if (any(grepl("sc", c(method, engine@recType), fixed = FALSE)))
+            engine@b0 <- rep(engine@b0, 2 * p)
         else engine@b0 <- rep(engine@b0, p)
     }
     if (formula == ~1) {
@@ -1308,77 +1050,11 @@ eqSolve <- function(par, fn, solver, ...) {
 ## Probably need to clean these up someday
 ##############################################################################
 
-npMLE <- function(t, tij, yi, weights = NULL) {
-    if (is.null(weights)) weights <- rep(1, length(yi))
-    ttmp <- tij[tij != yi]
-    ord <- order(ttmp)
-    sl <- unique(ttmp[ord])
-    l <- ifelse(min(t) < max(sl), which(sl > min(t))[1], length(sl))
-    tmp <- sl[l:length(sl)]
-    tmp <- rev(tmp)
-    tij <- rev(tij)
-    yi <- rev(yi)
-    wi <- rev(weights)
-    ## print(length(weights))
-    res <- .C("plLambda", as.double(tmp), as.double(tij), as.double(yi), as.double(wi), 
-              as.integer(length(tmp)), as.integer(length(yi)),
-              out = double(length(tmp)),
-              PACKAGE = "reReg")$out
-    out <- rev(res)[sapply(t, function(x) which(rev(tmp) >= x)[1])]
-    out <- ifelse(is.na(out), 0, out)
-    out <- exp(-out)
-    return(out)
-}
-
 baseHaz <- function(t0, Y, zhat, delta, weights  = NULL) {
     if (is.null(weights)) weights <- rep(1, length(Y))
     .C("hwHaz", as.double(t0), as.double(Y), as.double(zhat), as.double(delta),
        as.double(weights), as.integer(length(Y)), as.integer(length(t0)), 
        out = double(length(t0)), PACKAGE = "reReg")$out
-}
-
-alphaEq <- function(alpha, X, Y, T, cluster, mt, weights = NULL) {
-    n <- sum(cluster == 1)
-    if (is.null(weights)) weights <- rep(1, n)
-    p <- ncol(X)
-    Ystar <- log(Y) + X %*% alpha
-    Tstar <- log(T) + X %*% alpha
-    Lambda <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar, weights = rep(weights, mt + 1))
-    zHat <- mt / Lambda
-    if (any(zHat > 1e5)) zHat <- (mt + .01) / (Lambda + .01)
-    ## zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lambda + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    res <- .C("alphaEqC", as.double(X[which(cluster == 1), ]), as.double(zHat),
-              as.integer(n), as.integer(p), as.double(weights), 
-              out = double(p), PACKAGE = "reReg")$out
-    res / n
-}
-
-betaEq <- function(X, Y, T, cluster, mt, delta, zHat = NULL, alpha, beta, weights = NULL) {
-    p <- ncol(X)
-    n <- sum(cluster == 1)
-    if (is.null(weights)) weights <- rep(1, n)
-    if (is.null(zHat)) {
-        Ystar <- Y * exp(X %*% alpha)
-        Tstar <- T * exp(X %*% alpha)
-        ## Ystar <- log(Y) + X %*% alpha
-        ## Tstar <- log(T) + X %*% alpha
-        lambda <- npMLE(Ystar[which(cluster == 1)], Tstar, Ystar, weights = rep(weights, mt + 1))
-        ## weights = rep(weights, diff(c(which(cluster ==1), length(cluster)+1))))
-        ## zHat <- as.numeric(weights * mt / lambda)
-        zHat <- weights * mt / lambda
-        if (any(zHat > 1e5)) zHat <- (mt + .01) / (lambda + .01)
-        zHat <- ifelse(zHat > 1e5, (mt + .01) / (lambda + .01), zHat)
-        zHat <- ifelse(is.na(zHat), 0, zHat)
-        ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    }
-    Y <- log(Y) + X %*% beta
-    Y <- Y[which(cluster == 1)]
-    X <- X[which(cluster == 1), ]
-    res <- .C("betaEst", as.double(Y), as.double(X), as.double(delta), as.double(zHat),
-              as.double(weights), as.integer(n), as.integer(p),
-              out = double(p), PACKAGE = "reReg")$out
-    res / n
 }
 
 ## LWYYeq <- function(beta, X, Y, T, cl) {
@@ -1402,30 +1078,6 @@ coxGLeq <- function(beta, X, Y, T, cl, wgt) {
        as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
        as.integer(nrow(X)), as.integer(p),        
        out = double(p), PACKAGE = "reReg")$out       
-}
-                    
-HWeq <-function(gamma, X, Y, T, cluster, mt, weights = NULL) {
-    if (is.null(weights)) weights <- rep(1, length(T))
-    n <- sum(cluster == 1)
-    Lambda <- npMLE(Y[cluster == 1], T, Y, weights)
-    zHat <- mt / Lambda
-    zHat <- ifelse(zHat > 1e5, (mt + .01) / (Lambda + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat) 
-    p <- ncol(X)
-    xr <- exp(X %*% gamma)
-    .C("sarm1", as.double(X), as.double(weights[cumsum(mt + 1)]), as.double(xr), 
-       as.double(zHat), as.integer(n), as.integer(p),
-       res = double(p), PACKAGE = "reReg")$res / n
-}
-
-HWeq2 <-function(beta, X, Y, delta, zHat, weights = NULL) {
-    if (is.null(weights)) weights <- rep(1, length(Y))        
-    n <- nrow(X)
-    p <- ncol(X)
-    res <- .C("HWb", as.double(Y), as.double(X), as.double(delta), as.double(zHat),
-              as.double(X %*% beta), as.double(weights), as.integer(n), as.integer(p), 
-              out = double(p), PACKAGE = "reReg")$out
-    res / n
 }
 
 varOut <- function(dat, na.rm = TRUE) {
