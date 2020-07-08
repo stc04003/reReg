@@ -226,7 +226,8 @@ regFit.general <- function(DF, engine, stdErr) {
         engine@solver <- "dfsane"
     }
     out <- s1(engine@recType, DF, engine@eqType, engine@solver, engine@a0)
-    out <- c(out, s2(engine@recType, DF, engine@eqType, engine@solver, engine@b0, out$zi))
+    if (engine@temType != ".")
+        out <- c(out, s2(engine@temType, DF, engine@eqType, engine@solver, engine@b0, out$zi))
     out$recType <- engine@recType
     out$temType <- engine@temType
     return(out)
@@ -253,7 +254,8 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     n <- length(unique(DF$id))
     B <- stdErr@B
-    E <- matrix(rexp(n * B), n)
+    E1 <- matrix(rexp(n * B), n)
+    E2 <- matrix(rexp(n * B), n)
     p <- ncol(DF) - 6
     a0 <- res$alpha
     b0 <- res$beta
@@ -261,30 +263,33 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
         a0 <- c(res$alpha[1:p], res$log.muZ, res$alpha[1:p + p] - res$alpha[1:p])
     if (engine@recType == "cox")
         a0 <- c(res$log.muZ, res$alpha)    
-    tmpV <- apply(E, 2, function(ee) {
-        tmp <- s1(engine@recType, DF, engine@eqType, NULL, a0, ee)
-        c(tmp$value, s2(engine@temType, DF, engine@eqType, NULL, b0, tmp$zi, ee))        
+    tmpV <- sapply(1:B, function(ee) {
+        tmp <- s1(engine@recType, DF, engine@eqType, NULL, a0, E1[,ee])
+        c(tmp$value, s2(engine@temType, DF, engine@eqType, NULL, b0, E2[,ee] * tmp$zi, E2[,ee]))
     })
     V <- var(t(tmpV))
     Z <- matrix(rnorm(ncol(V) * B), B)
     na <- length(a0)
     nb <- length(b0)
     L <- apply(Z, 1, function(zz) {
-        c(s1(engine@recType, DF, engine@eqType, NULL, a0 + zz[1:na] / sqrt(n))$value,
-          s2(engine@temType, DF, engine@eqType, NULL, b0 + tail(zz, nb) / sqrt(n), res$zi))
+        tmp <- s1(engine@recType, DF, engine@eqType, NULL, a0 + zz[1:na] / sqrt(n))
+        c(tmp$value, s2(engine@temType, DF, engine@eqType, NULL, b0 + tail(zz, nb) / sqrt(n), res$zi))
     })
     L <- t(L)
     J <- solve(t(Z) %*% Z) %*% t(Z) %*% (sqrt(n) * L)
-    ## if (engine@recType == "sc") ind <- c(1:p, (p + 2):(2 * p + 1))
-    ## if (engine@recType == "cox") ind <- c(2:(p + 1))
-    ## if (engine@recType %in% c("ar", "am")) ind <- 1:p
-    aVar <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
-    if (engine@recType == "cox") aVar <- aVar[-1, -1]
-    if (engine@recType == "sc") aVar <- aVar[-(p + 1), -(p + 1)]
-    ind2 <- tail(1:nrow(J), nb)
-    bVar <- solve(J[ind2, ind2]) %*% V[ind2, ind2] %*% t(solve(J[ind2, ind2]))
-    return(c(res, list(alphaSE = sqrt(diag(aVar)), betaSE = sqrt(diag(bVar)),
-                       alphaVar = aVar, betaVar = bVar)))
+    varMat <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
+    if (engine@recType == "cox") aVar <- varMat[-1, -1]
+    if (engine@recType == "sc") {
+        aVar <- varMat[-(p + 1), -(p + 1)]
+    }
+    res <- c(res, list(alphaSE = sqrt(diag(as.matrix(aVar))), alphaVar = aVar, varMat = varMat))
+    if (nb > 0) {
+        ind2 <- tail(1:nrow(J), nb)
+        bVar <- solve(J[ind2, ind2]) %*% V[ind2, ind2] %*% t(solve(J[ind2, ind2]))
+        res$betaSE <- sqrt(diag(as.matrix(bVar)))
+        res$betaVar = bVar
+    } 
+    return(res)
 }
 
 ##############################################################################
@@ -1272,8 +1277,16 @@ reReg <- function(formula, data, B = 200,
 #'
 #' @noRd
 #' @importFrom BB spg
+#' @importFrom rootSolve uniroot.all
 #' @keywords internal
 eqSolve <- function(par, fn, solver, ...) {
+    if (length(fn(par, ...)) == 1) {
+        tmp <- uniroot.all(Vectorize(fn), interval = c(par - 10, par + 10))
+        out <- NULL
+        out$par <- tmp[which.min(abs(tmp - par))]
+        out$convergence <- 0 ## 1 * (abs(fn(out$par, ...)) < 1e-5)
+        return(out)
+    }
     if (solver == "dfsane") {
         out <- dfsane(par = par, fn = function(z) fn(z, ...), 
                       alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))

@@ -241,8 +241,10 @@ arma::rowvec temLog(const arma::vec& a,
   arma::vec yexa = Y % exp(X * a);
   arma::vec ebax = exp(X * (b - a)); 
   arma::mat Iij = arma::conv_to<arma::mat>::from(repmat(yexa, 1, n) <= repmat(yexa, 1, n).t());
-  arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
-  arma::mat de = Iij * (ebax % Z % W);
+  // arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
+  // arma::mat de = Iij * (ebax % Z % W);
+  arma::mat nu = Iij * (X % repmat(ebax % Z, 1, X.n_cols));
+  arma::mat de = Iij * (ebax % Z);
   arma::mat tmp = nu / repmat(de, 1, nu.n_cols);
   tmp.replace(arma::datum::nan, 0);
   arma::mat D2 = repmat(D % W, 1, X.n_cols);

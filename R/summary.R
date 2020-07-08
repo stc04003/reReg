@@ -2,30 +2,53 @@
 print.reReg <- function(x, ...) {
     if (!is.reReg(x))
         stop("Must be a reReg x")
-    cat("Call: ")
-    print(x$call)
+    cat("Call: \n")
+    dput(x$call)
     if (all(!is.na(x$alpha))) {
-        if (x$method != "cox.LWYY") {
-            if (x$method == "am.XC") 
-                cat("\nMethod: Joint Scale-Change Model \n")
-            if (x$method == "am.GL")
-                cat("\nMethod: Ghosh-Lin Model (Accelerated mean model)\n")
-            if (x$method == "cox.GL")
-                cat("\nMethod: Ghosh-Lin Model (Cox type model)\n")
-            if (x$method == "cox.HW")
-                cat("\nMethod: Huang-Wang Model \n")
-            cat("\nCoefficients:\n")
-            coefMat <- rbind(x$alpha, x$beta)
-            rownames(coefMat) <- c("alpha", "beta")
-            colnames(coefMat) <- x$varNames
+        ## if (x$method != "cox.LWYY") {
+        ##     if (x$method == "am.XC") 
+        ##         cat("\nMethod: Joint Scale-Change Model \n")
+        ##     if (x$method == "am.GL")
+        ##         cat("\nMethod: Ghosh-Lin Model (Accelerated mean model)\n")
+        ##     if (x$method == "cox.GL")
+        ##         cat("\nMethod: Ghosh-Lin Model (Cox type model)\n")
+        ##     if (x$method == "cox.HW")
+        ##         cat("\nMethod: Huang-Wang Model \n")
+        ##     cat("\nCoefficients:\n")
+        ##     coefMat <- rbind(x$alpha, x$beta)
+        ##     rownames(coefMat) <- c("alpha", "beta")
+        ##     colnames(coefMat) <- x$varNames
+        ## } else {
+        ##     cat("\nMethod: Lin-Wei-Yang-Ying Model \n")
+        ##     cat("\nCoefficients:\n")
+        ##     coefMat <- rbind(x$alpha, NULL)
+        ##     rownames(coefMat) <- c("alpha")
+        ##     colnames(coefMat) <- x$varNames        
+        ## }
+        cat("\nRecurrent event process:")
+        if (x$recType == "sc") {
+            p <- length(x$alpha) / 2
+            mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
+                         rep(x$varNames, 2), format(x$alpha, digits = 4))
+            prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", ncol(mat)), quote = FALSE)
         } else {
-            cat("\nMethod: Lin-Wei-Yang-Ying Model \n")
-            cat("\nCoefficients:\n")
-            coefMat <- rbind(x$alpha, NULL)
-            rownames(coefMat) <- c("alpha")
-            colnames(coefMat) <- x$varNames        
+            mat <- rbind(x$varNames, format(x$alpha, digits = 4))
+            prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", ncol(mat)), quote = FALSE)
         }
-        print(coefMat)
+        if (length(x$beta) > 0) {
+            cat("Terminal event:")
+            if (x$recType == "sc") {
+                p <- length(x$beta) / 2
+                mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
+                             rep(x$varNames, 2), format(x$beta, digits = 4))
+                prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", ncol(mat)), quote = FALSE)
+            } else {
+                mat <- rbind(x$varNames, format(x$beta, digits = 4))
+                prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", ncol(mat)), quote = FALSE)
+            }
+            
+        }
+        ## print.default(format(x$alpha, digits = digits), print.gap = 2L, quote = FALSE)
     } else {
         n <- length(unique(x$DF$id))
         nevent <- sum(x$DF$event)
@@ -37,6 +60,11 @@ print.reReg <- function(x, ...) {
     }
 }
 
+pvalTab <- function(pe, se) {
+    cbind(Estimate = round(pe, 3), StdErr = round(se, 3),
+          z.value = round(pe / se, 3), p.value = round(2 * pnorm(-abs(pe / se)), 3))    
+}
+    
 #' @export
 summary.reReg <- function(object, ...) {
     if (!is.reReg(object)) stop("Must be a reReg x")
@@ -45,16 +73,17 @@ summary.reReg <- function(object, ...) {
             if (object$method == "cox.LWYY") object$betaSE <- NA
             else object$alphaSE <- object$betaSE <- NA
         }
-        tabA <- cbind(Estimate = round(object$alpha, 3),
-                      StdErr = round(object$alphaSE, 3),
-                      z.value = round(object$alpha / object$alphaSE, 3),
-                      p.value = round(2 * pnorm(-abs(object$alpha / object$alphaSE)), 3))
-        rownames(tabA) <- object$varNames
-        tabB <- cbind(Estimate = round(object$beta, 3),
-                      StdErr = round(object$betaSE, 3),
-                      z.value = round(object$beta / object$betaSE, 3),
-                      p.value = round(2 * pnorm(-abs(object$beta / object$betaSE)), 3))
-        rownames(tabB) <- object$varNames
+        tabA <- pvalTab(object$alpha, object$alphaSE)
+        tabB <- NULL
+        if (object$recType == "sc") {
+            p <- length(object$alpha) / 2
+            rownames(tabA) <- rep(object$varNames, 2)
+            tabA <- list(tabA1 = tabA[1:p,, drop = FALSE], tabA2 = tabA[-(1:p),, drop = FALSE])
+        } else rownames(tabA) <- object$varNames
+        if (!is.null(object$beta)) {
+            tabB <- pvalTab(object$beta, object$betaSE)
+            rownames(tabB) <- object$varNames
+        }
         out <- list(call = object$call, method = object$method, tabA = tabA, tabB = tabB)
     } else {
         out <- list(call = object$call, method = object$method, 
@@ -64,28 +93,33 @@ summary.reReg <- function(object, ...) {
                                       cum.haz.U = object$hazU), tabA = NA)
         ## assuming tabA is na if fit with ~1
     }
-    if (object$method == "sc.XCYH" & object$se == "resampling") {
-        p <- length(object$alpha)
-        out$HA.chi <- object$alpha %*% solve(object$varMat[1:p, 1:p]) %*% object$alpha
-        out$HB.chi <- object$beta %*%
-            solve(object$varMat[1:p, 1:p] + object$varMat[(p+2):(2*p+1), (p+2):(2*p+1)] +
-                  2 * object$varMat[1:p, (p+2):(2*p+1)]) %*% object$beta
-        out$HG.chi <- object$gamma[-1] %*%
-            solve(object$varMat[(p+2):(2*p+1), (p+2):(2*p+1)]) %*% object$gamma[-1]
-        out$HA.pval <- 1 - pchisq(out$HA.chi, length(object$alpha))
-        out$HB.pval <- 1 - pchisq(out$HB.chi, length(object$beta))
-        out$HG.pval <- 1 - pchisq(out$HG.chi, length(object$beta))
+    if (object$recType == "sc" & object$se == "resampling") {
+        p <- length(object$alpha) / 2
+        out$HA.chi <- object$alpha[1:p] %*%
+            solve(object$varMat[1:p, 1:p, drop = FALSE]) %*% object$alpha[1:p]
+        out$HB.chi <- object$alpha[-(1:p)] %*%
+            solve(object$varMat[1:p, 1:p, drop = FALSE] +
+                  object$varMat[(p+2):(2*p+1), (p+2):(2*p+1), drop = FALSE] +
+                  2 * object$varMat[1:p, (p+2):(2*p+1), drop = FALSE]) %*%
+            object$alpha[-(1:p)]
+        g <- object$alpha[-(1:p)] - object$alpha[1:p]
+        out$HG.chi <- g %*% solve(object$varMat[(p+2):(2*p+1), (p+2):(2*p+1), drop = FALSE]) %*% g
+        out$HA.pval <- 1 - pchisq(out$HA.chi, p)
+        out$HB.pval <- 1 - pchisq(out$HB.chi, p)
+        out$HG.pval <- 1 - pchisq(out$HG.chi, p)
     }
+    out$recType <- object$recType
+    out$temType <- object$temType
     class(out) <- "summary.reReg"
     out
 }
 
 #' @export
 print.summary.reReg <- function(x, ...) {
-    cat("Call: ")
-    print(x$call)
+    cat("Call: \n")
+    dput(x$call)
     if (!is.na(x$tabA)[1]) {
-        if (x$method != "sc.XCYH" & x$method != "cox.LWYY") {
+        if (x$recType != "sc" & x$method != "cox.LWYY") {
             if (x$method == "am.XC") 
                 cat("\nMethod: Joint Scale-Change Model \n")
             if (x$method == "am.GL")
@@ -94,18 +128,20 @@ print.summary.reReg <- function(x, ...) {
                 cat("\nMethod: Xu et al. (2016) Model \n")
             if (x$method == "cox.HW")
                 cat("\nMethod: Huang-Wang Model \n")
-            cat("\nCoefficients (rate):\n")
+            ## cat("\nCoefficients (rate):\n")
+            cat("\nRecurrent event process:\n")
             printCoefmat(as.data.frame(x$tabA), P.values = TRUE, has.Pvalue = TRUE)
-            cat("\nCoefficients (hazard):\n")
+            ## cat("\nCoefficients (hazard):\n")
+            cat("\nTerminal event:\n")
             printCoefmat(as.data.frame(x$tabB), P.values = TRUE, has.Pvalue = TRUE)
         }
-        if (x$method == "sc.XCYH") {
-            p <- nrow(x$tabA)
+        if (x$recType == "sc") {
+            p <- nrow(x$tabA$tabA1)
             cat("\nMethod: Generalized Scale-Change Model \n")
-            cat("\nScale-change effect:\n")
-            printCoefmat(as.data.frame(x$tabA), P.values = TRUE, has.Pvalue = TRUE)
-            cat("\nMultiplicative coefficients:\n")
-            printCoefmat(as.data.frame(x$tabB), P.values = TRUE, has.Pvalue = TRUE)
+            cat("\nShape:\n")
+            printCoefmat(as.data.frame(x$tabA[[1]]), P.values = TRUE, has.Pvalue = TRUE)
+            cat("\nSize:\n")
+            printCoefmat(as.data.frame(x$tabA[[2]]), P.values = TRUE, has.Pvalue = TRUE)
             if (!is.null(x$HA.chi)) {
                 cat("\nHypothesis tests:\n")
                 cat("\nH0 Cox-type model:")
@@ -117,6 +153,10 @@ print.summary.reReg <- function(x, ...) {
                 cat("\nH0 Accelerated mean model:")
                 cat(paste("\n     X-squared = ", round(x$HG.chi, 4), ", df = ", p,
                           ", p-value = ", round(x$HG.pval, 4), sep = ""))
+            }
+            if (length(x$beta) > 0) {
+                cat("\nTerminal event:\n")
+                printCoefmat(as.data.frame(x$tabB), P.values = TRUE, has.Pvalue = TRUE)
             }
         }
         if (x$method == "cox.LWYY") {
@@ -139,10 +179,12 @@ print.summary.reReg <- function(x, ...) {
 
 #' @export
 coef.reReg <- function(object, ...) {
-    as.numeric(c(object$alpha, object$beta))
+    if (is.null(object$beta)) return(object$alpha)
+    return(as.numeric(c(object$alpha, object$beta)))
 }
 
 #' @export
 vcov.reReg <- function(object, ...) {
-    list(alpha.vcov = object$alphaVar, beta.vcov = object$betaVar)
+    if (is.null(object$betaVar)) return(object$alphaVar)
+    return(list(alpha.vcov = object$alphaVar, beta.vcov = object$betaVar))
 }

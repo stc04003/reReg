@@ -36,7 +36,7 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
         Lam <- exp(-rate)
         R <- m / Lam
         R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-        zi <- Wi * R / exp(Xi[,-1] %*% tail(a0, p))
+        zi <- R / exp(Xi[,-1, drop = FALSE] %*% tail(a0, p))
         return(list(value = c(U1(a0[1:p]), U2(a0[-(1:p)])), zi = zi))
     } else {
         fit.a <- eqSolve(a0[1:p], U1, solver)
@@ -52,7 +52,7 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
         return(list(alpha = c(fit.a$par, fit.b$par[-1] + fit.a$par),
                     aconv = c(fit.a$convergence, fit.b$convergence),
                     log.muZ = fit.b$par[1],
-                    zi = Wi * R / exp(Xi[,-1] %*% fit.b$par[-1]),
+                    zi = R / exp(Xi[,-1, drop = FALSE] %*% fit.b$par[-1]),
                     Lam0 = approxfun(yexa2[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
                                      yleft = min(Lam), yright = max(Lam))))
     }
@@ -85,7 +85,7 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         Lam <- exp(-rate)
         R <- m / Lam
         R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-        zi <- Wi * R * exp(as.matrix(df0[,-c(1:6)]) %*% a0)
+        zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% a0)
         return(list(value = U1(a0), zi = zi))
     } else {
         fit.a <- eqSolve(a0, U1, solver)
@@ -97,7 +97,7 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         Lam <- exp(-rate)
         R <- m / Lam
         R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-        zi <- Wi * R * exp(as.matrix(df0[,-c(1:6)]) %*% fit.a$par)
+        zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% fit.a$par)
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
                     log.muZ = log(mean(zi)), zi = zi,
@@ -135,13 +135,13 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
     U1 <- function(b) as.numeric(re2(b, R, Xi, Wi))
     if (is.null(solver)) { 
         return(list(value = U1(a0),
-                    zi = R / exp(Xi[,-1] %*% a0[-1])))
+                    zi = Wi * R / exp(Xi[,-1, drop = FALSE] %*% a0[-1])))
     } else {
         fit.a <- eqSolve(a0, U1, solver)
         return(list(alpha = fit.a$par[-1],
                     aconv = fit.a$convergence,
                     log.muZ = fit.a$par[1],
-                    zi = Wi * R / exp(Xi[,-1] %*% fit.a$par[-1]),
+                    zi = R / exp(Xi[,-1, drop = FALSE] %*% fit.a$par[-1]),
                     Lam0 = approxfun(yi[!duplicated(yi)], Lam[!duplicated(yi)],
                                      yleft = min(Lam), yright = max(Lam))))
     }
@@ -167,7 +167,7 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         yexa <- log(yi) + xi %*% a0
         rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
         Lam <- exp(-rate)
-        R <- Wi * m / Lam
+        R <- m / Lam
         R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(value = U1(a0), zi = R))
     } else {
@@ -177,7 +177,7 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         yexa <- log(yi) + xi %*% ahat
         rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
         Lam <- exp(-rate)
-        R <- Wi * m / Lam
+        R <- m / Lam
         R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
@@ -215,7 +215,8 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     if (eqType == "gehan") 
         U1 <- function(x) as.numeric(temScGehan(x[1:p], x[1:p + p], xi, yi, zi, di, wi))
     if (is.null(solver)) return(U1(b0))
-    else {fit.a <- eqSolve(b0, U1, solver)
+    else {
+        fit.a <- eqSolve(b0, U1, solver)
         rate <- c(temHaz(fit.a$par[1:p + p], fit.a$par[1:p], xi, yi, zi, di, wi, sort(unique(yi))))
         Lam0 <- exp(-rate)    
         return(list(beta = fit.a$par,
