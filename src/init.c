@@ -28,6 +28,18 @@ extern void sc1Log(void *, void *, void *, void *, void *, void *, void *, void 
 extern void sc2(void *, void *, void *, void *, void *, void *, void *);
 extern void scRate(void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
+/* .Call calls */
+extern SEXP _reReg_am1(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_re2(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_reGehan(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_reLog(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_reRate(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_temGehan(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_temHaz(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_temLog(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_temScGehan(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_temScLog(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+
 static const R_CMethodDef CEntries[] = {
     {"alphaEqC",   (DL_FUNC) &alphaEqC,    6},
     {"betaEst",    (DL_FUNC) &betaEst,     8},
@@ -48,8 +60,22 @@ static const R_CMethodDef CEntries[] = {
     {NULL, NULL, 0}
 };
 
+static const R_CallMethodDef CallEntries[] = {
+    {"_reReg_am1",        (DL_FUNC) &_reReg_am1,        6},
+    {"_reReg_re2",        (DL_FUNC) &_reReg_re2,        4},
+    {"_reReg_reGehan",    (DL_FUNC) &_reReg_reGehan,    5},
+    {"_reReg_reLog",      (DL_FUNC) &_reReg_reLog,      5},
+    {"_reReg_reRate",     (DL_FUNC) &_reReg_reRate,     4},
+    {"_reReg_temGehan",   (DL_FUNC) &_reReg_temGehan,   7},
+    {"_reReg_temHaz",     (DL_FUNC) &_reReg_temHaz,     8},
+    {"_reReg_temLog",     (DL_FUNC) &_reReg_temLog,     7},
+    {"_reReg_temScGehan", (DL_FUNC) &_reReg_temScGehan, 7},
+    {"_reReg_temScLog",   (DL_FUNC) &_reReg_temScLog,   7},
+    {NULL, NULL, 0}
+};
+
 void R_init_reReg(DllInfo *dll)
 {
-    R_registerRoutines(dll, CEntries, NULL, NULL, NULL);
+    R_registerRoutines(dll, CEntries, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

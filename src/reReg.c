@@ -29,7 +29,7 @@ void plLambda(double *sl, double *tij, double *yi, double *weights,
 }
 
 void sarm1(double *X, double *weights, double *xr, 
-	   int *ratio, int *n, int *p, double *res) {
+	   double *ratio, int *n, int *p, double *res) {
   int i, r; 
   for (i = 0; i < *n; i++) {
     for (r = 0; r < *p; r++) {

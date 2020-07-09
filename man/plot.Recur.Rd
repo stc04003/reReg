@@ -2,16 +2,16 @@
 % Please edit documentation in R/plot.R
 \name{plot.Recur}
 \alias{plot.Recur}
-\title{Produce Event Plot or Cumulative Sample Mean Function Plot}
+\title{Produce Event Plot or Mean Cumulative Function Plot}
 \usage{
-\method{plot}{Recur}(x, CSM = FALSE, event.result = c("increasing",
-  "decreasing", "asis"), csm.adjrisk = TRUE, csm.smooth = FALSE,
+\method{plot}{Recur}(x, mcf = FALSE, event.result = c("increasing",
+  "decreasing", "asis"), mcf.adjrisk = TRUE, mcf.smooth = FALSE,
   control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{Recur} returned by the \code{Recur()} function.}
 
-\item{CSM}{an optional logical value indicating whether the cumulative sample mean (CSM) function will
+\item{mcf}{an optional logical value indicating whether the mean cumulative function (MCF) will
 be plotted instead of the event plot (default).}
 
 \item{event.result}{an optional character string that is passed to the \code{plotEvents()} function as \code{result}, e.g., see \code{\link{plotEvents}}.
@@ -23,10 +23,10 @@ The available options are
   \item{\code{asis}}{present the as is, without sorting.}
 }}
 
-\item{csm.adjrisk}{an optional logical value that is passed to the \code{plotCSM()} function as \code{adjrisk}, e.g., see \code{\link{plotCSM}}.
+\item{mcf.adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as \code{adjrisk}, e.g., see \code{\link{plotMCF}}.
 This argument indicates whether risk set will be adjusted, e.g., if \code{TRUE}, subjects leave the risk set after terminal times.}
 
-\item{csm.smooth}{an optional logical value that is passed to the \code{plotCSM()} function as \code{smooth}, e.g., see \code{\link{plotCSM}}.
+\item{mcf.smooth}{an optional logical value that is passed to the \code{plotMCF()} function as \code{smooth}, e.g., see \code{\link{plotMCF}}.
 This argument indicates whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
@@ -38,15 +38,15 @@ These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details
 A \code{ggplot} object.
 }
 \description{
-Plot whether the event plot or the cumulative sample mean (CSM) function for an \code{Recur} object.
+Plot whether the event plot or the mean cumulative function (MCF) for an \code{Recur} object.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a list with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
-  \item{ylab}{customizable y-label, default value is "Subject" for event plot and "Cumulative mean" for CSM plot.}
-  \item{main}{customizable title, the default value is "Recurrent event plot" when \code{CSM = FALSE} and
-"Sample cumulative mean function plot" when \code{CSM = TRUE}.}
+  \item{ylab}{customizable y-label, default value is "Subject" for event plot and "Cumulative mean" for MCF plot.}
+  \item{main}{customizable title, the default value is "Recurrent event plot" when \code{mcf = FALSE} and
+"Sample cumulative mean function plot" when \code{mcf = TRUE}.}
   \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}

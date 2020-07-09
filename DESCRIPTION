@@ -1,6 +1,6 @@
 Package: reReg
 Title: Recurrent Event Regression
-Version: 1.2.1
+Version: 1.3.0
 Authors@R: c(person(given = "Sy Han (Steven)", family = "Chiou",
 	   email = "schiou@utdallas.edu",
 	   role = c("aut", "cre")),
@@ -13,7 +13,19 @@ Encoding: UTF-8
 LazyData: true
 URL: http://github.com/stc04003/reReg
 BugReports: http://github.com/stc04003/reReg/issues
-Imports: BB, nleqslv, SQUAREM, survival, ggplot2, MASS, methods, reda (>= 0.5.0), scam
+Imports: 
+    BB,
+    nleqslv,
+    SQUAREM,
+    survival,
+    ggplot2,
+    MASS,
+    methods,
+    reda (>= 0.5.0),
+    scam,
+    Rcpp,
+    rootSolve
+LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
 Packaged: 2018-06-03 00:41:51 UTC; schiou

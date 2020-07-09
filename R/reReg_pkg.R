@@ -32,8 +32,12 @@
 #' @importFrom ggplot2 element_blank element_line element_rect xlab ylab scale_x_continuous alpha guides guide_legend geom_step scale_color_discrete
 #' @importFrom grDevices hcl
 #' @importFrom parallel makeCluster clusterExport stopCluster detectCores parSapply
+#' @importFrom Rcpp sourceCpp
 #' 
 #' @docType package
-#' @useDynLib reReg, .registration = TRUE
+#' @useDynLib reReg
 "_PACKAGE"
 NULL
+
+
+## #' @useDynLib reReg, .registration = TRUE
