@@ -33,7 +33,7 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #' This argument indicates whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param mcf.adjrisk an optional logical value that is passed to the \code{plotMCF()} function as \code{adjrisk}, e.g., see \code{\link{plotMCF}}.
 #' This argument indicates whether risk set will be adjusted, e.g., if \code{TRUE}, subjects leave the risk set after terminal times.
-#' @param MCF an optional logical value indicating whether the mean cumulative function (MCF) will
+#' @param mcf an optional logical value indicating whether the mean cumulative function (MCF) will
 #' be plotted instead of the event plot (default).
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
@@ -45,13 +45,13 @@ globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for p
 #'
 #' @return A \code{ggplot} object.
 #' @example inst/examples/ex_plot_reSurv.R
-plot.Recur <- function(x, MCF = FALSE, event.result = c("increasing", "decreasing", "asis"),
+plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasing", "asis"),
                        mcf.adjrisk = TRUE, mcf.smooth = FALSE,
                        control = list(), ...) {
     result <- match.arg(event.result)
     if (!is.Recur(x)) stop("Response must be a `Recur` object.")
-    if (!MCF) ctrl <- plotEvents.control()
-    if (MCF) ctrl <- plotMCF.control()
+    if (!mcf) ctrl <- plotEvents.control()
+    if (mcf) ctrl <- plotMCF.control()
     call <- match.call()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -62,10 +62,10 @@ plot.Recur <- function(x, MCF = FALSE, event.result = c("increasing", "decreasin
         namp <- namp[namp %in% names(ctrl)]
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
-    if (!MCF) {
+    if (!mcf) {
         return(plotEvents(x, result = event.result, control = ctrl))
     }
-    if (MCF)
+    if (mcf)
         return(plotMCF(x, adjrisk = mcf.adjrisk, smooth = mcf.smooth, control = ctrl))
 }
 
