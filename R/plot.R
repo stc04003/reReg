@@ -580,6 +580,8 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
+#' @param type a character string specifying the type of rate function to be plotted.
+#' Options are "raw", "scaled", "unrestricted". See \bold{Details}.
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
@@ -593,7 +595,8 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' @keywords Plots
 #' 
 #' @example inst/examples/ex_plot_rate.R
-plotRate <- function(x, smooth = FALSE, control = list(), ...) {
+plotRate <- function(x, type = c("raw", "scaled", "unrestricted"),
+                     smooth = FALSE, control = list(), ...) {
     ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -605,6 +608,7 @@ plotRate <- function(x, smooth = FALSE, control = list(), ...) {
         namp <- namp[namp %in% names(ctrl)]
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
+    type <- match.arg(type)
     if (!is.reReg(x)) stop("Response must be a reReg class")
     dat <- subset(x$DF, select = time2)
     dat$Y <- x$rate0(x$DF$time2)

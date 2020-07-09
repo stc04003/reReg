@@ -5,6 +5,8 @@
 #' conv: convergence code
 #' log.muZ: log of mu_Z
 #' zi: Z estimates for id i
+#'
+#' @importFrom utils tail
 #' @noRd
 reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
     df0 <- subset(DF, event == 0)
@@ -53,7 +55,7 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
                     aconv = c(fit.a$convergence, fit.b$convergence),
                     log.muZ = fit.b$par[1],
                     zi = R / exp(Xi[,-1, drop = FALSE] %*% fit.b$par[-1]),
-                    Lam0 = approxfun(yexa2[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
+                    Lam0 = approxfun(exp(yexa2)[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
                                      yleft = min(Lam), yright = max(Lam))))
     }
 }
@@ -71,7 +73,7 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         Wi <- rep(1, length(m))
         wi <- rep(Wi, m)
     } else {
-        if (length(wgt) != nrow(Xi)) stop("Weight length mismatch")
+        if (length(wgt) != nrow(xi)) stop("Weight length mismatch")
         Wi <- wgt
         wi <- rep(wgt, m)
     }
@@ -101,7 +103,7 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
                     log.muZ = log(mean(zi)), zi = zi,
-                    Lam0 = approxfun(yexa2[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
+                    Lam0 = approxfun(exp(yexa2)[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
                                      yleft = min(Lam), yright = max(Lam))))
     }
 }
@@ -182,7 +184,7 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
                     log.muZ = log(mean(R)), zi = R,
-                    Lam0 = approxfun(yexa[!duplicated(yexa)], Lam[!duplicated(yexa)],
+                    Lam0 = approxfun(exp(yexa)[!duplicated(yexa)], Lam[!duplicated(yexa)],
                                      yleft = min(Lam), yright = max(Lam))))
     }
 }

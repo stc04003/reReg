@@ -4,14 +4,14 @@
 \alias{plot.Recur}
 \title{Produce Event Plot or Mean Cumulative Function Plot}
 \usage{
-\method{plot}{Recur}(x, MCF = FALSE, event.result = c("increasing",
+\method{plot}{Recur}(x, mcf = FALSE, event.result = c("increasing",
   "decreasing", "asis"), mcf.adjrisk = TRUE, mcf.smooth = FALSE,
   control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{Recur} returned by the \code{Recur()} function.}
 
-\item{MCF}{an optional logical value indicating whether the mean cumulative function (MCF) will
+\item{mcf}{an optional logical value indicating whether the mean cumulative function (MCF) will
 be plotted instead of the event plot (default).}
 
 \item{event.result}{an optional character string that is passed to the \code{plotEvents()} function as \code{result}, e.g., see \code{\link{plotEvents}}.

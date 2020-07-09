@@ -202,7 +202,7 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     })
     L <- t(L)
     J <- solve(t(Z) %*% Z) %*% t(Z) %*% (sqrt(n) * L)
-    varMat <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
+    aVar <- varMat <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
     if (engine@recType == "cox") aVar <- varMat[-1, -1]
     if (engine@recType == "sc") {
         aVar <- varMat[-(p + 1), -(p + 1)]
@@ -1055,6 +1055,27 @@ baseHaz <- function(t0, Y, zhat, delta, weights  = NULL) {
     .C("hwHaz", as.double(t0), as.double(Y), as.double(zhat), as.double(delta),
        as.double(weights), as.integer(length(Y)), as.integer(length(t0)), 
        out = double(length(t0)), PACKAGE = "reReg")$out
+}
+
+npMLE <- function(t, tij, yi, weights = NULL) {
+    if (is.null(weights)) weights <- rep(1, length(yi))
+    ttmp <- tij[tij != yi]
+    ord <- order(ttmp)
+    sl <- unique(ttmp[ord])
+    l <- ifelse(min(t) < max(sl), which(sl > min(t))[1], length(sl))
+    tmp <- sl[l:length(sl)]
+    tmp <- rev(tmp)
+    tij <- rev(tij)
+    yi <- rev(yi)
+    ## print(length(weights))
+    res <- .C("plLambda", as.double(tmp), as.double(tij), as.double(yi), as.double(weights), 
+              as.integer(length(tmp)), as.integer(length(yi)),
+              out = double(length(tmp)),
+              PACKAGE = "reReg")$out
+    out <- rev(res)[sapply(t, function(x) which(rev(tmp) >= x)[1])]
+    out <- ifelse(is.na(out), 0, out)
+    out <- exp(-out)
+    return(out)
 }
 
 ## LWYYeq <- function(beta, X, Y, T, cl) {
