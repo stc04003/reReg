@@ -1,6 +1,5 @@
-globalVariables(c("time1", "time2", "Yi", "id", "status", "origin", "event", "terminal",
-                  "tij", "n.y", "GrpInd", "n.x", "mu", "n", "MCF"))
-globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for plot.reReg
+## globalVariables(c("time1", "time2", "Yi", "id", "status", "origin", "event", "terminal",
+##                   "tij", "n.y", "GrpInd", "n.x", "mu", "n", "MCF"))
 
 #' Produce Event Plot or Mean Cumulative Function Plot
 #'
@@ -346,7 +345,6 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
             x$adjrisk = apply(x, 1, function(y)
                 as.numeric(y['n.y']) - sum(rec0$n.x[as.numeric(y['time2'])> rec0$time2 & rec0$GrpInd == as.numeric(y['GrpInd'])]))
             return(x)}))
-
         dat0$n.x <- dat0$n.x * (dat0$event > 0)
         rec0$time2 <- rec0$n.x <- 0
         rec0$adjrisk <- 1
@@ -440,7 +438,7 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
     if (smooth & k == 1 & !onePanel) {
         if (is.null(dat0$GrpInd)) dat0$GrpInd <- 1
         dat0 <- do.call(rbind, lapply(split(dat0, dat0$GrpInd), function(x){
-            x$bs <- with(x, scam(MCF ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+            x$bs <- scam(x$MCF ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
             return(x)}))       
         gg <- gg + geom_line(aes(time2, y = dat0$bs), color = 4, size = ctrl$lwd)
         ## geom_smooth(method = "scam", formula = y ~ s(x, k = 10, bs = "mpi"), size = ctrl$lwd, se = FALSE)
@@ -539,18 +537,18 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                   strip.text = element_text(face = "bold", size = 12))   
     if (smooth) {
         dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-            x$bs <- with(x, scam(Y ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+            x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
             return(x)}))
         gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4, size = ctrl$lwd)
         if (!is.null(x$rate0.upper)) {
             dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-                x$bs.upper <- with(x, scam(Y.upper ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+                x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
             gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, size = ctrl$lwd, lty = 2)
         }
         if (!is.null(x$rate0.lower)) {
             dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-                x$bs.lower <- with(x, scam(Y.lower ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+                x$bs.lower <- scam(Y.lower ~ s(time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
             gg <- gg + geom_line(aes(time2, y = dat$bs.lower), color = 4, size = ctrl$lwd, lty = 2)
         }
@@ -595,7 +593,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' @keywords Plots
 #' 
 #' @example inst/examples/ex_plot_rate.R
-plotRate <- function(x, type = c("raw", "scaled", "unrestricted"),
+plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
                      smooth = FALSE, control = list(), ...) {
     ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
     namc <- names(control)
@@ -619,11 +617,11 @@ plotRate <- function(x, type = c("raw", "scaled", "unrestricted"),
     gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
         theme(axis.line = element_line(color = "black"))
     if (smooth) {
-        dat$bs <- with(dat, scam(Y ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+        dat$bs <- scam(dat$Y ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
         gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4)
         if (!is.null(x$rate0.upper)) {
-            dat$bs.upper <- with(dat, scam(Y.upper ~ s(time2, k = 10, bs = "mpi")))$fitted.values
-            dat$bs.lower <- with(dat, scam(Y.lower ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+            dat$bs.upper <- scam(dat$Y.upper ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+            dat$bs.lower <- scam(dat$Y.lower ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
             gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, lty = 2) + 
                 geom_line(aes(time2, y = dat$bs.lower), color = 4, lty = 2)
         }
@@ -691,11 +689,11 @@ plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
     gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
         theme(axis.line = element_line(color = "black"))
     if (smooth) {
-        dat$bs <- with(dat, scam(Y ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+        dat$bs <- scam(dat$Y ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
         gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4)
         if (!is.null(x$rate0.upper)) {
-            dat$bs.upper <- with(dat, scam(Y.upper ~ s(time2, k = 10, bs = "mpi")))$fitted.values
-            dat$bs.lower <- with(dat, scam(Y.lower ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+            dat$bs.upper <- scam(dat$Y.upper ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+            dat$bs.lower <- scam(dat$Y.lower ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
             gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, lty = 2) +
                 geom_line(aes(time2, y = dat$bs.lower), color = 4, lty = 2)
         }

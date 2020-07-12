@@ -219,11 +219,12 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     if (is.null(solver)) return(U1(b0))
     else {
         fit.a <- eqSolve(b0, U1, solver)
-        rate <- c(temHaz(fit.a$par[1:p + p], fit.a$par[1:p], xi, yi, zi, di, wi, sort(unique(yi))))
-        Lam0 <- exp(-rate)    
+        yi <- log(yi) + exp(xi %*% fit.a$par[1:p + p])
+        yi2 <- sort(unique(yi))
+        Haz <- c(temHaz(fit.a$par[1:p + p], fit.a$par[1:p], xi, yi, zi / mean(zi), di, wi, yi2))
         return(list(beta = fit.a$par,
                     bconv = fit.a$convergence,
-                    Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0))))
+                    Haz0 = approxfun(exp(yi2), Haz, yleft = min(Haz), yright = max(Haz))))
     }
 }
 
@@ -247,11 +248,12 @@ temAM <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     if (is.null(solver)) return(U1(b0))
     else {
         fit.a <- eqSolve(b0, U1, solver)
-        rate <- c(temHaz(fit.a$par, fit.a$par, xi, yi, zi, di, wi, sort(unique(yi))))
-        Lam0 <- exp(-rate)    
+        yi <- log(yi) + xi %*% fit.a$par
+        yi2 <- sort(unique(yi))
+        Haz <- c(temHaz(fit.a$par, fit.a$par, xi, yi, zi / mean(zi), di, wi, yi2))
         return(list(beta = fit.a$par,
                     bconv = fit.a$convergence,
-                    Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0))))
+                    Haz0 = approxfun(exp(yi2), Haz, yleft = min(Haz), yright = max(Haz))))
     }
 }
 
@@ -275,11 +277,11 @@ temCox <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     if (is.null(solver)) return(U1(b0))
     else {
         fit.a <- eqSolve(b0, U1, solver)
-        rate <- c(temHaz(rep(0, p), fit.a$par, xi, yi, zi, di, wi, sort(unique(yi))))
-        Lam0 <- exp(-rate)    
+        yi2 <- sort(unique(yi))
+        Haz <- c(temHaz(rep(0, p), fit.a$par, xi, yi, zi / mean(zi), di, wi, yi2))
         return(list(beta = fit.a$par,
                     bconv = fit.a$convergence,
-                    Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0))))
+                    Haz0 = approxfun(sort(unique(yi2)), Haz, yleft = min(Haz), yright = max(Haz))))
     }
 }
 
@@ -303,10 +305,11 @@ temAR <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     if (is.null(solver)) return(U1(b0))
     else {
         fit.a <- eqSolve(b0, U1, solver)
-        rate <- c(temHaz(fit.a$par, rep(0, p), xi, yi, zi, di, wi, sort(unique(yi))))
-        Lam0 <- exp(-rate)    
+        yi <- log(yi) + xi %*% fit.a$par
+        yi2 <- sort(unique(yi))
+        Haz <- c(temHaz(fit.a$par, rep(0, p), xi, yi, zi / mean(zi), di, wi, yi2))
         list(beta = fit.a$par,
              bconv = fit.a$convergence,
-             Haz0 = approxfun(sort(unique(yi)), Lam0, yleft = min(Lam0), yright = max(Lam0)))
+             Haz0 = approxfun(exp(yi2), Haz, yleft = min(Haz), yright = max(Haz)))
     }
 }
