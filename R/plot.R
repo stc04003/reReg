@@ -519,13 +519,13 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
     }
     if (baseline == "both" & !(x$method %in% c("cox.LWYY", "sc.XCYH"))) {
         dat1 <- dat2 <- subset(x$DF, select = time2)
-        dat1$Y <- x$rate0(x$DF$time2)
-        dat2$Y <- x$haz0(x$DF$time2)
-        if (!is.null(x$rate0.upper)) {
-            dat1$Y.upper <- x$rate0.upper(x$DF$time2)
-            dat1$Y.lower <- x$rate0.lower(x$DF$time2)
-            dat2$Y.upper <- x$haz0.upper(x$DF$time2)
-            dat2$Y.lower <- x$haz0.lower(x$DF$time2)
+        dat1$Y <- x$Lam0(dat1$time2)
+        dat2$Y <- x$Haz0(dat1$time2)
+        if (!is.null(x$Lam0.upper)) {
+            dat1$Y.upper <- x$Lam0.upper(dat1$time2)
+            dat1$Y.lower <- x$Lam0.lower(dat1$time2)
+            dat2$Y.upper <- x$Haz0.upper(dat2$time2)
+            dat2$Y.lower <- x$Haz0.lower(dat2$time2)
         }
         dat <- rbind(dat1, dat2)
         dat$group <- c(rep(1, nrow(dat1)), rep(2, nrow(dat2)))
@@ -608,12 +608,25 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
     }
     type <- match.arg(type)
     if (!is.reReg(x)) stop("Response must be a reReg class")
+    
     dat <- subset(x$DF, select = time2)
-    dat$Y <- x$rate0(x$DF$time2)
-    if (!is.null(x$rate0.upper)) {        
-        dat$Y.upper <- x$rate0.upper(x$DF$time2)
-        dat$Y.lower <- x$rate0.lower(x$DF$time2)
-    }
+    if (type == "unrestricted") dat$Y <- x$Lam0(dat$time2) * exp(x$log.muZ)
+    if (type == "scaled") dat$Y <- x$Lam0(dat$time2) / x$Lam0(max(dat$time2))
+    if (type == "raw") dat$Y <- x$Lam0(dat$time2)
+    if (!is.null(x$Lam0.upper)) {
+        if (type == "raw") {
+            dat$Y.upper <- x$Lam0.upper(dat$time2)
+            dat$Y.lower <- x$Lam0.lower(dat$time2)
+        }
+        if (type == "unrestricted") {
+            dat$Y.upper <- x$Lam0.upper(dat$time2) * exp(x$log.muZ)
+            dat$Y.lower <- x$Lam0.lower(dat$time2) * exp(x$log.muZ)
+        }
+        if (type == "scaled") {
+            dat$Y.upper <- x$Lam0.upper(dat$time2) / x$Lam0.upper(max(dat$time2))
+            dat$Y.lower <- x$Lam0.lower(dat$time2) / x$Lam0.lower(max(dat$time2))
+        }
+    }    
     gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
         theme(axis.line = element_line(color = "black"))
     if (smooth) {
@@ -681,10 +694,10 @@ plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
     }
     if (!is.reReg(x)) stop("Response must be a reReg class")
     dat <- subset(x$DF, select = time2)
-    dat$Y <- x$haz0(x$DF$time2)
-    if (!is.null(x$haz0.upper)) {
-        dat$Y.upper <- x$haz0.upper(x$DF$time2)
-        dat$Y.lower <- x$haz0.lower(x$DF$time2)
+    dat$Y <- x$Haz0(dat$time2)
+    if (!is.null(x$Haz0.upper)) {
+        dat$Y.upper <- x$Haz0.upper(dat$time2)
+        dat$Y.lower <- x$Haz0.lower(dat$time2)
     }
     gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
         theme(axis.line = element_line(color = "black"))

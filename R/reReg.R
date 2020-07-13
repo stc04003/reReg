@@ -287,473 +287,54 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
 ##############################################################################
 # Nonparametric (~1)
 ##############################################################################
-npFit.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
-    DF0 <- subset(DF, event == 0)
-    p <- ncol(DF) - 6
-    X <- as.matrix(DF0[,-(1:6)])
-    yi <- log(DF0$time2) + X %*% alpha
-    n <- nrow(DF0)
-    tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% alpha
-    tij <- tij[DF$event == 1]
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
-    index <- c(1, cumsum(m)[-n] + 1)
-    t0.rate <- sort(unique(c(tij, yi))) ## log scale
-    rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
-               as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
-               as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
-               PACKAGE = "reReg")$result
-    if (engine@muZ == 0) 
-        engine@muZ <- sum(m / approx(t0.rate, exp(-rate), yi, yleft = 0, yright = max(rate),
-                                     method = "constant")$y, na.rm = TRUE) / n
-    rate <- exp(-rate) * engine@muZ
-    list(rate0 = approxfun(exp(t0.rate), rate, rule = 2, method = "constant"),
-         rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
-         haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
+
+## ~1
+npFit <- function(DF, B = 0) {
+    df0 <- subset(DF, event == 0)
+    df1 <- subset(DF, event == 1)
+    rownames(df0) <- rownames(df1) <- NULL
+    m <- aggregate(event ~ id, data = DF, sum)[, 2]
+    yi <- df0$time2
+    ti <- df1$time2
+    zi <- wi <- rep(1, length(ti))
+    di <- df0$terminal
+    xi <- as.matrix(df0[,-c(1:6)])
+    p <- ncol(xi)
+    yi2 <- sort(unique(yi))
+    if (B > 0) {
+        n <- length(unique(DF$id))
+        E1 <- matrix(rexp(n * B), n)
+        E2 <- matrix(rexp(n * B), n)
+        rate <- apply(E1, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), yi))
+        rate <- apply(rate, 1, quantile, c(.025, .975))
+        Lam <- exp(-rate)
+        Haz <- apply(E2, 2, function(e) temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, e, yi2))
+        Haz <- apply(Haz, 1, quantile, c(.025, .975))
+        return(list(Lam0.lower = approxfun(yi[!duplicated(yi)], Lam[2, !duplicated(yi)],
+                                           yleft = min(Lam[2,]), yright = max(Lam[2,])),
+                    Lam0.upper = approxfun(yi[!duplicated(yi)], Lam[1, !duplicated(yi)],
+                                           yleft = min(Lam[1,]), yright = max(Lam[1,])),
+                    Haz0.lower = approxfun(exp(yi2), Haz[1,],
+                                           yleft = min(Haz[1,]), yright = max(Haz[1,])),
+                    Haz0.upper = approxfun(exp(yi2), Haz[2,],
+                                           yleft = min(Haz[2,]), yright = max(Haz[2,]))))
+    } else {    
+        rate <- c(reRate(ti, rep(yi, m), wi, yi))
+        Lam <- exp(-rate)
+        Lam0 <- approxfun(yi[!duplicated(yi)], Lam[!duplicated(yi)],
+                          yleft = min(Lam), yright = max(Lam))
+        Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
+        Haz0 <- approxfun(exp(yi2), Haz, yleft = min(Haz), yright = max(Haz))
+        return(list(Lam0 = Lam0, Haz0 = Haz0))
+    }    
 }
 
-npFit.SE.sc.XCYH <- function(DF, alpha, beta, engine, stdErr) {
-    DF0 <- subset(DF, event == 0)
-    p <- ncol(DF) - 6
-    X <- as.matrix(DF0[,-(1:6)])
-    yi <- log(DF0$time2) + X %*% alpha
-    n <- nrow(DF0)
-    tij <- log(DF$time2) + as.matrix(DF[,-(1:6)]) %*% alpha
-    tij <- tij[DF$event == 1]
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
-    index <- c(1, cumsum(m)[-n] + 1)
-    t0.rate <- sort(unique(c(tij, yi))) ## log scale
-    rate <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
-               as.integer(length(t0.rate)), as.double(rep(1, n)), as.double(yi),
-               as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
-               PACKAGE = "reReg")$result
-    if (engine@muZ == 0)
-        engine@muZ <- sum(m / approx(t0.rate, exp(-rate), yi, yleft = 0, yright = max(rate),
-                                     method = "constant")$y, na.rm = TRUE) / n
-    rate <- exp(-rate) * engine@muZ
-    B <- stdErr@B
-    rateMat <- matrix(NA, B, length(t0.rate))
-    for (i in 1:B) {
-        W <- rexp(n)
-        rateMat[i,] <- .C("scRate", as.integer(n), as.integer(index - 1), as.integer(m),
-                          as.integer(length(t0.rate)), as.double(W), as.double(yi),
-                          as.double(tij), as.double(t0.rate), result = double(length(t0.rate)),
-                          PACKAGE = "reReg")$result
-        rateMat[i,] <- exp(-rateMat[i,]) * engine@muZ
-    }
-    rl <- apply(rateMat, 2, quantile, prob = .025)
-    ru <- apply(rateMat, 2, quantile, prob = .975)
-    list(rate0 = approxfun(exp(t0.rate), rate, rule = 2, method = "constant"),
-         rate0.lower = approxfun(exp(t0.rate), rl, yleft = 0, yright = max(rl), method = "constant"),
-         rate0.upper = approxfun(exp(t0.rate), ru, yleft = 0, yright = max(ru), method = "constant"),
-         t0.rate = exp(t0.rate),
-         haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL, t0.haz = NULL)
-}
-
-
-npFit.general <- function(DF, alpha, beta, engine, stdErr) {
-    NULL
-}
-
-npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
-    id <- DF$id
-    event <- DF$event
-    X <- as.matrix(DF[,-c(1:6)])
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[!event], mt + 1)
-    t0.rate <- sort(unique(T))
-    xb <- exp(X[!event,] %*% beta) 
-    cl <- mt + 1
-    rate <- .C("glCoxRate", as.double(ifelse(T == Y, 1e5, T)), as.double(Y[!event]),
-               as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
-               as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
-               as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
-    fit.coxph <- coxph(Surv(time2, terminal) ~ .,
-                       data = subset(DF, !event, select = -c(id, event, time1, origin)))
-    cumHaz <- basehaz(fit.coxph)
-    haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
-    list(rate0 = approxfun(t0.rate, rate, rule = 2, method = "constant"),
-         rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0.rate,
-         haz0 = haz0, haz0.lower = NULL, haz0.upper = NULL, t0.haz = cumHaz$time)
-}
-
-npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
-    id <- DF$id
-    event <- DF$event
-    X <- as.matrix(DF[,-c(1:6)])
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[!event], mt + 1)
-    t0.rate <- sort(unique(T))
-    xb <- exp(X[!event,] %*% beta) 
-    cl <- mt + 1
-    rate <- .C("glCoxRate", as.double(ifelse(T == Y, 1e5, T)), as.double(Y[!event]),
-               as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
-               as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
-               as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
-    rate0 <- approxfun(t0.rate, rate, yleft = 0, yright = max(rate), method = "constant")
-    fit.coxph <- coxph(Surv(time2, terminal) ~ .,
-                       data = subset(DF, !event, select = -c(id, event, time1, origin)))
-    cumHaz <- basehaz(fit.coxph)
-    t0.haz <- cumHaz$time
-    haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
-    B <- stdErr@B
-    rateMat <- matrix(NA, B, length(t0.rate))
-    hazMat <- matrix(NA, B, length(cumHaz$time))
-    id0 <- unique(id)
-    for (i in 1:B) {
-        sampled.id <- sample(id0, length(id0), TRUE)
-        ind <- unlist(sapply(sampled.id, function(x) which(DF$id == x)))
-        DF2 <- DF[ind,]
-        DF2$id <- rep(1:length(id0), table(DF$id)[sampled.id])
-        rownames(DF2) <- NULL
-        fit.coxphB <- coxph(Surv(time2, terminal) ~ .,
-                            data = subset(DF2, !event, select = -c(id, event, time1, origin)))
-        cumHaz <- basehaz(fit.coxphB)
-        ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
-        X0 <- as.matrix(DF2[!DF2$event, -(1:6)])
-        wgt <- sapply(exp(X0 %*% coef(fit.coxphB)), function(x)
-            with(cumHaz, approxfun(time, exp(-hazard * x), yleft = 1, yright = min(exp(-hazard * x)),
-                                   method = "constant"))(DF2$time2))
-        engine@wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
-        engine@wgt <- ifelse(engine@wgt > 1e5, 1e5, engine@wgt)
-        tmp <- npFit.cox.GL(DF2, alpha, beta, engine, NULL)
-        rateMat[i,] <- tmp$rate0(t0.rate)
-        hazMat[i,] <- tmp$haz0(t0.haz)
-    }
-    rl <- apply(rateMat, 2, quantile, prob = .025)
-    ru <- apply(rateMat, 2, quantile, prob = .975)
-    hl <- apply(hazMat, 2, quantile, prob = .025)
-    hu <- apply(hazMat, 2, quantile, prob = .975)
-    list(rate0 = rate0,
-         rate0.lower = approxfun(t0.rate, rl, yleft = 0, yright = max(rl), method = "constant"),
-         rate0.upper = approxfun(t0.rate, ru, yleft = 0, yright = max(ru), method = "constant"),
-         t0.rate = t0.rate,
-         haz0 = haz0,
-         haz0.lower = approxfun(t0.haz, hl, yleft = 0, yright = max(hl), method = "constant"),
-         haz0.upper = approxfun(t0.haz, hu, yleft = 0, yright = max(hu), method = "constant"),
-         t0.haz = t0.haz)
-}
-
-npFit.am.GL <- function(DF, alpha, beta, engine, stdErr) {
-    alpha <- -alpha
-    beta <- -beta
-    DF0 <- subset(DF, event == 0)
-    X <- as.matrix(DF0[,-(1:6)])
-    p <- ncol(X)
-    status <- DF0$terminal
-    n <- nrow(DF0)
-    ## d <- max(X %*% (alpha - beta), 0)
-    d <- max(X %*% (alpha - beta))
-    tij <- log(DF$time2) - as.matrix(DF[,-(1:6)]) %*% alpha
-    tij <- tij[DF$event == 1]
-    yi <- log(DF0$time2) - X %*% beta ## beta or alpha?
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
-    index <- c(1, cumsum(m)[-n] + 1)
-    t0.rate <- sort(unique(tij)) # log scale
-    t0.haz <- sort(unique(yi))
-    rate <- .C("glRate", as.integer(n), as.integer(index - 1), as.integer(m),
-               as.integer(length(t0.rate)),
-               as.double(yi - d), as.double(tij), as.double(t0.rate), 
-               result = double(length(t0.rate)), 
-               PACKAGE = "reReg")$result
-    haz <- .C("glHaz", as.integer(n), as.integer(status), as.integer(length(t0.haz)),
-              as.double(yi), as.double(t0.haz), result = double(length(t0.haz)), 
-              PACKAGE = "reReg")$result
-    rate0 <- approxfun(exp(t0.rate), rate, yleft = 0, yright = max(rate), method = "constant")
-    haz0 <- approxfun(exp(t0.haz), haz, yleft = 0, yright = max(haz), method = "constant")
-    list(rate0 = rate0, rate0.lower = NULL, rate0.upper = NULL, t0.rate = exp(t0.rate),
-         haz0 = haz0, haz0.lower = NULL, haz0.upper = NULL, t0.haz = exp(t0.haz))
-}
-
-npFit.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
-    id <- subset(DF, event == 0)$id
-    B <- stdErr@B
-    PE <- npFit.am.GL(DF, alpha, beta, engine, NULL)
-    rateMat <- matrix(NA, B, length(PE$t0.rate))
-    hazMat <- matrix(NA, B, length(PE$t0.haz))
-    for (i in 1:B) {
-        sampled.id <- sample(id, length(id), TRUE)
-        ind <- unlist(sapply(sampled.id, function(x) which(DF$id == x)))
-        DF2 <- DF[ind,]
-        DF2$id <- rep(1:length(id), table(DF$id)[sampled.id])
-        tmp <- npFit.am.GL(DF2, alpha, beta, engine, NULL)
-        rateMat[i,] <- tmp$rate0(PE$t0.rate)
-        hazMat[i,] <- tmp$haz0(PE$t0.haz)
-    }
-    rl <- apply(rateMat, 2, quantile, prob = .025)
-    ru <- apply(rateMat, 2, quantile, prob = .975)
-    hl <- apply(hazMat, 2, quantile, prob = .025)
-    hu <- apply(hazMat, 2, quantile, prob = .975)
-    list(rate0 = PE$rate0,
-         rate0.lower = approxfun(PE$t0.rate, rl, yleft = 0, yright = max(rl), method = "constant"),
-         rate0.upper = approxfun(PE$t0.rate, ru, yleft = 0, yright = max(ru), method = "constant"),
-         haz0 = PE$haz0,
-         haz0.lower = approxfun(PE$t0.haz, hl, yleft = 0, yright = max(hl), method = "constant"),
-         haz0.upper = approxfun(PE$t0.haz, hu, yleft = 0, yright = max(hu), method = "constant"))
-}
-
-npFit.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
-    ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
-    id <- DF$id
-    event <- DF$event
-    status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:6)])
-    n <- length(unique(id))
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)
-    ## cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
-    t0 <- sort(unique(c(T, Y)))
-    ng <- length(t0)
-    Ya <- log(Y) + X %*% alpha
-    Ta <- log(T) + X %*% alpha
-    ## Ya <- Y * exp(X %*% alpha)
-    ## Ta <- T * exp(X %*% alpha)
-    lambda <- npMLE(Ya[which(event == 0)], Ta, Ya)
-    ly <- npMLE(t0, Ta, Ya)
-    zHat <- as.numeric(mt * max(ly) / lambda)
-    zHat <- ifelse(zHat > 1e5, (mt * max(ly) + .01) / (lambda + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    ly <- ly / max(ly)
-    win.ly <- max(ly)
-    muZ <- mean(zHat)
-    Yb <- log(Y) + X %*% beta
-    Yb <- Yb[event == 0]
-    hy <- baseHaz(log(t0), Yb, zHat / muZ, status[event == 0])
-    win.hy <- max(hy)
-    list(rate0 = approxfun(t0, ly * muZ, yleft = 0, yright = max(ly * muZ), method = "constant"),
-         rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
-         haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy), method = "constant"),
-         haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
-}
-
-npFit.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
-    ## t0 <- seq(0, max(DF$Time), length.out = 5 * nrow(DF))
-    T <- DF$time2
-    id <- DF$id
-    event <- DF$event
-    status <- DF$terminal
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)  
-    t0 <- sort(unique(c(T, Y)))
-    ng <- length(t0)
-    event <- DF$event
-    status <- DF$terminal
-    ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
-    id <- DF$id
-    cluster <- unlist(lapply(split(id, id), function(z) 1:length(z)))
-    X <- as.matrix(DF[,-(1:6)])
-    DF$T0 <- with(DF, unlist(lapply(split(time2, id), function(x) c(0, x)[1:length(x)])))
-    if (!all(X == 0)) {
-        tmp <- coxph(as.formula(paste("Surv(T0, time2, event)~",
-                                      paste(colnames(DF)[-c(1:6, ncol(DF))], collapse = "+"))),
-                     data = DF)
-        base <- data.frame(matrix(0, nrow = 1, ncol = ncol(X)))
-        names(base) <- names(coef(tmp))
-        tmp0 <- survfit(tmp, newdata = base)
-        ly <- with(tmp0, approx(time, cumhaz, t0)$y)
-        lyU <- -log(with(tmp0, approx(time, upper, t0)$y))
-        lyL <- -log(with(tmp0, approx(time, lower, t0)$y))
-        tmp <- coxph(as.formula(paste("Surv(time2, terminal)~",
-                                      paste(colnames(DF)[-c(1:6, ncol(DF))], collapse = "+"))),
-                     data = DF[event == 0,])
-        ## tmp0 <- survfit(tmp, newdata = base)
-        ## hy <- with(tmp0, approx(time, cumhaz, t0)$y)
-        ## hyU <- -log(with(tmp0, approx(time, upper, t0)$y))
-        ## hyL <- -log(with(tmp0, approx(time, lower, t0)$y))
-    }
-    if (all(X == 0)) {
-        tmp <- coxph(Surv(T0, time2, terminal) ~ 1, data = DF)
-        ly <- with(basehaz(tmp), approx(time, hazard, t0)$y)
-        lyU <- -log(with(survfit(tmp), approx(time, upper, t0)$y))
-        lyL <- -log(with(survfit(tmp), approx(time, lower, t0)$y))
-        ## tmp <- coxph(Surv(Time, status) ~ 1, data = DF[event == 0,])
-        ## hy <- with(basehaz(tmp), approx(time, hazard, t0)$y)
-        ## hyU <- -log(with(survfit(tmp), approx(time, upper, t0)$y))
-        ## hyL <- -log(with(survfit(tmp), approx(time, lower, t0)$y))
-    }
-    list(rate0 = approxfun(t0, ly, yleft = 0, yright = max(ly, na.rm = TRUE), method = "constant"),
-         rate0.lower = approxfun(t0, lyL, yleft = 0, yright = max(lyL, na.rm = TRUE), method = "constant"),
-         rate0.upper = approxfun(t0, lyU, yleft = 0, yright = max(lyU, na.rm = TRUE), method = "constant"),
-         t0.rate = t0,
-         haz0 = NULL, haz0.lower = NULL, haz0.upper = NULL,
-         ## haz0 = approxfun(t0, hy, yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
-         ## haz0.lower = approxfun(t0, hyL, yleft = 0, yright = max(hyL, na.rm = TRUE), method = "constant"),
-         ## haz0.upper = approxfun(t0, hyU, yleft = 0, yright = max(hyU, na.rm = TRUE), method = "constant"),
-         t0.haz = t0)
-}
-
-## npFit.SE.cox.NA <- function(DF, alpha, beta, engine, stdErr) {
-##     ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
-##     id <- DF$id
-##     B <- stdErr@B
-##     cluster <- unlist(lapply(split(id, id), function(z) 1:length(z)))
-##     clsz <- unlist(lapply(split(id, id), length))
-##     Y <- rep(DF$Time[cumsum(clsz)], clsz)
-##     T <- DF$Time[-cumsum(clsz)]
-##     nT <- length(T)
-##     nY <- length(clsz)
-##     tmp <- basehaz(coxph(Surv(T, rep(1, nT)) ~ 1))
-##     t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
-##     ng <- length(t0)
-##     ly <- with(tmp, approx(time, hazard, t0)$y)
-##     tmp <- basehaz(coxph(Surv(Time, event) ~ 1, data = DF[cumsum(clsz),]))    
-##     hy <- with(tmp, approx(time, hazard, t0)$y)
-##     bootH <- bootL <- matrix(NA, length(t0), B) 
-##     for (i in 1:B) {
-##         bootL[,i] <- with(basehaz(coxph(Surv(T[sample(1:nT, nT, TRUE)], rep(1, nT)) ~ 1)),
-##                           approx(time, hazard, t0, yleft = min(hazard), yright = max(hazard))$y)
-##         bootH[,i] <- with(basehaz(coxph(Surv(Time, event) ~ 1,
-##                                         data = DF[cumsum(clsz),][sample(1:nY, nY, TRUE),])),
-##                           approx(time, hazard, t0, yleft = min(hazard), yright = max(hazard))$y)
-##     }
-##     lyU <- apply(bootL, 1, function(z) quantile(z, .975))
-##     lyL <- apply(bootL, 1, function(z) quantile(z, .025))
-##     hyU <- apply(bootH, 1, function(z) quantile(z, .975))
-##     hyL <- apply(bootH, 1, function(z) quantile(z, .025))
-##     list(t0 = t0, ly = ly, lyU = lyU, lyL = lyL, hy = hy, hyU = hyU, hyL = hyL)
-## }
-
-npFit.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
-    ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
-    id <- DF$id
-    T <- DF$time2
-    X <- as.matrix(DF[,-c(1:6)])
-    event <- DF$event
-    status <- DF$terminal
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)
-    if (all(X == 0)) alpha <- beta <- 0
-    delta <- DF$event
-    ## t0 <- seq(0, max(Y), length.out = 5 * nrow(DF))
-    t0 <- sort(unique(c(T, Y)))
-    ng <- length(t0)
-    Ya <- ifelse(Y <= 0, 0, log(Y))
-    Ta <- ifelse(T <= 0, 0, log(T))
-    lambda <- npMLE(Ya[event == 0], Ta, Ya)
-    ly <- npMLE(t0, exp(Ta), exp(Ya))
-    zHat <- as.numeric(mt * max(ly) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha)))
-    zHat <- ifelse(zHat > 1e5, (mt * max(ly) + .01) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha) + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    muZ <- mean(zHat)
-    ly <- ly / max(ly)
-    win.ly <- max(ly)
-    Yb <- log(Y) ## + X %*% beta
-    Yb <- Yb[event == 0]
-    hy <- baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0])
-    win.hy <- max(hy)
-    list(rate0 = approxfun(t0, ly * muZ, rule = 2, method = "constant"),
-         rate0.lower = NULL, rate0.upper = NULL, t0.rate = t0,
-         haz0 = approxfun(t0, hy, rule = 2, method = "constant"),
-         haz0.lower = NULL, haz0.upper = NULL, t0.haz = t0)
-}
-
-npFit.SE.am.XCHWY <- function(DF, alpha, beta, engine, stdErr) {
-    B <- stdErr@B
-    ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
-    id <- DF$id
-    event <- DF$event
-    status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:6)])    
-    n <- length(unique(id))
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)
-    cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    t0 <- sort(unique(c(T, Y)))
-    ng <- length(t0)
-    ## Ya <- log(Y) + X %*% alpha
-    ## Ta <- log(T) + X %*% alpha
-    Ya <- Y * exp(X %*% alpha)
-    Ta <- T * exp(X %*% alpha)
-    lambda <- npMLE(Ya[event == 0], Ta, Ya)
-    ly <- npMLE(t0, Ta, Ya)
-    zHat <-  as.numeric(mt * max(ly) / lambda)
-    zHat <- ifelse(zHat > 1e5, (mt * max(ly) + .01) / (lambda + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    ly <- ly / max(ly)
-    E <- matrix(rexp(length(Ya) * B), nrow = length(Ya))
-    ## E <- matrix(rexp(length(t0) * B), nrow = length(t0))
-    lytmp <- apply(E, 2, function(x) npMLE(t0, Ta, Ya, x))
-    lytmp <- apply(lytmp, 2, function(z) z / max(z))
-    lyU <- apply(lytmp, 1, function(z) quantile(z, 0.975))
-    lyL <- apply(lytmp, 1, function(z) quantile(z, 0.025))
-    Yb <- log(Y) + X %*% beta
-    Yb <- Yb[event == 0]
-    muZ <- mean(zHat)
-    ## hy <- sapply(t0, function(z) baseHaz(z, exp(Yb), zHat / muZ, status[event == 0]))
-    hy <- baseHaz(t0, exp(Yb), zHat / muZ, status[event == 0])
-    E <- matrix(rexp(n * B), nrow = n)
-    hytmp <- apply(E, 2, function(z) baseHaz(t0, exp(Yb), zHat / muZ, status[event == 0], z))
-    hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
-    hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
-    list(rate0 = approxfun(t0, ly * muZ, rule = 2, method = "constant"), 
-         rate0.lower = approxfun(t0, lyL * muZ, rule = 2, method = "constant"),
-         rate0.upper = approxfun(t0, lyU * muZ, rule = 2, method = "constant"),
-         t0.rate = t0,
-         haz0 = approxfun(t0, hy, rule = 2, method = "constant"),
-         ## yleft = 0, yright = max(hy, na.rm = TRUE), method = "constant"),
-         haz0.lower = approxfun(t0, hyL, rule = 2, method = "constant"),
-         haz0.upper = approxfun(t0, hyU, rule = 2, method = "constant"),
-         t0.haz = t0)
-}
-
-npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
-    B <- stdErr@B
-    ly <- hy <- lyU <- lyL <- hyU <- hyL <- NULL
-    id <- DF$id
-    event <- DF$event
-    status <- DF$terminal
-    X <- as.matrix(DF[,-c(1:6)])    
-    n <- length(unique(id))
-    p <- ncol(X)
-    T <- DF$time2
-    mt <- aggregate(event ~ id, data = DF, sum)$event
-    Y <- rep(DF$time2[event == 0], mt + 1)
-    cluster <- unlist(sapply(mt + 1, function(x) 1:x))
-    if (all(X == 0)) alpha <- beta <- 0
-    delta <- DF$event
-    t0 <- sort(unique(c(T, Y)))
-    ng <- length(t0)
-    Ya <- log(Y)
-    Ta <- log(T)
-    lambda <- npMLE(Ya[event == 0], Ta, Ya)
-    ly <- npMLE(t0, exp(Ta), exp(Ya))
-    zHat <- as.numeric(mt * max(ly) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha)))
-    zHat <- ifelse(zHat > 1e5, (mt * max(ly) + .01) / (lambda * exp(as.matrix(X[event == 0,]) %*% alpha) + .01), zHat)
-    zHat <- ifelse(is.na(zHat), 0, zHat)
-    ## zHat <- ifelse(zHat %in% c("Inf", "NA", "NaN"), 0, zHat)
-    ly <- ly / max(ly)
-    E <- matrix(rexp(ng * B), nrow = ng)
-    lytmp <- apply(E, 2, function(x) npMLE(t0, exp(Ta), exp(Ya), x))
-    lytmp <- apply(lytmp, 2, function(z) z / max(z))
-    lyU <- apply(lytmp, 1, function(z) quantile(z, 0.975))
-    lyL <- apply(lytmp, 1, function(z) quantile(z, 0.025))
-    Yb <- log(Y) ## + X %*% beta
-    Yb <- Yb[event == 0]
-    muZ <- mean(zHat)
-    hy <- baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0])
-    E <- matrix(rexp(n * B), nrow = n)
-    hytmp <- apply(E, 2, function(z) baseHaz(t0, exp(Yb), exp(as.matrix(X[event == 0,]) %*% beta) * zHat / muZ, status[event == 0], z))
-    hyU <- apply(hytmp, 1, function(z) quantile(z, 0.975))
-    hyL <- apply(hytmp, 1, function(z) quantile(z, 0.025))
-    list(rate0 = approxfun(t0, ly * muZ, rule = 2, method = "constant"),
-         rate0.lower = approxfun(t0, lyL * muZ, rule = 2, method = "constant"),
-         rate0.upper = approxfun(t0, lyU * muZ, rule = 2, method = "constant"),
-         t0.rate = t0,
-         haz0 = approxfun(t0, hy, rule = 2, method = "constant"),
-         haz0.lower = approxfun(t0, hyL, rule = 2, method = "constant"),
-         haz0.upper = approxfun(t0, hyU, rule = 2, method = "constant"),
-         t0.haz = t0)
+npFitSE <- function(DF, recType, temType, a0, b0, zi, B) {
+    n <- length(unique(DF$id))
+    E1 <- matrix(rexp(n * B), n)
+    E2 <- matrix(rexp(n * B), n)
+    c(s1(recType, DF, NULL, NULL, a0, E1),
+      s2(temType, DF, NULL, NULL, b0, zi, E2))
 }
 
 ##############################################################################
@@ -762,9 +343,10 @@ npFit.SE.cox.HW <- function(DF, alpha, beta, engine, stdErr) {
 
 setClass("Engine",
          representation(tol = "numeric", a0 = "numeric", b0 = "numeric",
+                        baseSE = "logical", 
                         solver = "character", eqType = "character", 
                         recType = "character", temType = "character"),
-         prototype(eqType = "logrank", tol = 1e-7, a0 = 0, b0 = 0, solver = "dfsane"),
+         prototype(eqType = "logrank", tol = 1e-7, a0 = 0, b0 = 0, baseSE = FALSE, solver = "dfsane"),
          contains = "VIRTUAL")
 setClass("general", contains = "Engine")
 setClass("cox.LWYY", contains = "Engine")
@@ -781,8 +363,8 @@ setClass("stdErr",
          prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2),
          contains = "VIRTUAL")
 
-setClass("bootstrap", contains="stdErr")
-setClass("resampling", contains="stdErr")
+setClass("bootstrap", contains = "stdErr")
+setClass("resampling", contains = "stdErr")
 
 
 ##############################################################################
@@ -803,28 +385,6 @@ setMethod("regFit", signature(engine = "Engine", stdErr = "bootstrap"),
 setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
           regFit.am.GL.resampling)
 
-setGeneric("npFit", function(DF, alpha, beta, engine, stdErr) {standardGeneric("npFit")})
-setMethod("npFit", signature(engine = "general", stdErr = "NULL"), npFit.general)
-setMethod("npFit", signature(engine = "general", stdErr = "resampling"), npFit.general)
-setMethod("npFit", signature(engine = "general", stdErr = "bootstrap"), npFit.general)
-setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "NULL"), npFit.cox.NA)
-setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "resampling"), npFit.cox.NA)
-setMethod("npFit", signature(engine = "cox.GL", stdErr = "NULL"), npFit.cox.GL)
-setMethod("npFit", signature(engine = "cox.GL", stdErr = "resampling"), npFit.cox.GL)
-setMethod("npFit", signature(engine = "cox.HW", stdErr = "NULL"), npFit.cox.HW)
-setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "NULL"), npFit.am.XCHWY)
-setMethod("npFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), npFit.cox.NA)
-setMethod("npFit", signature(engine = "cox.HW", stdErr = "bootstrap"), npFit.SE.cox.HW)
-setMethod("npFit", signature(engine = "cox.GL", stdErr = "bootstrap"), npFit.SE.cox.GL)
-setMethod("npFit", signature(engine = "cox.HW", stdErr = "resampling"), npFit.SE.cox.HW)
-setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "resampling"), npFit.SE.am.XCHWY)
-setMethod("npFit", signature(engine = "am.XCHWY", stdErr = "bootstrap"), npFit.SE.am.XCHWY)
-setMethod("npFit", signature(engine = "am.GL", stdErr = "bootstrap"), npFit.SE.am.GL)
-setMethod("npFit", signature(engine = "am.GL", stdErr = "resampling"), npFit.SE.am.GL)
-setMethod("npFit", signature(engine = "am.GL", stdErr = "NULL"), npFit.am.GL)
-setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "bootstrap"), npFit.SE.sc.XCYH)
-setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "resampling"), npFit.SE.sc.XCYH)
-setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH)
 
 ## #' When a joint model is fitted (e.g., \code{method = "cox.HW"} or \code{method = "am.XCHWY"}),
 ## #' the hazard function of the terminal event is either in a Cox model or an accelerated failure time model.
@@ -887,6 +447,7 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #'   \item{\code{a0, b0}}{initial guesses used for root search.}
 #'   \item{\code{solver}}{the equation solver used for root search.
 #' The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
+#'   \item{\code{baseSE}}{an logical value indicating whether the confidence bounds for the baseline functions will be computed.}
 #'   \item{\code{parallel}}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
 #'   \item{\code{parCl}}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
 #' The default value is half the CPU cores on the current host.}
@@ -919,7 +480,8 @@ setMethod("npFit", signature(engine = "sc.XCYH", stdErr = "NULL"), npFit.sc.XCYH
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, B = 200, 
-                  method = "cox.LWYY", se = c("resampling", "bootstrap", "NULL"), control = list()) {
+                  method = "cox.LWYY", se = c("resampling", "bootstrap", "NULL"),
+                  control = list()) {
     se <- match.arg(se)
     Call <- match.call()
     if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 
@@ -989,15 +551,16 @@ reReg <- function(formula, data, B = 200,
         else engine@b0 <- rep(engine@b0, p)
     }
     if (formula == ~1) {
-        fit <- NULL
-        fit$alpha <- fit$beta <- rep(NA, p)
-        fit <- c(fit, npFit(DF = DF, alpha = 0, beta = 0, engine = engine, stdErr = stdErr))
+        fit <- npFit(DF)
+        if (engine@baseSE) fit <- c(fit, npFitSE(DF, B))
     } else {
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
-        if (method == "sc.XCYH") engine@muZ <- exp(fit$log.muZ)
-        if (method == "cox.GL") engine@wgt <- fit$wgt
-        fit <- c(fit, npFit(DF = DF, alpha = fit$alpha, beta = fit$beta,
-                            engine = engine, stdErr = stdErr))
+        if (engine@baseSE & fit$recType == "sc") {
+            a0 <- c(fit$alpha[1:p], fit$log.muZ, fit$alpha[1:p + p] - fit$alpha[1:p])
+            fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, a0, fit$beta, fit$zi, B))
+        }
+        if (engine@baseSE & fit$recType != "sc") 
+            fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, fit$alpha, fit$beta, fit$zi, B))
     }
     class(fit) <- "reReg"
     fit$reTb <- obj@.Data

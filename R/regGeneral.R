@@ -18,6 +18,21 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
     yi <- df0$time2
     yii <- rep(yi, m)
     ti <- df1$time2
+    if (is.null(eqType)) {
+        ## Used for variance estimation; wgt assume to be a n by p matrix
+        texa <- log(ti) + xi %*% a0[1:p]
+        yexa <- log(yii) + xi %*% a0[1:p]
+        yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% a0[1:p])
+        rate <- apply(wgt, 2, function(e) reRate(texa, yexa, rep(e, m), yexa2))
+        rate <- apply(rate, 1, quantile, c(.025, .975))
+        Lam <- exp(-rate)
+        ind <- !duplicated(yexa2)
+        Lam.lower <- approxfun(exp(yexa2)[ind], Lam[2, ind],
+                               yleft = min(Lam[2, ]), yright = max(Lam[2, ]))
+        Lam.upper <- approxfun(exp(yexa2)[ind], Lam[1, ind],
+                               yleft = min(Lam[1, ]), yright = max(Lam[1, ]))
+        return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
+    }
     if (is.null(wgt)) {
         Wi <- rep(1, length(m))
         wi <- rep(Wi, m)
@@ -68,7 +83,21 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
     xi <- as.matrix(df1[,-c(1:6)])
     yi <- df0$time2
     yii <- rep(yi, m)
-    ti <- df1$time2    
+    ti <- df1$time2
+    if (is.null(eqType)) {
+        texa <- log(ti) + xi %*% a0
+        yexa <- log(yii) + xi %*% a0
+        yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% a0)
+        rate <- apply(wgt, 2, function(e) reRate(texa, yexa, rep(e, m), yexa2))
+        rate <- apply(rate, 1, quantile, c(.025, .975))
+        Lam <- exp(-rate)
+        ind <- !duplicated(yexa2)
+        Lam.lower <- approxfun(exp(yexa2)[ind], Lam[2, ind],
+                               yleft = min(Lam[2,]), yright = max(Lam[2,]))
+        Lam.upper <- approxfun(exp(yexa2)[ind], Lam[1, ind],
+                               yleft = min(Lam[1,]), yright = max(Lam[1,]))
+        return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
+    }
     if (is.null(wgt)) {
         Wi <- rep(1, length(m))
         wi <- rep(Wi, m)
@@ -116,6 +145,17 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
     ## yi <- rep(df0$time2, m)
     yi <- df0$time2
     ti <- df1$time2
+    if (is.null(eqType)) {
+        rate <- apply(wgt, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), yi))
+        rate <- apply(rate, 1, quantile, c(.025, .975))
+        Lam <- exp(-rate)
+        ind <- !duplicated(yi)
+        Lam.lower <- approxfun(yi[ind], Lam[2, ind],
+                               yleft = min(Lam[2,]), yright = max(Lam[2,]))
+        Lam.upper <- approxfun(yi[ind], Lam[1, ind],
+                               yleft = min(Lam[1,]), yright = max(Lam[1,]))
+        return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
+    }
     if (is.null(wgt)) {
         Wi <- rep(1, length(m))
         wi <- rep(Wi, m)
@@ -157,6 +197,19 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
     xi <- as.matrix(df0[,-c(1:6)])
     yi <- df0$time2
     ti <- df1$time2
+    if (is.null(eqType)) {
+        texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% a0
+        yexa <- log(yi) + xi %*% a0
+        rate <- apply(wgt, 2, function(e) reRate(texa, rep(yexa, m), rep(e, m), yexa))
+        rate <- apply(rate, 1, quantile, c(.025, .975))
+        Lam <- exp(-rate)
+        ind <- !duplicated(yexa)
+        Lam.lower <- approxfun(exp(yexa)[ind], Lam[2, ind],
+                               yleft = min(Lam[2,]), yright = max(Lam[2,]))
+        Lam.upper <- approxfun(exp(yexa)[ind], Lam[1, ind],
+                               yleft = min(Lam[1,]), yright = max(Lam[1,]))
+        return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
+    }
     if (is.null(wgt)) {
         Wi <- rep(1, length(m))
     } else {
@@ -206,6 +259,16 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
+    if (is.null(eqType)) {
+        yi <- log(yi) + xi %*% b0[1:p + p]
+        yi2 <- sort(unique(yi))
+        Haz <- apply(wgt, 2, function(e)
+            temHaz(b0[1:p + p], b0[1:p], xi, yi, zi / mean(zi), di, e, yi2))
+        Haz <- apply(Haz, 1, quantile, c(.025, .975))
+        Haz.lower <- approxfun(exp(yi2), Haz[1,], yleft = min(Haz[1,]), yright = max(Haz[1,]))
+        Haz.upper <- approxfun(exp(yi2), Haz[2,], yleft = min(Haz[2,]), yright = max(Haz[2,]))
+        return(list(Haz0.lower = Haz.lower, Haz0.upper = Haz.upper))
+    }
     if (is.null(wgt)) {
         wi <- rep(1, nrow(xi))
     } else {
@@ -219,7 +282,7 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     if (is.null(solver)) return(U1(b0))
     else {
         fit.a <- eqSolve(b0, U1, solver)
-        yi <- log(yi) + exp(xi %*% fit.a$par[1:p + p])
+        yi <- log(yi) + xi %*% fit.a$par[1:p + p]
         yi2 <- sort(unique(yi))
         Haz <- c(temHaz(fit.a$par[1:p + p], fit.a$par[1:p], xi, yi, zi / mean(zi), di, wi, yi2))
         return(list(beta = fit.a$par,
@@ -235,6 +298,15 @@ temAM <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
+    if (is.null(eqType)) {
+        yi <- log(yi) + xi %*% b0
+        yi2 <- sort(unique(yi))
+        Haz <- apply(wgt, 2, function(e) temHaz(b0, b0, xi, yi, zi / mean(zi), di, e, yi2))
+        Haz <- apply(Haz, 1, quantile, c(.025, .975))
+        Haz.lower <- approxfun(exp(yi2), Haz[1,], yleft = min(Haz[1,]), yright = max(Haz[1,]))
+        Haz.upper <- approxfun(exp(yi2), Haz[2,], yleft = min(Haz[2,]), yright = max(Haz[2,]))
+        return(list(Haz0.lower = Haz.lower, Haz0.upper = Haz.upper))
+    }
     if (is.null(wgt)) {
         wi <- rep(1, nrow(xi))
     } else {
@@ -264,6 +336,14 @@ temCox <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
+    if (is.null(eqType)) {
+        yi2 <- sort(unique(yi))
+        Haz <- apply(wgt, 2, function(e) temHaz(rep(0, p), b0, xi, yi, zi / mean(zi), di, e, yi2))
+        Haz <- apply(Haz, 1, quantile, c(.025, .975))
+        Haz.lower <- approxfun(exp(yi2), Haz[1,], yleft = min(Haz[1,]), yright = max(Haz[1,]))
+        Haz.upper <- approxfun(exp(yi2), Haz[2,], yleft = min(Haz[2,]), yright = max(Haz[2,]))
+        return(list(Haz0.lower = Haz.lower, Haz0.upper = Haz.upper))
+    }
     if (is.null(wgt)) {
         wi <- rep(1, nrow(xi))
     } else {
@@ -292,6 +372,15 @@ temAR <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
+    if (is.null(eqType)) {
+        yi <- log(yi) + xi %*% b0
+        yi2 <- sort(unique(yi))
+        Haz <- apply(wgt, 2, function(e) temHaz(b0, rep(0, p), xi, yi, zi / mean(zi), di, e, yi2))
+        Haz <- apply(Haz, 1, quantile, c(.025, .975))
+        Haz.lower <- approxfun(exp(yi2), Haz[1,], yleft = min(Haz[1,]), yright = max(Haz[1,]))
+        Haz.upper <- approxfun(exp(yi2), Haz[2,], yleft = min(Haz[2,]), yright = max(Haz[2,]))
+        return(list(Haz0.lower = Haz.lower, Haz0.upper = Haz.upper))
+    }
     if (is.null(wgt)) {
         wi <- rep(1, nrow(xi))
     } else {
