@@ -21,8 +21,9 @@ A \code{ggplot} object.
 }
 \description{
 Plot the baseline cumulative hazard function for an \code{reReg} object.
-The 95\% confidence interval on the baseline cumulative  hazard function
-is provided when the \code{reReg} object is fitted with standard error estimation.
+The 95\% confidence interval on the baseline cumulative rate function
+is provided when \code{baseSE = TRUE} is specified in \code{reReg()}
+through \code{control}.
 }
 \details{
 The argument \code{control} consists of options with argument
@@ -39,7 +40,7 @@ See \bold{Examples}.
 data(simDat)
 fm <- Recur(Time, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = simDat, method = "cox.HW")
+fit <- reReg(fm, data = simDat, method = "cox")
 ## Plot both the baseline cumulative rate and hazard function
 plot(fit)
 ## Plot baseline cumulative hazard function

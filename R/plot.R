@@ -1,6 +1,4 @@
-globalVariables(c("time1", "time2", "Yi", "id", "status", "origin", "event", "terminal",
-                  "tij", "n.y", "GrpInd", "n.x", "mu", "n", "MCF"))
-globalVariables(c("Y", "Y.upper", "Y.lower", "group")) ## global variables for plot.reReg
+globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 
 #' Produce Event Plot or Mean Cumulative Function Plot
 #'
@@ -204,7 +202,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
             DF[,i] <- factor(DF[,i], labels = paste(i, "=", unique(DF[,i])))
         }}
     names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
-    gg <- ggplot(subset(DF, event == 0), aes(id, time2)) +
+    gg <- ggplot(DF[DF$event == 0,], aes(id, time2)) +
         geom_bar(stat = "identity", fill = "gray75") +
         coord_flip() + 
         theme(axis.line.y = element_blank(),
@@ -212,13 +210,13 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
               axis.text.y = element_blank(),
               axis.ticks.y = element_blank())
     if (any(table(DF$id) > 0))
-        gg <- gg + geom_point(data = subset(DF, event > 0),
+        gg <- gg + geom_point(data = DF[DF$event > 0,],
                               aes(id, time2,
                                   shape = factor(event, labels = rec.lab),
                                   color = factor(event, labels = rec.lab)),
                               size = sz)    
     if (sum(DF$terminal, na.rm = TRUE) > 0)
-        gg <- gg + geom_point(data = subset(DF, terminal > 0), 
+        gg <- gg + geom_point(data = DF[DF$terminal > 0,], 
                               aes(id, time2, shape = "terminal", color = "terminal"),
                               size = sz)    
     if (nX > 0 && formula[[3]] != 1)        
@@ -323,7 +321,8 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         vNames <- attr(terms(formula), "term.labels")
         if (length(vNames) == 0) vNames <- NULL
     }   
-    dd <- subset(DF, select = c("event", vNames, "time2"))
+    ## dd <- subset(DF, select = c("event", vNames, "time2"))
+    dd <- DF[,c("event", vNames, "time2")]
     dd <- dd[do.call(order, dd),]
     nn <- table(apply(dd, 1, paste, collapse = ""))
     dd <- unique(dd)
@@ -331,7 +330,7 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
     rownames(dd) <- NULL
     k <- length(unique(dd$event)) - 1    
     if (!is.null(vNames)) { ## any covariates/stratifications?
-        dd2 <- subset(DF, event == 0, select = vNames)
+        dd2 <- DF[DF$event == 0, vNames, drop = FALSE]
         dd2 <- dd2[do.call(order, dd2),, drop = FALSE]
         nn <- table(apply(dd2, 1, paste, collapse = ""))
         dd2 <- unique(dd2)
@@ -341,12 +340,11 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
                            apply(dd2[,vNames, drop = FALSE], 1, paste, collapse = ""))
         tmp1 <- merge(dd, dd2, by = vNames)
         ## as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":"))))
-        rec0 <- subset(tmp1, event == 0)       
+        rec0 <- tmp1[tmp1$event == 0,]
         dat0 <- do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
             x$adjrisk = apply(x, 1, function(y)
                 as.numeric(y['n.y']) - sum(rec0$n.x[as.numeric(y['time2'])> rec0$time2 & rec0$GrpInd == as.numeric(y['GrpInd'])]))
             return(x)}))
-
         dat0$n.x <- dat0$n.x * (dat0$event > 0)
         rec0$time2 <- rec0$n.x <- 0
         rec0$adjrisk <- 1
@@ -354,10 +352,10 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         rownames(dat0) <- NULL
         ## Number of recurrent types
         if (k > 1) {
-            tmp <- subset(dat0, event == 0)
+            tmp <- dat0[dat0$event == 0,]
             tmp <- tmp[rep(1:NROW(tmp), k),]
             tmp$event <- rep(1:k, each = sum(dat0$event == 0))
-            dat0 <- rbind(subset(dat0, event > 0), tmp)            
+            dat0 <- rbind(dat0[dat0$event > 0,], tmp)            
         } else {
             dat0$event <- dat0$event[1]
         }
@@ -377,7 +375,7 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         }
     } else { ## no covariates
         dd$n.y <- length(unique(DF$id))
-        rec0 <- subset(dd, event == 0)
+        rec0 <- dd[dd$event == 0, ]
         dd$adjrisk <- apply(dd, 1, function(x) x[4] - sum(rec0$n[x[2] > rec0$time2]))
         dd$n <- dd$n * (dd$event > 0)
         rec0$time2 <- rec0$n <- 0
@@ -392,8 +390,8 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         dat0$event <- factor(dat0$event, labels = ctrl$recurrent.name)
     }
     if (k > 1) {
-        dat00 <- subset(dat0, event == 0)
-        dat0 <- subset(dat0, event > 0)
+        dat00 <- dat0[dat0$event == 0,]
+        dat0 <- dat0[dat0$event > 0,]
         if (nrow(dat00) > 0) {
             dat00 <- dat00[rep(1:nrow(dat00), k),]
             dat00$event <- rep(1:k, each = nrow(dat00) / k)
@@ -440,7 +438,7 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
     if (smooth & k == 1 & !onePanel) {
         if (is.null(dat0$GrpInd)) dat0$GrpInd <- 1
         dat0 <- do.call(rbind, lapply(split(dat0, dat0$GrpInd), function(x){
-            x$bs <- with(x, scam(MCF ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+            x$bs <- scam(x$MCF ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
             return(x)}))       
         gg <- gg + geom_line(aes(time2, y = dat0$bs), color = 4, size = ctrl$lwd)
         ## geom_smooth(method = "scam", formula = y ~ s(x, k = 10, bs = "mpi"), size = ctrl$lwd, se = FALSE)
@@ -514,61 +512,73 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
         return(plotRate(x, smooth = smooth, control = ctrl))
     if (baseline == "hazard")
         return(plotHaz(x, smooth = smooth, control = ctrl))
-    if (baseline == "both" & x$method %in% c("cox.LWYY", "sc.XCYH")) {
-        cat(paste("Baseline cumulative hazard function is not available for method = ", x$method, ".", sep = ""))
+    if (baseline == "both" & x$temType == ".") {
+        cat(paste("Baseline cumulative hazard function is not available."))
         cat("\nOnly the baseline cumulative rate function is plotted.\n")
         return(plotRate(x, smooth = smooth, control = ctrl))
     }
-    if (baseline == "both" & !(x$method %in% c("cox.LWYY", "sc.XCYH"))) {
-        dat1 <- dat2 <- subset(x$DF, select = time2)
-        dat1$Y <- x$rate0(x$DF$time2)
-        dat2$Y <- x$haz0(x$DF$time2)
-        if (!is.null(x$rate0.upper)) {
-            dat1$Y.upper <- x$rate0.upper(x$DF$time2)
-            dat1$Y.lower <- x$rate0.lower(x$DF$time2)
-            dat2$Y.upper <- x$haz0.upper(x$DF$time2)
-            dat2$Y.lower <- x$haz0.lower(x$DF$time2)
+    dat1 <- dat2 <- x$DF[, "time2", drop = FALSE]
+    dat1$Y <- x$Lam0(dat1$time2)
+    if (!is.null(x$Lam0.upper)) {
+        dat1$Y.upper <- x$Lam0.upper(dat1$time2)
+        dat1$Y.lower <- x$Lam0.lower(dat1$time2)
+    }
+    if (x$temType != ".") {
+        dat2$Y <- x$Haz0(dat1$time2)
+        if (!is.null(x$Haz0.upper)) {    
+            dat2$Y.upper <- x$Haz0.upper(dat2$time2)
+            dat2$Y.lower <- x$Haz0.lower(dat2$time2)
         }
         dat <- rbind(dat1, dat2)
         dat$group <- c(rep(1, nrow(dat1)), rep(2, nrow(dat2)))
         dat$group <- factor(dat$group, levels = 1:2,
                             labels = c("Baseline cumulative rate", "Baseline cumulative hazard"))
-        gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
-            facet_grid(group ~ ., scales = "free") +
-            theme(axis.line = element_line(color = "black"),
-                  strip.text = element_text(face = "bold", size = 12))   
+    }
+    gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
+        facet_grid(group ~ ., scales = "free") +
+        theme(axis.line = element_line(color = "black"),
+              strip.text = element_text(face = "bold", size = 12))   
     if (smooth) {
         dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-            x$bs <- with(x, scam(Y ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+            x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
             return(x)}))
         gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4, size = ctrl$lwd)
-        if (!is.null(x$rate0.upper)) {
+        if (!is.null(x$Lam0.upper)) {
             dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-                x$bs.upper <- with(x, scam(Y.upper ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+                x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
             gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, size = ctrl$lwd, lty = 2)
         }
-        if (!is.null(x$rate0.lower)) {
-            dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-                x$bs.lower <- with(x, scam(Y.lower ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+        if (!is.null(x$Lam0.lower)) {
+            dat <- do.call(rbind, lapply(split(dat, dat$group), function(x) {
+                x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
             gg <- gg + geom_line(aes(time2, y = dat$bs.lower), color = 4, size = ctrl$lwd, lty = 2)
         }
     } else {
         gg <- gg + geom_step()
-        if (!is.null(x$rate0.upper))
+        if (!is.null(x$Lam0.upper))
             gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2)+ 
                 geom_step(aes(x = time2, y = Y.lower), lty = 2)
     }
     gg + ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
-}
 }
 
 #' Plotting the Baseline Cumulative Rate Function for the Recurrent Event Process
 #'
 #' Plot the baseline rate function for an \code{reReg} object.
 #' The 95\% confidence interval on the baseline cumulative rate function
-#' is provided when the \code{reReg} object is fitted with standard error estimation.
+#' is provided when \code{baseSE = TRUE} is specified in \code{reReg()}
+#' through \code{control}.
+#'
+#' The \code{plotRate()} plots the estimated baseline cumulative rate function 
+#' depending on the identifiability assumption.
+#' When \code{type = "unrestricted"} (default), the baseline cumulative rate function
+#' is plotted under the assumption \eqn{E(Z) = 1}.
+#' When \code{type = "scaled"}, the baseline cumulative rate function is plotted
+#' under the assumption \eqn{\Lambda(\min(Y^\ast, \tau)) = 1}.
+#' When \code{type = "raw"}, the baseline cumulative rate function is plotted
+#' under the assumption \eqn{\Lambda(\tau) = 1}.
 #' 
 #' The argument \code{control} consists of options with argument defaults
 #' to a list with the following values:
@@ -581,7 +591,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param type a character string specifying the type of rate function to be plotted.
-#' Options are "raw", "scaled", "unrestricted". See \bold{Details}.
+#' Options are "unrestricted", "scaled", "raw". See \bold{Details}.
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
@@ -595,7 +605,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' @keywords Plots
 #' 
 #' @example inst/examples/ex_plot_rate.R
-plotRate <- function(x, type = c("raw", "scaled", "unrestricted"),
+plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
                      smooth = FALSE, control = list(), ...) {
     ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
     namc <- names(control)
@@ -609,27 +619,39 @@ plotRate <- function(x, type = c("raw", "scaled", "unrestricted"),
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
     type <- match.arg(type)
-    if (!is.reReg(x)) stop("Response must be a reReg class")
-    dat <- subset(x$DF, select = time2)
-    dat$Y <- x$rate0(x$DF$time2)
-    if (!is.null(x$rate0.upper)) {        
-        dat$Y.upper <- x$rate0.upper(x$DF$time2)
-        dat$Y.lower <- x$rate0.lower(x$DF$time2)
-    }
+    if (!is.reReg(x)) stop("Response must be a reReg class")    
+    dat <- x$DF[,"time2",drop = FALSE]
+    if (type == "unrestricted") dat$Y <- x$Lam0(dat$time2) * exp(x$log.muZ)
+    if (type == "scaled") dat$Y <- x$Lam0(dat$time2) / x$Lam0(max(dat$time2))
+    if (type == "raw") dat$Y <- x$Lam0(dat$time2)
+    if (!is.null(x$Lam0.upper)) {
+        if (type == "raw") {
+            dat$Y.upper <- x$Lam0.upper(dat$time2)
+            dat$Y.lower <- x$Lam0.lower(dat$time2)
+        }
+        if (type == "unrestricted") {
+            dat$Y.upper <- x$Lam0.upper(dat$time2) * exp(x$log.muZ)
+            dat$Y.lower <- x$Lam0.lower(dat$time2) * exp(x$log.muZ)
+        }
+        if (type == "scaled") {
+            dat$Y.upper <- x$Lam0.upper(dat$time2) / x$Lam0(max(dat$time2))
+            dat$Y.lower <- x$Lam0.lower(dat$time2) / x$Lam0(max(dat$time2))
+        }
+    }    
     gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
         theme(axis.line = element_line(color = "black"))
     if (smooth) {
-        dat$bs <- with(dat, scam(Y ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+        dat$bs <- scam(dat$Y ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
         gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4)
-        if (!is.null(x$rate0.upper)) {
-            dat$bs.upper <- with(dat, scam(Y.upper ~ s(time2, k = 10, bs = "mpi")))$fitted.values
-            dat$bs.lower <- with(dat, scam(Y.lower ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+        if (!is.null(x$Lam0.upper)) {
+            dat$bs.upper <- scam(dat$Y.upper ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+            dat$bs.lower <- scam(dat$Y.lower ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
             gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, lty = 2) + 
                 geom_line(aes(time2, y = dat$bs.lower), color = 4, lty = 2)
         }
     } else {
         gg <- gg + geom_step()
-        if (!is.null(x$rate0.upper))
+        if (!is.null(x$Lam0.upper))
             gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2) +
                 geom_step(aes(x = time2,  y = Y.lower), lty = 2)
     }
@@ -639,8 +661,9 @@ plotRate <- function(x, type = c("raw", "scaled", "unrestricted"),
 #' Plot the Baseline Cumulative Hazard Function for the Terminal Time
 #'
 #' Plot the baseline cumulative hazard function for an \code{reReg} object.
-#' The 95\% confidence interval on the baseline cumulative  hazard function
-#' is provided when the \code{reReg} object is fitted with standard error estimation.
+#' The 95\% confidence interval on the baseline cumulative rate function
+#' is provided when \code{baseSE = TRUE} is specified in \code{reReg()}
+#' through \code{control}.
 #'
 #' The argument \code{control} consists of options with argument
 #' defaults to a list with the following values:
@@ -666,9 +689,8 @@ plotRate <- function(x, type = c("raw", "scaled", "unrestricted"),
 #' 
 #' @example inst/examples/ex_plot_Haz.R
 plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
-    if (x$method %in% c("cox.LWYY", "sc.XCYH")) {
-        cat(paste("Baseline cumulative hazard function is not available for method = ", x$method, ".", sep = ""))
-        return()
+    if (x$temType == ".") {
+        stop("Baseline cumulative hazard function is not available.")
     }
     ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
     namc <- names(control)
@@ -682,36 +704,31 @@ plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
     if (!is.reReg(x)) stop("Response must be a reReg class")
-    dat <- subset(x$DF, select = time2)
-    dat$Y <- x$haz0(x$DF$time2)
-    if (!is.null(x$haz0.upper)) {
-        dat$Y.upper <- x$haz0.upper(x$DF$time2)
-        dat$Y.lower <- x$haz0.lower(x$DF$time2)
+    dat <- x$DF[, "time2", drop = FALSE]
+    dat$Y <- x$Haz0(dat$time2)
+    if (!is.null(x$Haz0.upper)) {
+        dat$Y.upper <- x$Haz0.upper(dat$time2)
+        dat$Y.lower <- x$Haz0.lower(dat$time2)
     }
     gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
         theme(axis.line = element_line(color = "black"))
     if (smooth) {
-        dat$bs <- with(dat, scam(Y ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+        dat$bs <- scam(dat$Y ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
         gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4)
-        if (!is.null(x$rate0.upper)) {
-            dat$bs.upper <- with(dat, scam(Y.upper ~ s(time2, k = 10, bs = "mpi")))$fitted.values
-            dat$bs.lower <- with(dat, scam(Y.lower ~ s(time2, k = 10, bs = "mpi")))$fitted.values
+        if (!is.null(x$Lam0.upper)) {
+            dat$bs.upper <- scam(dat$Y.upper ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+            dat$bs.lower <- scam(dat$Y.lower ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
             gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, lty = 2) +
                 geom_line(aes(time2, y = dat$bs.lower), color = 4, lty = 2)
         }
     } else {
         gg <- gg + geom_step()
-        if (!is.null(x$rate0.upper))
+        if (!is.null(x$Lam0.upper))
             gg <- gg + geom_step(aes(x = time2,  y = Y.upper), lty = 2) +
                 geom_step(aes(x = time2,  y = Y.lower), lty = 2)
     }
     gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
 }
-
-## unrowwise <- function(x) {
-##   class(x) <- c( "tbl_df", "data.frame")
-##   x
-## }
 
 plotEvents.control <- function(xlab = "Time", ylab = "Subject",
                                main = "Recurrent event plot",

@@ -4,10 +4,14 @@
 \alias{plotRate}
 \title{Plotting the Baseline Cumulative Rate Function for the Recurrent Event Process}
 \usage{
-plotRate(x, smooth = FALSE, control = list(), ...)
+plotRate(x, type = c("unrestricted", "scaled", "raw"), smooth = FALSE,
+  control = list(), ...)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
+
+\item{type}{a character string specifying the type of rate function to be plotted.
+Options are "unrestricted", "scaled", "raw". See \bold{Details}.}
 
 \item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
@@ -22,9 +26,19 @@ A \code{ggplot} object.
 \description{
 Plot the baseline rate function for an \code{reReg} object.
 The 95\% confidence interval on the baseline cumulative rate function
-is provided when the \code{reReg} object is fitted with standard error estimation.
+is provided when \code{baseSE = TRUE} is specified in \code{reReg()}
+through \code{control}.
 }
 \details{
+The \code{plotRate()} plots the estimated baseline cumulative rate function 
+depending on the identifiability assumption.
+When \code{type = "unrestricted"} (default), the baseline cumulative rate function
+is plotted under the assumption \eqn{E(Z) = 1}.
+When \code{type = "scaled"}, the baseline cumulative rate function is plotted
+under the assumption \eqn{\Lambda(\min(Y^\ast, \tau)) = 1}.
+When \code{type = "raw"}, the baseline cumulative rate function is plotted
+under the assumption \eqn{\Lambda(\tau) = 1}.
+
 The argument \code{control} consists of options with argument defaults
 to a list with the following values:
 \describe{
@@ -38,7 +52,7 @@ These arguments can also be passed down without specifying a \code{control} list
 data(simDat)
 fm <- Recur(Time, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = simDat, method = "cox.HW")
+fit <- reReg(fm, data = simDat, method = "cox")
 ## Plot both the baseline cumulative rate and hazard function
 plot(fit)
 ## Plot baseline cumulative rate function

@@ -134,39 +134,39 @@ void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
   Free(e);
 }
 
-void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz,
-	  int *n, int *p, double *res) {
-  int i, j, k, r;
-  double *nu = Calloc(*p, double);
-  double de;
-  for (i = 0; i < *n; i++) {
-    for (k = 0; k < cl[i]; k++) {
-      if (Y[i] >= Tik[clsz[i] + k]) {
-	de = 0.0;
-	for (r = 0; r < *p; r++) {
-	  nu[r] = 0;
-	}
-	for (j = 0; j < *n; j++) {
-	  if (Y[j] >= Tik[clsz[i] + k]) {
-	    for (r = 0; r < *p; r++) {
-	      nu[r] += X[j + r * *n] * wgt[j];
-	    }
-	    de += wgt[j];
-	  }
-	}
-	for (r = 0; r < *p; r++) {
-	  if (de > 0) {
-	    res[r] += X[i + r * *n] - (nu[r] / de);
-	  }
-	  if (de <= 0) {
-	    res[r] += X[i + r * *n];
-	  }
-	}
-      }
-    }
-  }
-  Free(nu);
-}
+/* void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz, */
+/* 	  int *n, int *p, double *res) { */
+/*   int i, j, k, r; */
+/*   double *nu = Calloc(*p, double); */
+/*   double de; */
+/*   for (i = 0; i < *n; i++) { */
+/*     for (k = 0; k < cl[i]; k++) { */
+/*       if (Y[i] >= Tik[clsz[i] + k]) { */
+/* 	de = 0.0; */
+/* 	for (r = 0; r < *p; r++) { */
+/* 	  nu[r] = 0; */
+/* 	} */
+/* 	for (j = 0; j < *n; j++) { */
+/* 	  if (Y[j] >= Tik[clsz[i] + k]) { */
+/* 	    for (r = 0; r < *p; r++) { */
+/* 	      nu[r] += X[j + r * *n] * wgt[j]; */
+/* 	    } */
+/* 	    de += wgt[j]; */
+/* 	  } */
+/* 	} */
+/* 	for (r = 0; r < *p; r++) { */
+/* 	  if (de > 0) { */
+/* 	    res[r] += X[i + r * *n] - (nu[r] / de); */
+/* 	  } */
+/* 	  if (de <= 0) { */
+/* 	    res[r] += X[i + r * *n]; */
+/* 	  } */
+/* 	} */
+/*       } */
+/*     } */
+/*   } */
+/*   Free(nu); */
+/* } */
 
 // Equation 8 of Ghosh & Lin (2002); Marginal regression models for recurrent and terminal events.
 // IPSW estimator (ARF in Luo et al (2015)
@@ -210,7 +210,7 @@ void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
 // Equation 9 of Ghosh & Lin (2002); Marginal regression models for recurrent and terminal events.
 // Baseline rate function
 // arguments follow similar structure in `coxGL`
-void glCoxRate(double *Tik, double *Y, double *xb, double *wgt, double *T0, int *len_T0, 
+void glCoxRate(double *Tik, double *Y, double *xb, double *wgt, double *T0, int *len_T0,
 	       int *len_Tik, int *cl, int *clsz, int *n, double *res) {
   int i, j, k, r;
   double de;
@@ -220,38 +220,16 @@ void glCoxRate(double *Tik, double *Y, double *xb, double *wgt, double *T0, int 
 	de = 0.0;
 	for (j = 0; j < *n; j++) {
 	  if (Y[j] >= Tik[clsz[i] + k]) {
-	    de += wgt[j * *len_Tik + clsz[i] + k] * xb[j]; 
+	    de += wgt[j * *len_Tik + clsz[i] + k] * xb[j];
 	  }
 	}
 	for (r = 0; r < *len_T0; r++) {
 	  if (T0[r] >= Tik[clsz[i] + k]) {
-	    res[r] += wgt[i * *len_Tik + clsz[i] + k] / de; 
+	    res[r] += wgt[i * *len_Tik + clsz[i] + k] / de;
 	  }
 	}
       }
     }
   }
 }
-
-
-/* void glCoxRate(double *Tik, double *Y, double *xb, double *wgt, double *T0, int *len_T0,  */
-/* 	       int *cl, int *clsz, int *n, double *res) { */
-/*   int i, j, k, r; */
-/*   double de; */
-/*   for (r = 0; r < *len_T0; r++) { */
-/*     for (i = 0; i < *n; i++) { */
-/*       for (k = 0; k < cl[i]; k++) { */
-/* 	if (Y[i] >= Tik[clsz[i] + k] && T0[r] >= Tik[clsz[i] + k]) { */
-/* 	  de = 0.0; */
-/* 	  for (j = 0; j < *n; j++) { */
-/* 	    if (Y[j] >= Tik[clsz[i] + k]) { */
-/* 	      de += wgt[j * *n + clsz[i] + k] * xb[j];  */
-/* 	    } */
-/* 	  } */
-/* 	  res[r] = wgt[i * *n + clsz[i] + k] / de;  */
-/* 	} */
-/*       } */
-/*     } */
-/*   } */
-/* } */
 
