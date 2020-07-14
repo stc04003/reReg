@@ -106,7 +106,8 @@ arma::rowvec am1(const arma::vec& a,
   arma::vec Yi(nm, arma::fill::zeros);
   arma::vec Wi(nm, arma::fill::zeros);
   arma::vec T0 = log(Y) + X * a;
-  for (int i = 0; i < m.n_elem; i ++) {
+  int mn = m.n_elem;
+  for (int i = 0; i < mn; i ++) {
     if (i == 0 && m(i) > 0) {
       Wi.subvec(0, m2(i) - 1).fill(W(i));
       Yi.subvec(0, m2(i) - 1).fill(Y(i));
@@ -138,7 +139,8 @@ arma::rowvec am1(const arma::vec& a,
   }
   Lam = exp(-Lam); 
   arma::vec R = m / Lam;
-  for (int i = 0; i < R.n_elem; i ++) {
+  int Rn = R.n_elem;
+  for (int i = 0; i < Rn; i ++) {
     if (R[i] > 100000) R[i] = (m[i] + 0.01) / (Lam[i] + 0.01);
   }
   // return (W % (R - mean(W % R))).t() * X / n;
@@ -191,7 +193,6 @@ arma::rowvec temScLog(const arma::vec& a,
 		      const arma::vec& D,
 		      const arma::vec& W) {
   int n = Y.n_elem;
-  int p = a.n_elem;
   arma::vec yexa = Y % exp(X * a);
   arma::vec ebax = exp(X * (b - a)); 
   arma::mat Iij = arma::conv_to<arma::mat>::from(repmat(yexa, 1, n) <= repmat(yexa, 1, n).t());
