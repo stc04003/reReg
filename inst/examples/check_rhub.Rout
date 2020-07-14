@@ -26,32 +26,79 @@ Type 'q()' to quit R.
 ─  Building package
 ─  Uploading package
 ─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-9b90ceed030e47fb9fd61a5cee23c169
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-b4b8c1d074e54104b9987a72de59035f
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-52f172e5bfc5422e8946fc8d0e2be10d
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-606902c18e764016ba735fd1dfa6270a
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-104410d8a123441da8ab42d68546c76d
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-c0eab6ada4494c9fa14722335b1bb54b
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-b5a04d77593e483cb896613a9e813ea2
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-a0893fe69a0542e190082c4433a798e3
 > check_on_centos()
 ─  Building package
 ─  Uploading package
 ─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-a0916621b0c54611ae456c512d8f02e4
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-d7f15f15901444448d028d918a066e36
 > check_on_debian()
 ─  Building package
 ─  Uploading package
 ─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-102117110cd645f9a1bb9192213c707e
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-bbdc2726e6dd4ae5ae20d9d9cfe86837
 > check_on_fedora()
 ─  Building package
 ─  Uploading package
 ─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-3d369a912b1e473faa59e946cc65b85b
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-f6677d0ef043494f90373726db531439
 > check_on_linux()
 ─  Building package
 ─  Uploading package
 ─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-af1a88ec848e4484adbf0b63e9272b3f
-> check_on_macos()
-Error in match_platform(platform) : 
-  Unknown R-hub platform, see rhub::platforms() for a list
-Calls: check_on_macos -> check -> match_platform
-Execution halted
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-defa90f73cc441ca89cc6198b8f165df
+> ## check_on_macos()
+> check_on_solaris()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-b4702c5694e044cdbfdbde3daa8291ee
+> check_on_ubuntu()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-a2bfd7d77f464921a3dfe69fccf33b3a
+> check_on_windows()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-18aba4af930142709d6ad8e1df820ed7
+> check_tzones()
+NULL
+> check_with_rdevel()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-3b5509fc364446d9bce54b7d3a8b1fd7
+> check_with_roldrel()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-377b0402ea2940b1bbcfe0c4ba9c711d
+> check_with_rpatched()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-54e1390ea3884d90bf0e170a24ce8e81
+> check_with_rrelease()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-48dc783457d24978bcf60220b0edb5b4
+> check_with_sanitizers()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-1a29e123ce374d96afee5f0d53e1fa08
+> check_with_valgrind()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-d4092e0db7b142f8bba179275e0330ca
+> 
+> proc.time()
+   user  system elapsed 
+  3.800   2.824   9.859 
