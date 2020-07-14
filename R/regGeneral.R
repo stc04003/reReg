@@ -9,8 +9,8 @@
 #' @importFrom utils tail
 #' @noRd
 reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
-    df0 <- subset(DF, event == 0)
-    df1 <- subset(DF, event == 1)
+    df0 <- DF[DF$event == 0,]
+    df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
@@ -76,8 +76,8 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
 }
 
 reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
-    df0 <- subset(DF, event == 0)
-    df1 <- subset(DF, event == 1)
+    df0 <- DF[DF$event == 0,]
+    df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
@@ -138,8 +138,8 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
 }
 
 reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
-    df0 <- subset(DF, event == 0)
-    df1 <- subset(DF, event == 1)
+    df0 <- DF[DF$event == 0,]
+    df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     ## yi <- rep(df0$time2, m)
@@ -190,8 +190,8 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
 }
 
 reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
-    df0 <- subset(DF, event == 0)
-    df1 <- subset(DF, event == 1)
+    df0 <- DF[DF$event == 0,]
+    df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df0[,-c(1:6)])
@@ -253,7 +253,7 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
 #' @noRd
 
 temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
-    df0 <- subset(DF, event == 0)
+    df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-c(1:6)])    
     di <- df0$terminal
@@ -292,7 +292,7 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
 }
 
 temAM <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
-    df0 <- subset(DF, event == 0)
+    df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-c(1:6)])    
     di <- df0$terminal
@@ -330,7 +330,7 @@ temAM <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
 }
 
 temCox <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
-    df0 <- subset(DF, event == 0)
+    df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-c(1:6)])    
     di <- df0$terminal
@@ -366,7 +366,7 @@ temCox <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
 }
 
 temAR <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
-    df0 <- subset(DF, event == 0)
+    df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-c(1:6)])    
     di <- df0$terminal

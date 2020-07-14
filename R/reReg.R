@@ -1,4 +1,4 @@
-## globalVariables(c("event", "vcov", "wgt")) ## global variables for reReg
+## globalVariables("DF") ## global variables for reReg
 
 ##############################################################################
 ## Functions for different methods
@@ -7,7 +7,7 @@
 ##############################################################################
 
 regFit.am.GL <- function(DF, engine, stdErr) {
-    DF0 <- subset(DF, event == 0)
+    DF0 <- DF[DF$event == 0,]
     p <- ncol(DF0) - 6
     alpha <- beta <- gamma <- rep(0, p)
     Y <- log(DF0$time2)
@@ -47,7 +47,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
 
 regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
-    DF0 <- subset(DF, event == 0)
+    DF0 <- DF[DF$event == 0,]
     p <- ncol(DF0) - 6
     alpha <- beta <- gamma <- rep(0, p)
     Y <- log(DF0$time2)
@@ -95,7 +95,7 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))    
     aSE <- sqrt(diag(aVar))
     bSE <- sqrt(diag(bVar))
-    np <- npFit.SE.am.GL(DF, fit.a$par, fit.b$par, engine, stdErr)
+    np <- npFit.SE.am.GL(DF, res$alpha, res$beta, engine, stdErr)
     c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar,
                 Lam0 = np$Lam0, Lam0.lower = np$Lam0.lower, Lam0.upper = np$Lam0.upper,
                 Haz0 = np$Haz0, Haz0.lower = np$Haz0.lower, Haz0.upper = np$Haz0.upper))
@@ -126,23 +126,20 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
     T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
     Y <- rep(DF$time2[event == 0], mt + 1)
-    ## T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
-    ## fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
-    fit.coxph <- coxph(Surv(time2, terminal) ~ .,
-                       data = subset(DF, !event, select = -c(id, event, time1, origin)))
+    X0 <- X[event == 0,,drop = FALSE]
+    fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X0)
     cumHaz <- basehaz(fit.coxph)
     ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
-    X0 <- subset(X, !event)
     wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
-        with(cumHaz, approxfun(time, exp(-hazard * x), yleft = 1, yright = min(exp(-hazard * x)),
-                               method = "constant"))(T))
+        approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1, yright = min(exp(-cumHaz$hazard * x)),
+                  method = "constant")(T))
     wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
     wgt <- ifelse(wgt > 1e5, 1e5, wgt)
     out <- dfsane(par = engine@a0, fn = coxGLeq, wgt = wgt, 
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                   alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
-    np <- npFit.SE.cox.GL(DF, fit.a$par, fit.b$par, engine, NULL)
+    np <- npFit.SE.cox.GL(DF, out$par, coef(fit.coxph), engine, NULL)
     list(alpha = out$par, beta = coef(fit.coxph),
          betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
          Lam0 = np$Lam0, Lam0.lower = np$Lam0.lower, Lam0.upper = np$Lam0.upper,
@@ -252,12 +249,13 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
             ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
-            with(regFit(DF2, engine, NULL), c(alpha, beta))            
+            tmp <- regFit(DF2, engine, NULL)
+            return(c(tmp$alpha, tmp$beta))
         })
         stopCluster(cl)
         betaMatrix <- t(out)
         convergence <- apply(betaMatrix, 1, function(x)
-            1 * (x %*% x > 1e3 * with(res, c(alpha, beta) %*% c(alpha, beta))))
+            1 * (x %*% x > 1e3 * c(res$alpha, res$beta) %*% c(res$alpha, res$beta)))
     } else {
         betaMatrix <- matrix(0, B, p * 2)
         convergence <- rep(0, B)
@@ -266,9 +264,10 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
             ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
-            betaMatrix[i,] <- with(regFit(DF2, engine, NULL), c(alpha, beta))
+            tmp <- regFit(DF2, engine, NULL)
+            betaMatrix[i,] <- c(tmp$alpha, tmp$beta)
             convergence[i] <- 1 * (betaMatrix[i,] %*% betaMatrix[i,] >
-                                   1e3 * with(res, c(alpha, beta) %*% c(alpha, beta)))
+                                   1e3 * c(res$alpha, res$beta) %*% c(res$alpha, res$beta))
         }
     }
     converged <- which(convergence == 0)
@@ -295,8 +294,8 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
 
 ## ~1
 npFit <- function(DF, B = 0) {
-    df0 <- subset(DF, event == 0)
-    df1 <- subset(DF, event == 1)
+    df0 <- DF[DF$event == 0,]
+    df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event ~ id, data = DF, sum)[, 2]
     yi <- df0$time2

@@ -1,7 +1,7 @@
 npFit.am.GL <- function(DF, alpha, beta, engine, stdErr) {
     alpha <- -alpha
     beta <- -beta
-    DF0 <- subset(DF, event == 0)
+    DF0 <- DF[DF$event == 0,]
     X <- as.matrix(DF0[,-(1:6)])
     p <- ncol(X)
     status <- DF0$terminal
@@ -30,7 +30,7 @@ npFit.am.GL <- function(DF, alpha, beta, engine, stdErr) {
 }
 
 npFit.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
-    id <- subset(DF, event == 0)$id
+    id <- DF[DF$event == 0,]$id
     B <- stdErr@B
     PE <- npFit.am.GL(DF, alpha, beta, engine, NULL)
     rateMat <- matrix(NA, B, length(PE$t0.rate))
@@ -72,8 +72,7 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
                as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
                as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
     rate0 <- approxfun(t0.rate, rate, yleft = 0, yright = max(rate), method = "constant")
-    fit.coxph <- coxph(Surv(time2, terminal) ~ .,
-                       data = subset(DF, !event, select = -c(id, event, time1, origin)))
+    fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X[event == 0,,drop = FALSE])
     cumHaz <- basehaz(fit.coxph)
     t0.haz <- cumHaz$time
     haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
@@ -87,8 +86,8 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
         DF2 <- DF[ind,]
         DF2$id <- rep(1:length(id0), table(DF$id)[sampled.id])
         rownames(DF2) <- NULL
-        fit.coxphB <- coxph(Surv(time2, terminal) ~ .,
-                            data = subset(DF2, !event, select = -c(id, event, time1, origin)))
+        fit.coxphB <- coxph(Surv(DF2$time2[DF2$event == 0], DF2$terminal[DF2$event == 0]) ~
+                                as.matrix(DF2[DF2$event == 0, c(1:6)]))        
         cumHaz <- basehaz(fit.coxphB)
         ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
         X0 <- as.matrix(DF2[!DF2$event, -(1:6)])
@@ -111,4 +110,27 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
          Haz0 = haz0,
          Haz0.lower = approxfun(t0.haz, hl, yleft = 0, yright = max(hl), method = "constant"),
          Haz0.upper = approxfun(t0.haz, hu, yleft = 0, yright = max(hu), method = "constant"))
+}
+
+npFit.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
+    id <- DF$id
+    event <- DF$event
+    X <- as.matrix(DF[,-c(1:6)])
+    p <- ncol(X)
+    T <- DF$time2
+    mt <- aggregate(event ~ id, data = DF, sum)$event
+    Y <- rep(DF$time2[!event], mt + 1)
+    t0.rate <- sort(unique(T))
+    xb <- exp(X[!event,] %*% beta) 
+    cl <- mt + 1
+    rate <- .C("glCoxRate", as.double(ifelse(T == Y, 1e5, T)), as.double(Y[!event]),
+               as.double(xb), as.double(engine@wgt), as.double(t0.rate), as.integer(length(t0.rate)), 
+               as.integer(length(T)), as.integer(cl), as.integer(c(0, cumsum(cl)[-length(cl)])),
+               as.integer(sum(!event)), out = double(length(t0.rate)), PACKAGE = "reReg")$out
+    fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X[event == 0,,drop = FALSE])
+    cumHaz <- basehaz(fit.coxph)
+    haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
+    list(Lam0 = approxfun(t0.rate, rate, rule = 2, method = "constant"),
+         Lam0.lower = NULL, Lam0.upper = NULL, 
+         Haz0 = haz0, Haz0.lower = NULL, Haz0.upper = NULL)
 }
