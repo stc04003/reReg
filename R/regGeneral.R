@@ -340,8 +340,8 @@ temCox <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
         yi2 <- sort(unique(yi))
         Haz <- apply(wgt, 2, function(e) temHaz(rep(0, p), b0, xi, yi, zi / mean(zi), di, e, yi2))
         Haz <- apply(Haz, 1, quantile, c(.025, .975))
-        Haz.lower <- approxfun(exp(yi2), Haz[1,], yleft = min(Haz[1,]), yright = max(Haz[1,]))
-        Haz.upper <- approxfun(exp(yi2), Haz[2,], yleft = min(Haz[2,]), yright = max(Haz[2,]))
+        Haz.lower <- approxfun(yi2, Haz[1,], yleft = min(Haz[1,]), yright = max(Haz[1,]))
+        Haz.upper <- approxfun(yi2, Haz[2,], yleft = min(Haz[2,]), yright = max(Haz[2,]))
         return(list(Haz0.lower = Haz.lower, Haz0.upper = Haz.upper))
     }
     if (is.null(wgt)) {

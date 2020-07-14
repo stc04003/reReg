@@ -1,7 +1,7 @@
 data(simDat)
 fm <- Recur(Time, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = simDat, method = "cox.HW")
+fit <- reReg(fm, data = simDat, method = "cox")
 plot(fit)
 plot(fit, baseline = "rate")
 plot(fit, baseline = "rate", xlab = "Time (days)")

@@ -43,6 +43,7 @@ print.reReg <- function(x, ...) {
 }
 
 pvalTab <- function(pe, se) {
+    if (is.null(se)) se <- NA
     cbind(Estimate = round(pe, 3), StdErr = round(se, 3),
           z.value = round(pe / se, 3), p.value = round(2 * pnorm(-abs(pe / se)), 3))    
 }
@@ -51,29 +52,22 @@ pvalTab <- function(pe, se) {
 summary.reReg <- function(object, test = FALSE, ...) {
     if (!is.reReg(object)) stop("Must be a reReg x")
     if (all(!is.na(object$alpha))) {
-        if (object$se == "NULL") {
-            if (object$method == "cox.LWYY") object$betaSE <- NA
-            else object$alphaSE <- object$betaSE <- NA
-        }
         tabA <- pvalTab(object$alpha, object$alphaSE)
-        tabB <- NULL
         if (object$recType == "sc") {
             p <- length(object$alpha) / 2
             rownames(tabA) <- rep(object$varNames, 2)
             tabA <- list(tabA1 = tabA[1:p,, drop = FALSE], tabA2 = tabA[-(1:p),, drop = FALSE])
         } else rownames(tabA) <- object$varNames
+        out <- list(call = object$call, method = object$method, tabA = tabA)
         if (!is.null(object$beta)) {
             tabB <- pvalTab(object$beta, object$betaSE)
-            rownames(tabB) <- object$varNames
+            if (object$temType == "sc") {
+                p <- length(object$beta) / 2
+                rownames(tabB) <- rep(object$varNames, 2)
+                tabB <- list(tabB1 = tabB[1:p,, drop = FALSE], tabB2 = tabB[-(1:p),, drop = FALSE])
+            } else rownames(tabB) <- object$varNames
+            out$tabB <- tabB
         }
-        out <- list(call = object$call, method = object$method, tabA = tabA, tabB = tabB)
-    } else {
-        out <- list(call = object$call, method = object$method, 
-                    tabB = data.frame(Time = object$t0, cum.rate = object$lam,
-                                      cum.rate.L = object$lamL, cum.rate.U = object$lamU,
-                                      cum.haz = object$haz, cum.haz.L = object$hazL,
-                                      cum.haz.U = object$hazU), tabA = NA)
-        ## assuming tabA is na if fit with ~1
     }
     if (object$recType == "sc" & object$se == "resampling") {
         p <- length(object$alpha) / 2
@@ -105,22 +99,6 @@ print.summary.reReg <- function(x, ...) {
     cat("Call: \n")
     dput(x$call)
     if (!is.na(x$tabA)[1]) {
-        if (x$recType != "sc" & x$method != "cox.LWYY") {
-            if (x$method == "am.XC") 
-                cat("\nMethod: Joint Scale-Change Model \n")
-            if (x$method == "am.GL")
-                cat("\nMethod: Ghosh-Lin Model \n")
-            if (x$method == "am.XCHWY")
-                cat("\nMethod: Xu et al. (2016) Model \n")
-            if (x$method == "cox.HW")
-                cat("\nMethod: Huang-Wang Model \n")
-            ## cat("\nCoefficients (rate):\n")
-            cat("\nRecurrent event process:\n")
-            printCoefmat2(x$tabA)
-            ## cat("\nCoefficients (hazard):\n")
-            cat("\nTerminal event:\n")
-            printCoefmat2(x$tabB)
-        }
         if (x$recType == "sc") {
             p <- nrow(x$tabA$tabA1)
             cat("\nRecurrent event process (shape):\n")
@@ -139,17 +117,22 @@ print.summary.reReg <- function(x, ...) {
                 cat(paste("\n     X-squared = ", round(x$HG.chi, 4), ", df = ", p,
                           ", p-value = ", round(x$HG.pval, 4), sep = ""))
             }
-            if (length(x$beta) > 0) {
-                cat("\nTerminal event:\n")
-                printCoefmat(x$tabB)
-            }
-        }
-        if (x$method == "cox.LWYY") {
-            if (is.null(x$call[["se"]]))
-                cat("\nMethod: Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)\n")
-            else cat("\nMethod: Lin-Wei-Yang-Ying method \n")
-            cat("\nCoefficients effect:\n")
+        } else {
+            cat("\nRecurrent event process:\n")
             printCoefmat(x$tabA)
+        }
+        ## Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)
+        if (x$temType != ".") {
+            if (x$temType == "sc") {
+                p <- nrow(x$tabB$tabB1)
+                cat("\nTerminal event (shape):\n")
+                printCoefmat2(x$tabB[[1]])
+                cat("\nTerminal event (size):\n")
+                printCoefmat2(x$tabB[[2]])
+            } else {
+                  cat("\nTerminal event:\n")
+                  printCoefmat(x$tabB)
+            }
         }
     }
     if (is.na(x$tabA)[1]) {

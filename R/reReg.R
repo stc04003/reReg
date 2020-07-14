@@ -39,8 +39,10 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     fit.a <- eqSolve(engine@a0, ghoshU2, engine@solver)
     fit.b$par <- -fit.b$par
     fit.a$par <- -fit.a$par
+    np <- npFit.am.GL(DF, fit.a$par, fit.b$par, engine, NULL)
     list(alpha = fit.a$par, aconv = fit.a$convergence,
-         beta = fit.b$par, bconv = fit.b$convergence, muZ = NA)
+         beta = fit.b$par, bconv = fit.b$convergence, muZ = NA,
+         Lam0 = np$Lam0, Haz0 = np$Haz0)
 }
 
 regFit.am.GL.resampling <- function(DF, engine, stdErr) {
@@ -93,7 +95,10 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))    
     aSE <- sqrt(diag(aVar))
     bSE <- sqrt(diag(bVar))
-    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
+    np <- npFit.SE.am.GL(DF, fit.a$par, fit.b$par, engine, stdErr)
+    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar,
+                Lam0 = np$Lam0, Lam0.lower = np$Lam0.lower, Lam0.upper = np$Lam0.upper,
+                Haz0 = np$Haz0, Haz0.lower = np$Haz0.lower, Haz0.upper = np$Haz0.upper))
 }
 
 #' @importFrom survival cluster
@@ -137,11 +142,11 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                   alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
+    np <- npFit.SE.cox.GL(DF, fit.a$par, fit.b$par, engine, NULL)
     list(alpha = out$par, beta = coef(fit.coxph),
          betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
-         wgt = wgt,
-         haz0 = with(cumHaz,
-                     approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant")))
+         Lam0 = np$Lam0, Lam0.lower = np$Lam0.lower, Lam0.upper = np$Lam0.upper,
+         Haz0 = np$Haz0, Haz0.lower = np$Haz0.lower, Haz0.upper = np$Haz0.upper)
 }
 
 ## #' @importFrom rlang is_empty
@@ -212,7 +217,7 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
         ind2 <- tail(1:nrow(J), nb)
         bVar <- solve(J[ind2, ind2]) %*% V[ind2, ind2] %*% t(solve(J[ind2, ind2]))
         res$betaSE <- sqrt(diag(as.matrix(bVar)))
-        res$betaVar = bVar
+        res$betaVar <- bVar
     } 
     return(res)
 }
@@ -386,59 +391,40 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
           regFit.am.GL.resampling)
 
 
-## #' When a joint model is fitted (e.g., \code{method = "cox.HW"} or \code{method = "am.XCHWY"}),
-## #' the hazard function of the terminal event is either in a Cox model or an accelerated failure time model.
-
 #' Fits Semiparametric Regression Models for Recurrent Event Data
 #'
-#' Fits a semiparametric regression model for the recurrent event data.
-#' The rate function of the underlying process for the recurrent event process
-#' can be specified as a Cox-type model, an accelerated mean model, or a generalized scale-change model.
+#' Fits a general (joint) semiparametric regression model for the recurrent event data,
+#' where the rate function of the underlying recurrent event process and
+#' the hazard function of the terminal event can be specified as a Cox-type model,
+#' an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 #' See details for model specifications.
 #'
 #' Suppose the recurrent event process and the failure events are observed in the time interval \eqn{t\in[0,\tau]},
 #' for some constant \eqn{\tau}.
-#' We formulate the rate function, \eqn{\lambda(t)}, for the recurrent event process and
-#' the hazard function, \eqn{h(t)}, for the censoring time
-#' under the following model specifications:
-#' \describe{
-#'   \item{Cox-type model:}{
-#' \deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top\alpha}, h(t) = Z h_0(t)e^{X^\top\beta},}}
-#'   \item{Accelerated mean model:}{
-#' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Z h_0(te^{X^\top\beta})e^{X^\top\beta},}}
-#'   \item{Scale-change model:}{
-#' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\beta},}}
-#' }
+#' We formulate the recurrent event rate function, \eqn{\lambda(t)}, and the terminal event hazard function, \eqn{h(t)}, 
+#' in the form of
+#' \deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
 #' where \eqn{\lambda_0(t)} is the baseline rate function, \eqn{h_0(t)} is the baseline hazard function,
 #' \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
-#' \eqn{Z} is an unobserved shared frailty variable,
-#' and \eqn{\beta} are unknown \eqn{p}-dimensional regression parameters.
-#'
-#' The \code{reReg} function fits models with the following available methods:
-#' \describe{
-#'   \item{\code{method = "cox.LWYY"}}{
-#' assumes the Cox-type model with \code{Z = 1} and requires independent censoring. 
-#' The returned result is equivalent to that from \code{coxph}. See reference Lin et al. (2000).}
-#'   \item{\code{method = "cox.HW"}}{
-#' assumes the Cox-type model with unspecified \code{Z}, thus accommodate informative censoring.
-#' See the references See reference Wang, Qin and Chiang (2001) and Huang and Wang (2004).}
-#'   \item{\code{method = "am.GL"}}{
-#' assumes the accelerated mean model with \code{Z = 1} and requires independent censoring. 
-#' See the reference Ghosh and Lin (2003).}
-#'   \item{\code{method = "am.XCHWY"}}{
-#' assumes the accelerated mean model with unspecified \code{Z}, thus accommodate informative censoring.
-#' See the reference Xu et al. (2017).}
-#'   \item{\code{method = "sc.XCYH"}}{
-#' assumes the generalized scale-change model, and includes the methods \code{"cox.HW"} and \code{"am.XCHWY"} as special cases.
-#' Informative censoring is accounted for through the unspecified frailty variable \code{Z}.
-#' The methods also provide a hypothesis test of these submodels.}
-#' }
+#' \eqn{Z} is an unobserved shared frailty variable, and
+#' \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
+#' rate function and the hazard function, respectively.
+#' The model includes several popular semiparametric models as special cases,
+#' which can be specified via the \code{method} argument with the rate function
+#' and hazard function separated by "\code{|}".
+#' For examples, Huang and Wang (2004) (\eqn{\alpha = \eta = 0}) can be called with \code{method = "cox|cox"};
+#' Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0}) can be called with \code{method = "cox|."};
+#' Xu et al. (2017) (\eqn{\alpha = \alpha} and \eqn{\eta = \theta}) can be called with \code{method = "am|am"};
+#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
+#' Some methods that assumes \code{Z = 1} and requires independent censorings are also implemented in \code{reReg};
+#' these includes \code{method = "cox.LWYY"} of Lin et al. (2000), \code{method = "cox.GL" of Ghosh and Lin (2002),
+#' and \code{method = "am.GL"} of Ghosh and Lin (2003).
 #'
 #' The available methods for variance estimation are:
 #' \describe{
 #'   \item{\code{NULL}}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-#'   \item{\code{"resampling"}}{performs the efficient resampling-based sandwich estimator that works with methods \code{"cox.HW"}, \code{"am.XCHWY"} and \code{"sc.XCYH"}.}
-#'   \item{\code{"bootstrap"}}{works with all fitting methods.}
+#'   \item{\code{"resampling"}}{performs the efficient resampling-based variance estimation.}
+#'   \item{\code{"bootstrap"}}{performs nonparametric bootstrap.}
 #' }
 #'
 #' The \code{control} list consists of the following parameters:
@@ -463,6 +449,8 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' @param control a list of control parameters.
 #'
 #' @export
+#' @references Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
+#' processes under informative censoring. \emph{Statistica Sinica}: pre-print.
 #' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
 #' \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
 #' @references Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
@@ -473,6 +461,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' \emph{Biometrics}, \bold{59}: 877--885.
 #' @references Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 #' \emph{Journal of the American Statistical Association}, \bold{99}(468): 1153--1165.
+#' @references Ghosh, D. and Lin, D.Y. (2002). Marginal Regression Models for Recurrent and Terminal Events. \emph{Statistica Sinica}: 663--688.
 #'
 #' @importFrom stats approxfun optim
 #' 
@@ -546,7 +535,7 @@ reReg <- function(formula, data, B = 200,
     if (length(engine@a0) == 1 & any(grepl("ar|am", c(method, engine@recType), fixed = FALSE)))    
         engine@a0 <- rep(engine@a0, p)
     if (length(engine@b0) == 1) {
-        if (any(grepl("sc", c(method, engine@recType), fixed = FALSE)))
+        if (any(grepl("sc", c(method, engine@temType), fixed = FALSE)))
             engine@b0 <- rep(engine@b0, 2 * p)
         else engine@b0 <- rep(engine@b0, p)
     }
@@ -569,16 +558,10 @@ reReg <- function(formula, data, B = 200,
     fit$varNames <- names(DF)[-(1:6)]
     fit$method <- method
     fit$se <- se
-    ## if (!is.null(fit$alphaVar)) rownames(fit$alphaVar) <- colnames(fit$alphaVar) <- fit$varNames
-    ## if (!is.null(fit$betaVar)) rownames(fit$betaVar) <- colnames(fit$betaVar) <- fit$varNames
-    ## if (!is.null(fit$alphaSE)) names(fit$alphaSE) <- fit$varNames
-    ## if (!is.null(fit$betaSE)) names(fit$betaSE) <- fit$varNames
-    ## if (!is.null(fit$alpha)) names(fit$alpha) <- fit$varNames
-    ## if (!is.null(fit$beta)) names(fit$beta) <- fit$varNames
     fit
 }
 
-#' equation wrapper
+#' Equation wrapper
 #'
 #' @noRd
 #' @importFrom BB spg
@@ -613,42 +596,6 @@ eqSolve <- function(par, fn, solver, ...) {
 ## Probably need to clean these up someday
 ##############################################################################
 
-baseHaz <- function(t0, Y, zhat, delta, weights  = NULL) {
-    if (is.null(weights)) weights <- rep(1, length(Y))
-    .C("hwHaz", as.double(t0), as.double(Y), as.double(zhat), as.double(delta),
-       as.double(weights), as.integer(length(Y)), as.integer(length(t0)), 
-       out = double(length(t0)), PACKAGE = "reReg")$out
-}
-
-npMLE <- function(t, tij, yi, weights = NULL) {
-    if (is.null(weights)) weights <- rep(1, length(yi))
-    ttmp <- tij[tij != yi]
-    ord <- order(ttmp)
-    sl <- unique(ttmp[ord])
-    l <- ifelse(min(t) < max(sl), which(sl > min(t))[1], length(sl))
-    tmp <- sl[l:length(sl)]
-    tmp <- rev(tmp)
-    tij <- rev(tij)
-    yi <- rev(yi)
-    ## print(length(weights))
-    res <- .C("plLambda", as.double(tmp), as.double(tij), as.double(yi), as.double(weights), 
-              as.integer(length(tmp)), as.integer(length(yi)),
-              out = double(length(tmp)),
-              PACKAGE = "reReg")$out
-    out <- rev(res)[sapply(t, function(x) which(rev(tmp) >= x)[1])]
-    out <- ifelse(is.na(out), 0, out)
-    out <- exp(-out)
-    return(out)
-}
-
-## LWYYeq <- function(beta, X, Y, T, cl) {
-##     p <- ncol(X)
-##     res <- vector("double", p)
-##     .C("lwyy", as.double(T), as.double(Y), as.double(X), as.double(wgt), as.integer(cl),
-##        as.integer(c(0, cumsum(cl)[-length(cl)])), as.integer(nrow(X)), as.integer(p),        
-##        out = double(p), PACKAGE = "reReg")$out       
-## }
-
 #' R function for equation 8 of Ghosh & Lin (2002);
 #' Marginal regression models for recurrent and terminal events.
 #' 
@@ -664,8 +611,8 @@ coxGLeq <- function(beta, X, Y, T, cl, wgt) {
        out = double(p), PACKAGE = "reReg")$out       
 }
 
-varOut <- function(dat, na.rm = TRUE) {
-    dat[which(dat %in% boxplot(dat, plot = FALSE)$out)] <- NA
-    dat <- dat[complete.cases(dat),]
-    var(dat, na.rm = na.rm)
-}
+## varOut <- function(dat, na.rm = TRUE) {
+##     dat[which(dat %in% boxplot(dat, plot = FALSE)$out)] <- NA
+##     dat <- dat[complete.cases(dat),]
+##     var(dat, na.rm = na.rm)
+## }

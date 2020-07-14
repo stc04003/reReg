@@ -89,28 +89,28 @@ fit1 <- with(dat, reSurv(Time, id, event, status))
 fit2 <- with(dat, Recur(Time, id, event, status))
 str(fit2)
 
-plotCSM(with(dat, Recur(Time, id, event, status)))
-plotCSM(Recur(Time, id, event, status) ~ 1, data = dat)
-plotCSM(Recur(Time, id, event, status) ~ x1, data = dat)
-plotCSM(Recur(Time, id, event, status) ~ x1 + x3, data = dat)
+plotMCF(with(dat, Recur(Time, id, event, status)))
+plotMCF(Recur(Time, id, event, status) ~ 1, data = dat)
+plotMCF(Recur(Time, id, event, status) ~ x1, data = dat)
+plotMCF(Recur(Time, id, event, status) ~ x1 + x3, data = dat)
 
-plotCSM(with(dat, Recur(Time, id, event, status)), adjrisk = FALSE)
-plotCSM(Recur(Time, id, event, status) ~ 1, data = dat, adjrisk = FALSE)
-plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, adjrisk = FALSE)
-plotCSM(Recur(Time, id, event, status) ~ x1 + x3, data = dat, adjrisk = FALSE)
+plotMCF(with(dat, Recur(Time, id, event, status)), adjrisk = FALSE)
+plotMCF(Recur(Time, id, event, status) ~ 1, data = dat, adjrisk = FALSE)
+plotMCF(Recur(Time, id, event, status) ~ x1, data = dat, adjrisk = FALSE)
+plotMCF(Recur(Time, id, event, status) ~ x1 + x3, data = dat, adjrisk = FALSE)
 
-plotCSM(with(dat, Recur(Time, id, event, status)), smooth = TRUE)
-plotCSM(Recur(Time, id, event, status) ~ 1, data = dat, smooth = TRUE)
-plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, smooth = TRUE)
-plotCSM(Recur(Time, id, event, status) ~ x1 + x3, data = dat, smooth = TRUE)
+plotMCF(with(dat, Recur(Time, id, event, status)), smooth = TRUE)
+plotMCF(Recur(Time, id, event, status) ~ 1, data = dat, smooth = TRUE)
+plotMCF(Recur(Time, id, event, status) ~ x1, data = dat, smooth = TRUE)
+plotMCF(Recur(Time, id, event, status) ~ x1 + x3, data = dat, smooth = TRUE)
 
-plotCSM(with(dat, Recur(Time, id, event, status)), adjrisk = FALSE, smooth = TRUE)
-plotCSM(Recur(Time, id, event, status) ~ 1, data = dat, adjrisk = FALSE, smooth = TRUE)
-plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, adjrisk = FALSE, smooth = TRUE)
-plotCSM(Recur(Time, id, event, status) ~ x1 + x3, data = dat, adjrisk = FALSE, smooth = TRUE)
+plotMCF(with(dat, Recur(Time, id, event, status)), adjrisk = FALSE, smooth = TRUE)
+plotMCF(Recur(Time, id, event, status) ~ 1, data = dat, adjrisk = FALSE, smooth = TRUE)
+plotMCF(Recur(Time, id, event, status) ~ x1, data = dat, adjrisk = FALSE, smooth = TRUE)
+plotMCF(Recur(Time, id, event, status) ~ x1 + x3, data = dat, adjrisk = FALSE, smooth = TRUE)
 
-plotCSM(Recur(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
-plotCSM(Recur(Time, id, event, status) ~ x1 + x3, data = dat, onePanel = TRUE)
+plotMCF(Recur(Time, id, event, status) ~ x1, data = dat, onePanel = TRUE)
+plotMCF(Recur(Time, id, event, status) ~ x1 + x3, data = dat, onePanel = TRUE)
 
 plotEvents(with(dat, Recur(Time, id, event, status)))
 plotEvents(Recur(Time, id, event, status) ~ 1, data = dat)
@@ -124,15 +124,15 @@ plot(fit2, event.result = "increasing")
 plot(fit2, result = "decreasing")
 plot(fit2, result = "asis")
 
-plot(fit2, CSM = TRUE)
-plot(fit2, CSM = TRUE, csm.smooth = TRUE)
-plot(fit2, CSM = TRUE, csm.smooth = FALSE)
-plot(fit2, CSM = TRUE, csm.adjrisk = TRUE)
-plot(fit2, CSM = TRUE, csm.adjrisk = FALSE)
-plot(fit2, CSM = TRUE, csm.adjrisk = TRUE, csm.smooth = TRUE)
-plot(fit2, CSM = TRUE, csm.adjrisk = FALSE, csm.smooth = TRUE)
-plot(fit2, CSM = TRUE, csm.adjrisk = TRUE, csm.smooth = FALSE)
-plot(fit2, CSM = TRUE, csm.adjrisk = FALSE, csm.smooth = FALSE)
+plot(fit2, MCF = TRUE)
+plot(fit2, MCF = TRUE, mcf.smooth = TRUE)
+plot(fit2, MCF = TRUE, mcf.smooth = FALSE)
+plot(fit2, MCF = TRUE, mcf.adjrisk = TRUE)
+plot(fit2, MCF = TRUE, mcf.adjrisk = FALSE)
+plot(fit2, MCF = TRUE, mcf.adjrisk = TRUE, mcf.smooth = TRUE)
+plot(fit2, MCF = TRUE, mcf.adjrisk = FALSE, mcf.smooth = TRUE)
+plot(fit2, MCF = TRUE, mcf.adjrisk = TRUE, mcf.smooth = FALSE)
+plot(fit2, MCF = TRUE, mcf.adjrisk = FALSE, mcf.smooth = FALSE)
 
 
 with(dat, reSurv(Time, id, event, status))
@@ -173,18 +173,9 @@ Recur(time1 %to% time2, id, event, status)
 reSurv(time1, time2, id, event, status)
 
 
-reSurv2 <- function(time1, time2, id, event, status, origin = 0) {
-    warning("'reSurv()' is being deprecated in Version 1.1.7. Output is prepared by 'Recur()'.\n See '?Recur()' for details.\n")
-    nArg <- length(match.call()) - 1
-    if (nArg >= 5) return(Recur(time1 %2% time2, id, event, status))
-    if (nArg < 5) return(Recur(time1, time2, id, event, origin = origin))
-}
-
-reSurv2(time1, time2, id, event, status)
-
 data(readmission, package = "frailtypack")
 readmission <- subset(readmission, !(id %in% c(60, 109, 280)))
-plotCSM(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, main = "")
+plotMCF(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, main = "")
 
 
 do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {

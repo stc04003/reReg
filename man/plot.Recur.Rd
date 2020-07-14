@@ -64,11 +64,11 @@ plot(reObj, event.result = "decreasing")
 plot(reObj, event.result = "asis")
 plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 
-## CSM plots
-plot(reObj, CSM = TRUE)
-plot(reObj, CSM = TRUE, csm.adjrisk = FALSE)
-plot(reObj, CSM = TRUE, csm.smooth = TRUE)
-plot(reObj, CSM = TRUE, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
+## MCF plots
+plot(reObj, mcf = TRUE)
+plot(reObj, mcf = TRUE, mcf.adjrisk = FALSE)
+plot(reObj, mcf = TRUE, mcf.smooth = TRUE)
+plot(reObj, mcf = TRUE, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 
 ## With (hypothetical) multiple event types
 set.seed(1)
@@ -77,9 +77,9 @@ plot(reObj2)
 plot(reObj2, event.result = "decreasing")
 plot(reObj2, event.result = "asis")
 
-plot(reObj2, CSM = TRUE)
-plot(reObj2, CSM = TRUE, csm.adjrisk = FALSE)
-plot(reObj2, CSM = TRUE, csm.smooth = TRUE)
+plot(reObj2, mcf = TRUE)
+plot(reObj2, mcf = TRUE, mcf.adjrisk = FALSE)
+plot(reObj2, mcf = TRUE, mcf.smooth = TRUE)
 
 }
 \seealso{
