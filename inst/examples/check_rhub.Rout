@@ -1,0 +1,57 @@
+
+R version 3.6.3 (2020-02-29) -- "Holding the Windsock"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ## Make sure email is already validated
+> library(rhub)
+> 
+> setwd("/home/schiou/RPackages/reReg/")
+> 
+> check_for_cran()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-9b90ceed030e47fb9fd61a5cee23c169
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-b4b8c1d074e54104b9987a72de59035f
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-52f172e5bfc5422e8946fc8d0e2be10d
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-606902c18e764016ba735fd1dfa6270a
+> check_on_centos()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-a0916621b0c54611ae456c512d8f02e4
+> check_on_debian()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-102117110cd645f9a1bb9192213c707e
+> check_on_fedora()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-3d369a912b1e473faa59e946cc65b85b
+> check_on_linux()
+─  Building package
+─  Uploading package
+─  Preparing build, see status at
+   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-af1a88ec848e4484adbf0b63e9272b3f
+> check_on_macos()
+Error in match_platform(platform) : 
+  Unknown R-hub platform, see rhub::platforms() for a list
+Calls: check_on_macos -> check -> match_platform
+Execution halted

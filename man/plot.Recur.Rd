@@ -61,7 +61,6 @@ reObj <- with(simDat, Recur(Time, id, event, status))
 ## Event plots:
 plot(reObj)
 plot(reObj, event.result = "decreasing")
-plot(reObj, event.result = "asis")
 plot(reObj, control = list(xlab = "User xlab", ylab = "User ylab", main = "User title"))
 
 ## MCF plots
@@ -74,12 +73,7 @@ plot(reObj, mcf = TRUE, control = list(xlab = "User xlab", ylab = "User ylab", m
 set.seed(1)
 reObj2 <- with(simDat, Recur(Time, id, event * sample(1:3, nrow(simDat), TRUE), status))
 plot(reObj2)
-plot(reObj2, event.result = "decreasing")
-plot(reObj2, event.result = "asis")
-
 plot(reObj2, mcf = TRUE)
-plot(reObj2, mcf = TRUE, mcf.adjrisk = FALSE)
-plot(reObj2, mcf = TRUE, mcf.smooth = TRUE)
 
 }
 \seealso{
