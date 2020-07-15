@@ -34,7 +34,8 @@
 
 <meta property="og:description" content="Plot the baseline rate function for an reReg object.
 The 95% confidence interval on the baseline cumulative rate function
-is provided when the reReg object is fitted with standard error estimation." />
+is provided when baseSE = TRUE is specified in reReg()
+through control." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -65,7 +66,7 @@ is provided when the reReg object is fitted with standard error estimation." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
       </span>
     </div>
 
@@ -131,11 +132,13 @@ is provided when the reReg object is fitted with standard error estimation." />
     
     <p>Plot the baseline rate function for an <code>reReg</code> object.
 The 95% confidence interval on the baseline cumulative rate function
-is provided when the <code>reReg</code> object is fitted with standard error estimation.</p>
+is provided when <code>baseSE = TRUE</code> is specified in <code><a href='reReg.html'>reReg()</a></code>
+through <code>control</code>.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>plotRate</span>(<span class='no'>x</span>, <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(), <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>plotRate</span>(<span class='no'>x</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"unrestricted"</span>, <span class='st'>"scaled"</span>, <span class='st'>"raw"</span>), <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(), <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -143,6 +146,11 @@ is provided when the <code>reReg</code> object is fitted with standard error est
     <tr>
       <th>x</th>
       <td><p>an object of class <code>reReg</code>, usually returned by the <code>reReg</code> function.</p></td>
+    </tr>
+    <tr>
+      <th>type</th>
+      <td><p>a character string specifying the type of rate function to be plotted.
+Options are "unrestricted", "scaled", "raw". See <b>Details</b>.</p></td>
     </tr>
     <tr>
       <th>smooth</th>
@@ -165,7 +173,15 @@ These include <code>xlab</code>, <code>ylab</code>, <code>main</code>, and more.
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>The argument <code>control</code> consists of options with argument defaults
+    <p>The <code>plotRate()</code> plots the estimated baseline cumulative rate function 
+depending on the identifiability assumption.
+When <code>type = "unrestricted"</code> (default), the baseline cumulative rate function
+is plotted under the assumption \(E(Z) = 1\).
+When <code>type = "scaled"</code>, the baseline cumulative rate function is plotted
+under the assumption \(\Lambda(\min(Y^\ast, \tau)) = 1\).
+When <code>type = "raw"</code>, the baseline cumulative rate function is plotted
+under the assumption \(\Lambda(\tau) = 1\).</p>
+<p>The argument <code>control</code> consists of options with argument defaults
 to a list with the following values:</p><dl class='dl-horizontal'>
   <dt>xlab</dt><dd><p>customizable x-label, default value is "Time".</p></dd>
   <dt>ylab</dt><dd><p>customizable y-label, default value is empty.</p></dd>
@@ -181,11 +197,10 @@ to a list with the following values:</p><dl class='dl-horizontal'>
     <pre class="examples"><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/data'>data</a></span>(<span class='no'>simDat</span>)
 <span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>
 
-<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='reReg.html'>reReg</a></span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox.HW"</span>)
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='reReg.html'>reReg</a></span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox"</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>100</span>)
 <span class='co'>## Plot both the baseline cumulative rate and hazard function</span>
 <span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>fit</span>)</div><div class='img'><img src='plotRate-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='co'>## Plot baseline cumulative rate function</span>
-<span class='fu'>plotRate</span>(<span class='no'>fit</span>)</div><div class='img'><img src='plotRate-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotRate</span>(<span class='no'>fit</span>, <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotRate-3.png' alt='' width='700' height='433' /></div><div class='input'><span class='co'>## Plot with user-specified labels</span>
-<span class='fu'>plotRate</span>(<span class='no'>fit</span>, <span class='kw'>xlab</span> <span class='kw'>=</span> <span class='st'>"User xlab"</span>, <span class='kw'>ylab</span> <span class='kw'>=</span> <span class='st'>"User ylab"</span>, <span class='kw'>main</span> <span class='kw'>=</span> <span class='st'>"User title"</span>)</div><div class='img'><img src='plotRate-4.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotRate</span>(<span class='no'>fit</span>, <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(<span class='kw'>xlab</span> <span class='kw'>=</span> <span class='st'>"User xlab"</span>, <span class='kw'>ylab</span> <span class='kw'>=</span> <span class='st'>"User ylab"</span>, <span class='kw'>main</span> <span class='kw'>=</span> <span class='st'>"User title"</span>))</div><div class='img'><img src='plotRate-5.png' alt='' width='700' height='433' /></div></pre>
+<span class='fu'>plotRate</span>(<span class='no'>fit</span>)</div><div class='img'><img src='plotRate-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotRate</span>(<span class='no'>fit</span>, <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotRate-3.png' alt='' width='700' height='433' /></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

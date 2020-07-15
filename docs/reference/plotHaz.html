@@ -33,8 +33,9 @@
 <meta property="og:title" content="Plot the Baseline Cumulative Hazard Function for the Terminal Time — plotHaz" />
 
 <meta property="og:description" content="Plot the baseline cumulative hazard function for an reReg object.
-The 95% confidence interval on the baseline cumulative  hazard function
-is provided when the reReg object is fitted with standard error estimation." />
+The 95% confidence interval on the baseline cumulative rate function
+is provided when baseSE = TRUE is specified in reReg()
+through control." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -65,7 +66,7 @@ is provided when the reReg object is fitted with standard error estimation." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
       </span>
     </div>
 
@@ -130,8 +131,9 @@ is provided when the reReg object is fitted with standard error estimation." />
     <div class="ref-description">
     
     <p>Plot the baseline cumulative hazard function for an <code>reReg</code> object.
-The 95% confidence interval on the baseline cumulative  hazard function
-is provided when the <code>reReg</code> object is fitted with standard error estimation.</p>
+The 95% confidence interval on the baseline cumulative rate function
+is provided when <code>baseSE = TRUE</code> is specified in <code><a href='reReg.html'>reReg()</a></code>
+through <code>control</code>.</p>
     
     </div>
 
@@ -182,11 +184,10 @@ See <b>Examples</b>.</p>
     <pre class="examples"><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/data'>data</a></span>(<span class='no'>simDat</span>)
 <span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>
 
-<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='reReg.html'>reReg</a></span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox.HW"</span>)
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='reReg.html'>reReg</a></span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox"</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>100</span>)
 <span class='co'>## Plot both the baseline cumulative rate and hazard function</span>
 <span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>fit</span>)</div><div class='img'><img src='plotHaz-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='co'>## Plot baseline cumulative hazard function</span>
-<span class='fu'>plotHaz</span>(<span class='no'>fit</span>)</div><div class='img'><img src='plotHaz-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotHaz</span>(<span class='no'>fit</span>, <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotHaz-3.png' alt='' width='700' height='433' /></div><div class='input'><span class='co'>## Plot with user-specified labels</span>
-<span class='fu'>plotHaz</span>(<span class='no'>fit</span>, <span class='kw'>xlab</span> <span class='kw'>=</span> <span class='st'>"User xlab"</span>, <span class='kw'>ylab</span> <span class='kw'>=</span> <span class='st'>"User ylab"</span>, <span class='kw'>main</span> <span class='kw'>=</span> <span class='st'>"User title"</span>)</div><div class='img'><img src='plotHaz-4.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotHaz</span>(<span class='no'>fit</span>, <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(<span class='kw'>xlab</span> <span class='kw'>=</span> <span class='st'>"User xlab"</span>, <span class='kw'>ylab</span> <span class='kw'>=</span> <span class='st'>"User ylab"</span>, <span class='kw'>main</span> <span class='kw'>=</span> <span class='st'>"User title"</span>))</div><div class='img'><img src='plotHaz-5.png' alt='' width='700' height='433' /></div></pre>
+<span class='fu'>plotHaz</span>(<span class='no'>fit</span>)</div><div class='img'><img src='plotHaz-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotHaz</span>(<span class='no'>fit</span>, <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotHaz-3.png' alt='' width='700' height='433' /></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

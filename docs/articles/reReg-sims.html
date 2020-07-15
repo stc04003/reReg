@@ -30,7 +30,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
       </span>
     </div>
 
@@ -93,7 +93,7 @@
       <h1>Simulating recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2020-06-11</h4>
+            <h4 class="date">2020-07-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stc04003/reReg/blob/master/vignettes/reReg-sims.Rmd"><code>vignettes/reReg-sims.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-sims.Rmd</code></div>
@@ -102,7 +102,11 @@
 
     
     
-<p>In this vignette, we demonstrate how to use the <code>simSC</code> function in <strong><code>reReg</code></strong> package to simulate recurrent event data from a scale-change model. Since the scale-change model includes the Cox-type model and the accelerated mean model as special cases, <code>simSC</code> can also be used to generate data from these submodels. The <code>simSC</code> function allows the censoring time to be non-informative (independent given covariate) or informative about the recurrent event process.</p>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script><p>In this vignette, we demonstrate how to use the <code><a href="../reference/simSC.html">simSC()</a></code> function in <strong><code>reReg</code></strong> package to simulate recurrent event data from a scale-change model. Since the scale-change model includes the Cox-type model and the accelerated mean model as special cases, <code><a href="../reference/simSC.html">simSC()</a></code> can also be used to generate data from these submodels. The <code><a href="../reference/simSC.html">simSC()</a></code> function allows the censoring time to be non-informative (independent given covariate) or informative about the recurrent event process.</p>
 <div id="notations" class="section level2">
 <h2 class="hasAnchor">
 <a href="#notations" class="anchor"></a>Notations</h2>
@@ -111,42 +115,35 @@
 <div id="the-simsc-function" class="section level2 unnumbered">
 <h2 class="hasAnchor">
 <a href="#the-simsc-function" class="anchor"></a>The <code>simSC</code> function</h2>
-<p>The function <code>simSC</code> generates the recurrent times from a recurrent event process, <span class="math inline">\(N(t)\)</span>, from a pre-specified rate function, <span class="math inline">\(\lambda(t)\)</span>, and the failure time, <span class="math inline">\(D\)</span>, from a pre-specified hazard function, <span class="math inline">\(h(t)\)</span>. The rate function can be chosen from one of the three models:</p>
-<ul>
-<li>Cox-type model: <span class="math display">\[\lambda(t) = Z\lambda_0(t) e^{X^\top\alpha}.\]</span>
-</li>
-<li>Accelerated mean model: <span class="math display">\[\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}.\]</span>
-</li>
-<li>Scale-change model: <span class="math display">\[\lambda(t) = Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta}.\]</span>
-</li>
-</ul>
-<p>Similarly, the hazard function can be chosen from one of the three models:</p>
-<ul>
-<li>Cox-type model: <span class="math display">\[h(t) = Zh_0(t) e^{X^\top\beta}.\]</span>
-</li>
-<li>Accelerated mean model: <span class="math display">\[h(t) = Zh_0(te^{X^\top\beta})e^{X^\top\beta}.\]</span>
-</li>
-<li>Scale-change model: <span class="math display">\[h(t) = Zh_0(te^{X^\top\alpha})e^{X^\top\beta}.\]</span>
-</li>
-</ul>
-<p>The frailty variable <span class="math inline">\(Z\)</span> is used to capture the association between the rate function and the hazard function. In <code>simSC</code> currently only allows two covariates, i.e., <span class="math inline">\(X = (X_{1}, X_{2})^\top\)</span>, where <span class="math inline">\(X_1\)</span> is a Bernoulli random variable with probability 0.5 and <span class="math inline">\(X_2\)</span> is a standard normal random variable. The non-informative censoring time, <span class="math inline">\(C\)</span>, is generated separately from an exponential distribution with mean 80. The observed follow-up time is then taken to be <span class="math inline">\(Y = \min(D, C, \tau)\)</span>. We further assume the baseline functions <span class="math display">\[\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.\]</span></p>
+The function <code>simSC</code> generates the recurrent times from a recurrent event process, <span class="math inline">\(N(t)\)</span>, from a pre-specified rate function, <span class="math inline">\(\lambda(t)\)</span>, and the failure time, <span class="math inline">\(D\)</span>, from a pre-specified hazard function, <span class="math inline">\(h(t)\)</span>. A general joint model for the rate function and the hazard function can be formulated in the following:
+\begin{equation}
+\begin{matrix}
+\lambda(t) &amp;= Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta};\\ 
+h(t) &amp;= Zh_0(te^{X^\top\eta})e^{X^\top\theta},
+\end{matrix}
+\label{eq:joint}
+\end{equation}
+<p>where <span class="math inline">\(Z\)</span> is a latent shared frailty variable, <span class="math inline">\((\alpha, \eta)\)</span> and <span class="math inline">\((\beta, \theta)\)</span> correspond to the shape and size parameters of the rate function and the hazard function, respectively. The frailty variable <span class="math inline">\(Z\)</span> is used to capture the association between the rate function and the hazard function, thus, accommodating informative censoring. The <code><a href="../reference/simSC.html">simSC()</a></code> currently only allows two covariates, i.e., <span class="math inline">\(X = (X_{1}, X_{2})^\top\)</span>, where <span class="math inline">\(X_1\)</span> is a Bernoulli random variable with probability 0.5 and <span class="math inline">\(X_2\)</span> is a standard normal random variable. The frailty variable <span class="math inline">\(Z\)</span> is generated from a gamma distribution with mean 1. The non-informative censoring time, <span class="math inline">\(C\)</span>, is generated separately from an exponential distribution with mean 80. The observed follow-up time is then taken to be <span class="math inline">\(Y = \min(D, C, \tau)\)</span>. We further assume the baseline functions <span class="math display">\[\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.\]</span></p>
 <p>The arguments in <code>simSC</code> are as follow</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(reReg)
 &gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/args">args</a></span>(simSC)</code></pre></div>
-<pre><code>function (n, a, b, type = "cox", zVar = 0.25, tau = 60, summary = FALSE) 
+<pre><code>function (n, a1 = a2, b1 = b2, a2 = a1, b2 = b1, type = "cox", 
+    zVar = 0.25, tau = 60, summary = FALSE) 
 NULL</code></pre>
 <p>The arguments are as follows</p>
 <ul>
 <li>
-<code>n</code> number of individual</li>
+<code>n</code> is the number of individual</li>
 <li>
-<code>a, b</code> numeric vectors of parameter of length two.</li>
+<code>a1, a2, b1, b2</code> are numeric vectors of length two, these arguments corresponding to <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\eta\)</span>, and <span class="math inline">\(\theta\)</span> from \eqref{eq:joint}, respectively.</li>
 <li>
-<code>type</code> a character string specifying the underlying model. The type is distinguished by a vertical bar <code>|</code>, with the rate function on the left. For example, setting <code>type = "cox|am"</code> generates the recurrent process from a Cox model and the terminal event from an accelerated mean model. Setting <code>type = "cox"</code> gives <code>type = "cox|cox"</code>.</li>
+<code>type</code> is a character string specifying the underlying model. The rate function type and the hazard function type are separated by a vertical bar <code>|</code>, with the rate function on the left. For example, <code>type = "cox|am"</code> generates the recurrent process from a Cox model and the terminal event from an accelerated mean model. Setting <code>type = "cox"</code> gives <code>type = "cox|cox"</code>.</li>
 <li>
-<code>tau</code> a numeric value specifying the maximum observation time, or <span class="math inline">\(\tau\)</span> in the above notation.</li>
+<code>zVar</code> is a numeric value specifying the variance of the frailty variable, <span class="math inline">\(Z\)</span>.</li>
 <li>
-<code>summary</code> a logical value indicating whether a brief data summary will be printed.</li>
+<code>tau</code> is a numeric value specifying the maximum observation time, or <span class="math inline">\(\tau\)</span> in the above notation.</li>
+<li>
+<code>summary</code> is a logical value indicating whether a brief data summary will be printed.</li>
 </ul>
 </div>
 <div id="examples" class="section level2">
@@ -166,7 +163,7 @@ Number of x1 == 1: 119 (59.5%); Number of x1 == 0: 81 (40.5%)
 Summary results for x2:
     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 -2.94095 -0.51231  0.03091  0.06854  0.70469  2.14260 </code></pre>
-<p>The output of <code><a href="../reference/simSC.html">simSC()</a></code> is a data frame. In this example, subject #1 experienced 0 recurrent events (at times 17.467) and died at time 17.467. Similarly, subject #2 experienced 3 recurrent events (at times 3.676, 7.72, 53.272) and is alive when censored at time 60.</p>
+<p>The output of <code><a href="../reference/simSC.html">simSC()</a></code> is a data frame. The following table shows that subject #1 experienced 0 recurrent events (at times 17.467) and died at time 17.467. Similarly, subject #2 experienced 3 recurrent events (at times 3.676, 7.72, 53.272) and is alive when censored at time 60.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">&gt;<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(DT)
 &gt;<span class="st"> </span><span class="kw">datatable</span>(dat.cox, <span class="dt">options =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">pageLength =</span> <span class="dv">10</span>, <span class="dt">scrollX =</span> <span class="ot">TRUE</span>)) %&gt;%<span class="st"> </span>
 +<span class="st">   </span><span class="kw">formatRound</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"Time"</span>, <span class="st">"x2"</span>), <span class="dv">3</span>)</code></pre></div>
@@ -189,11 +186,11 @@ Summary results for x2:
 &gt;<span class="st"> </span><span class="kw">grid.arrange</span>(<span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span><span class="dv">1</span>, 
 +<span class="st">                         </span><span class="dt">data =</span> dat.cox,
 +<span class="st">                         </span><span class="dt">main =</span> <span class="st">"type = cox"</span>) +<span class="st"> </span>
-+<span class="st">                </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">"none"</span>),
++<span class="st">              </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">"none"</span>),
 +<span class="st">              </span><span class="kw"><a href="../reference/plotEvents.html">plotEvents</a></span>(<span class="kw"><a href="../reference/Recur.html">Recur</a></span>(Time, id, event, status) ~<span class="st"> </span><span class="dv">1</span>, 
 +<span class="st">                         </span><span class="dt">data =</span> dat.amcox,
 +<span class="st">                         </span><span class="dt">main =</span> <span class="st">"type = am|cox"</span>) +<span class="st"> </span>
-+<span class="st">                </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">"none"</span>),
++<span class="st">              </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">"none"</span>),
 +<span class="st">              </span><span class="dt">ncol =</span> <span class="dv">2</span>)</code></pre></div>
 <p><img src="reReg-sims_files/figure-html/comp-1.png" width="700"></p>
 <div id="refs" class="references">

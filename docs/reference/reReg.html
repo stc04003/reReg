@@ -32,9 +32,10 @@
 
 <meta property="og:title" content="Fits Semiparametric Regression Models for Recurrent Event Data — reReg" />
 
-<meta property="og:description" content="Fits a semiparametric regression model for the recurrent event data.
-The rate function of the underlying process for the recurrent event process
-can be specified as a Cox-type model, an accelerated mean model, or a generalized scale-change model.
+<meta property="og:description" content="Fits a general (joint) semiparametric regression model for the recurrent event data,
+where the rate function of the underlying recurrent event process and
+the hazard function of the terminal event can be specified as a Cox-type model,
+an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 See details for model specifications." />
 <meta name="twitter:card" content="summary" />
 
@@ -66,7 +67,7 @@ See details for model specifications." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
       </span>
     </div>
 
@@ -130,16 +131,16 @@ See details for model specifications." />
 
     <div class="ref-description">
     
-    <p>Fits a semiparametric regression model for the recurrent event data.
-The rate function of the underlying process for the recurrent event process
-can be specified as a Cox-type model, an accelerated mean model, or a generalized scale-change model.
+    <p>Fits a general (joint) semiparametric regression model for the recurrent event data,
+where the rate function of the underlying recurrent event process and
+the hazard function of the terminal event can be specified as a Cox-type model,
+an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 See details for model specifications.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>reReg</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>200</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"cox.LWYY"</span>, <span class='st'>"cox.GL"</span>,
-  <span class='st'>"cox.HW"</span>, <span class='st'>"am.GL"</span>, <span class='st'>"am.XCHWY"</span>, <span class='st'>"sc.XCYH"</span>), <span class='kw'>se</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"NULL"</span>, <span class='st'>"bootstrap"</span>,
-  <span class='st'>"resampling"</span>), <span class='kw'>contrasts</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>())</pre>
+    <pre class="usage"><span class='fu'>reReg</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>200</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox"</span>, <span class='kw'>se</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"resampling"</span>,
+  <span class='st'>"bootstrap"</span>, <span class='st'>"NULL"</span>), <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>())</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -167,10 +168,6 @@ When <code>B = 0</code>, variance estimation will not be performed.</p></td>
       <td><p>a character string specifying the method for standard error estimation. See <b>Details</b>.</p></td>
     </tr>
     <tr>
-      <th>contrasts</th>
-      <td><p>an optional list.</p></td>
-    </tr>
-    <tr>
       <th>control</th>
       <td><p>a list of control parameters.</p></td>
     </tr>
@@ -178,41 +175,45 @@ When <code>B = 0</code>, variance estimation will not be performed.</p></td>
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Suppose the recurrent event process and the failure events are observed in the time interval \(t\in[0,\tau]\),
+    <p>Suppose the recurrent event process and the failure events are
+observed in the time interval \(t\in[0,\tau]\),
 for some constant \(\tau\).
-We formulate the rate function, \(\lambda(t)\), for the recurrent event process and
-the hazard function, \(h(t)\), for the censoring time
-under the following model specifications:</p><dl class='dl-horizontal'>
-  <dt>Cox-type model:</dt><dd><p>$$\lambda(t) = Z \lambda_0(t) e^{X^\top\alpha}, h(t) = Z h_0(t)e^{X^\top\beta},$$</p></dd>
-  <dt>Accelerated mean model:</dt><dd><p>$$\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\alpha}, h(t) = Z h_0(te^{X^\top\beta})e^{X^\top\beta},$$</p></dd>
-  <dt>Scale-change model:</dt><dd><p>$$\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\beta},$$</p></dd>
-</dl><p>where \(\lambda_0(t)\) is the baseline rate function, \(h_0(t)\) is the baseline hazard function,
+We formulate the recurrent event rate function, \(\lambda(t)\),
+and the terminal event hazard function, \(h(t)\), 
+in the form of
+$$\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, $$
+where \(\lambda_0(t)\) is the baseline rate function,
+\(h_0(t)\) is the baseline hazard function,
 \(X\) is a \(n\) by \(p\) covariate matrix and \(\alpha\),
-\(Z\) is an unobserved shared frailty variable,
-and \(\beta\) are unknown \(p\)-dimensional regression parameters.</p>
-<p>The <code>reReg</code> function fits models with the following available methods:</p><dl class='dl-horizontal'>
-  <dt><code>method = "cox.LWYY"</code></dt><dd><p>assumes the Cox-type model with <code>Z = 1</code> and requires independent censoring. 
-The returned result is equivalent to that from <code>coxph</code>. See reference Lin et al. (2000).</p></dd>
-  <dt><code>method = "cox.HW"</code></dt><dd><p>assumes the Cox-type model with unspecified <code>Z</code>, thus accommodate informative censoring.
-See the references See reference Wang, Qin and Chiang (2001) and Huang and Wang (2004).</p></dd>
-  <dt><code>method = "am.GL"</code></dt><dd><p>assumes the accelerated mean model with <code>Z = 1</code> and requires independent censoring. 
-See the reference Ghosh and Lin (2003).</p></dd>
-  <dt><code>method = "am.XCHWY"</code></dt><dd><p>assumes the accelerated mean model with unspecified <code>Z</code>, thus accommodate informative censoring.
-See the reference Xu et al. (2017).</p></dd>
-  <dt><code>method = "sc.XCYH"</code></dt><dd><p>assumes the generalized scale-change model, and includes the methods <code>"cox.HW"</code> and <code>"am.XCHWY"</code> as special cases.
-Informative censoring is accounted for through the unspecified frailty variable <code>Z</code>.
-The methods also provide a hypothesis test of these submodels.</p></dd>
-</dl>
-    <p>The available methods for variance estimation are:</p><dl class='dl-horizontal'>
+\(Z\) is an unobserved shared frailty variable, and
+\((\alpha, \eta)\) and \((\beta, \theta)\) correspond to the shape and size parameters of the
+rate function and the hazard function, respectively.
+The model includes several popular semiparametric models as special cases,
+which can be specified via the <code>method</code> argument with the rate function
+and hazard function separated by "<code>|</code>".
+For examples, Huang and Wang (2004) (\(\alpha = \eta = 0\))
+can be called with <code>method = "cox|cox"</code>;
+Wang, Qin and Chiang (2001) (\(\alpha = \eta = \theta = 0\))
+can be called with <code>method = "cox|."</code>;
+Xu et al. (2017) (\(\alpha = \alpha\) and \(\eta = \theta\))
+can be called with <code>method = "am|am"</code>;
+Xu et al. (2019) (\(\eta = \theta = 0\)) can be called with <code>method = "sc|."</code>.
+Some methods that assumes <code>Z = 1</code> and requires independent
+censorings are also implemented in <code>reReg</code>;
+these includes <code>method = "cox.LWYY"</code> for Lin et al. (2000),
+<code>method = "cox.GL"</code> for Ghosh and Lin (2002),
+and <code>method = "am.GL"</code> for Ghosh and Lin (2003).</p>
+<p>The available methods for variance estimation are:</p><dl class='dl-horizontal'>
   <dt><code>NULL</code></dt><dd><p>variance estimation will not be performed. This is equivalent to setting <code>B = 0</code>.</p></dd>
-  <dt><code>"resampling"</code></dt><dd><p>performs the efficient resampling-based sandwich estimator that works with methods <code>"cox.HW"</code>, <code>"am.XCHWY"</code> and <code>"sc.XCYH"</code>.</p></dd>
-  <dt><code>"bootstrap"</code></dt><dd><p>works with all fitting methods.</p></dd>
+  <dt><code>"resampling"</code></dt><dd><p>performs the efficient resampling-based variance estimation.</p></dd>
+  <dt><code>"bootstrap"</code></dt><dd><p>performs nonparametric bootstrap.</p></dd>
 </dl>
     <p>The <code>control</code> list consists of the following parameters:</p><dl class='dl-horizontal'>
   <dt><code>tol</code></dt><dd><p>absolute error tolerance.</p></dd>
   <dt><code>a0, b0</code></dt><dd><p>initial guesses used for root search.</p></dd>
   <dt><code>solver</code></dt><dd><p>the equation solver used for root search.
 The available options are <code><a href='https://www.rdocumentation.org/packages/BB/topics/BBsolve'>BB::BBsolve</a></code>, <code><a href='https://www.rdocumentation.org/packages/BB/topics/dfsane'>BB::dfsane</a></code>, <code>BB:BBoptim</code>, and <code>optim</code>.</p></dd>
+  <dt><code>baseSE</code></dt><dd><p>an logical value indicating whether the confidence bounds for the baseline functions will be computed.</p></dd>
   <dt><code>parallel</code></dt><dd><p>an logical value indicating whether parallel computation will be applied when <code>se = "bootstrap"</code> is called.</p></dd>
   <dt><code>parCl</code></dt><dd><p>an integer value specifying the number of CPU cores to be used when <code>parallel = TRUE</code>.
 The default value is half the CPU cores on the current host.</p></dd>
@@ -220,7 +221,9 @@ The default value is half the CPU cores on the current host.</p></dd>
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
-    <p>Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
+    <p>Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
+processes under informative censoring. <em>Statistica Sinica</em>: pre-print.</p>
+<p>Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
 <em>Journal of the American Statistical Association</em>, <b>112</b>(518): 796--805.</p>
 <p>Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
 <em>Journal of the Royal Statistical Society: Series B (Methodological)</em>, <b>62</b>: 711--730.</p>
@@ -230,6 +233,7 @@ The default value is half the CPU cores on the current host.</p></dd>
 <em>Biometrics</em>, <b>59</b>: 877--885.</p>
 <p>Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 <em>Journal of the American Statistical Association</em>, <b>99</b>(468): 1153--1165.</p>
+<p>Ghosh, D. and Lin, D.Y. (2002). Marginal Regression Models for Recurrent and Terminal Events. <em>Statistica Sinica</em>: 663--688.</p>
     
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
@@ -239,72 +243,59 @@ The default value is half the CPU cores on the current host.</p></dd>
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>
 
-<span class='co'>## Accelerated Mean Model</span>
+<span class='co'>## Joint Cox/Accelerated Mean Model</span>
 <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='fl'>1</span>)
-<span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>80</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"am"</span>)
+<span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>50</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"cox|am"</span>)
 (<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>reReg</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>,
-              <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>dat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"am.XCHWY"</span>, <span class='kw'>se</span> <span class='kw'>=</span> <span class='st'>"resampling"</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>20</span>))</div><div class='output co'>#&gt; Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
-#&gt;     B = 20, method = "am.XCHWY", se = "resampling")
+              <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>dat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox|am"</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>50</span>))</div><div class='output co'>#&gt; Call: 
+#&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
+#&gt;     B = 50, method = "cox|am")
 #&gt; 
-#&gt; Coefficients:
-#&gt;              x1        x2
-#&gt; alpha -1.722170 1.1273992
-#&gt; beta  -2.725933 0.4465656</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
-#&gt;     B = 20, method = "am.XCHWY", se = "resampling")
+#&gt; Recurrent event process:                
+#&gt;  x1      x2     
+#&gt;  -1.5126  1.1546
 #&gt; 
-#&gt; Method: Xu et al. (2016) Model 
+#&gt; Terminal event:                  
+#&gt;  x1       x2      
+#&gt;  -1.96062  0.85646</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: 
+#&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
+#&gt;     B = 50, method = "cox|am")
 #&gt; 
-#&gt; Coefficients (rate):
-#&gt;    Estimate StdErr z.value   p.value    
-#&gt; x1   -1.722  0.320  -5.377 &lt; 2.2e-16 ***
-#&gt; x2    1.127  0.266   4.244 &lt; 2.2e-16 ***
-#&gt; ---
-#&gt; Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#&gt; Recurrent event process:
+#&gt;    Estimate StdErr z.value p.value
+#&gt; x1   -1.513  0.259  -5.846       0
+#&gt; x2    1.155  0.128   9.029       0
 #&gt; 
-#&gt; Coefficients (hazard):
-#&gt;    Estimate StdErr z.value p.value    
-#&gt; x1   -2.726  0.741  -3.676  &lt;2e-16 ***
-#&gt; x2    0.447  0.482   0.927   0.354    
-#&gt; ---
-#&gt; Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#&gt; Terminal event:
+#&gt;    Estimate StdErr z.value p.value
+#&gt; x1   -1.961  2.471  -0.794   0.427
+#&gt; x2    0.856  0.945   0.907   0.365
 #&gt; </div><div class='input'>
 <span class='co'>## Generalized Scale-Change Model</span>
 <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='fl'>1</span>)
-<span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>100</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"sc"</span>)
+<span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>50</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"sc"</span>)
 (<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>reReg</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>,
-              <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>dat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sc.XCYH"</span>, <span class='kw'>se</span> <span class='kw'>=</span> <span class='st'>"resampling"</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>20</span>))</div><div class='output co'>#&gt; Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
-#&gt;     B = 20, method = "sc.XCYH", se = "resampling")
+              <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>dat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sc|."</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>50</span>))</div><div class='output co'>#&gt; Call: 
+#&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
+#&gt;     B = 50, method = "sc|.")
 #&gt; 
-#&gt; Coefficients:
-#&gt;               x1       x2
-#&gt; alpha -0.4197261 1.039171
-#&gt; beta  -0.4186589 1.164730</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
-#&gt;     B = 20, method = "sc.XCYH", se = "resampling")
+#&gt; Recurrent event process:                                         
+#&gt;  Shape                  Shape            
+#&gt;  x1       x2            x1       x2      
+#&gt;  -0.58379  0.62291      -0.58379  0.62291</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: 
+#&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
+#&gt;     B = 50, method = "sc|.")
 #&gt; 
-#&gt; Method: Generalized Scale-Change Model 
-#&gt; 
-#&gt; Scale-change effect:
+#&gt; Recurrent event process (shape):
 #&gt;    Estimate StdErr z.value p.value    
-#&gt; x1   -0.420  0.359  -1.170   0.242    
-#&gt; x2    1.039  0.258   4.033  &lt;2e-16 ***
-#&gt; ---
-#&gt; Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#&gt; x1   -0.584  0.363  -1.610   0.107    
+#&gt; x2    0.623  0.182   3.414   0.001 ***
 #&gt; 
-#&gt; Multiplicative coefficients:
-#&gt;    Estimate StdErr z.value p.value    
-#&gt; x1   -0.419  0.225  -1.858   0.063 .  
-#&gt; x2    1.165  0.171   6.830  &lt;2e-16 ***
-#&gt; ---
-#&gt; Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#&gt; 
-#&gt; Hypothesis tests:
-#&gt; 
-#&gt; H0 Cox-type model:
-#&gt;      X-squared = 25.5335, df = 2, p-value = 0
-#&gt; H0 Accelerated rate model:
-#&gt;      X-squared = 36.5571, df = 2, p-value = 0
-#&gt; H0 Accelerated mean model:
-#&gt;      X-squared = 1.1695, df = 2, p-value = 0.5573</div></pre>
+#&gt; Recurrent event process (size):
+#&gt;    Estimate StdErr z.value   p.value    
+#&gt; x1   -1.049  0.242  -4.332 &lt; 2.2e-16 ***
+#&gt; x2    0.990  0.138   7.172 &lt; 2.2e-16 ***
+#&gt; </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

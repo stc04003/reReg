@@ -33,12 +33,7 @@
 <meta property="og:title" content="Function to generate simulated recurrent event data — simSC" />
 
 <meta property="og:description" content="The function simSC generates simulated recurrent event data from either
-a Cox-type model, an accelerated mean model, or a scale-change model.
-For all scenarios, two covariates are considered; \(X = (X_1, X_2)\), where
-\(X_1\) follows a Bernoulli distribution with probability 0.5 and
-\(X_2\) follows a standard normal distribution.
-The censoring time could be either independent (given covariates) or informative.
-The simulated data is used for illustration." />
+a Cox-type model, an accelerated mean model, or a scale-change model." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -69,7 +64,7 @@ The simulated data is used for illustration." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
       </span>
     </div>
 
@@ -134,17 +129,12 @@ The simulated data is used for illustration." />
     <div class="ref-description">
     
     <p>The function <code>simSC</code> generates simulated recurrent event data from either
-a Cox-type model, an accelerated mean model, or a scale-change model.
-For all scenarios, two covariates are considered; \(X = (X_1, X_2)\), where
-\(X_1\) follows a Bernoulli distribution with probability 0.5 and
-\(X_2\) follows a standard normal distribution.
-The censoring time could be either independent (given covariates) or informative.
-The simulated data is used for illustration.</p>
+a Cox-type model, an accelerated mean model, or a scale-change model.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>simSC</span>(<span class='no'>n</span>, <span class='no'>a</span>, <span class='no'>b</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"cox"</span>, <span class='kw'>zVar</span> <span class='kw'>=</span> <span class='fl'>0.25</span>, <span class='kw'>tau</span> <span class='kw'>=</span> <span class='fl'>60</span>,
-  <span class='kw'>summary</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>simSC</span>(<span class='no'>n</span>, <span class='kw'>a1</span> <span class='kw'>=</span> <span class='no'>a2</span>, <span class='kw'>b1</span> <span class='kw'>=</span> <span class='no'>b2</span>, <span class='kw'>a2</span> <span class='kw'>=</span> <span class='no'>a1</span>, <span class='kw'>b2</span> <span class='kw'>=</span> <span class='no'>b1</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"cox"</span>,
+  <span class='kw'>zVar</span> <span class='kw'>=</span> <span class='fl'>0.25</span>, <span class='kw'>tau</span> <span class='kw'>=</span> <span class='fl'>60</span>, <span class='kw'>summary</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -154,17 +144,16 @@ The simulated data is used for illustration.</p>
       <td><p>number of observation.</p></td>
     </tr>
     <tr>
-      <th>a</th>
-      <td><p>a numeric vector of parameter of length 2.</p></td>
-    </tr>
-    <tr>
-      <th>b</th>
-      <td><p>a numeric vector of parameter of length 2.</p></td>
+      <th>a1, a2, b1, b2</th>
+      <td><p>are numeric vectors of length 2.
+These correspond to the \(\alpha\), \(\beta\), \(\eta\), and \(\theta\) in the joint model. See <b>Details</b></p></td>
     </tr>
     <tr>
       <th>type</th>
-      <td><p>a character string specifying the underlying model.
-See <b>Details</b></p></td>
+      <td><p>is a character string specifying the underlying model.
+The rate function type and the hazard function type are separated by a vertical bar "|",
+with the rate function on the left. For example, <code>type = "cox|am"</code> generates the recurrent process from a Cox model and
+the terminal event from an accelerated mean model. Setting <code>type = "cox"</code> gives <code>type = "cox|cox"</code>.</p></td>
     </tr>
     <tr>
       <th>zVar</th>
@@ -187,16 +176,19 @@ When <code>zVar</code> = 0, \(Z\) is set to a fixed constant 1. The default valu
 the interval \((0, \tau)\) based on the specification of the recurrent process and
 the terminal events.
 Specifically, the rate function, \(\lambda(t)\), of the recurrent process
-can be specified as one of the following model:</p><dl class='dl-horizontal'>
-  <dt>Cox-type model</dt><dd><p>$$\lambda(t) = Z \lambda_0(t) e^{X^\top a}.$$</p></dd>
-  <dt>Accelerated mean model</dt><dd><p>$$\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top a}.$$</p></dd>
-  <dt>Scale-change model</dt><dd><p>$$\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top b}.$$</p></dd>
-</dl><p>Similarly, the hazard function, \(h(t)\), of the terminal event 
-can be specified as one of the following model:</p><dl class='dl-horizontal'>
-  <dt>Cox-type model</dt><dd><p>$$h(t) = Zh_0(t)e^{X^\top b}.$$</p></dd>
-  <dt>Accelerated mean model</dt><dd><p>$$h(t) = Zh_0(te^{X^\top b})e^{X^\top b}.$$</p></dd>
-  <dt>Scale-change model</dt><dd><p>$$h(t) = Zh_0(te^{X^\top a})e^{X^\top b}.$$</p></dd>
-</dl><p>An informative censoring time, \(C\), is generated separately from an
+can be specified as one of the following model:
+$$\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, $$
+where \(\lambda_0(t)\) is the baseline rate function, \(h_0(t)\) is the baseline hazard function,
+\(X\) is a \(n\) by \(p\) covariate matrix and \(\alpha\),
+\(Z\) is an unobserved shared frailty variable, and
+\((\alpha, \eta)\) and \((\beta, \theta)\) correspond to the shape and size parameters of the
+rate function and the hazard function, respectively.</p>
+<p>For all scenarios, two covariates are considered; \(X = (X_1, X_2)\), where
+\(X_1\) follows a Bernoulli distribution with probability 0.5 and
+\(X_2\) follows a standard normal distribution.
+The censoring time could be either independent (given covariates) or informative.
+The simulated data is used for illustration.
+An informative censoring time, \(C\), is generated separately from an
 exponential distribution with a rate parameter of 1 / 60 if \(X_1\) is 1,
 or \(Z^2 / 30\) if \(X_1\) is 0.
 The observed recurrent events is then observed up to the minimum of \(C\),
