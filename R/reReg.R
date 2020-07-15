@@ -40,8 +40,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     fit.b$par <- -fit.b$par
     fit.a$par <- -fit.a$par
     out <- list(alpha = fit.a$par, aconv = fit.a$convergence,
-                beta = fit.b$par, bconv = fit.b$convergence, muZ = NA,
-                Lam0 = np$Lam0, Haz0 = np$Haz0)
+                beta = fit.b$par, bconv = fit.b$convergence, muZ = NA)
     out$recType <- engine@recType
     out$temType <- engine@temType
     return(out)

@@ -1,104 +1,0 @@
-
-R version 3.6.3 (2020-02-29) -- "Holding the Windsock"
-Copyright (C) 2020 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
-
-R is free software and comes with ABSOLUTELY NO WARRANTY.
-You are welcome to redistribute it under certain conditions.
-Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
-
-R is a collaborative project with many contributors.
-Type 'contributors()' for more information and
-'citation()' on how to cite R or R packages in publications.
-
-Type 'demo()' for some demos, 'help()' for on-line help, or
-'help.start()' for an HTML browser interface to help.
-Type 'q()' to quit R.
-
-> ## Make sure email is already validated
-> library(rhub)
-> 
-> setwd("/home/schiou/RPackages/reReg/")
-> 
-> check_for_cran()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-5d36d6ecfbe14633935f35a5ffd82976
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-7cec1396f17144c7a4b58728f874648a
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-f2b736818b6b4bcbb35005b39bffffe2
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-799219cd64fa42c3b3728a76f94ee490
-> check_on_centos()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-b41a00437f9b4e649250ad7e3a7d517b
-> check_on_debian()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-deaf7706f9f84440916edeb885b34d8a
-> check_on_fedora()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-ea8356ccdc2d46bb8bcc6de36938abd3
-> check_on_linux()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-5e7a00064f0c4f6db5ebaf08cfea3384
-> ## check_on_macos()
-> check_on_solaris()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-8ab0af07653b46f7b459211fab356986
-> check_on_ubuntu()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-aa773fd34ae64d749fe7eb9305f90b94
-> check_on_windows()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-7fe9d46e440c499fa53cce60141396ce
-> check_tzones()
-NULL
-> check_with_rdevel()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-a9fc25f33e3a474782d884914908a2f7
-> check_with_roldrel()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-d533ac9b52e743dbaf1ffe2d753edb68
-> check_with_rpatched()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-89460a3b28c8483ab69918340cdf5794
-> check_with_rrelease()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-039b70d1658c4d7686daf6f803d9c296
-> check_with_sanitizers()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-070a46244c8c4206ae4d854c43a72b97
-> check_with_valgrind()
-─  Building package
-─  Uploading package
-─  Preparing build, see status at
-   https://builder.r-hub.io/status/reReg_1.3.0.tar.gz-4f62606b2ed14da292e13c2fc0d5954f
-> 
-> proc.time()
-   user  system elapsed 
-  4.032   2.720   9.975 
