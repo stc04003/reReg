@@ -5,6 +5,12 @@ print.reReg <- function(x, ...) {
     cat("Call: \n")
     dput(x$call)
     if (all(!is.na(x$alpha))) {
+        if(x$recType == "cox.LWYY")
+            cat("\nFitted with the Cox model of Lin et al. (2000):")
+        if(x$recType == "cox.GL")
+            cat("\nFitted with the Cox model of Ghosh and Lin (2002):")
+        if(x$recType == "am.GL")
+            cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
         cat("\nRecurrent event process:")
         if (x$recType == "sc") {
             p <- length(x$alpha) / 2
@@ -23,12 +29,12 @@ print.reReg <- function(x, ...) {
                 mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
                              rep(x$varNames, 2), format(x$beta, digits = 5))
                 mat <- cbind(mat[,1:p], "    ", mat[,1:p])
-                prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", 1 + ncol(mat)), quote = FALSE)
+                prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", 1 + ncol(mat)),
+                         quote = FALSE)
             } else {
                 mat <- rbind(x$varNames, format(x$beta, digits = 5))
                 prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", ncol(mat)), quote = FALSE)
             }
-            
         }
         ## print.default(format(x$alpha, digits = digits), print.gap = 2L, quote = FALSE)
     } else {
@@ -99,6 +105,12 @@ print.summary.reReg <- function(x, ...) {
     cat("Call: \n")
     dput(x$call)
     if (!is.na(x$tabA)[1]) {
+        if(x$recType == "cox.LWYY")
+            cat("\nFitted with the Cox model of Lin et al. (2000):")
+        if(x$recType == "cox.GL")
+            cat("\nFitted with the Cox model of Ghosh and Lin (2002):")
+        if(x$recType == "am.GL")
+            cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
         if (x$recType == "sc") {
             p <- nrow(x$tabA$tabA1)
             cat("\nRecurrent event process (shape):\n")

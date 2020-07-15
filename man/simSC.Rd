@@ -4,18 +4,19 @@
 \alias{simSC}
 \title{Function to generate simulated recurrent event data}
 \usage{
-simSC(n, a, b, type = "cox", zVar = 0.25, tau = 60,
-  summary = FALSE)
+simSC(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1, type = "cox",
+  zVar = 0.25, tau = 60, summary = FALSE)
 }
 \arguments{
 \item{n}{number of observation.}
 
-\item{a}{a numeric vector of parameter of length 2.}
+\item{a1, a2, b1, b2}{are numeric vectors of length 2.
+These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}}
 
-\item{b}{a numeric vector of parameter of length 2.}
-
-\item{type}{a character string specifying the underlying model.
-See \bold{Details}}
+\item{type}{is a character string specifying the underlying model.
+The rate function type and the hazard function type are separated by a vertical bar "|",
+with the rate function on the left. For example, \code{type = "cox|am"} generates the recurrent process from a Cox model and
+the terminal event from an accelerated mean model. Setting \code{type = "cox"} gives \code{type = "cox|cox"}.}
 
 \item{zVar}{a numeric variable specifying the variance of the fraility variable,\eqn{Z}, when \code{zVar} > 0.
 When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.}
@@ -27,11 +28,6 @@ When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is
 \description{
 The function \code{simSC} generates simulated recurrent event data from either
 a Cox-type model, an accelerated mean model, or a scale-change model.
-For all scenarios, two covariates are considered; \eqn{X = (X_1, X_2)}, where
-\eqn{X_1} follows a Bernoulli distribution with probability 0.5 and
-\eqn{X_2} follows a standard normal distribution.
-The censoring time could be either independent (given covariates) or informative.
-The simulated data is used for illustration.
 }
 \details{
 The function \code{simSC()} generates simulated recurrent event data over
@@ -39,24 +35,18 @@ the interval \eqn{(0, \tau)} based on the specification of the recurrent process
 the terminal events.
 Specifically, the rate function, \eqn{\lambda(t)}, of the recurrent process
 can be specified as one of the following model:
-\describe{
-  \item{Cox-type model}{
-\deqn{\lambda(t) = Z \lambda_0(t) e^{X^\top a}.}}
-  \item{Accelerated mean model}{
-\deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top a}.}}
-  \item{Scale-change model}{
-\deqn{\lambda(t) = Z \lambda_0(te^{X^\top a}) e^{X^\top b}.}}
-}
-Similarly, the hazard function, \eqn{h(t)}, of the terminal event 
-can be specified as one of the following model:
-\describe{
-  \item{Cox-type model}{
-\deqn{h(t) = Zh_0(t)e^{X^\top b}.}}
-  \item{Accelerated mean model}{
-\deqn{h(t) = Zh_0(te^{X^\top b})e^{X^\top b}.}}
-  \item{Scale-change model}{
-\deqn{h(t) = Zh_0(te^{X^\top a})e^{X^\top b}.}}
-}
+\deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
+where \eqn{\lambda_0(t)} is the baseline rate function, \eqn{h_0(t)} is the baseline hazard function,
+\eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
+\eqn{Z} is an unobserved shared frailty variable, and
+\eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
+rate function and the hazard function, respectively.
+
+For all scenarios, two covariates are considered; \eqn{X = (X_1, X_2)}, where
+\eqn{X_1} follows a Bernoulli distribution with probability 0.5 and
+\eqn{X_2} follows a standard normal distribution.
+The censoring time could be either independent (given covariates) or informative.
+The simulated data is used for illustration.
 An informative censoring time, \eqn{C}, is generated separately from an
 exponential distribution with a rate parameter of 1 / 60 if \eqn{X_1} is 1,
 or \eqn{Z^2 / 30} if \eqn{X_1} is 0.

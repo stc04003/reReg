@@ -57,6 +57,7 @@ npFit.SE.am.GL <- function(DF, alpha, beta, engine, stdErr) {
 }
 
 npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
+    B <- stdErr@B
     id <- DF$id
     event <- DF$event
     X <- as.matrix(DF[,-c(1:6)])
@@ -76,7 +77,6 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
     cumHaz <- basehaz(fit.coxph)
     t0.haz <- cumHaz$time
     haz0 <- with(cumHaz, approxfun(time, hazard, yleft = 0, yright = max(hazard), method = "constant"))
-    B <- stdErr@B
     rateMat <- matrix(NA, B, length(t0.rate))
     hazMat <- matrix(NA, B, length(cumHaz$time))
     id0 <- unique(id)
@@ -87,7 +87,7 @@ npFit.SE.cox.GL <- function(DF, alpha, beta, engine, stdErr) {
         DF2$id <- rep(1:length(id0), table(DF$id)[sampled.id])
         rownames(DF2) <- NULL
         fit.coxphB <- coxph(Surv(DF2$time2[DF2$event == 0], DF2$terminal[DF2$event == 0]) ~
-                                as.matrix(DF2[DF2$event == 0, c(1:6)]))        
+                                as.matrix(DF2[DF2$event == 0, -c(1:6)]))        
         cumHaz <- basehaz(fit.coxphB)
         ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
         X0 <- as.matrix(DF2[!DF2$event, -(1:6)])

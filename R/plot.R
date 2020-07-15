@@ -489,6 +489,8 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                        smooth = FALSE, control = list(), ...) {
     baseline <- match.arg(baseline)
+    if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
+        stop("Baseline functions not available for this method.")
     if (baseline == "both") {
         ctrl <- plot.reReg.control(main = "Baseline cumulative rate and cumulative hazard functions")
         if (x$method == "cox.LWYY")
@@ -507,7 +509,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
         namp <- namp[namp %in% names(ctrl)]
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
-    if (!is.reReg(x)) stop("Response must be a reReg class")
+    if (!is.reReg(x)) stop("Response must be a `reReg` class")
     if (baseline == "rate")
         return(plotRate(x, smooth = smooth, control = ctrl))
     if (baseline == "hazard")
@@ -607,6 +609,8 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' @example inst/examples/ex_plot_rate.R
 plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
                      smooth = FALSE, control = list(), ...) {
+    if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
+        stop("Baseline cumulative rate function is not available.")
     ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -619,7 +623,7 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
     type <- match.arg(type)
-    if (!is.reReg(x)) stop("Response must be a reReg class")    
+    if (!is.reReg(x)) stop("Response must be a `reReg` class")    
     dat <- x$DF[,"time2",drop = FALSE]
     if (type == "unrestricted") dat$Y <- x$Lam0(dat$time2) * exp(x$log.muZ)
     if (type == "scaled") dat$Y <- x$Lam0(dat$time2) / x$Lam0(max(dat$time2))
@@ -689,6 +693,8 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
 #' 
 #' @example inst/examples/ex_plot_Haz.R
 plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
+    if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
+        stop("Baseline cumulative hazard function is not available.")
     if (x$temType == ".") {
         stop("Baseline cumulative hazard function is not available.")
     }
@@ -703,7 +709,7 @@ plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
         namp <- namp[namp %in% names(ctrl)]
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
-    if (!is.reReg(x)) stop("Response must be a reReg class")
+    if (!is.reReg(x)) stop("Response must be a `reReg` class.")
     dat <- x$DF[, "time2", drop = FALSE]
     dat$Y <- x$Haz0(dat$time2)
     if (!is.null(x$Haz0.upper)) {

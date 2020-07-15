@@ -4,8 +4,8 @@
 \alias{reReg}
 \title{Fits Semiparametric Regression Models for Recurrent Event Data}
 \usage{
-reReg(formula, data, B = 200, method = "cox.LWYY",
-  se = c("resampling", "bootstrap", "NULL"), control = list())
+reReg(formula, data, B = 200, method = "cox", se = c("resampling",
+  "bootstrap", "NULL"), control = list())
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
@@ -28,6 +28,55 @@ where the rate function of the underlying recurrent event process and
 the hazard function of the terminal event can be specified as a Cox-type model,
 an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 See details for model specifications.
+}
+\details{
+Suppose the recurrent event process and the failure events are
+observed in the time interval \eqn{t\in[0,\tau]},
+for some constant \eqn{\tau}.
+We formulate the recurrent event rate function, \eqn{\lambda(t)},
+and the terminal event hazard function, \eqn{h(t)}, 
+in the form of
+\deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
+where \eqn{\lambda_0(t)} is the baseline rate function,
+\eqn{h_0(t)} is the baseline hazard function,
+\eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
+\eqn{Z} is an unobserved shared frailty variable, and
+\eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
+rate function and the hazard function, respectively.
+The model includes several popular semiparametric models as special cases,
+which can be specified via the \code{method} argument with the rate function
+and hazard function separated by "\code{|}".
+For examples, Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
+can be called with \code{method = "cox|cox"};
+Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
+can be called with \code{method = "cox|."};
+Xu et al. (2017) (\eqn{\alpha = \alpha} and \eqn{\eta = \theta})
+can be called with \code{method = "am|am"};
+Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
+Some methods that assumes \code{Z = 1} and requires independent
+censorings are also implemented in \code{reReg};
+these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
+\code{method = "cox.GL"} for Ghosh and Lin (2002),
+and \code{method = "am.GL"} for Ghosh and Lin (2003).
+
+The available methods for variance estimation are:
+\describe{
+  \item{\code{NULL}}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
+  \item{\code{"resampling"}}{performs the efficient resampling-based variance estimation.}
+  \item{\code{"bootstrap"}}{performs nonparametric bootstrap.}
+}
+
+The \code{control} list consists of the following parameters:
+\describe{
+  \item{\code{tol}}{absolute error tolerance.}
+  \item{\code{a0, b0}}{initial guesses used for root search.}
+  \item{\code{solver}}{the equation solver used for root search.
+The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
+  \item{\code{baseSE}}{an logical value indicating whether the confidence bounds for the baseline functions will be computed.}
+  \item{\code{parallel}}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
+  \item{\code{parCl}}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
+The default value is half the CPU cores on the current host.}
+}
 }
 \examples{
 fm <- Recur(Time, id, event, status) ~ x1 + x2

@@ -39,7 +39,7 @@ knit_hooks$set(output = function(x, options) {
 })
 ```
 In this vignette, we demonstrate how to create a `reSurv` object in __`reReg`__ package.
-The `reSurv` object is then used to create event plots and cumulative sample mean (CSM) plots.
+The `reSurv` object is then used to create event plots and mean cumulative function (CSM) plots.
 We will illustrate the usage of our functions with the `readmission` data from the __`frailtypack`__ 
 package [@rondeau2012frailtypack, @gonzalez2005sex]. 
 The data contains re-hospitalization times after surgery in patients diagnosed with colorectal cancer.
@@ -94,25 +94,30 @@ The six arguments are as follows
 
 The main arguments of `Recur()` come directly from `reSurv()`, but `Recur()` comes with a comprehensive check for recurrent event data. 
 Moreover, `Recur()` returns a `S4` class object that can be used for functions in both the `reReg` package and the `reda` package. 
-Readers are referred to a separate [vignette on `Recur()`](ttps://wenjie-stat.me/reda/articles/reda-recur) for a detailed introduction of `Recur()`.
+Readers are referred to a separate [vignette on `Recur()`](https://wenjie-stat.me/reda/articles/reda-recur) for a detailed introduction of `Recur()`.
 
 
 The `Recur` object can be constructed in the same way as an `reSurv` object.
-In the current version (1.1.7), the `reSurv()` function can still be used, but the `reSurv` object will be automatically transformed to the corresponding `Recur` object.
+In the current version, the `reSurv()` function can still be used, but the `reSurv` object will be automatically transformed to the corresponding `Recur` object.
 For example: 
 ```{r reSurv2Recur}
 invisible(reSurv(t.stop, id, event, death))
 identical(suppressWarnings(reSurv(t.stop, id, event, death)), Recur(t.stop, id, event, death))
 ```
-The usage of `Recur()` is very similar to that of `reSurv()`. 
-In the following, we introduced different ways to create an `Recur` object.
-When the starting times and the ending times of recurrent events are known, 
-one can specify both times in `Recur`. 
+The usage of `Recur()` is very similar to that of `reSurv()`, 
+but the former is more flexible and offers much more features.
+In the following, we introduce different ways to create an `Recur` object.
+When the starting times and the ending times of recurrent events are known
+one can specify both times in `Recur()` as a list constructed by `%to%` (or its alias `%2%`). 
 ```{r Recur-obj, eval = FALSE}
 Recur(t.start %to% t.stop, id = id, event = event, status = death)
+```
+When the starting times are identical throughout subjects and are equal to zero, 
+it is sufficient only to specify the end times in `time`.
+```{r Recur-obj2, eval = FALSE}
 Recur(time = t.stop, id = id, event = event, status = death)
 ```
-The same `Recur` objects can be achieved without specifying the argument names:
+The identical `Recur` objects can be achieved without specifying the argument names:
 ```{r Recur-obj-short, eval = FALSE}
 Recur(t.start %to% t.stop, id, event, death)
 Recur(t.stop, id, event, death)
@@ -135,14 +140,14 @@ Recur(t.stop, id, event, death)
 
 ## Event plots {-}
 Event plots are a quick and easy way to glance at recurrent event data.
-These can be produced by plotting the `Recur` object with `R`'s generic function `plot`, shown in Figure 1.
+These can be produced by plotting the `Recur` object with `R`'s generic function `plot()`, shown in Figure 1.
 ```{r plot-Recur, fig.cap="Figure 1: Creating an event plot from a `Recur` object."}
 reObj <- Recur(t.stop, id, event, death)
 plot(reObj)
 ```
 
 
-Common graphical options like `xlab`, `ylab`, `main`, and more can be directly passed down to `plot`. 
+Common graphical options like `xlab`, `ylab`, `main`, and more can be directly passed down to `plot()`. 
 ```{r plot-Recur2, fig.cap="Figure 2: Creating an event plot from a `Recur` object with custom labels."}
 plot(reObj, cex = 1.5, xlab = "Time in days", ylab = "Patients", 
      main = "Event plot for readmission data", 
@@ -157,11 +162,11 @@ To demonstrate this, we first detach `readmission`.
 ```{r detach}
 detach(readmission)
 ```
-Unlike the generic plot function, `plotEvents` uses a formula object to specify the stratification.
+Unlike the generic plot function, `plotEvents()` uses a formula object to specify the stratification.
 ```{r plotEvents}
 args(plotEvents)
 ```
-Here are some examples to re-create Figure 1 with `plotEvents`:
+Here are some examples to re-create Figure 1 with `plotEvents()`:
 ```{r plotEvents-example, eval = FALSE}
 plotEvents(reObj)
 plotEvents(reObj, data = readmission)
@@ -175,7 +180,7 @@ plotEvents(Recur(t.stop, id, event, death) ~ 1, data = readmission,
            main = "Event plot for readmission data", 
            terminal.name = "Death", recurrent.name = "Hospital readmission")
 ```
-The `plotEvents` function can also stratify event plots by groups. 
+The `plotEvents()` function can also stratify event plots by groups. 
 For example, the following can be used to stratify an event plot by `sex`.
 ```{r plotEvents-gender, fig.cap="Figure 3: Event plot grouped by `sex`"}
 plotEvents(Recur(t.stop, id, event, death) ~ sex, data = readmission)
@@ -187,10 +192,10 @@ plotEvents(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission)
 
 
 
-## CSM plots {-}
-The non-parametric cumulative sample mean (CSM) function can be used to aid event plots 
+## MCF plots {-}
+The non-parametric mean cumulative function (MCF) can be used to aid event plots 
 to determine visually whether a trend or other pattern exists.
-The CSM function is defined as follows:
+The MCF function is defined as follows:
 $$\begin{array}{c}
 \hat \mu_n(t) = \int_0^tY_\cdot^{-1}(t)dN_\cdot(t),
 \end{array}$$
@@ -198,65 +203,65 @@ where $Y_\cdot(t) = \sum_{i=1}^nY_i(t)$ is the total number of subjects who are 
 $dN_\cdot(t) = \sum_{i=1}^n dN_i(t)$ is the total number of events over the time interval [0, t].
 This estimator is also known as the Nelson-Aalen estimator [@nelson2003recurrent] and 
 is also implemented in the `mcf()` function in the **`reda`** package [@R:reda].
-Another variation of the CSM function is discussed in [@cook2007statistical] assuming $Y_i(t) = n$ for all $t$.
+Another variation of the MCF function is discussed in [@cook2007statistical] assuming $Y_i(t) = n$ for all $t$.
 This variation is equivalent to the Nelson-Aalen estimator without adjusting for risk set. 
-We refer the Nelson-Aalen estimator and the Cook-Lawless estimator as the CSM function with (default) and without adjusting for risk set, respectively.
+We refer the Nelson-Aalen estimator and the Cook-Lawless estimator as the MCF function with (default) and without adjusting for risk set, respectively.
 
-The CSM plot can be created with `R`'s generic function `plot`, shown in Figure 5.
-```{r plot-csm, fig.cap = "Figure 5: Creating a CSM plot from a `Recur` object."}
-plot(reObj, CSM = TRUE)
+The MCF plot can be created with `R`'s generic function `plot()`, shown in Figure 5.
+```{r plot-csm, fig.cap = "Figure 5: Creating a MCF plot from a `Recur` object."}
+plot(reObj, mcf = TRUE)
 ```
 
-The CSM plot can be created with the more specialized function, `plotCSM`.
-Both `plotEvents` and `plotCSM` return **`ggplot2`** objects.
-A side-by-side CSM plot, showing the CSM functions with and without risk adjustment, is shown in Figure 6.
+The MCF plot can be created with the more specialized function, `plotMCF()`.
+Both `plotEvents()` and `plotMCF()` return **`ggplot2`** objects.
+A side-by-side MCF plot, showing the CSM functions with and without risk adjustment, is shown in Figure 6.
 ```{r plot-csm2, fig.cap = "Figure 6: Creating a CSM plot from a `Recur` object."}
 library(gridExtra)
-p1 <- plotCSM(Recur(t.stop, id, event, death) ~ 1, data = readmission, main = "")
-p2 <- plotCSM(Recur(t.stop, id, event, death) ~ 1, data = readmission, 
+p1 <- plotMCF(Recur(t.stop, id, event, death) ~ 1, data = readmission, main = "")
+p2 <- plotMCF(Recur(t.stop, id, event, death) ~ 1, data = readmission, 
               adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
 ```
-As with the `plotEvents`, `plotCSM` can generate CSM plots given covariates. 
-Figure 7 depicts the CSM plots grouped by `sex`.
-```{r plot-csm-sex, fig.cap = "Figure 7: CSM plot grouped by `sex`."}
-p1 <- plotCSM(Recur(t.stop, id, event, death) ~ sex, data = readmission, main = "")
-p2 <- plotCSM(Recur(t.stop, id, event, death) ~ sex, data = readmission, 
+As with the `plotEvents()`, `plotMCF()` can generate MCF plots given covariates. 
+Figure 7 depicts the MCF plots grouped by `sex`.
+```{r plot-mcf-sex, fig.cap = "Figure 7: MCF plot grouped by `sex`."}
+p1 <- plotMCF(Recur(t.stop, id, event, death) ~ sex, data = readmission, main = "")
+p2 <- plotMCF(Recur(t.stop, id, event, death) ~ sex, data = readmission, 
               adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
 ```
-As in `plotEvents`, the more complicated 
-Figure 8 depicts the CSM plots grouped by `sex` and `chemo`.
-```{r plot-csm-sex-chemo, fig.cap = "Figure 8: CSM plots grouped by `sex` and `chemo`."}
-p1 <- plotCSM(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, main = "")
-p2 <- plotCSM(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
+As in `plotEvents()`, the more complicated 
+Figure 8 depicts the MCF plots grouped by `sex` and `chemo`.
+```{r plot-mcf-sex-chemo, fig.cap = "Figure 8: MCF plots grouped by `sex` and `chemo`."}
+p1 <- plotMCF(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, main = "")
+p2 <- plotMCF(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
               adjrisk = FALSE, main = "")
 grid.arrange(p1, p2, ncol=2)
 ```
 
 ## Multiple recurrent event types
-The functions `plotEvents` and `plotCSM` can be used to accommodate recurrent event data with multiple recurrent types.
+The functions `plotEvents()` and `plotMCF()` can be used to accommodate recurrent event data with multiple recurrent types.
 To illustrate this, we generate hypothetical event types and store these in `event2`.
 ```{r multi-events, message = FALSE}
 set.seed(1)
 readmission$event2 <- readmission$event * sample(1:3, 852, TRUE)
 ```
-`plotEvents` and `plotCSM` functions can still be applied when `event` is replaced by `event2`. 
+The `plotEvents()` and `plotMCF()` functions can still be applied when `event` is replaced by `event2`. 
 Different recurrent events will be denoted by different colors and shapes.
 ```{r multi-event-plot, fig.cap = "Figure 9: Event plots with multiple recurrent event types."}
 plotEvents(Recur(t.stop, id, event2, death) ~ sex, data = readmission)
 ```
 Default labels can be changed
-```{r multi-csm2, fig.cap = "Figure 10: CSM plot with multiple recurrent event types and customized labels."}
-plotCSM(Recur(t.stop, id, event2, death) ~ sex, adjrisk = FALSE, data = readmission,
+```{r multi-mcf2, fig.cap = "Figure 10: MCF plot with multiple recurrent event types and customized labels."}
+plotMCF(Recur(t.stop, id, event2, death) ~ sex, adjrisk = FALSE, data = readmission,
         recurrent.name = "Event types", recurrent.type = c("Type 1", "Type 2", "Type 3"))
 ```
 
-```{r multi-csm, fig.cap = "Figure 11: CSM plot with multiple recurrent event types."}
+```{r multi-mcf, fig.cap = "Figure 11: MCF plot with multiple recurrent event types."}
 library(ggplot2)
-p1 <- plotCSM(Recur(t.stop, id, event2, death) ~ sex, data = readmission, main = "") +
+p1 <- plotMCF(Recur(t.stop, id, event2, death) ~ sex, data = readmission, main = "") +
   theme(legend.position="none")
-p2 <- plotCSM(Recur(t.stop, id, event2, death) ~ sex, data = readmission, 
+p2 <- plotMCF(Recur(t.stop, id, event2, death) ~ sex, data = readmission, 
               adjrisk = FALSE, main = "") +
   theme(legend.position="none")
 grid.arrange(p1, p2, ncol = 2)

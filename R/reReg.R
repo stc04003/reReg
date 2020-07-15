@@ -39,10 +39,12 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     fit.a <- eqSolve(engine@a0, ghoshU2, engine@solver)
     fit.b$par <- -fit.b$par
     fit.a$par <- -fit.a$par
-    np <- npFit.am.GL(DF, fit.a$par, fit.b$par, engine, NULL)
-    list(alpha = fit.a$par, aconv = fit.a$convergence,
-         beta = fit.b$par, bconv = fit.b$convergence, muZ = NA,
-         Lam0 = np$Lam0, Haz0 = np$Haz0)
+    out <- list(alpha = fit.a$par, aconv = fit.a$convergence,
+                beta = fit.b$par, bconv = fit.b$convergence, muZ = NA,
+                Lam0 = np$Lam0, Haz0 = np$Haz0)
+    out$recType <- engine@recType
+    out$temType <- engine@temType
+    return(out)
 }
 
 regFit.am.GL.resampling <- function(DF, engine, stdErr) {
@@ -95,10 +97,10 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))    
     aSE <- sqrt(diag(aVar))
     bSE <- sqrt(diag(bVar))
-    np <- npFit.SE.am.GL(DF, res$alpha, res$beta, engine, stdErr)
-    c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar,
-                Lam0 = np$Lam0, Lam0.lower = np$Lam0.lower, Lam0.upper = np$Lam0.upper,
-                Haz0 = np$Haz0, Haz0.lower = np$Haz0.lower, Haz0.upper = np$Haz0.upper))
+    out <- c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
+    out$recType <- engine@recType
+    out$temType <- engine@temType
+    return(out)
 }
 
 #' @importFrom survival cluster
@@ -111,8 +113,10 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
     T <- DF$time2
     T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
     fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
-    list(alpha = coef(fit.coxph), alphaSE = sqrt(diag(vcov(fit.coxph))),
-         beta = rep(NA, p), betaSE = rep(NA, p), muZ = NA)
+    out <- list(alpha = coef(fit.coxph), alphaSE = sqrt(diag(vcov(fit.coxph))))
+    out$recType <- engine@recType
+    out$temType <- engine@temType
+    return(out)
 }
 
 #' This is also the ARF in Luo
@@ -135,16 +139,16 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
                   method = "constant")(T))
     wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
     wgt <- ifelse(wgt > 1e5, 1e5, wgt)
-    out <- dfsane(par = engine@a0, fn = coxGLeq, wgt = wgt, 
+    out <- dfsane(par = engine@a0[1:ncol(X)], fn = coxGLeq, wgt = wgt, 
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                   alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
-    np <- npFit.SE.cox.GL(DF, out$par, coef(fit.coxph), engine, NULL)
-    list(alpha = out$par, beta = coef(fit.coxph),
-         betaSE = sqrt(diag(vcov(fit.coxph))), muZ = NA,
-         Lam0 = np$Lam0, Lam0.lower = np$Lam0.lower, Lam0.upper = np$Lam0.upper,
-         Haz0 = np$Haz0, Haz0.lower = np$Haz0.lower, Haz0.upper = np$Haz0.upper)
-}
+    out <- list(alpha = out$par,
+                beta = coef(fit.coxph),
+                betaSE = sqrt(diag(vcov(fit.coxph))))
+    out$recType <- engine@recType
+    out$temType <- engine@temType
+    return(out)}
 
 ## #' @importFrom rlang is_empty
 regFit.general <- function(DF, engine, stdErr) {
@@ -398,12 +402,16 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 #' See details for model specifications.
 #'
-#' Suppose the recurrent event process and the failure events are observed in the time interval \eqn{t\in[0,\tau]},
+#'
+#' Suppose the recurrent event process and the failure events are
+#' observed in the time interval \eqn{t\in[0,\tau]},
 #' for some constant \eqn{\tau}.
-#' We formulate the recurrent event rate function, \eqn{\lambda(t)}, and the terminal event hazard function, \eqn{h(t)}, 
+#' We formulate the recurrent event rate function, \eqn{\lambda(t)},
+#' and the terminal event hazard function, \eqn{h(t)}, 
 #' in the form of
 #' \deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
-#' where \eqn{\lambda_0(t)} is the baseline rate function, \eqn{h_0(t)} is the baseline hazard function,
+#' where \eqn{\lambda_0(t)} is the baseline rate function,
+#' \eqn{h_0(t)} is the baseline hazard function,
 #' \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
 #' \eqn{Z} is an unobserved shared frailty variable, and
 #' \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
@@ -411,13 +419,18 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' The model includes several popular semiparametric models as special cases,
 #' which can be specified via the \code{method} argument with the rate function
 #' and hazard function separated by "\code{|}".
-#' For examples, Huang and Wang (2004) (\eqn{\alpha = \eta = 0}) can be called with \code{method = "cox|cox"};
-#' Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0}) can be called with \code{method = "cox|."};
-#' Xu et al. (2017) (\eqn{\alpha = \alpha} and \eqn{\eta = \theta}) can be called with \code{method = "am|am"};
+#' For examples, Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
+#' can be called with \code{method = "cox|cox"};
+#' Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
+#' can be called with \code{method = "cox|."};
+#' Xu et al. (2017) (\eqn{\alpha = \alpha} and \eqn{\eta = \theta})
+#' can be called with \code{method = "am|am"};
 #' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
-#' Some methods that assumes \code{Z = 1} and requires independent censorings are also implemented in \code{reReg};
-#' these includes \code{method = "cox.LWYY"} of Lin et al. (2000), \code{method = "cox.GL" of Ghosh and Lin (2002),
-#' and \code{method = "am.GL"} of Ghosh and Lin (2003).
+#' Some methods that assumes \code{Z = 1} and requires independent
+#' censorings are also implemented in \code{reReg};
+#' these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
+#' \code{method = "cox.GL"} for Ghosh and Lin (2002),
+#' and \code{method = "am.GL"} for Ghosh and Lin (2003).
 #'
 #' The available methods for variance estimation are:
 #' \describe{
@@ -468,7 +481,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, B = 200, 
-                  method = "cox.LWYY", se = c("resampling", "bootstrap", "NULL"),
+                  method = "cox", se = c("resampling", "bootstrap", "NULL"),
                   control = list()) {
     se <- match.arg(se)
     Call <- match.call()
@@ -513,12 +526,22 @@ reReg <- function(formula, data, B = 200,
         temType <- "."
         method <- "general"        
     }
+    if (method == "cox.LWYY") {
+        recType <- "cox.LWYY"
+        temType <- "."
+    }
+    if (method == "cox.GL") {
+        recType <- "cox.GL"
+        temType <- "cox.GL"
+    }
+    if (method == "am.GL") {
+        recType <- "am.GL"
+        temType <- "am.GL"
+    }    
     engine.control <- control[names(control) %in% names(attr(getClass(method), "slots"))]
     engine <- do.call("new", c(list(Class = method), engine.control))
-    if (method == "general") {
-        engine@recType <- recType
-        engine@temType <- temType
-    }    
+    engine@recType <- recType
+    engine@temType <- temType
     if (se == "NULL")
         stdErr <- NULL
     else {
@@ -543,13 +566,15 @@ reReg <- function(formula, data, B = 200,
         if (engine@baseSE) fit <- c(fit, npFitSE(DF, B))
     } else {
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
-        if (engine@baseSE & fit$recType == "sc") {
-            a0 <- c(fit$alpha[1:p], fit$log.muZ, fit$alpha[1:p + p] - fit$alpha[1:p])
-            fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, a0, fit$beta, fit$zi, B))
+        if (method == "general") {
+            if (engine@baseSE & fit$recType == "sc") {
+                a0 <- c(fit$alpha[1:p], fit$log.muZ, fit$alpha[1:p + p] - fit$alpha[1:p])
+                fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, a0, fit$beta, fit$zi, B))
+            }
+            if (engine@baseSE & fit$recType != "sc") 
+                fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, fit$alpha, fit$beta, fit$zi, B))
         }
-        if (engine@baseSE & fit$recType != "sc") 
-            fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, fit$alpha, fit$beta, fit$zi, B))
-    }
+    }    
     class(fit) <- "reReg"
     fit$reTb <- obj@.Data
     fit$DF <- DF
