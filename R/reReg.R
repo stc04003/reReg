@@ -565,12 +565,12 @@ reReg <- function(formula, data, B = 200,
         if (engine@baseSE) fit <- c(fit, npFitSE(DF, B))
     } else {
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
-        if (method == "general") {
-            if (engine@baseSE & fit$recType == "sc") {
+        if (method == "general" & engine@baseSE) {
+            if (fit$recType == "sc") {
                 a0 <- c(fit$alpha[1:p], fit$log.muZ, fit$alpha[1:p + p] - fit$alpha[1:p])
                 fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, a0, fit$beta, fit$zi, B))
             }
-            if (engine@baseSE & fit$recType != "sc") 
+            if (fit$recType != "sc") 
                 fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, fit$alpha, fit$beta, fit$zi, B))
         }
     }    

@@ -1,6 +1,0 @@
-==17151== Memcheck, a memory error detector
-==17151== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==17151== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==17151== Command: /usr/lib/R/bin/exec/R --vanilla
-==17151== Parent PID: 17022
-==17151== 
