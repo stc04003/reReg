@@ -19,7 +19,6 @@
 #' In this case, each element corresponds to different origins for different subjects.
 #' This argument is only needed when "\code{time2}" is missing.
 #' 
-#' @rdname reSurv
 #' @export
 #' @example inst/examples/ex_reSurv.R
 reSurv <- function(time1, time2, id, event, status, origin = 0) {

@@ -1,10 +1,10 @@
 #' @export
 print.reReg <- function(x, ...) {
     if (!is.reReg(x))
-        stop("Must be a reReg x")
+        stop("Must be a reReg object")
     cat("Call: \n")
     dput(x$call)
-    if (all(!is.na(x$alpha))) {
+    if (all(!is.na(x$alpha)) & !is.null(x$alpha)) {
         if(x$recType == "cox.LWYY")
             cat("\nFitted with the Cox model of Lin et al. (2000):")
         if(x$recType == "cox.GL")
@@ -56,8 +56,15 @@ pvalTab <- function(pe, se) {
     
 #' @export
 summary.reReg <- function(object, test = FALSE, ...) {
-    if (!is.reReg(object)) stop("Must be a reReg x")
-    if (all(!is.na(object$alpha))) {
+    if (!is.reReg(object)) stop("Must be a reReg object")
+    if (object$method == "nonparametric") {
+        t0 <- sort(unique(c(object$DF$time1, object$DF$time2)))
+        t0 <- t0[t0 > 0]
+        out <- list(call = object$call, method = object$method, 
+                    tabA = data.frame(time = t0, rate = object$Lam0(t0), hazard = object$Haz0(t0)))
+        out
+    }
+    if (object$method != "nonparametric" & all(!is.na(object$alpha))) {
         tabA <- pvalTab(object$alpha, object$alphaSE)
         if (object$recType == "sc") {
             p <- length(object$alpha) / 2
@@ -74,25 +81,25 @@ summary.reReg <- function(object, test = FALSE, ...) {
             } else rownames(tabB) <- object$varNames
             out$tabB <- tabB
         }
+        if (object$recType == "sc" & object$se == "resampling") {
+            p <- length(object$alpha) / 2
+            out$HA.chi <- object$alpha[1:p] %*%
+                solve(object$varMat[1:p, 1:p, drop = FALSE]) %*% object$alpha[1:p]
+            out$HB.chi <- object$alpha[-(1:p)] %*%
+                solve(object$varMat[1:p, 1:p, drop = FALSE] +
+                      object$varMat[(p+2):(2*p+1), (p+2):(2*p+1), drop = FALSE] +
+                      2 * object$varMat[1:p, (p+2):(2*p+1), drop = FALSE]) %*%
+                object$alpha[-(1:p)]
+            g <- object$alpha[-(1:p)] - object$alpha[1:p]
+            out$HG.chi <- g %*% solve(object$varMat[(p+2):(2*p+1), (p+2):(2*p+1), drop = FALSE]) %*% g
+            out$HA.pval <- 1 - pchisq(out$HA.chi, p)
+            out$HB.pval <- 1 - pchisq(out$HB.chi, p)
+            out$HG.pval <- 1 - pchisq(out$HG.chi, p)
+        }
+        out$recType <- object$recType
+        out$temType <- object$temType
+        out$test <- test
     }
-    if (object$recType == "sc" & object$se == "resampling") {
-        p <- length(object$alpha) / 2
-        out$HA.chi <- object$alpha[1:p] %*%
-            solve(object$varMat[1:p, 1:p, drop = FALSE]) %*% object$alpha[1:p]
-        out$HB.chi <- object$alpha[-(1:p)] %*%
-            solve(object$varMat[1:p, 1:p, drop = FALSE] +
-                  object$varMat[(p+2):(2*p+1), (p+2):(2*p+1), drop = FALSE] +
-                  2 * object$varMat[1:p, (p+2):(2*p+1), drop = FALSE]) %*%
-            object$alpha[-(1:p)]
-        g <- object$alpha[-(1:p)] - object$alpha[1:p]
-        out$HG.chi <- g %*% solve(object$varMat[(p+2):(2*p+1), (p+2):(2*p+1), drop = FALSE]) %*% g
-        out$HA.pval <- 1 - pchisq(out$HA.chi, p)
-        out$HB.pval <- 1 - pchisq(out$HB.chi, p)
-        out$HG.pval <- 1 - pchisq(out$HG.chi, p)
-    }
-    out$recType <- object$recType
-    out$temType <- object$temType
-    out$test <- test
     class(out) <- "summary.reReg"
     out
 }
@@ -104,7 +111,7 @@ printCoefmat2 <- function(tab)
 print.summary.reReg <- function(x, ...) {
     cat("Call: \n")
     dput(x$call)
-    if (!is.na(x$tabA)[1]) {
+    if (x$method != "nonparametric" & !is.na(x$tabA)[1]) {
         if(x$recType == "cox.LWYY")
             cat("\nFitted with the Cox model of Lin et al. (2000):")
         if(x$recType == "cox.GL")
@@ -146,13 +153,10 @@ print.summary.reReg <- function(x, ...) {
                   printCoefmat(x$tabB)
             }
         }
-    }
-    if (is.na(x$tabA)[1]) {
-        colnames(x$tabB) <- c("time", "cum.rate", "95% LCL", "95% UCL",
-                                   "cum.hazard", "95% LCL", "95% UCL")
-        x$tabB[,sapply(1:ncol(x$tabB), function(y) all(is.na(x$tabB[,y])))] <- NULL
+    }    
+    if (x$method == "nonparametric") {
         cat("\n")
-        print(round(unique(x$tabB), 4), row.names = FALSE)
+        print(round(unique(x$tabA), 4), row.names = FALSE)
     }
     cat("\n")
 }

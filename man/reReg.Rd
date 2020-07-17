@@ -36,7 +36,59 @@ an accelerated mean model, an accelerated rate model, or a generalized scale-cha
 See details for model specifications.
 }
 \details{
+Suppose the recurrent event process and the failure events are
+observed in the time interval \eqn{t\in[0,\tau]},
+for some constant \eqn{\tau}.
+We formulate the recurrent event rate function, \eqn{\lambda(t)},
+and the terminal event hazard function, \eqn{h(t)}, 
+in the form of
+\deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta},}
+where \eqn{\lambda_0(t)} is the baseline rate function,
+\eqn{h_0(t)} is the baseline hazard function,
+\eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
+\eqn{Z} is an unobserved shared frailty variable, and
+\eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
+rate function and the hazard function, respectively.
+The model includes several popular semiparametric models as special cases,
+which can be specified via the \code{method} argument with the rate function
+and hazard function separated by "\code{|}".
+For examples,
+Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
+can be called with \code{method = "cox|."};
+Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
+can be called with \code{method = "cox|cox"};
+Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
+can be called with \code{method = "am|am"};
+Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
+Users can mix the models depending on the application. For example,
+\code{method = "cox|ar"} postulate a Cox proportional model for the
+recurrent event rate function and an accelerated rate model for
+the terminal event hazard function (\eqn{\alpha = \theta = 0}).
+If only one method is specified without an "\code{|}",
+it is used for both the rate function and the hazard function.
+For example, specifying \code{method = "cox"} is equivalent to \code{method = "cox|cox"}.
+Some methods that assumes \code{Z = 1} and requires independent
+censorings are also implemented in \code{reReg};
+these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
+\code{method = "cox.GL"} for Ghosh and Lin (2002),
+and \code{method = "am.GL"} for Ghosh and Lin (2003).
 
+The available methods for variance estimation are:
+\describe{
+  \item{NULL}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
+  \item{resampling}{performs the efficient resampling-based variance estimation.}
+  \item{bootstrap}{performs nonparametric bootstrap.}
+}
+
+The \code{control} list consists of the following parameters:
+\describe{
+  \item{tol}{absolute error tolerance.}
+  \item{a0, b0}{initial guesses used for root search.}
+  \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
+  \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
+  \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
+  \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+}
 }
 \examples{
 fm <- Recur(Time, id, event, status) ~ x1 + x2

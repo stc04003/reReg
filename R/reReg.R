@@ -321,9 +321,9 @@ npFit <- function(DF, B = 0) {
                                            yleft = min(Lam[2,]), yright = max(Lam[2,])),
                     Lam0.upper = approxfun(yi[!duplicated(yi)], Lam[1, !duplicated(yi)],
                                            yleft = min(Lam[1,]), yright = max(Lam[1,])),
-                    Haz0.lower = approxfun(exp(yi2), Haz[1,],
+                    Haz0.lower = approxfun(yi2, Haz[1,],
                                            yleft = min(Haz[1,]), yright = max(Haz[1,])),
-                    Haz0.upper = approxfun(exp(yi2), Haz[2,],
+                    Haz0.upper = approxfun(yi2, Haz[2,],
                                            yleft = min(Haz[2,]), yright = max(Haz[2,]))))
     } else {    
         rate <- c(reRate(ti, rep(yi, m), wi, yi))
@@ -331,7 +331,7 @@ npFit <- function(DF, B = 0) {
         Lam0 <- approxfun(yi[!duplicated(yi)], Lam[!duplicated(yi)],
                           yleft = min(Lam), yright = max(Lam))
         Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
-        Haz0 <- approxfun(exp(yi2), Haz, yleft = min(Haz), yright = max(Haz))
+        Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
         return(list(Lam0 = Lam0, Haz0 = Haz0))
     }    
 }
@@ -408,7 +408,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' We formulate the recurrent event rate function, \eqn{\lambda(t)},
 #' and the terminal event hazard function, \eqn{h(t)}, 
 #' in the form of
-#' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
+#' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta},}
 #' where \eqn{\lambda_0(t)} is the baseline rate function,
 #' \eqn{h_0(t)} is the baseline hazard function,
 #' \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
@@ -450,12 +450,10 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' \describe{
 #'   \item{tol}{absolute error tolerance.}
 #'   \item{a0, b0}{initial guesses used for root search.}
-#'   \item{solver}{the equation solver used for root search.
-#' The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-#'   \item{baseSE}{an logical value indicating whether the 95% confidence bounds for the baseline functions will be computed.}
+#'   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
+#'   \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
 #'   \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
-#'   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
-#' The default value is half the CPU cores on the current host.}
+#'   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 #' }
 #' 
 #' @param formula a formula object, with the response on the left of a "~" operator, and the predictors on the right.
@@ -569,8 +567,9 @@ reReg <- function(formula, data, B = 200,
         else engine@b0 <- rep(engine@b0, p)
     }
     if (formula == ~1) {
-        fit <- npFit(DF)
-        if (engine@baseSE) fit <- c(fit, npFitSE(DF, B))
+        if (engine@baseSE) fit <- npFit(DF, B)
+        else fit <- npFit(DF)
+        fit$method <- "nonparametric"
     } else {
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
         if (method == "general" & engine@baseSE) {
@@ -581,13 +580,13 @@ reReg <- function(formula, data, B = 200,
             if (fit$recType != "sc") 
                 fit <- c(fit, npFitSE(DF, fit$recType, fit$temType, fit$alpha, fit$beta, fit$zi, B))
         }
+        fit$method <- method
     }    
     class(fit) <- "reReg"
     fit$reTb <- obj@.Data
     fit$DF <- DF
     fit$call <- Call
     fit$varNames <- names(DF)[-(1:6)]
-    fit$method <- method
     fit$se <- se
     fit
 }
