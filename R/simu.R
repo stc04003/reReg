@@ -9,8 +9,8 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 
 #' Function to generate simulated recurrent event data
 #'
-#' The function \code{simSC} generates simulated recurrent event data from either
-#' a Cox-type model, an accelerated mean model, or a scale-change model.
+#' The function \code{simSC()} generates simulated recurrent event data from either
+#' a Cox-type model, an accelerated mean model, an accelerated rate model, or a scale-change model.
 #'
 #' 
 #' The function \code{simSC()} generates simulated recurrent event data over
@@ -18,7 +18,7 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' the terminal events.
 #' Specifically, the rate function, \eqn{\lambda(t)}, of the recurrent process
 #' can be specified as one of the following model:
-#' \deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
+#' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
 #' where \eqn{\lambda_0(t)} is the baseline rate function, \eqn{h_0(t)} is the baseline hazard function,
 #' \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
 #' \eqn{Z} is an unobserved shared frailty variable, and

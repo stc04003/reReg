@@ -4,15 +4,20 @@
 \alias{plot.reReg}
 \title{Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function}
 \usage{
-\method{plot}{reReg}(x, baseline = c("both", "rate", "hazard"),
-  smooth = FALSE, control = list(), ...)
+\method{plot}{reReg}(
+  x,
+  baseline = c("both", "rate", "hazard"),
+  smooth = FALSE,
+  control = list(),
+  ...
+)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, returned by the \code{reReg} function.}
 
 \item{baseline}{a character string specifying which baseline function to plot.
 \describe{
-  \item{\code{baseline = "both"}}{plot both the baseline cumulative rate and the baseline cumulative hazard function in separate panels within the same display (default).}
+  \item{\code{baseline = "both"}}{plot both the baseline cumulative rate and the baseline cumulative hazard function (if applicable) in separate panels within the same display (default).}
   \item{\code{baseline = "rate"}}{plot the baseline cumulative rate function.}
   \item{\code{baseline = "hazard"}}{plot the baseline cumulative hazard function.}
 }}
@@ -21,8 +26,7 @@
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
-\item{...}{graphical parameters to be passed to methods.
-These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
+\item{...}{additional graphical parameters to be passed to methods.}
 }
 \value{
 A \code{ggplot} object.
@@ -30,8 +34,6 @@ A \code{ggplot} object.
 \description{
 Plot the baseline cumulative rate function and the baseline cumulative hazard function
 (if applicable) for an \code{reReg} object.
-The 95\% confidence intervals on the baseline cumulative rate function and the baseline cumulative hazard function
-are provided when the \code{reReg} object is fitted with standard error estimation.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a list with the following values:
@@ -46,7 +48,7 @@ The argument \code{control} consists of options with argument defaults to a list
 data(simDat)
 fm <- Recur(Time, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = simDat, method = "cox", B = 50)
+fit <- reReg(fm, data = simDat, method = "cox", B = 0)
 plot(fit)
 plot(fit, baseline = "rate")
 plot(fit, baseline = "rate", xlab = "Time (days)")

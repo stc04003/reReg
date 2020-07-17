@@ -1,7 +1,7 @@
 data(simDat)
 fm <- Recur(Time, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = simDat, method = "cox", B = 100)
+fit <- reReg(fm, data = simDat, method = "cox", B = 0)
 ## Plot both the baseline cumulative rate and hazard function
 plot(fit)
 ## Plot baseline cumulative rate function

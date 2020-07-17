@@ -4,8 +4,17 @@
 \alias{simSC}
 \title{Function to generate simulated recurrent event data}
 \usage{
-simSC(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1, type = "cox",
-  zVar = 0.25, tau = 60, summary = FALSE)
+simSC(
+  n,
+  a1 = a2,
+  b1 = b2,
+  a2 = a1,
+  b2 = b1,
+  type = "cox",
+  zVar = 0.25,
+  tau = 60,
+  summary = FALSE
+)
 }
 \arguments{
 \item{n}{number of observation.}
@@ -26,8 +35,8 @@ When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is
 \item{summary}{a logical value indicating whether a brief data summary will be printed.}
 }
 \description{
-The function \code{simSC} generates simulated recurrent event data from either
-a Cox-type model, an accelerated mean model, or a scale-change model.
+The function \code{simSC()} generates simulated recurrent event data from either
+a Cox-type model, an accelerated mean model, an accelerated rate model, or a scale-change model.
 }
 \details{
 The function \code{simSC()} generates simulated recurrent event data over
@@ -35,7 +44,7 @@ the interval \eqn{(0, \tau)} based on the specification of the recurrent process
 the terminal events.
 Specifically, the rate function, \eqn{\lambda(t)}, of the recurrent process
 can be specified as one of the following model:
-\deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
+\deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
 where \eqn{\lambda_0(t)} is the baseline rate function, \eqn{h_0(t)} is the baseline hazard function,
 \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
 \eqn{Z} is an unobserved shared frailty variable, and

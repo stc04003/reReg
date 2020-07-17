@@ -4,8 +4,13 @@
 \alias{plotEvents}
 \title{Produce Event Plots}
 \usage{
-plotEvents(formula, data, result = c("increasing", "decreasing", "asis"),
-  control = list(), ...)
+plotEvents(
+  formula,
+  data,
+  result = c("increasing", "decreasing", "asis"),
+  control = list(),
+  ...
+)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator,
@@ -16,8 +21,8 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{result}{an optional character string specifying whether the event plot is sorted by the subjects' terminal time. The available options are
 \describe{
-  \item{\code{increasing}}{sort the terminal time from in increasing order (default). This places longer terminal times on top. }
-  \item{\code{decreasing}}{sort the terminal time from in decreasing order (default). This places shorter terminal times on top. }
+  \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
+  \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
   \item{\code{asis}}{present the as is, without sorting.}
 }}
 
@@ -31,7 +36,7 @@ A \code{ggplot} object.
 }
 \description{
 Plot the event plot for an \code{Recur} object.
-The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
+The usage of the function is similar to that of \code{plot.Recur()} but with more flexible options.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a
@@ -44,9 +49,9 @@ list with the following values:
   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
-  \item{legend}{a character string specifying the position of the legend (if any). The default value is "right".}
+  \item{legend}{a character string specifying the position of the legend (if any).
+  The available options are "right", "left", "top", "bottom", and "none". The default value is "right".}
 }
-The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 }
 \examples{
 data(simDat)
@@ -61,8 +66,7 @@ plotEvents(Recur(Time, id, event, status) ~ x1, data = simDat)
 simDat$x3 <- ifelse(simDat$x2 < 0, "x2 < 0", "x2 > 0")
 plotEvents(Recur(Time, id, event, status) ~ x1 + x3, data = simDat)
 simDat$event <- simDat$event * sample(1:3, nrow(simDat), TRUE)
-plotEvents(Recur(Time, id,  event, status) ~ x1, data = simDat)
-plotEvents(Recur(Time, id,  event, status) ~ x1 + x3, data = simDat)
+plotEvents(Recur(Time, id, event, status) ~ x1 + x3, data = simDat)
 }
 \seealso{
 \code{\link{Recur}}, \code{\link{plot.Recur}}

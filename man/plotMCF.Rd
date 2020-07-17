@@ -4,8 +4,15 @@
 \alias{plotMCF}
 \title{Produce Cumulative Sample Mean Function Plots}
 \usage{
-plotMCF(formula, data, onePanel = FALSE, adjrisk = TRUE,
-  smooth = FALSE, control = list(), ...)
+plotMCF(
+  formula,
+  data,
+  onePanel = FALSE,
+  adjrisk = TRUE,
+  smooth = FALSE,
+  control = list(),
+  ...
+)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
@@ -16,9 +23,6 @@ The response must be a recurrent event survival object returned by the \code{Rec
 \item{onePanel}{an optional logical value indicating whether the mean cumulative functions will be plotted in the same panel.
 This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.}
 
-\item{adjrisk}{an optional logical value indicating whether risk set will be adjusted,
-e.g., if \code{TRUE}, subjects leave the risk set after terminal times. See \bold{Details}.}
-
 \item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 This feature only works for data with one recurrent event type.}
 
@@ -26,18 +30,22 @@ This feature only works for data with one recurrent event type.}
 
 \item{...}{graphical parameters to be passed to methods.
 These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
+
+\item{mcf.adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
 Plot the mean cumulative function (MCF) for an \code{Recur} object.
-The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
+The usage of the function is similar to that of \code{plot.Recur()} but with more flexible options.
 }
 \details{
-When \code{adjrisk = TRUE}, the \code{plotMCF} is equivalent to
+When \code{adjrisk = TRUE}, the \code{plotMCF()} is equivalent to
 the Nelson-Aalen estimator for the intensity function of the recurrent event process.
-When \code{adjrisk = FALSE}, the \code{plotMCF} does not adjust for the risk set and
+When \code{adjrisk = FALSE}, the \code{plotMCF()} does not adjust for the risk set and
 assumes all subjects remain at risk after the last observed recurrent event.
 This is known as the survivor rate function.
 The argument \code{control} consists of options with argument defaults

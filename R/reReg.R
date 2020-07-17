@@ -408,7 +408,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' We formulate the recurrent event rate function, \eqn{\lambda(t)},
 #' and the terminal event hazard function, \eqn{h(t)}, 
 #' in the form of
-#' \deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
+#' \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
 #' where \eqn{\lambda_0(t)} is the baseline rate function,
 #' \eqn{h_0(t)} is the baseline hazard function,
 #' \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
@@ -418,13 +418,21 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' The model includes several popular semiparametric models as special cases,
 #' which can be specified via the \code{method} argument with the rate function
 #' and hazard function separated by "\code{|}".
-#' For examples, Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
-#' can be called with \code{method = "cox|cox"};
+#' For examples,
 #' Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
 #' can be called with \code{method = "cox|."};
-#' Xu et al. (2017) (\eqn{\alpha = \alpha} and \eqn{\eta = \theta})
+#' Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
+#' can be called with \code{method = "cox|cox"};
+#' Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
 #' can be called with \code{method = "am|am"};
 #' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
+#' Users can mix the models depending on the application. For example,
+#' \code{method = "cox|ar"} postulate a Cox proportional model for the
+#' recurrent event rate function and an accelerated rate model for
+#' the terminal event hazard function (\eqn{\alpha = \theta = 0}).
+#' If only one method is specified without an "\code{|}",
+#' it is used for both the rate function and the hazard function.
+#' For example, specifying \code{method = "cox"} is equivalent to \code{method = "cox|cox"}.
 #' Some methods that assumes \code{Z = 1} and requires independent
 #' censorings are also implemented in \code{reReg};
 #' these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
@@ -433,20 +441,20 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #'
 #' The available methods for variance estimation are:
 #' \describe{
-#'   \item{\code{NULL}}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-#'   \item{\code{"resampling"}}{performs the efficient resampling-based variance estimation.}
-#'   \item{\code{"bootstrap"}}{performs nonparametric bootstrap.}
+#'   \item{NULL}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
+#'   \item{resampling}{performs the efficient resampling-based variance estimation.}
+#'   \item{bootstrap}{performs nonparametric bootstrap.}
 #' }
 #'
 #' The \code{control} list consists of the following parameters:
 #' \describe{
-#'   \item{\code{tol}}{absolute error tolerance.}
-#'   \item{\code{a0, b0}}{initial guesses used for root search.}
-#'   \item{\code{solver}}{the equation solver used for root search.
+#'   \item{tol}{absolute error tolerance.}
+#'   \item{a0, b0}{initial guesses used for root search.}
+#'   \item{solver}{the equation solver used for root search.
 #' The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-#'   \item{\code{baseSE}}{an logical value indicating whether the confidence bounds for the baseline functions will be computed.}
-#'   \item{\code{parallel}}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
-#'   \item{\code{parCl}}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
+#'   \item{baseSE}{an logical value indicating whether the 95% confidence bounds for the baseline functions will be computed.}
+#'   \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
+#'   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
 #' The default value is half the CPU cores on the current host.}
 #' }
 #' 
@@ -460,19 +468,19 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' @param control a list of control parameters.
 #'
 #' @export
-#' @references Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
-#' processes under informative censoring. \emph{Statistica Sinica}: pre-print.
-#' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
-#' \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
 #' @references Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
 #' \emph{Journal of the Royal Statistical Society: Series B (Methodological)}, \bold{62}: 711--730.
 #' @references Wang, M.-C., Qin, J., and Chiang, C.-T. (2001). Analyzing Recurrent Event Data with Informative Censoring.
 #' \emph{Journal of the American Statistical Association}, \bold{96}(455): 1057--1065.
+#' @references Ghosh, D. and Lin, D.Y. (2002). Marginal Regression Models for Recurrent and Terminal Events. \emph{Statistica Sinica}: 663--688.
 #' @references Ghosh, D. and Lin, D.Y. (2003). Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.
 #' \emph{Biometrics}, \bold{59}: 877--885.
 #' @references Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 #' \emph{Journal of the American Statistical Association}, \bold{99}(468): 1153--1165.
-#' @references Ghosh, D. and Lin, D.Y. (2002). Marginal Regression Models for Recurrent and Terminal Events. \emph{Statistica Sinica}: 663--688.
+#' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
+#' \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
+#' @references Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
+#' Processes under Informative Censoring. \emph{Statistica Sinica}: pre-print.
 #'
 #' @importFrom stats approxfun optim
 #' 
@@ -541,7 +549,7 @@ reReg <- function(formula, data, B = 200,
     engine <- do.call("new", c(list(Class = method), engine.control))
     engine@recType <- recType
     engine@temType <- temType
-    if (se == "NULL")
+    if (se == "NULL" || B == 0)
         stdErr <- NULL
     else {
         stdErr.control <- control[names(control) %in% names(attr(getClass(se), "slots"))]

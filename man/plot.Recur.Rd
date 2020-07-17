@@ -4,41 +4,47 @@
 \alias{plot.Recur}
 \title{Produce Event Plot or Mean Cumulative Function Plot}
 \usage{
-\method{plot}{Recur}(x, mcf = FALSE, event.result = c("increasing",
-  "decreasing", "asis"), mcf.adjrisk = TRUE, mcf.smooth = FALSE,
-  control = list(), ...)
+\method{plot}{Recur}(
+  x,
+  mcf = FALSE,
+  event.result = c("increasing", "decreasing", "asis"),
+  mcf.adjrisk = TRUE,
+  mcf.smooth = FALSE,
+  control = list(),
+  ...
+)
 }
 \arguments{
-\item{x}{an object of class \code{Recur} returned by the \code{Recur()} function.}
+\item{x}{an object of class \code{Recur} returned by the \code{Recur()} function. See \code{?Recur} for creating \code{Recur} objects.}
 
 \item{mcf}{an optional logical value indicating whether the mean cumulative function (MCF) will
 be plotted instead of the event plot (default).}
 
-\item{event.result}{an optional character string that is passed to the \code{plotEvents()} function as \code{result}, e.g., see \code{\link{plotEvents}}.
+\item{event.result}{an optional character string that is passed to the \code{plotEvents()} function as the \code{result} argument. See \code{\link{plotEvents}}.
 This argument is used to specify whether the event plot is sorted by the subjects' terminal time.
 The available options are
 \describe{
-  \item{\code{increasing}}{sort the terminal time from in increasing order (default). This places longer terminal times on top. }
-  \item{\code{decreasing}}{sort the terminal time from in decreasing order (default). This places shorter terminal times on top. }
+  \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
+  \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
   \item{\code{asis}}{present the as is, without sorting.}
 }}
 
-\item{mcf.adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as \code{adjrisk}, e.g., see \code{\link{plotMCF}}.
-This argument indicates whether risk set will be adjusted, e.g., if \code{TRUE}, subjects leave the risk set after terminal times.}
+\item{mcf.adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
 
-\item{mcf.smooth}{an optional logical value that is passed to the \code{plotMCF()} function as \code{smooth}, e.g., see \code{\link{plotMCF}}.
+\item{mcf.smooth}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
 This argument indicates whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
-\item{...}{graphical parameters to be passed to methods.
-These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
+\item{...}{additional graphical parameters to be passed to methods.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
-Plot whether the event plot or the mean cumulative function (MCF) for an \code{Recur} object.
+Plot the event plot or the mean cumulative function (MCF) from an \code{Recur} object.
 }
 \details{
 The argument \code{control} consists of options with argument defaults to a list with the following values:
@@ -74,7 +80,10 @@ plot(reObj2)
 plot(reObj2, mcf = TRUE)
 
 }
+\references{
+Nelson, W. B. (1995) Confidence Limits for Recurrence Data-Applied to Cost or Number of Product Repairs. \emph{Technometrics}, \bold{37}(2): 147--157.
+}
 \seealso{
-\code{\link{Recur}}
+\code{\link{Recur}}, \code{\link{plotEvents}}, \code{\link{plotMCF}}
 }
 \keyword{Plots}

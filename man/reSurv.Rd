@@ -26,7 +26,7 @@ This argument is only needed when "\code{time2}" is missing.}
 }
 \description{
 Create a recurrent event survival object, used as a response variable in \code{reReg}.
-This function is being deprecated in Version 1.1.6.
+This function is deprecated in Version 1.1.6.
 A recurrent event object is now being created with \code{Recur()}.
 See '?Recur()' for details.
 }

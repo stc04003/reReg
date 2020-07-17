@@ -4,7 +4,9 @@
 \name{simDat}
 \alias{simDat}
 \title{Simulated dataset for demonstration}
-\format{A data frame with 274 rows and 6 variables.}
+\format{
+A data frame with 274 rows and 6 variables.
+}
 \usage{
 data(simDat)
 }

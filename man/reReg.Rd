@@ -4,8 +4,14 @@
 \alias{reReg}
 \title{Fits Semiparametric Regression Models for Recurrent Event Data}
 \usage{
-reReg(formula, data, B = 200, method = "cox", se = c("resampling",
-  "bootstrap", "NULL"), control = list())
+reReg(
+  formula,
+  data,
+  B = 200,
+  method = "cox",
+  se = c("resampling", "bootstrap", "NULL"),
+  control = list()
+)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
@@ -30,53 +36,7 @@ an accelerated mean model, an accelerated rate model, or a generalized scale-cha
 See details for model specifications.
 }
 \details{
-Suppose the recurrent event process and the failure events are
-observed in the time interval \eqn{t\in[0,\tau]},
-for some constant \eqn{\tau}.
-We formulate the recurrent event rate function, \eqn{\lambda(t)},
-and the terminal event hazard function, \eqn{h(t)}, 
-in the form of
-\deqn{\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
-where \eqn{\lambda_0(t)} is the baseline rate function,
-\eqn{h_0(t)} is the baseline hazard function,
-\eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
-\eqn{Z} is an unobserved shared frailty variable, and
-\eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
-rate function and the hazard function, respectively.
-The model includes several popular semiparametric models as special cases,
-which can be specified via the \code{method} argument with the rate function
-and hazard function separated by "\code{|}".
-For examples, Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
-can be called with \code{method = "cox|cox"};
-Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
-can be called with \code{method = "cox|."};
-Xu et al. (2017) (\eqn{\alpha = \alpha} and \eqn{\eta = \theta})
-can be called with \code{method = "am|am"};
-Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
-Some methods that assumes \code{Z = 1} and requires independent
-censorings are also implemented in \code{reReg};
-these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
-\code{method = "cox.GL"} for Ghosh and Lin (2002),
-and \code{method = "am.GL"} for Ghosh and Lin (2003).
 
-The available methods for variance estimation are:
-\describe{
-  \item{\code{NULL}}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-  \item{\code{"resampling"}}{performs the efficient resampling-based variance estimation.}
-  \item{\code{"bootstrap"}}{performs nonparametric bootstrap.}
-}
-
-The \code{control} list consists of the following parameters:
-\describe{
-  \item{\code{tol}}{absolute error tolerance.}
-  \item{\code{a0, b0}}{initial guesses used for root search.}
-  \item{\code{solver}}{the equation solver used for root search.
-The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-  \item{\code{baseSE}}{an logical value indicating whether the confidence bounds for the baseline functions will be computed.}
-  \item{\code{parallel}}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
-  \item{\code{parCl}}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}.
-The default value is half the CPU cores on the current host.}
-}
 }
 \examples{
 fm <- Recur(Time, id, event, status) ~ x1 + x2
@@ -96,17 +56,13 @@ dat <- simSC(50, c(-1, 1), c(-1, 1), type = "sc")
 summary(fit)
 }
 \references{
-Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
-processes under informative censoring. \emph{Statistica Sinica}: pre-print.
-
-Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
-\emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
-
 Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
 \emph{Journal of the Royal Statistical Society: Series B (Methodological)}, \bold{62}: 711--730.
 
 Wang, M.-C., Qin, J., and Chiang, C.-T. (2001). Analyzing Recurrent Event Data with Informative Censoring.
 \emph{Journal of the American Statistical Association}, \bold{96}(455): 1057--1065.
+
+Ghosh, D. and Lin, D.Y. (2002). Marginal Regression Models for Recurrent and Terminal Events. \emph{Statistica Sinica}: 663--688.
 
 Ghosh, D. and Lin, D.Y. (2003). Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.
 \emph{Biometrics}, \bold{59}: 877--885.
@@ -114,7 +70,11 @@ Ghosh, D. and Lin, D.Y. (2003). Semiparametric Analysis of Recurrent Events Data
 Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 \emph{Journal of the American Statistical Association}, \bold{99}(468): 1153--1165.
 
-Ghosh, D. and Lin, D.Y. (2002). Marginal Regression Models for Recurrent and Terminal Events. \emph{Statistica Sinica}: 663--688.
+Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
+\emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
+
+Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
+Processes under Informative Censoring. \emph{Statistica Sinica}: pre-print.
 }
 \seealso{
 \code{\link{Recur}}, \code{\link{simSC}}

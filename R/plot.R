@@ -2,7 +2,7 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 
 #' Produce Event Plot or Mean Cumulative Function Plot
 #'
-#' Plot whether the event plot or the mean cumulative function (MCF) for an \code{Recur} object.
+#' Plot the event plot or the mean cumulative function (MCF) from an \code{Recur} object.
 #'
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
@@ -17,26 +17,28 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #' }
 #' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #' 
-#' @param x an object of class \code{Recur} returned by the \code{Recur()} function.
-#' @param event.result an optional character string that is passed to the \code{plotEvents()} function as \code{result}, e.g., see \code{\link{plotEvents}}.
+#' @param x an object of class \code{Recur} returned by the \code{Recur()} function. See \code{?Recur} for creating \code{Recur} objects.
+#' @param event.result an optional character string that is passed to the \code{plotEvents()} function as the \code{result} argument. See \code{\link{plotEvents}}.
 #' This argument is used to specify whether the event plot is sorted by the subjects' terminal time.
 #' The available options are
 #' \describe{
-#'   \item{\code{increasing}}{sort the terminal time from in increasing order (default). This places longer terminal times on top. }
-#'   \item{\code{decreasing}}{sort the terminal time from in decreasing order (default). This places shorter terminal times on top. }
+#'   \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
+#'   \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
 #'   \item{\code{asis}}{present the as is, without sorting.}
 #' }
 #' @param control a list of control parameters. See \bold{Details}.
-#' @param mcf.smooth an optional logical value that is passed to the \code{plotMCF()} function as \code{smooth}, e.g., see \code{\link{plotMCF}}.
+#' @param mcf.smooth an optional logical value that is passed to the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
 #' This argument indicates whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
-#' @param mcf.adjrisk an optional logical value that is passed to the \code{plotMCF()} function as \code{adjrisk}, e.g., see \code{\link{plotMCF}}.
-#' This argument indicates whether risk set will be adjusted, e.g., if \code{TRUE}, subjects leave the risk set after terminal times.
+#' @param mcf.adjrisk an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+#' This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+#' If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time. 
 #' @param mcf an optional logical value indicating whether the mean cumulative function (MCF) will
 #' be plotted instead of the event plot (default).
-#' @param ... graphical parameters to be passed to methods.
-#' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
-#' 
-#' @seealso \code{\link{Recur}}
+#' @param ... additional graphical parameters to be passed to methods.
+#'  
+#' @seealso \code{\link{Recur}}, \code{\link{plotEvents}}, \code{\link{plotMCF}}
+#'
+#' @references Nelson, W. B. (1995) Confidence Limits for Recurrence Data-Applied to Cost or Number of Product Repairs. \emph{Technometrics}, \bold{37}(2): 147--157.
 #' 
 #' @keywords Plots
 #' @export
@@ -70,7 +72,7 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
 #' Produce Event Plots
 #'
 #' Plot the event plot for an \code{Recur} object.
-#' The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
+#' The usage of the function is similar to that of \code{plot.Recur()} but with more flexible options.
 #'
 #' The argument \code{control} consists of options with argument defaults to a
 #' list with the following values:
@@ -82,9 +84,9 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
 #'   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
-#'   \item{legend}{a character string specifying the position of the legend (if any). The default value is "right".}
+#'   \item{legend}{a character string specifying the position of the legend (if any).
+#'   The available options are "right", "left", "top", "bottom", and "none". The default value is "right".}
 #' }
-#' The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator,
 #' and the predictors on the right.
@@ -92,8 +94,8 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
 #' @param result an optional character string specifying whether the event plot is sorted by the subjects' terminal time. The available options are
 #' \describe{
-#'   \item{\code{increasing}}{sort the terminal time from in increasing order (default). This places longer terminal times on top. }
-#'   \item{\code{decreasing}}{sort the terminal time from in decreasing order (default). This places shorter terminal times on top. }
+#'   \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
+#'   \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
 #'   \item{\code{asis}}{present the as is, without sorting.}
 #' }
 #' @param control a list of control parameters.
@@ -237,11 +239,11 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' Produce Cumulative Sample Mean Function Plots
 #'
 #' Plot the mean cumulative function (MCF) for an \code{Recur} object.
-#' The usage of the function is similar to that of \code{plot.Recur} but with more flexible options.
+#' The usage of the function is similar to that of \code{plot.Recur()} but with more flexible options.
 #'
-#' When \code{adjrisk = TRUE}, the \code{plotMCF} is equivalent to
+#' When \code{adjrisk = TRUE}, the \code{plotMCF()} is equivalent to
 #' the Nelson-Aalen estimator for the intensity function of the recurrent event process.
-#' When \code{adjrisk = FALSE}, the \code{plotMCF} does not adjust for the risk set and
+#' When \code{adjrisk = FALSE}, the \code{plotMCF()} does not adjust for the risk set and
 #' assumes all subjects remain at risk after the last observed recurrent event.
 #' This is known as the survivor rate function.
 #' The argument \code{control} consists of options with argument defaults
@@ -256,8 +258,9 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' @param formula  a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object returned by the \code{Recur()} function.
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
-#' @param adjrisk an optional logical value indicating whether risk set will be adjusted,
-#' e.g., if \code{TRUE}, subjects leave the risk set after terminal times. See \bold{Details}.
+#' @param mcf.adjrisk an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+#' This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+#' If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time. 
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' This feature only works for data with one recurrent event type.
 #' @param onePanel an optional logical value indicating whether the mean cumulative functions will be plotted in the same panel.
@@ -454,8 +457,6 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
 #'
 #' Plot the baseline cumulative rate function and the baseline cumulative hazard function
 #' (if applicable) for an \code{reReg} object.
-#' The 95\% confidence intervals on the baseline cumulative rate function and the baseline cumulative hazard function
-#' are provided when the \code{reReg} object is fitted with standard error estimation.
 #'
 #' The argument \code{control} consists of options with argument defaults to a list with the following values:
 #' \describe{
@@ -470,13 +471,12 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param baseline a character string specifying which baseline function to plot.
 #' \describe{
-#'   \item{\code{baseline = "both"}}{plot both the baseline cumulative rate and the baseline cumulative hazard function in separate panels within the same display (default).}
+#'   \item{\code{baseline = "both"}}{plot both the baseline cumulative rate and the baseline cumulative hazard function (if applicable) in separate panels within the same display (default).}
 #'   \item{\code{baseline = "rate"}}{plot the baseline cumulative rate function.}
 #'   \item{\code{baseline = "hazard"}}{plot the baseline cumulative hazard function.}
 #' }
 #' @param control a list of control parameters. See \bold{Details}.
-#' @param ... graphical parameters to be passed to methods.
-#' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
+#' @param ... additional graphical parameters to be passed to methods.
 #' 
 #' @seealso \code{\link{reReg}}
 #' @export
@@ -569,10 +569,8 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' Plotting the Baseline Cumulative Rate Function for the Recurrent Event Process
 #'
 #' Plot the baseline rate function for an \code{reReg} object.
-#' The 95\% confidence interval on the baseline cumulative rate function
-#' is provided when \code{baseSE = TRUE} is specified in \code{reReg()}
-#' through \code{control}.
 #'
+#' 
 #' The \code{plotRate()} plots the estimated baseline cumulative rate function 
 #' depending on the identifiability assumption.
 #' When \code{type = "unrestricted"} (default), the baseline cumulative rate function
@@ -581,6 +579,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' under the assumption \eqn{\Lambda(\min(Y^\ast, \tau)) = 1}.
 #' When \code{type = "raw"}, the baseline cumulative rate function is plotted
 #' under the assumption \eqn{\Lambda(\tau) = 1}.
+#' See \code{?reReg} for the specification of the notations and underlying models.
 #' 
 #' The argument \code{control} consists of options with argument defaults
 #' to a list with the following values:
@@ -666,8 +665,6 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
 #'
 #' Plot the baseline cumulative hazard function for an \code{reReg} object.
 #' The 95\% confidence interval on the baseline cumulative rate function
-#' is provided when \code{baseSE = TRUE} is specified in \code{reReg()}
-#' through \code{control}.
 #'
 #' The argument \code{control} consists of options with argument
 #' defaults to a list with the following values:
