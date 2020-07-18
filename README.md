@@ -2,7 +2,7 @@
 **reReg**
 ---------
 
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg)](https://cran.r-project.org/) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/reReg)](https://cran.r-project.org/package=reReg) [![packageversion](https://img.shields.io/badge/Package%20version-1.2.0-orange.svg?style=flat-square)](commits/master) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/stc04003/reReg?branch=master&svg=true)](https://ci.appveyor.com/project/stc04003/reReg) [![Travis-CI Build Status](https://travis-ci.org/stc04003/reReg.svg?branch=master)](https://travis-ci.org/stc04003/reReg) [![Last-changedate](https://img.shields.io/badge/last%20change-2020--07--15-yellowgreen.svg)](/commits/master) <!-- [![Build Status](https://travis-ci.org/user/pkg.svg?branch=master)](https://travis-ci.org/user/pkg) --> <!-- README.md is generated from README.Rmd. Please edit that file -->
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![minimal R version](https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg)](https://cran.r-project.org/) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/reReg)](https://cran.r-project.org/package=reReg) [![packageversion](https://img.shields.io/badge/Package%20version-1.3.0-orange.svg?style=flat-square)](commits/master) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/stc04003/reReg?branch=master&svg=true)](https://ci.appveyor.com/project/stc04003/reReg) [![Travis-CI Build Status](https://travis-ci.org/stc04003/reReg.svg?branch=master)](https://travis-ci.org/stc04003/reReg) [![Last-changedate](https://img.shields.io/badge/last%20change-2020--07--18-yellowgreen.svg)](/commits/master) <!-- [![Build Status](https://travis-ci.org/user/pkg.svg?branch=master)](https://travis-ci.org/user/pkg) --> <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ### Regression models for recurrent event data
 
@@ -38,7 +38,7 @@ Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for th
 
 Wang, M.-C., Qin, J., and Chiang, C.-T. (2001). Analyzing Recurrent Event Data with Informative Censoring. *Journal of the American Statistical Association* **96**(455): 1057-1065.
 
-Ghosh, D. and D.Y. Lin (2002). Marginal regression models for recurrent and terminal events. *Statistica Sinica*, 663-688.
+Ghosh, D. and D.Y. Lin (2002). Marginal Regression Models for Recurrent and Terminal Events. *Statistica Sinica*, 663-688.
 
 Ghosh, D. and D.Y. Lin (2003). Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring. *Biometrics*, **59**: 877-885.
 
@@ -46,4 +46,4 @@ Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent
 
 Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time. *Journal of the American Statistical Association* **112**(518): 796-805.
 
-Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2018+) Generalized scale-change models for recurrent event processes under informative censoring. *Statistica Sinica*, to appear.
+Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2019) Generalized Scale-Change Models for Recurrent Event Processes under Informative Censoring. *Statistica Sinica*, to appear.

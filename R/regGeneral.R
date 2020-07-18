@@ -102,7 +102,7 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         Wi <- rep(1, length(m))
         wi <- rep(Wi, m)
     } else {
-        if (length(wgt) != nrow(xi)) stop("Weight length mismatch")
+        if (length(wgt) != length(m)) stop("Weight length mismatch")
         Wi <- wgt
         wi <- rep(wgt, m)
     }

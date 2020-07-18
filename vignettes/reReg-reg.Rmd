@@ -200,5 +200,11 @@ system.time(fitB2 <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = datC
 summary(fitB2)
 ```
 
+## Other popular methods
+Some methods that assumes \code{Z = 1} and requires independent
+censorings are also implemented in \code{reReg}. 
+These includes the methods proposed by 
+@lin2000semiparametric, @ghosh2002, and @ghosh2003, that can be called by specifying 
+`method = "cox.LWYY"`, `method = "cox.GL"`, and `method = "am.GL"`, respectively.
 
 ## Reference

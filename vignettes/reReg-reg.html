@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Sy Han (Steven) Chiou" />
 
-<meta name="date" content="2020-07-15" />
+<meta name="date" content="2020-07-18" />
 
 <title>Fitting semiparametric regression model to recurrent event data</title>
 
@@ -150,6 +149,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -178,6 +178,12 @@ summary {
 }
 }
 
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
 
 .toc-content {
   padding-left: 30px;
@@ -250,7 +256,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Fitting semiparametric regression model to recurrent event data</h1>
 <h4 class="author">Sy Han (Steven) Chiou</h4>
-<h4 class="date">2020-07-15</h4>
+<h4 class="date">2020-07-18</h4>
 
 </div>
 
@@ -278,7 +284,7 @@ h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta},
     &quot;bootstrap&quot;, &quot;NULL&quot;), control = list()) 
 NULL</code></pre>
 <ul>
-<li><code>formula</code> a formula object, with the response on the left of a “~” operator, and the predictors on the right. The response must be a recurrent event survival object as returned by function <code>Recur</code>. See the vignette on <a href="https://www.sychiou.com/reReg/articles/reReg-plots.html">Visualization of recurrent event data</a> or <a href="https://wenjie-stat.me/reda/articles/reda-recur">Introduction to formula response function <code>Recur()</code></a> for examples in creating <code>Recur</code> objects.</li>
+<li><code>formula</code> a formula object, with the response on the left of a &quot;~&quot; operator, and the predictors on the right. The response must be a recurrent event survival object as returned by function <code>Recur</code>. See the vignette on <a href="https://www.sychiou.com/reReg/articles/reReg-plots.html">Visualization of recurrent event data</a> or <a href="https://wenjie-stat.me/reda/articles/reda-recur">Introduction to formula response function <code>Recur()</code></a> for examples in creating <code>Recur</code> objects.</li>
 <li><code>data</code> an optional data frame in which to interpret the variables occurring in the <code>formula</code>.</li>
 <li><code>B</code> a numeric value specifies the number of resampling (or bootstrap) for variance estimation. When <code>B = 0</code>, variance estimation will not be performed.</li>
 <li><code>method</code> a character string specifying the underlying model.</li>
@@ -287,7 +293,7 @@ NULL</code></pre>
 </ul>
 <div id="choosing-model-type-with-method" class="section level3">
 <h3>Choosing model type with <code>method</code></h3>
-<p>Model \eqref{eq:joint} includes several popular semiparametric models as special cases, which can be specified via the <code>method</code> argument with the rate function and hazard function separated by “<code>|</code>”. For examples, the joint Cox model of <span class="citation">Huang and Wang (2004)</span> is a special case of \eqref{eq:joint} when <span class="math inline">\(\alpha = \eta = 0\)</span> and can be called by <code>method = &quot;cox|cox&quot;</code>; the joint accelerated mean model of <span class="citation">Xu et al. (2017)</span> is a special case when <span class="math inline">\(\alpha = \beta\)</span> and <span class="math inline">\(\eta = \theta\)</span> and can be called by <code>method = &quot;am|am&quot;</code>. <!--Another option is `ar` for the accerlated rate model ($\beta = \theta = 0$).--> <!--When the primary interest is in the covariate effects on the risk of recurrent events and --> Treating the terminal event as nuisances (<span class="math inline">\(\eta = \theta = 0\)</span>), \eqref{eq:joint} reduces to the generalized scale-change model of <span class="citation">Xu et al. (2019)</span>, called by <code>method = &quot;sc|.&quot;</code>. Moreover, users can mix the models depending on the application. For example, <code>method = &quot;cox|ar&quot;</code> postulate a Cox proportional model for the recurrent event rate function and an accelerated rate model for the terminal event hazard function (<span class="math inline">\(\alpha = \theta = 0\)</span> in \eqref{eq:joint}).</p>
+<p>Model \eqref{eq:joint} includes several popular semiparametric models as special cases, which can be specified via the <code>method</code> argument with the rate function and hazard function separated by &quot;<code>|</code>&quot;. For examples, the joint Cox model of <span class="citation">Huang and Wang (2004)</span> is a special case of \eqref{eq:joint} when <span class="math inline">\(\alpha = \eta = 0\)</span> and can be called by <code>method = &quot;cox|cox&quot;</code>; the joint accelerated mean model of <span class="citation">Xu et al. (2017)</span> is a special case when <span class="math inline">\(\alpha = \beta\)</span> and <span class="math inline">\(\eta = \theta\)</span> and can be called by <code>method = &quot;am|am&quot;</code>. <!--Another option is `ar` for the accerlated rate model ($\beta = \theta = 0$).--> <!--When the primary interest is in the covariate effects on the risk of recurrent events and --> Treating the terminal event as nuisances (<span class="math inline">\(\eta = \theta = 0\)</span>), \eqref{eq:joint} reduces to the generalized scale-change model of <span class="citation">Xu et al. (2019)</span>, called by <code>method = &quot;sc|.&quot;</code>. Moreover, users can mix the models depending on the application. For example, <code>method = &quot;cox|ar&quot;</code> postulate a Cox proportional model for the recurrent event rate function and an accelerated rate model for the terminal event hazard function (<span class="math inline">\(\alpha = \theta = 0\)</span> in \eqref{eq:joint}).</p>
 </div>
 <div id="choosing-the-variance-esitmation-approach-with-se" class="section level3">
 <h3>Choosing the variance esitmation approach with <code>se</code></h3>
@@ -461,7 +467,7 @@ x2    0.971  0.272   3.572   0.000</code></pre>
 <pre class="r"><code>&gt; system.time(fitB1 &lt;- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = datCox, 
 +                            method = &quot;cox&quot;, se = &quot;bootstrap&quot;))</code></pre>
 <pre><code>   user  system elapsed 
- 40.980   0.000  40.986 </code></pre>
+ 42.904   0.004  42.916 </code></pre>
 <pre class="r"><code>&gt; summary(fitB1)</code></pre>
 <pre><code>Call: 
 reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = datCox, 
@@ -480,7 +486,7 @@ x2    0.901  0.150   6.006       0</code></pre>
 +                            method = &quot;cox&quot;, se = &quot;bootstrap&quot;, 
 +                            control = list(parallel = TRUE, parCl = 8)))</code></pre>
 <pre><code>   user  system elapsed 
-  0.276   0.048  12.663 </code></pre>
+  0.296   0.012  12.292 </code></pre>
 <pre class="r"><code>&gt; summary(fitB2)</code></pre>
 <pre><code>Call: 
 reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = datCox, 
@@ -489,19 +495,32 @@ reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = datCox,
 
 Recurrent event process:
    Estimate  StdErr z.value p.value
-x1    1.069   0.082  12.973       0
-x2   -0.970   0.055 -17.736       0
+x1    1.069   0.081  13.151       0
+x2   -0.970   0.055 -17.607       0
 
 Terminal event:
    Estimate StdErr z.value p.value
-x1   -1.008  0.270  -3.735       0
-x2    0.901  0.137   6.559       0</code></pre>
+x1   -1.008  0.231  -4.368       0
+x2    0.901  0.155   5.821       0</code></pre>
+</div>
+<div id="other-popular-methods" class="section level2">
+<h2>Other popular methods</h2>
+<p>Some methods that assumes  and requires independent censorings are also implemented in . These includes the methods proposed by <span class="citation">D. Lin et al. (2000)</span>, <span class="citation">Ghosh and Lin (2002)</span>, and <span class="citation">Ghosh and Lin (2003)</span>, that can be called by specifying <code>method = &quot;cox.LWYY&quot;</code>, <code>method = &quot;cox.GL&quot;</code>, and <code>method = &quot;am.GL&quot;</code>, respectively.</p>
 </div>
 <div id="reference" class="section level2 unnumbered">
 <h2>Reference</h2>
 <div id="refs" class="references">
+<div id="ref-ghosh2003">
+<p>Ghosh, Debashis, and D Y Lin. 2003. “Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.” <em>Biometrics</em> 59 (4): 877–85.</p>
+</div>
+<div id="ref-ghosh2002">
+<p>Ghosh, Debashis, and DY Lin. 2002. “Marginal Regression Models for Recurrent and Terminal Events.” <em>Statistica Sinica</em> 12 (3): 663–88.</p>
+</div>
 <div id="ref-Huang2004">
 <p>Huang, Chiung-Yu, and Mei-Cheng Wang. 2004. “Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.” <em>Journal of the American Statistical Association</em> 99 (468): 1153–65.</p>
+</div>
+<div id="ref-lin2000semiparametric">
+<p>Lin, DY, LJ Wei, I Yang, and Z Ying. 2000. “Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.” <em>Journal of the Royal Statistical Society: Series B</em> 62 (4). Wiley Online Library: 711–30.</p>
 </div>
 <div id="ref-Wang2001">
 <p>Wang, Mei-Cheng, Jing Qin, and Chin-Tsang Chiang. 2001. “Analyzing Recurrent Event Data with Informative Censoring.” <em>Journal of the American Statistical Association</em> 96 (455): 1057–65.</p>
@@ -568,7 +587,7 @@ $(document).ready(function ()  {
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
       },
       ignoreSelector: ".toc-ignore",
       scrollTo: 0
