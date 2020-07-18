@@ -434,7 +434,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' it is used for both the rate function and the hazard function.
 #' For example, specifying \code{method = "cox"} is equivalent to \code{method = "cox|cox"}.
 #' Some methods that assumes \code{Z = 1} and requires independent
-#' censorings are also implemented in \code{reReg};
+#' censoring are also implemented in \code{reReg};
 #' these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
 #' \code{method = "cox.GL"} for Ghosh and Lin (2002),
 #' and \code{method = "am.GL"} for Ghosh and Lin (2003).

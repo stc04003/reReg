@@ -23,6 +23,10 @@ The response must be a recurrent event survival object returned by the \code{Rec
 \item{onePanel}{an optional logical value indicating whether the mean cumulative functions will be plotted in the same panel.
 This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.}
 
+\item{adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
+
 \item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 This feature only works for data with one recurrent event type.}
 
@@ -30,10 +34,6 @@ This feature only works for data with one recurrent event type.}
 
 \item{...}{graphical parameters to be passed to methods.
 These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.}
-
-\item{mcf.adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
-This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
-If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
 }
 \value{
 A \code{ggplot} object.

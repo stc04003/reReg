@@ -84,7 +84,7 @@ For example, `method = "cox|ar"` postulate a Cox proportional model for the recu
 function and an accelerated rate model for the terminal event hazard function
 ($\alpha = \theta = 0$ in \\eqref{eq:joint}). 
 
-### Choosing the variance esitmation approach with `se`
+### Choosing the variance estimation approach with `se`
 For inference, the `reReg()` function provides several approaches for variance estimation.
 The default option is `se = "resampling"`, which refers to the efficient resampling-based 
 sandwich estimator.

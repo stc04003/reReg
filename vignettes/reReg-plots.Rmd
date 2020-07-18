@@ -39,7 +39,7 @@ knit_hooks$set(output = function(x, options) {
 })
 ```
 In this vignette, we demonstrate how to create a `reSurv` object in __`reReg`__ package.
-The `reSurv` object is then used to create event plots and mean cumulative function (CSM) plots.
+The `reSurv` object is then used to create event plots and mean cumulative function (MCF) plots.
 We will illustrate the usage of our functions with the `readmission` data from the __`frailtypack`__ 
 package [@rondeau2012frailtypack, @gonzalez2005sex]. 
 The data contains re-hospitalization times after surgery in patients diagnosed with colorectal cancer.
@@ -79,7 +79,7 @@ The five arguments are as follows
 * `status` a binary vector used as the status indicator for the terminal event; `status = 0` for censored time
 * `origin` a numerical vector indicating the time origin of subjects
 
-The arguments of `Recur()` are similar to those of `reSurv()`. THey are listed as follow
+The arguments of `Recur()` are similar to those of `reSurv()`. They are listed as follow
 ```{r Recur}
 args(Recur)
 ```
@@ -214,8 +214,8 @@ plot(reObj, mcf = TRUE)
 
 The MCF plot can be created with the more specialized function, `plotMCF()`.
 Both `plotEvents()` and `plotMCF()` return **`ggplot2`** objects.
-A side-by-side MCF plot, showing the CSM functions with and without risk adjustment, is shown in Figure 6.
-```{r plot-csm2, fig.cap = "Figure 6: Creating a CSM plot from a `Recur` object."}
+A side-by-side MCF plot, showing the MCF functions with and without risk adjustment, is shown in Figure 6.
+```{r plot-csm2, fig.cap = "Figure 6: Creating a MCF plot from a `Recur` object."}
 library(gridExtra)
 p1 <- plotMCF(Recur(t.stop, id, event, death) ~ 1, data = readmission, main = "")
 p2 <- plotMCF(Recur(t.stop, id, event, death) ~ 1, data = readmission, 

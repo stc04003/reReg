@@ -258,7 +258,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' @param formula  a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object returned by the \code{Recur()} function.
 #' @param data an optional data frame in which to interpret the variables occurring in the "\code{formula}".
-#' @param mcf.adjrisk an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+#' @param adjrisk an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
 #' This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
 #' If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time. 
 #' @param smooth an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.

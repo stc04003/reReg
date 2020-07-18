@@ -1,3 +1,6 @@
+# `reReg` 1.3.0
+  	* Re-organized `reReg()`; it now provides general model assumptions.
+	* Improved speed via RCpp
 # `reReg` 1.2.0
   	* Fixed memory errors (checked with valgrind 3.15)
 # `reReg` 1.2.0
