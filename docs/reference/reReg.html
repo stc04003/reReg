@@ -8,21 +8,29 @@
 
 <title>Fits Semiparametric Regression Models for Recurrent Event Data — reReg • reReg</title>
 
+
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
-<!-- sticky kit -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+<!-- headroom.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -30,14 +38,14 @@
 
 
 
-<meta property="og:title" content="Fits Semiparametric Regression Models for Recurrent Event Data — reReg" />
 
+<meta property="og:title" content="Fits Semiparametric Regression Models for Recurrent Event Data — reReg" />
 <meta property="og:description" content="Fits a general (joint) semiparametric regression model for the recurrent event data,
 where the rate function of the underlying recurrent event process and
 the hazard function of the terminal event can be specified as a Cox-type model,
 an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 See details for model specifications." />
-<meta name="twitter:card" content="summary" />
+
 
 
 
@@ -51,9 +59,10 @@ See details for model specifications." />
 <![endif]-->
 
 
+
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -75,7 +84,7 @@ See details for model specifications." />
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fa fa-home fa-lg"></span>
+    <span class="fas fa fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -104,11 +113,10 @@ See details for model specifications." />
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
-      
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/stc04003/reReg">
-    <span class="fa fa-github fa-lg"></span>
+  <a href="http://github.com/stc04003/reReg/">
+    <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -119,29 +127,34 @@ See details for model specifications." />
 </div><!--/.navbar -->
 
       
+
       </header>
 
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Fits Semiparametric Regression Models for Recurrent Event Data</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stc04003/reReg/blob/master/R/reReg.R'><code>R/reReg.R</code></a></small>
+    <small class="dont-index">Source: <a href='http://github.com/stc04003/reReg/blob/master/R/reReg.R'><code>R/reReg.R</code></a></small>
     <div class="hidden name"><code>reReg.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    
     <p>Fits a general (joint) semiparametric regression model for the recurrent event data,
 where the rate function of the underlying recurrent event process and
 the hazard function of the terminal event can be specified as a Cox-type model,
 an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 See details for model specifications.</p>
-    
     </div>
 
-    <pre class="usage"><span class='fu'>reReg</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>200</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox"</span>, <span class='kw'>se</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"resampling"</span>,
-  <span class='st'>"bootstrap"</span>, <span class='st'>"NULL"</span>), <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>())</pre>
-    
+    <pre class="usage"><span class='fu'>reReg</span>(
+  <span class='no'>formula</span>,
+  <span class='no'>data</span>,
+  <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>200</span>,
+  <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox"</span>,
+  <span class='kw'>se</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"resampling"</span>, <span class='st'>"bootstrap"</span>, <span class='st'>"NULL"</span>),
+  <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>()
+)</pre>
+
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
@@ -172,7 +185,7 @@ When <code>B = 0</code>, variance estimation will not be performed.</p></td>
       <td><p>a list of control parameters.</p></td>
     </tr>
     </table>
-    
+
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>Suppose the recurrent event process and the failure events are
@@ -181,7 +194,7 @@ for some constant \(\tau\).
 We formulate the recurrent event rate function, \(\lambda(t)\),
 and the terminal event hazard function, \(h(t)\), 
 in the form of
-$$\lambda(t) = Z \lambda_0(tX^\top\alpha) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, $$
+$$\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta},$$
 where \(\lambda_0(t)\) is the baseline rate function,
 \(h_0(t)\) is the baseline hazard function,
 \(X\) is a \(n\) by \(p\) covariate matrix and \(\alpha\),
@@ -191,61 +204,68 @@ rate function and the hazard function, respectively.
 The model includes several popular semiparametric models as special cases,
 which can be specified via the <code>method</code> argument with the rate function
 and hazard function separated by "<code>|</code>".
-For examples, Huang and Wang (2004) (\(\alpha = \eta = 0\))
-can be called with <code>method = "cox|cox"</code>;
+For examples,
 Wang, Qin and Chiang (2001) (\(\alpha = \eta = \theta = 0\))
 can be called with <code>method = "cox|."</code>;
-Xu et al. (2017) (\(\alpha = \alpha\) and \(\eta = \theta\))
+Huang and Wang (2004) (\(\alpha = \eta = 0\))
+can be called with <code>method = "cox|cox"</code>;
+Xu et al. (2017) (\(\alpha = \beta\) and \(\eta = \theta\))
 can be called with <code>method = "am|am"</code>;
 Xu et al. (2019) (\(\eta = \theta = 0\)) can be called with <code>method = "sc|."</code>.
+Users can mix the models depending on the application. For example,
+<code>method = "cox|ar"</code> postulate a Cox proportional model for the
+recurrent event rate function and an accelerated rate model for
+the terminal event hazard function (\(\alpha = \theta = 0\)).
+If only one method is specified without an "<code>|</code>",
+it is used for both the rate function and the hazard function.
+For example, specifying <code>method = "cox"</code> is equivalent to <code>method = "cox|cox"</code>.
 Some methods that assumes <code>Z = 1</code> and requires independent
 censorings are also implemented in <code>reReg</code>;
 these includes <code>method = "cox.LWYY"</code> for Lin et al. (2000),
 <code>method = "cox.GL"</code> for Ghosh and Lin (2002),
 and <code>method = "am.GL"</code> for Ghosh and Lin (2003).</p>
-<p>The available methods for variance estimation are:</p><dl class='dl-horizontal'>
-  <dt><code>NULL</code></dt><dd><p>variance estimation will not be performed. This is equivalent to setting <code>B = 0</code>.</p></dd>
-  <dt><code>"resampling"</code></dt><dd><p>performs the efficient resampling-based variance estimation.</p></dd>
-  <dt><code>"bootstrap"</code></dt><dd><p>performs nonparametric bootstrap.</p></dd>
+<p>The available methods for variance estimation are:</p><dl'>
+  <dt>NULL</dt><dd><p>variance estimation will not be performed. This is equivalent to setting <code>B = 0</code>.</p></dd>
+  <dt>resampling</dt><dd><p>performs the efficient resampling-based variance estimation.</p></dd>
+  <dt>bootstrap</dt><dd><p>performs nonparametric bootstrap.</p></dd>
+
 </dl>
-    <p>The <code>control</code> list consists of the following parameters:</p><dl class='dl-horizontal'>
-  <dt><code>tol</code></dt><dd><p>absolute error tolerance.</p></dd>
-  <dt><code>a0, b0</code></dt><dd><p>initial guesses used for root search.</p></dd>
-  <dt><code>solver</code></dt><dd><p>the equation solver used for root search.
-The available options are <code><a href='https://www.rdocumentation.org/packages/BB/topics/BBsolve'>BB::BBsolve</a></code>, <code><a href='https://www.rdocumentation.org/packages/BB/topics/dfsane'>BB::dfsane</a></code>, <code>BB:BBoptim</code>, and <code>optim</code>.</p></dd>
-  <dt><code>baseSE</code></dt><dd><p>an logical value indicating whether the confidence bounds for the baseline functions will be computed.</p></dd>
-  <dt><code>parallel</code></dt><dd><p>an logical value indicating whether parallel computation will be applied when <code>se = "bootstrap"</code> is called.</p></dd>
-  <dt><code>parCl</code></dt><dd><p>an integer value specifying the number of CPU cores to be used when <code>parallel = TRUE</code>.
-The default value is half the CPU cores on the current host.</p></dd>
+
+<p>The <code>control</code> list consists of the following parameters:</p><dl'>
+  <dt>tol</dt><dd><p>absolute error tolerance.</p></dd>
+  <dt>a0, b0</dt><dd><p>initial guesses used for root search.</p></dd>
+  <dt>solver</dt><dd><p>the equation solver used for root search. The available options are <code><a href='https://rdrr.io/pkg/BB/man/BBsolve.html'>BB::BBsolve</a></code>, <code><a href='https://rdrr.io/pkg/BB/man/dfsane.html'>BB::dfsane</a></code>, <code>BB:BBoptim</code>, and <code>optim</code>.</p></dd>
+  <dt>baseSE</dt><dd><p>an logical value indicating whether the 95% confidence bounds for the baseline functions will be computed.</p></dd>
+  <dt>parallel</dt><dd><p>an logical value indicating whether parallel computation will be applied when <code>se = "bootstrap"</code> is called.</p></dd>
+  <dt>parCl</dt><dd><p>an integer value specifying the number of CPU cores to be used when <code>parallel = TRUE</code>. The default value is half the CPU cores on the current host.</p></dd>
+
 </dl>
-    
+
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
-    <p>Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
-processes under informative censoring. <em>Statistica Sinica</em>: pre-print.</p>
-<p>Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
-<em>Journal of the American Statistical Association</em>, <b>112</b>(518): 796--805.</p>
-<p>Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
+    <p>Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
 <em>Journal of the Royal Statistical Society: Series B (Methodological)</em>, <b>62</b>: 711--730.</p>
 <p>Wang, M.-C., Qin, J., and Chiang, C.-T. (2001). Analyzing Recurrent Event Data with Informative Censoring.
 <em>Journal of the American Statistical Association</em>, <b>96</b>(455): 1057--1065.</p>
+<p>Ghosh, D. and Lin, D.Y. (2002). Marginal Regression Models for Recurrent and Terminal Events. <em>Statistica Sinica</em>: 663--688.</p>
 <p>Ghosh, D. and Lin, D.Y. (2003). Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.
 <em>Biometrics</em>, <b>59</b>: 877--885.</p>
 <p>Huang, C.-Y. and Wang, M.-C. (2004). Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.
 <em>Journal of the American Statistical Association</em>, <b>99</b>(468): 1153--1165.</p>
-<p>Ghosh, D. and Lin, D.Y. (2002). Marginal Regression Models for Recurrent and Terminal Events. <em>Statistica Sinica</em>: 663--688.</p>
-    
+<p>Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
+<em>Journal of the American Statistical Association</em>, <b>112</b>(518): 796--805.</p>
+<p>Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
+Processes under Informative Censoring. <em>Statistica Sinica</em>: pre-print.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='Recur.html'>Recur</a></code>, <code><a href='simSC.html'>simSC</a></code></p></div>
-    
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>
 
 <span class='co'>## Joint Cox/Accelerated Mean Model</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='fl'>1</span>)
-<span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>50</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"cox|am"</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='fl'>1</span>)
+<span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>50</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"cox|am"</span>)
 (<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>reReg</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>,
               <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>dat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox|am"</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>50</span>))</div><div class='output co'>#&gt; Call: 
 #&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
@@ -257,7 +277,7 @@ processes under informative censoring. <em>Statistica Sinica</em>: pre-print.</p
 #&gt; 
 #&gt; Terminal event:                  
 #&gt;  x1       x2      
-#&gt;  -1.96062  0.85646</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: 
+#&gt;  -1.96062  0.85646</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: 
 #&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
 #&gt;     B = 50, method = "cox|am")
 #&gt; 
@@ -272,8 +292,8 @@ processes under informative censoring. <em>Statistica Sinica</em>: pre-print.</p
 #&gt; x2    0.856  0.945   0.907   0.365
 #&gt; </div><div class='input'>
 <span class='co'>## Generalized Scale-Change Model</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='fl'>1</span>)
-<span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>50</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"sc"</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='fl'>1</span>)
+<span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>50</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"sc"</span>)
 (<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>reReg</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>,
               <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>dat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sc|."</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>50</span>))</div><div class='output co'>#&gt; Call: 
 #&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
@@ -282,7 +302,7 @@ processes under informative censoring. <em>Statistica Sinica</em>: pre-print.</p
 #&gt; Recurrent event process:                                         
 #&gt;  Shape                  Shape            
 #&gt;  x1       x2            x1       x2      
-#&gt;  -0.58379  0.62291      -0.58379  0.62291</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: 
+#&gt;  -0.58379  0.62291      -0.58379  0.62291</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: 
 #&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
 #&gt;     B = 50, method = "sc|.")
 #&gt; 
@@ -297,22 +317,13 @@ processes under informative censoring. <em>Statistica Sinica</em>: pre-print.</p
 #&gt; x2    0.990  0.138   7.172 &lt; 2.2e-16 ***
 #&gt; </div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#details">Details</a></li>
-
-      <li><a href="#references">References</a></li>
-
-      <li><a href="#see-also">See also</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
+
 
       <footer>
       <div class="copyright">
@@ -320,13 +331,16 @@ processes under informative censoring. <em>Statistica Sinica</em>: pre-print.</p
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
+
       </footer>
    </div>
 
   
 
+
   </body>
 </html>
+
 

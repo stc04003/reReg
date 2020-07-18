@@ -8,21 +8,29 @@
 
 <title>Produce Cumulative Sample Mean Function Plots — plotMCF • reReg</title>
 
+
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
-<!-- sticky kit -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+<!-- headroom.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -30,11 +38,11 @@
 
 
 
-<meta property="og:title" content="Produce Cumulative Sample Mean Function Plots — plotMCF" />
 
+<meta property="og:title" content="Produce Cumulative Sample Mean Function Plots — plotMCF" />
 <meta property="og:description" content="Plot the mean cumulative function (MCF) for an Recur object.
-The usage of the function is similar to that of plot.Recur but with more flexible options." />
-<meta name="twitter:card" content="summary" />
+The usage of the function is similar to that of plot.Recur() but with more flexible options." />
+
 
 
 
@@ -48,9 +56,10 @@ The usage of the function is similar to that of plot.Recur but with more flexibl
 <![endif]-->
 
 
+
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -72,7 +81,7 @@ The usage of the function is similar to that of plot.Recur but with more flexibl
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fa fa-home fa-lg"></span>
+    <span class="fas fa fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -101,11 +110,10 @@ The usage of the function is similar to that of plot.Recur but with more flexibl
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
-      
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/stc04003/reReg">
-    <span class="fa fa-github fa-lg"></span>
+  <a href="http://github.com/stc04003/reReg/">
+    <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -116,26 +124,32 @@ The usage of the function is similar to that of plot.Recur but with more flexibl
 </div><!--/.navbar -->
 
       
+
       </header>
 
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Produce Cumulative Sample Mean Function Plots</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stc04003/reReg/blob/master/R/plot.R'><code>R/plot.R</code></a></small>
+    <small class="dont-index">Source: <a href='http://github.com/stc04003/reReg/blob/master/R/plot.R'><code>R/plot.R</code></a></small>
     <div class="hidden name"><code>plotMCF.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    
     <p>Plot the mean cumulative function (MCF) for an <code>Recur</code> object.
-The usage of the function is similar to that of <code>plot.Recur</code> but with more flexible options.</p>
-    
+The usage of the function is similar to that of <code><a href='plot.Recur.html'>plot.Recur()</a></code> but with more flexible options.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>plotMCF</span>(<span class='no'>formula</span>, <span class='no'>data</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>adjrisk</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/list'>list</a></span>(), <span class='no'>...</span>)</pre>
-    
+    <pre class="usage"><span class='fu'>plotMCF</span>(
+  <span class='no'>formula</span>,
+  <span class='no'>data</span>,
+  <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>adjrisk</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>smooth</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>control</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(),
+  <span class='no'>...</span>
+)</pre>
+
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
@@ -154,11 +168,6 @@ The response must be a recurrent event survival object returned by the <code><a 
 This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.</p></td>
     </tr>
     <tr>
-      <th>adjrisk</th>
-      <td><p>an optional logical value indicating whether risk set will be adjusted,
-e.g., if <code>TRUE</code>, subjects leave the risk set after terminal times. See <b>Details</b>.</p></td>
-    </tr>
-    <tr>
       <th>smooth</th>
       <td><p>an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package <code>scam</code>.
 This feature only works for data with one recurrent event type.</p></td>
@@ -172,51 +181,46 @@ This feature only works for data with one recurrent event type.</p></td>
       <td><p>graphical parameters to be passed to methods.
 These include <code>xlab</code>, <code>ylab</code>, <code>main</code>, and more. See <b>Details</b>.</p></td>
     </tr>
+    <tr>
+      <th>mcf.adjrisk</th>
+      <td><p>an optional logical value that is passed to the <code>plotMCF()</code> function as the <code>adjrisk</code> argument. See <code>plotMCF</code>.
+This argument indicates whether risk set size will be adjusted. If <code>mcf.adjrisk = TRUE</code>, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+If <code>mcf.adjrisk = FALSE</code>, subjects remain in the risk set after terminal time.</p></td>
+    </tr>
     </table>
-    
+
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>A <code>ggplot</code> object.</p>
-    
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>When <code>adjrisk = TRUE</code>, the <code>plotMCF</code> is equivalent to
+    <p>When <code>adjrisk = TRUE</code>, the <code>plotMCF()</code> is equivalent to
 the Nelson-Aalen estimator for the intensity function of the recurrent event process.
-When <code>adjrisk = FALSE</code>, the <code>plotMCF</code> does not adjust for the risk set and
+When <code>adjrisk = FALSE</code>, the <code>plotMCF()</code> does not adjust for the risk set and
 assumes all subjects remain at risk after the last observed recurrent event.
 This is known as the survivor rate function.
 The argument <code>control</code> consists of options with argument defaults
-to a list with the following values:</p><dl class='dl-horizontal'>
+to a list with the following values:</p><dl'>
   <dt>xlab</dt><dd><p>customizable x-label, default value is "Time".</p></dd>
   <dt>ylab</dt><dd><p>customizable y-label, default value is "Cumulative mean".</p></dd>
   <dt>main</dt><dd><p>customizable title, default value is "Sample cumulative mean function plot".</p></dd>
+
 </dl><p>The <code>xlab</code>, <code>ylab</code> and <code>main</code> parameters can also be passed down without specifying a <code>control</code> list.</p>
-    
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p><code><a href='Recur.html'>Recur</a></code>, <code><a href='plot.Recur.html'>plot.Recur</a></code></p></div>
-    
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/data'>data</a></span>(<span class='no'>simDat</span>)
+    <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='no'>simDat</span>)
 <span class='fu'>plotMCF</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='fl'>1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>)</div><div class='img'><img src='plotMCF-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotMCF</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>)</div><div class='img'><img src='plotMCF-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotMCF</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotMCF-3.png' alt='' width='700' height='433' /></div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
-
-      <li><a href="#see-also">See also</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
+
 
       <footer>
       <div class="copyright">
@@ -224,13 +228,16 @@ to a list with the following values:</p><dl class='dl-horizontal'>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
+
       </footer>
    </div>
 
   
 
+
   </body>
 </html>
+
 
