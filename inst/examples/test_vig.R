@@ -64,3 +64,21 @@ p2 <- plotMCF(Recur(t.stop, id, event2, death) ~ sex, data = readmission,
               adjrisk = FALSE, main = "") +
   theme(legend.position="none")
 grid.arrange(p1, p2, ncol = 2)
+
+
+data(simDat)
+head(simDat)
+
+set.seed(123)
+head(simSC(200, c(-1, 1), c(-1, 1), summary = TRUE))
+
+dim(dat)
+
+set.seed(1); dat <- simSC(30, c(-1, 1), c(-1, 1))
+
+reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat)
+reReg(Recur(Time, id, event, status) ~ x1 + x2, data = dat, method = "am")
+
+debug(reReg)
+
+reReg(Recur(Time, id, event, status) ~ x1 + x2, data = simSC(50, c(-1, 1), c(-1, 1)), method = "am")

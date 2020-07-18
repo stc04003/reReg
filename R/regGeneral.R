@@ -66,11 +66,12 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
         R <- m / Lam
         R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         fit.b <- eqSolve(a0[-(1:p)], U2, solver)
+        ind <- !duplicated(yexa2)
         return(list(alpha = c(fit.a$par, fit.b$par[-1] + fit.a$par),
                     aconv = c(fit.a$convergence, fit.b$convergence),
                     log.muZ = fit.b$par[1],
                     zi = R / exp(Xi[,-1, drop = FALSE] %*% fit.b$par[-1]),
-                    Lam0 = approxfun(exp(yexa2)[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
+                    Lam0 = approxfun(exp(yexa2)[ind], Lam[ind],
                                      yleft = min(Lam), yright = max(Lam))))
     }
 }
@@ -265,8 +266,9 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
         Haz <- apply(wgt, 2, function(e)
             temHaz(b0[1:p + p], b0[1:p], xi, yi, zi / mean(zi), di, e, yi2))
         Haz <- apply(Haz, 1, quantile, c(.025, .975))
-        Haz.lower <- approxfun(exp(yi2), Haz[1,], yleft = min(Haz[1,]), yright = max(Haz[1,]))
-        Haz.upper <- approxfun(exp(yi2), Haz[2,], yleft = min(Haz[2,]), yright = max(Haz[2,]))
+        ind <- !duplicated(exp(yi2))
+        Haz.lower <- approxfun(exp(yi2)[ind], Haz[1,ind], yleft = min(Haz[1,]), yright = max(Haz[1,]))
+        Haz.upper <- approxfun(exp(yi2)[ind], Haz[2,ind], yleft = min(Haz[2,]), yright = max(Haz[2,]))
         return(list(Haz0.lower = Haz.lower, Haz0.upper = Haz.upper))
     }
     if (is.null(wgt)) {
@@ -284,10 +286,11 @@ temSC <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
         fit.a <- eqSolve(b0, U1, solver)
         yi <- log(yi) + xi %*% fit.a$par[1:p + p]
         yi2 <- sort(unique(yi))
+        ind <- !duplicated(exp(yi2))
         Haz <- c(temHaz(fit.a$par[1:p + p], fit.a$par[1:p], xi, yi, zi / mean(zi), di, wi, yi2))
         return(list(beta = fit.a$par,
                     bconv = fit.a$convergence,
-                    Haz0 = approxfun(exp(yi2), Haz, yleft = min(Haz), yright = max(Haz))))
+                    Haz0 = approxfun(exp(yi2)[ind], Haz[ind], yleft = min(Haz), yright = max(Haz))))
     }
 }
 
@@ -323,9 +326,10 @@ temAM <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
         yi <- log(yi) + xi %*% fit.a$par
         yi2 <- sort(unique(yi))
         Haz <- c(temHaz(fit.a$par, fit.a$par, xi, yi, zi / mean(zi), di, wi, yi2))
+        ind <- !duplicated(exp(yi2))
         return(list(beta = fit.a$par,
                     bconv = fit.a$convergence,
-                    Haz0 = approxfun(exp(yi2), Haz, yleft = min(Haz), yright = max(Haz))))
+                    Haz0 = approxfun(exp(yi2)[ind], Haz[ind], yleft = min(Haz), yright = max(Haz))))
     }
 }
 
@@ -397,8 +401,9 @@ temAR <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
         yi <- log(yi) + xi %*% fit.a$par
         yi2 <- sort(unique(yi))
         Haz <- c(temHaz(fit.a$par, rep(0, p), xi, yi, zi / mean(zi), di, wi, yi2))
+        ind <- !duplicated(exp(yi2))
         list(beta = fit.a$par,
              bconv = fit.a$convergence,
-             Haz0 = approxfun(exp(yi2), Haz, yleft = min(Haz), yright = max(Haz)))
+             Haz0 = approxfun(exp(yi2)[ind], Haz[ind], yleft = min(Haz), yright = max(Haz)))
     }
 }
