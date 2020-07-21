@@ -203,7 +203,7 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     nb <- length(b0)
     L <- apply(Z, 1, function(zz) {
         tmp <- s1(engine@recType, DF, engine@eqType, NULL, a0 + zz[1:na] / sqrt(n))
-        c(tmp$value, s2(engine@temType, DF, engine@eqType, NULL, b0 + tail(zz, nb) / sqrt(n), res$zi))
+        c(tmp$value, s2(engine@temType, DF, engine@eqType, NULL, b0 + tail(zz, nb) / sqrt(n), tmp$zi))
     })
     L <- t(L)
     J <- solve(t(Z) %*% Z) %*% t(Z) %*% (sqrt(n) * L)
@@ -215,7 +215,8 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     res <- c(res, list(alphaSE = sqrt(diag(as.matrix(aVar))), alphaVar = aVar, varMat = varMat))
     if (nb > 0) {
         ind2 <- tail(1:nrow(J), nb)
-        bVar <- solve(J[ind2, ind2]) %*% V[ind2, ind2] %*% t(solve(J[ind2, ind2]))
+        J2 <- solve(t(Z[,ind2]) %*% Z[,ind2]) %*% t(Z[,ind2]) %*% (sqrt(n) * L[,ind2])
+        bVar <- solve(J2) %*% V[ind2, ind2] %*% t(solve(J2))
         res$betaSE <- sqrt(diag(as.matrix(bVar)))
         res$betaVar <- bVar
     } 
