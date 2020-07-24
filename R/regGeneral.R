@@ -117,7 +117,8 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         Lam <- exp(-rate)
         R <- m / Lam
         R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-        zi <- Wi * R * exp(as.matrix(df0[,-c(1:6)]) %*% a0)
+        ## zi <- Wi * R * exp(as.matrix(df0[,-c(1:6)]) %*% a0)
+        zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% a0)
         return(list(value = U1(a0), zi = zi))
     } else {
         fit.a <- eqSolve(a0, U1, solver)
@@ -178,8 +179,8 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
     U1 <- function(b) as.numeric(re2(b, R, Xi, Wi))
     if (is.null(solver)) { 
         return(list(value = U1(a0),
-                    ## zi = R / exp(Xi[,-1, drop = FALSE] %*% a0[-1])))
-                    zi = Wi * R / exp(Xi[,-1, drop = FALSE] %*% a0[-1])))
+                    zi = R / exp(Xi[,-1, drop = FALSE] %*% a0[-1])))
+                    ## zi = Wi * R / exp(Xi[,-1, drop = FALSE] %*% a0[-1])))
     } else {
         fit.a <- eqSolve(a0, U1, solver)
         return(list(alpha = fit.a$par[-1],
