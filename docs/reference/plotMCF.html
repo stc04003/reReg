@@ -168,6 +168,12 @@ The response must be a recurrent event survival object returned by the <code><a 
 This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.</p></td>
     </tr>
     <tr>
+      <th>adjrisk</th>
+      <td><p>an optional logical value that is passed to the <code>plotMCF()</code> function as the <code>adjrisk</code> argument. See <code>plotMCF</code>.
+This argument indicates whether risk set size will be adjusted. If <code>mcf.adjrisk = TRUE</code>, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+If <code>mcf.adjrisk = FALSE</code>, subjects remain in the risk set after terminal time.</p></td>
+    </tr>
+    <tr>
       <th>smooth</th>
       <td><p>an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package <code>scam</code>.
 This feature only works for data with one recurrent event type.</p></td>
@@ -180,12 +186,6 @@ This feature only works for data with one recurrent event type.</p></td>
       <th>...</th>
       <td><p>graphical parameters to be passed to methods.
 These include <code>xlab</code>, <code>ylab</code>, <code>main</code>, and more. See <b>Details</b>.</p></td>
-    </tr>
-    <tr>
-      <th>mcf.adjrisk</th>
-      <td><p>an optional logical value that is passed to the <code>plotMCF()</code> function as the <code>adjrisk</code> argument. See <code>plotMCF</code>.
-This argument indicates whether risk set size will be adjusted. If <code>mcf.adjrisk = TRUE</code>, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
-If <code>mcf.adjrisk = FALSE</code>, subjects remain in the risk set after terminal time.</p></td>
     </tr>
     </table>
 
@@ -212,7 +212,7 @@ to a list with the following values:</p><dl'>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='no'>simDat</span>)
-<span class='fu'>plotMCF</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='fl'>1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>)</div><div class='img'><img src='plotMCF-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotMCF</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>)</div><div class='img'><img src='plotMCF-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotMCF</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotMCF-3.png' alt='' width='700' height='433' /></div></pre>
+<span class='fu'>plotMCF</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='fl'>1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>)</div><div class='img'><img src='plotMCF-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotMCF</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>simDat</span>, <span class='kw'>onePanel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='img'><img src='plotMCF-2.png' alt='' width='700' height='433' /></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

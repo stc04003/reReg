@@ -220,7 +220,7 @@ If only one method is specified without an "<code>|</code>",
 it is used for both the rate function and the hazard function.
 For example, specifying <code>method = "cox"</code> is equivalent to <code>method = "cox|cox"</code>.
 Some methods that assumes <code>Z = 1</code> and requires independent
-censorings are also implemented in <code>reReg</code>;
+censoring are also implemented in <code>reReg</code>;
 these includes <code>method = "cox.LWYY"</code> for Lin et al. (2000),
 <code>method = "cox.GL"</code> for Ghosh and Lin (2002),
 and <code>method = "am.GL"</code> for Ghosh and Lin (2003).</p>
@@ -288,8 +288,8 @@ Processes under Informative Censoring. <em>Statistica Sinica</em>: pre-print.</p
 #&gt; 
 #&gt; Terminal event:
 #&gt;    Estimate StdErr z.value p.value
-#&gt; x1   -1.961  2.471  -0.794   0.427
-#&gt; x2    0.856  0.945   0.907   0.365
+#&gt; x1   -1.961  2.323  -0.844   0.399
+#&gt; x2    0.856  1.271   0.674   0.500
 #&gt; </div><div class='input'>
 <span class='co'>## Generalized Scale-Change Model</span>
 <span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='fl'>1</span>)

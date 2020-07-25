@@ -91,7 +91,7 @@
       <h1 data-toc-skip>Visualization of recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2020-07-18</h4>
+            <h4 class="date">2020-07-24</h4>
       
       <small class="dont-index">Source: <a href="http://github.com/stc04003/reReg/blob/master/vignettes/reReg-plots.Rmd"><code>vignettes/reReg-plots.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-plots.Rmd</code></div>
@@ -100,7 +100,7 @@
 
     
     
-<p>In this vignette, we demonstrate how to create a <code>reSurv</code> object in <strong><code>reReg</code></strong> package. The <code>reSurv</code> object is then used to create event plots and mean cumulative function (CSM) plots. We will illustrate the usage of our functions with the <code>readmission</code> data from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and Gonzalez 2012, <span class="citation">González Ruiz et al. (2005)</span>)</span>. The data contains re-hospitalization times after surgery in patients diagnosed with colorectal cancer. In this data set, the recurrent event is the readmission and the terminal event is either death or end of study. See <code>?readmission</code> for data details.</p>
+<p>In this vignette, we demonstrate how to create a <code>reSurv</code> object in <strong><code>reReg</code></strong> package. The <code>reSurv</code> object is then used to create event plots and mean cumulative function (MCF) plots. We will illustrate the usage of our functions with the <code>readmission</code> data from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and Gonzalez 2012, <span class="citation">González Ruiz et al. (2005)</span>)</span>. The data contains re-hospitalization times after surgery in patients diagnosed with colorectal cancer. In this data set, the recurrent event is the readmission and the terminal event is either death or end of study. See <code>?readmission</code> for data details.</p>
 <div class="sourceCode"><html><body><pre class="r">&gt; library(reReg)
 &gt; packageVersion("reReg")</pre></body></html></div>
 <pre><code>[1] '1.3.0'</code></pre>
@@ -138,7 +138,7 @@ NULL</code></pre>
 <li>
 <code>origin</code> a numerical vector indicating the time origin of subjects</li>
 </ul>
-<p>The arguments of <code><a href="../reference/Recur.html">Recur()</a></code> are similar to those of <code><a href="../reference/reSurv.html">reSurv()</a></code>. THey are listed as follow</p>
+<p>The arguments of <code><a href="../reference/Recur.html">Recur()</a></code> are similar to those of <code><a href="../reference/reSurv.html">reSurv()</a></code>. They are listed as follow</p>
 <div class="sourceCode"><html><body><pre class="r">&gt; args(Recur)</pre></body></html></div>
 <pre><code>function (time, id, event, terminal, origin, check = c("hard", 
     "soft", "none"), ...) 
@@ -278,15 +278,15 @@ Figure 4: Event plot grouped by <code>sex</code> and <code>chemo</code>.
 Figure 5: Creating a MCF plot from a <code>Recur</code> object.
 </p>
 </div>
-<p>The MCF plot can be created with the more specialized function, <code><a href="../reference/plotMCF.html">plotMCF()</a></code>. Both <code><a href="../reference/plotEvents.html">plotEvents()</a></code> and <code><a href="../reference/plotMCF.html">plotMCF()</a></code> return <strong><code>ggplot2</code></strong> objects. A side-by-side MCF plot, showing the CSM functions with and without risk adjustment, is shown in Figure 6.</p>
+<p>The MCF plot can be created with the more specialized function, <code><a href="../reference/plotMCF.html">plotMCF()</a></code>. Both <code><a href="../reference/plotEvents.html">plotEvents()</a></code> and <code><a href="../reference/plotMCF.html">plotMCF()</a></code> return <strong><code>ggplot2</code></strong> objects. A side-by-side MCF plot, showing the MCF functions with and without risk adjustment, is shown in Figure 6.</p>
 <div class="sourceCode"><html><body><pre class="r">&gt; library(gridExtra)
 &gt; p1 &lt;- plotMCF(Recur(t.stop, id, event, death) ~ 1, data = readmission, main = "")
 &gt; p2 &lt;- plotMCF(Recur(t.stop, id, event, death) ~ 1, data = readmission, 
 +               adjrisk = FALSE, main = "")
 &gt; grid.arrange(p1, p2, ncol=2)</pre></body></html></div>
 <div class="figure">
-<img src="reReg-plots_files/figure-html/plot-csm2-1.png" alt="Figure 6: Creating a CSM plot from a `Recur` object." width="700"><p class="caption">
-Figure 6: Creating a CSM plot from a <code>Recur</code> object.
+<img src="reReg-plots_files/figure-html/plot-csm2-1.png" alt="Figure 6: Creating a MCF plot from a `Recur` object." width="700"><p class="caption">
+Figure 6: Creating a MCF plot from a <code>Recur</code> object.
 </p>
 </div>
 <p>As with the <code><a href="../reference/plotEvents.html">plotEvents()</a></code>, <code><a href="../reference/plotMCF.html">plotMCF()</a></code> can generate MCF plots given covariates. Figure 7 depicts the MCF plots grouped by <code>sex</code>.</p>
