@@ -1,3 +1,3 @@
 data(simDat)
-plotMCF(Recur(Time, id, event, status) ~ 1, data = simDat)
-plotMCF(Recur(Time, id, event, status) ~ x1, data = simDat, onePanel = TRUE)
+plotMCF(Recur(t.stop, id, event, status) ~ 1, data = simDat)
+plotMCF(Recur(t.stop, id, event, status) ~ x1, data = simDat, onePanel = TRUE)

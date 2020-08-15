@@ -46,7 +46,7 @@ The argument \code{control} consists of options with argument defaults to a list
 }
 \examples{
 data(simDat)
-fm <- Recur(Time, id, event, status) ~ x1 + x2
+fm <- Recur(t.stop, id, event, status) ~ x1 + x2
 
 fit <- reReg(fm, data = simDat, method = "cox", B = 0)
 plot(fit)

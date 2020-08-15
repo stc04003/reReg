@@ -59,8 +59,8 @@ The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down 
 }
 \examples{
 data(simDat)
-plotMCF(Recur(Time, id, event, status) ~ 1, data = simDat)
-plotMCF(Recur(Time, id, event, status) ~ x1, data = simDat, onePanel = TRUE)
+plotMCF(Recur(t.stop, id, event, status) ~ 1, data = simDat)
+plotMCF(Recur(t.stop, id, event, status) ~ x1, data = simDat, onePanel = TRUE)
 }
 \seealso{
 \code{\link{Recur}}, \code{\link{plot.Recur}}
