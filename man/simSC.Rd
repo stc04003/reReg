@@ -13,6 +13,7 @@ simSC(
   type = "cox",
   zVar = 0.25,
   tau = 60,
+  origin = 0,
   summary = FALSE
 )
 }
@@ -31,6 +32,8 @@ the terminal event from an accelerated mean model. Setting \code{type = "cox"} g
 When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.}
 
 \item{tau}{a numeric value specifying the maximum observation time.}
+
+\item{origin}{a numeric value specifying the time origin.}
 
 \item{summary}{a logical value indicating whether a brief data summary will be printed.}
 }

@@ -50,7 +50,7 @@ list with the following values:
   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
   \item{legend}{a character string specifying the position of the legend (if any).
-  The available options are "right", "left", "top", "bottom", and "none". The default value is "right".}
+  The available options are "right", "left", "top", "bottom", and "none". The default value is "top".}
 }
 }
 \examples{

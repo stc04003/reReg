@@ -85,7 +85,7 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #'   \item{legend}{a character string specifying the position of the legend (if any).
-#'   The available options are "right", "left", "top", "bottom", and "none". The default value is "right".}
+#'   The available options are "right", "left", "top", "bottom", and "none". The default value is "top".}
 #' }
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator,
@@ -178,7 +178,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
                       lapply(split(DF, DF[, 7:ncol(DF)], drop = TRUE), newIDtime2, result = result))
         rownames(DF) <- NULL
     }
-    if (ctrl$cex == "Default") sz <- 1 + 8 / (1 + exp(length(unique(DF$id)) / 30)) / max(1, nX)
+    if (is.null(ctrl$cex)) sz <- 1 + 8 / (1 + exp(length(unique(DF$id)) / 30)) / max(1, nX)
     else sz <- ctrl$cex
     k <- length(unique(DF$event)) - 1 ## exclude event = 0
     shp.val <- c(17, rep(19, k))
@@ -204,13 +204,20 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
             DF[,i] <- factor(DF[,i], labels = paste(i, "=", unique(DF[,i])))
         }}
     names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
+    ## DF$id <- factor(DF$id)
     gg <- ggplot(DF[DF$event == 0,], aes(id, time2)) +
         geom_bar(stat = "identity", fill = "gray75") +
-        coord_flip() + 
+        coord_flip() +
         theme(axis.line.y = element_blank(),
               axis.title.y = element_text(vjust = 0),
               axis.text.y = element_blank(),
-              axis.ticks.y = element_blank())
+              axis.ticks.y = element_blank(),
+              plot.title = element_text(size = 2 * ctrl$base_size),
+              strip.text = element_text(size = ctrl$base_size),
+              legend.text = element_text(size = 1.5 * ctrl$base_size),
+              legend.title = element_text(size = 1.5 * ctrl$base_size),
+              axis.text = element_text(size = ctrl$base_size),
+              axis.title = element_text(size = 1.5 * ctrl$base_size))
     if (any(table(DF$id) > 0))
         gg <- gg + geom_point(data = DF[DF$event > 0,],
                               aes(id, time2,
@@ -434,7 +441,7 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
                               scales = "free", space = "free", switch = "x")
     if (!onePanel & k == 1)
-        gg <- gg + theme(legend.position="none")
+        gg <- gg + theme(legend.position = "none")
     ## if (onePanel & k == 1)
     ##     gg <- gg + scale_color_discrete(name = "", labels = levels(interaction(vNames)))
     ## if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")
@@ -449,7 +456,14 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
     ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
     if (smooth & k > 1) cat('Smoothing only works for data with one recurrent event type.\n')
     gg + theme(axis.line = element_line(color = "black"),
-                legend.key = element_rect(fill = "white", color = "white")) +
+               legend.position = ctrl$legend,
+               legend.key = element_rect(fill = "white", color = "white"),
+               plot.title = element_text(size = 2 * ctrl$base_size),
+               strip.text = element_text(size = ctrl$base_size),
+               legend.text = element_text(size = 1.5 * ctrl$base_size),
+               legend.title = element_text(size = 1.5 * ctrl$base_size),
+               axis.text = element_text(size = ctrl$base_size),
+               axis.title = element_text(size = 1.5 * ctrl$base_size)) +
         ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
 }
 
@@ -733,28 +747,39 @@ plotHaz <- function(x, smooth = FALSE, control = list(), ...) {
     gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
 }
 
-plotEvents.control <- function(xlab = "Time", ylab = "Subject",
-                               main = "Recurrent event plot",
-                               cex = "Default", 
-                               terminal.name = "Terminal event",
-                               recurrent.name = "Recurrent events",
-                               recurrent.type = NULL, alpha = .7,
-                               legend = "right") {
+plotEvents.control <- function(xlab = NULL, ylab = NULL,
+                               main = NULL, 
+                               terminal.name = NULL,
+                               recurrent.name = NULL, 
+                               recurrent.type = NULL, 
+                               legend = "top", base_size = 12,
+                               cex = NULL, alpha = .7) {
+    if (is.null(ylab)) ylab <- "Subject"
+    if (is.null(xlab)) xlab <- "Time"
+    if (is.null(main)) main <- "Recurrent event plot"
+    if (is.null(terminal.name)) terminal.name <-  "Terminal event"
+    if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
     list(xlab = xlab, ylab = ylab, main = main, cex = cex,
          terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type, alpha = alpha, legend = legend)
+         recurrent.type = recurrent.type, alpha = alpha, legend = legend,
+         base_size = base_size)
 }
 
-plotMCF.control <- function(xlab = "Time", ylab = "Cumulative mean",
-                            main = "Sample cumulative mean function plot",
-                            lwd = 1,
-                            terminal.name = "Terminal event",
-                            recurrent.name = "Recurrent events",
+plotMCF.control <- function(xlab = NULL, ylab = NULL, 
+                            main = NULL, 
+                            lwd = 1, base_size = 12,
+                            terminal.name = NULL, 
+                            recurrent.name = NULL, 
                             recurrent.type = NULL,
-                            legend = "right") {
+                            legend = "top") {
+    if (is.null(main)) main <- "Sample cumulative mean function plot"
+    if (is.null(ylab)) ylab <- "Cumulative mean"
+    if (is.null(xlab)) xlab <- "Time"
+    if (is.null(terminal.name)) terminal.name <-  "Terminal event"
+    if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
     list(xlab = xlab, ylab = ylab, main = main, lwd = lwd, 
          terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type, legend = legend)
+         recurrent.type = recurrent.type, legend = legend, base_size = base_size)
 }
 
 plot.reReg.control <- function(xlab = "Time", ylab = "", main = "") {

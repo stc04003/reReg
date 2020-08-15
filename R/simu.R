@@ -48,6 +48,7 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' @param zVar a numeric variable specifying the variance of the fraility variable,\eqn{Z}, when \code{zVar} > 0.
 #' When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.
 #' @param tau a numeric value specifying the maximum observation time.
+#' @param origin a numeric value specifying the time origin.
 #' @param summary a logical value indicating whether a brief data summary will be printed.
 #'
 #' @seealso \code{\link{reReg}}
@@ -56,7 +57,8 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #'
 #' @example inst/examples/ex_simu.R
 simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
-                  type = "cox", zVar = .25, tau = 60, summary = FALSE) {
+                  type = "cox", zVar = .25, tau = 60, origin = 0,
+                  summary = FALSE) {
     if (length(a1) != 2L) stop("Require length(a1) = 2.")
     if (length(b1) != 2L) stop("Require length(b1) = 2.")
     if (length(a2) != 2L) stop("Require length(a2) = 2.")
@@ -109,6 +111,9 @@ simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
         }
     }
     dat <- data.frame(do.call(rbind, lapply(1:n, function(y) simOne(y, Z[y], X[y,], Cen[y], rr[y]))))
+    dat$t.start <- do.call(c, lapply(split(dat$Time, dat$id), function(x) c(0, x[-length(x)]))) + origin
+    dat$t.stop <- dat$Time + origin
+    dat$Time <- NULL
     if (summary) {
         cat("\n")
         cat("Summary results for number of recurrent event per subject:\n")
@@ -128,5 +133,6 @@ simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
         cat("\n\n")
     }
     dat$m <- dat$Z <- NULL
+    dat <- dat[,c(1, 6:7, 2:5)]
     return(dat)
 }
