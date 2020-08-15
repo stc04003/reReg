@@ -1,3 +1,8 @@
+# `reReg` 1.3.1
+  	* simSC() now returns times in t.start and t.stop.
+	* Added origin in simSC()
+	* Updated examples
+	* Import summary.reda from reda
 # `reReg` 1.3.0
   	* Re-organized `reReg()`; it now provides general model assumptions.
 	* Improved speed via RCpp

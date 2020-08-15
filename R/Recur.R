@@ -7,9 +7,14 @@
 #' @rdname Recur
 #' @name Recur
 #' @aliases is.Recur
-#' @importFrom reda Recur is.Recur
+#' @importFrom reda Recur is.Recur check_Recur
 #' @seealso \code{\link{\%2\%}}
 #' @export Recur is.Recur
+#' @importClassesFrom reda Recur summary.Recur
+#' @exportClass Recur summary.Recur
+#' @importMethodsFrom reda show summary
+#' @exportMethod show summary
+#'
 #' @example inst/examples/ex_Recur.R
 NULL
 
