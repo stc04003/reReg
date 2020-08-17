@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@
       <h1 data-toc-skip>Visualization of recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2020-07-24</h4>
+            <h4 class="date">2020-08-17</h4>
       
       <small class="dont-index">Source: <a href="http://github.com/stc04003/reReg/blob/master/vignettes/reReg-plots.Rmd"><code>vignettes/reReg-plots.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-plots.Rmd</code></div>
@@ -103,7 +103,7 @@
 <p>In this vignette, we demonstrate how to create a <code>reSurv</code> object in <strong><code>reReg</code></strong> package. The <code>reSurv</code> object is then used to create event plots and mean cumulative function (MCF) plots. We will illustrate the usage of our functions with the <code>readmission</code> data from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and Gonzalez 2012, <span class="citation">González Ruiz et al. (2005)</span>)</span>. The data contains re-hospitalization times after surgery in patients diagnosed with colorectal cancer. In this data set, the recurrent event is the readmission and the terminal event is either death or end of study. See <code>?readmission</code> for data details.</p>
 <div class="sourceCode"><html><body><pre class="r">&gt; library(reReg)
 &gt; packageVersion("reReg")</pre></body></html></div>
-<pre><code>[1] '1.3.0'</code></pre>
+<pre><code>[1] '1.3.1'</code></pre>
 <div class="sourceCode"><html><body><pre class="r">&gt; data(readmission, package = "frailtypack")
 &gt; head(readmission)</pre></body></html></div>
 <pre><code>  id enum t.start t.stop time event      chemo    sex dukes charlson death
@@ -164,7 +164,7 @@ NULL</code></pre>
 <pre><code>Warning in reSurv(t.stop, id, event, death): 'reSurv()' is being deprecated in Version 1.1.7. Output is prepared by 'Recur()'.
  See '?Recur()' for details.</code></pre>
 <div class="sourceCode"><html><body><pre class="r">&gt; identical(suppressWarnings(reSurv(t.stop, id, event, death)), Recur(t.stop, id, event, death))</pre></body></html></div>
-<pre><code>[1] TRUE</code></pre>
+<pre><code>[1] FALSE</code></pre>
 <p>The usage of <code><a href="../reference/Recur.html">Recur()</a></code> is very similar to that of <code><a href="../reference/reSurv.html">reSurv()</a></code>, but the former is more flexible and offers much more features. In the following, we introduce different ways to create an <code>Recur</code> object. When the starting times and the ending times of recurrent events are known one can specify both times in <code><a href="../reference/Recur.html">Recur()</a></code> as a list constructed by <code><a href="../reference/Recur-pipe.html">%to%</a></code> (or its alias <code><a href="../reference/Recur-pipe.html">%2%</a></code>).</p>
 <div class="sourceCode"><html><body><pre class="r">&gt; Recur(t.start %to% t.stop, id = id, event = event, status = death)</pre></body></html></div>
 <p>When the starting times are identical throughout subjects and are equal to zero, it is sufficient only to specify the end times in <code>time</code>.</p>
@@ -300,15 +300,22 @@ Figure 7: MCF plot grouped by <code>sex</code>.
 </p>
 </div>
 <p>As in <code><a href="../reference/plotEvents.html">plotEvents()</a></code>, the more complicated Figure 8 depicts the MCF plots grouped by <code>sex</code> and <code>chemo</code>.</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; p1 &lt;- plotMCF(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, main = "")
-&gt; p2 &lt;- plotMCF(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
-+               adjrisk = FALSE, main = "")
-&gt; grid.arrange(p1, p2, ncol=2)</pre></body></html></div>
+<div class="sourceCode"><html><body><pre class="r">&gt; plotMCF(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, 
++         onePanel = TRUE, main = "", base_size = 5, legend.position = "right")</pre></body></html></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/plot-mcf-sex-chemo-1.png" alt="Figure 8: MCF plots grouped by `sex` and `chemo`." width="700"><p class="caption">
 Figure 8: MCF plots grouped by <code>sex</code> and <code>chemo</code>.
 </p>
 </div>
+<p>The same MCF plots can also be produced with the <code>survfit()</code> function from the <code>survival</code> package or the <code>mcf()</code> function from the <code>reda</code> package. The <code>survival</code> package gives:</p>
+<div class="sourceCode"><html><body><pre class="r">&gt; library(survival)
+&gt; plot(survfit(Surv(t.start, t.stop, event) ~ sex + chemo, data = readmission, id = id), 
++      cumhaz = TRUE)</pre></body></html></div>
+<p><img src="reReg-plots_files/figure-html/unnamed-chunk-1-1.png" width="700"></p>
+<p>On the other hand, the <code>reda</code> package gives:</p>
+<div class="sourceCode"><html><body><pre class="r">&gt; library(reda)
+&gt; plot(mcf(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission))</pre></body></html></div>
+<p><img src="reReg-plots_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
 </div>
 <div id="multiple-recurrent-event-types" class="section level2">
 <h2 class="hasAnchor">
@@ -317,7 +324,7 @@ Figure 8: MCF plots grouped by <code>sex</code> and <code>chemo</code>.
 <div class="sourceCode"><html><body><pre class="r">&gt; set.seed(1)
 &gt; readmission$event2 &lt;- readmission$event * sample(1:3, 852, TRUE)</pre></body></html></div>
 <p>The <code><a href="../reference/plotEvents.html">plotEvents()</a></code> and <code><a href="../reference/plotMCF.html">plotMCF()</a></code> functions can still be applied when <code>event</code> is replaced by <code>event2</code>. Different recurrent events will be denoted by different colors and shapes.</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; plotEvents(Recur(t.stop, id, event2, death) ~ sex, data = readmission)</pre></body></html></div>
+<div class="sourceCode"><html><body><pre class="r">&gt; plotEvents(Recur(t.stop, id, event2, death) ~ sex, data = readmission, base_size = 8)</pre></body></html></div>
 <div class="figure">
 <img src="reReg-plots_files/figure-html/multi-event-plot-1.png" alt="Figure 9: Event plots with multiple recurrent event types." width="700"><p class="caption">
 Figure 9: Event plots with multiple recurrent event types.

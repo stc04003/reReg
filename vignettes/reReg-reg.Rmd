@@ -126,7 +126,7 @@ $$\lambda(t) = Z \lambda_0(t)e^{X_1 - X_2};
 h(t) = Z h_0(t)e^{-X_1 + X_2}.$$
 The model fit is
 ```{R, coxfit, cache = TRUE}
-fit.cox <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = datCox)
+fit.cox <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox)
 summary(fit.cox)
 ```
 The baseline functions can be plotted via `plot()`: 
@@ -144,7 +144,7 @@ $$\lambda(t) = Z \lambda_0(te^{X_1 - X_2})e^{X_1 - X_2};
 h(t) = Z h_0(te^{-X_1 + X_2})e^{-X_1 + X_2}.$$
 The model fit is
 ```{R, amfit, cache = TRUE}
-fit.am <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = datAM, method = "am")
+fit.am <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datAM, method = "am")
 summary(fit.am)
 ```
 The baseline functions can be plotted via `plot()`: 
@@ -162,7 +162,7 @@ $$\lambda(t) = Z \lambda_0(te^{X_1 - X_2})e^{-X_1 + X_2};
 h(t) = Z h_0(te^{X_1 - X_2})e^{-X_1 + X_2}.$$
 The model fit is
 ```{R, scfit, cache = TRUE}
-fit.sc <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = datSC, method = "sc")
+fit.sc <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datSC, method = "sc")
 summary(fit.sc)
 ```
 The baseline functions can be plotted via `plot()`: 
@@ -180,7 +180,7 @@ $$\lambda(t) = Z \lambda_0(t)e^{X_1 - X_2};
 h(t) = Z h_0(te^{-X_1 + X_2}).$$
 The model fit is
 ```{R, coxarfit, cache = TRUE}
-fit.coxar <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = datCoxar, method = "cox|ar")
+fit.coxar <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCoxar, method = "cox|ar")
 summary(fit.coxar)
 ```
 The baseline functions can be plotted via `plot()`: 
@@ -191,10 +191,10 @@ plot(fit.coxar)
 ## Bootstrap
 Parallel computing is possible via specifying the control list.
 ```{r bootstrap, cache = TRUE}
-system.time(fitB1 <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = datCox, 
+system.time(fitB1 <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox, 
                            method = "cox", se = "bootstrap"))
 summary(fitB1)
-system.time(fitB2 <- reReg(Recur(Time, id, event, status) ~ x1 + x2, data = datCox, 
+system.time(fitB2 <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox, 
                            method = "cox", se = "bootstrap", 
                            control = list(parallel = TRUE, parCl = 8)))
 summary(fitB2)

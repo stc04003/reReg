@@ -76,7 +76,7 @@ See details for model specifications." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
       </span>
     </div>
 
@@ -266,9 +266,9 @@ Processes under Informative Censoring. <em>Statistica Sinica</em>: pre-print.</p
 <span class='co'>## Joint Cox/Accelerated Mean Model</span>
 <span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='fl'>1</span>)
 <span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>50</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"cox|am"</span>)
-(<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>reReg</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>,
+(<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>reReg</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>,
               <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>dat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cox|am"</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>50</span>))</div><div class='output co'>#&gt; Call: 
-#&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
+#&gt; reReg(formula = Recur(t.stop, id, event, status) ~ x1 + x2, data = dat, 
 #&gt;     B = 50, method = "cox|am")
 #&gt; 
 #&gt; Recurrent event process:                
@@ -277,45 +277,56 @@ Processes under Informative Censoring. <em>Statistica Sinica</em>: pre-print.</p
 #&gt; 
 #&gt; Terminal event:                  
 #&gt;  x1       x2      
-#&gt;  -1.96062  0.85646</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: 
-#&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
-#&gt;     B = 50, method = "cox|am")
-#&gt; 
-#&gt; Recurrent event process:
-#&gt;    Estimate StdErr z.value p.value
-#&gt; x1   -1.513  0.259  -5.846       0
-#&gt; x2    1.155  0.128   9.029       0
-#&gt; 
-#&gt; Terminal event:
-#&gt;    Estimate StdErr z.value p.value
-#&gt; x1   -1.961  2.323  -0.844   0.399
-#&gt; x2    0.856  1.271   0.674   0.500
-#&gt; </div><div class='input'>
+#&gt;  -1.96062  0.85646</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt;          Length Class      Mode     
+#&gt; alpha       2   -none-     numeric  
+#&gt; aconv       1   -none-     numeric  
+#&gt; log.muZ     1   -none-     numeric  
+#&gt; zi         50   -none-     numeric  
+#&gt; Lam0        1   -none-     function 
+#&gt; beta        2   -none-     numeric  
+#&gt; bconv       1   -none-     numeric  
+#&gt; Haz0        1   -none-     function 
+#&gt; recType     1   -none-     character
+#&gt; temType     1   -none-     character
+#&gt; alphaSE     2   -none-     numeric  
+#&gt; alphaVar    4   -none-     numeric  
+#&gt; varMat      9   -none-     numeric  
+#&gt; betaSE      2   -none-     numeric  
+#&gt; betaVar     4   -none-     numeric  
+#&gt; method      1   -none-     character
+#&gt; reTb     2172   -none-     numeric  
+#&gt; DF          8   data.frame list     
+#&gt; call        5   -none-     call     
+#&gt; varNames    2   -none-     character
+#&gt; se          1   -none-     character</div><div class='input'>
 <span class='co'>## Generalized Scale-Change Model</span>
 <span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='fl'>1</span>)
 <span class='no'>dat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simSC.html'>simSC</a></span>(<span class='fl'>50</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>1</span>, <span class='fl'>1</span>), <span class='kw'>type</span> <span class='kw'>=</span> <span class='st'>"sc"</span>)
-(<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>reReg</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>,
+(<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>reReg</span>(<span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>t.stop</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>) ~ <span class='no'>x1</span> + <span class='no'>x2</span>,
               <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>dat</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sc|."</span>, <span class='kw'>B</span> <span class='kw'>=</span> <span class='fl'>50</span>))</div><div class='output co'>#&gt; Call: 
-#&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
+#&gt; reReg(formula = Recur(t.stop, id, event, status) ~ x1 + x2, data = dat, 
 #&gt;     B = 50, method = "sc|.")
 #&gt; 
 #&gt; Recurrent event process:                                         
 #&gt;  Shape                  Shape            
 #&gt;  x1       x2            x1       x2      
-#&gt;  -0.58379  0.62291      -0.58379  0.62291</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; Call: 
-#&gt; reReg(formula = Recur(Time, id, event, status) ~ x1 + x2, data = dat, 
-#&gt;     B = 50, method = "sc|.")
-#&gt; 
-#&gt; Recurrent event process (shape):
-#&gt;    Estimate StdErr z.value p.value    
-#&gt; x1   -0.584  0.363  -1.610   0.107    
-#&gt; x2    0.623  0.182   3.414   0.001 ***
-#&gt; 
-#&gt; Recurrent event process (size):
-#&gt;    Estimate StdErr z.value   p.value    
-#&gt; x1   -1.049  0.242  -4.332 &lt; 2.2e-16 ***
-#&gt; x2    0.990  0.138   7.172 &lt; 2.2e-16 ***
-#&gt; </div></pre>
+#&gt;  -0.58379  0.62291      -0.58379  0.62291</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt;          Length Class      Mode     
+#&gt; alpha       4   -none-     numeric  
+#&gt; aconv       2   -none-     numeric  
+#&gt; log.muZ     1   -none-     numeric  
+#&gt; zi         50   -none-     numeric  
+#&gt; Lam0        1   -none-     function 
+#&gt; recType     1   -none-     character
+#&gt; temType     1   -none-     character
+#&gt; alphaSE     4   -none-     numeric  
+#&gt; alphaVar   16   -none-     numeric  
+#&gt; varMat     25   -none-     numeric  
+#&gt; method      1   -none-     character
+#&gt; reTb     1752   -none-     numeric  
+#&gt; DF          8   data.frame list     
+#&gt; call        5   -none-     call     
+#&gt; varNames    2   -none-     character
+#&gt; se          1   -none-     character</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

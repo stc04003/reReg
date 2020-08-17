@@ -96,19 +96,19 @@ dat.cox <- simSC(200, c(-1, 1), c(-1, 1), summary = TRUE)
 
 The output of `simSC()` is a data frame. 
 The following table shows that subject \#1 experienced `r sum(subset(dat.cox, id == 1)$event)` recurrent events 
-(at times `r round(subset(dat.cox, id == 1)$Time[1:sum(subset(dat.cox, id == 1)$event)], 3)`)
-and died at time `r round(tail(subset(dat.cox, id == 1)$Time, 1), 3)`.
+(at times `r round(subset(dat.cox, id == 1)$t.stop[1:sum(subset(dat.cox, id == 1)$event)], 3)`)
+and died at time `r round(tail(subset(dat.cox, id == 1)$t.stop, 1), 3)`.
 Similarly, subject \#2 experienced `r sum(subset(dat.cox, id == 2)$event)` 
-recurrent events (at times `r round(subset(dat.cox, id == 2)$Time[1:sum(subset(dat.cox, id == 2)$event)], 3)`)
-and is alive when censored at time `r round(tail(subset(dat.cox, id == 2)$Time, 1), 3)`.
+recurrent events (at times `r round(subset(dat.cox, id == 2)$t.stop[1:sum(subset(dat.cox, id == 2)$event)], 3)`)
+and is alive when censored at time `r round(tail(subset(dat.cox, id == 2)$t.stop, 1), 3)`.
 ```{R cox-DT}
 library(DT)
 datatable(dat.cox, options = list(pageLength = 10, scrollX = TRUE)) %>% 
-  formatRound(c("Time", "x2"), 3)
+  formatRound(c("t.stop", "x2"), 3)
 ```
 The event plot for the above simulated data is
 ```{R cox-event}
-plotEvents(Recur(Time, id, event, status) ~ 1, data = dat.cox)
+plotEvents(Recur(t.stop, id, event, status) ~ 1, data = dat.cox)
 ```
 
 
@@ -119,24 +119,24 @@ Compare to the previous example, the difference is in the model structure of the
 set.seed(273)
 dat.amcox <- simSC(200, c(-1, 1), c(-1, 1), type = "am|cox")
 datatable(dat.amcox, options = list(pageLength = 10, scrollX = TRUE)) %>% 
-  formatRound(c("Time", "x2"), 3)
+  formatRound(c("t.stop", "x2"), 3)
 ```
 Here, subject \#1 experienced `r sum(subset(dat.amcox, id == 1)$event)` recurrent events 
-(at times `r round(subset(dat.amcox, id == 1)$Time[1:sum(subset(dat.amcox, id == 1)$event)], 3)`)
-and died at time `r round(tail(subset(dat.amcox, id == 1)$Time, 1), 3)`.
+(at times `r round(subset(dat.amcox, id == 1)$t.stop[1:sum(subset(dat.amcox, id == 1)$event)], 3)`)
+and died at time `r round(tail(subset(dat.amcox, id == 1)$t.stop, 1), 3)`.
 Similarly, subject \#2 experienced `r sum(subset(dat.amcox, id == 2)$event)` 
-recurrent events (at times `r round(subset(dat.amcox, id == 2)$Time[1:sum(subset(dat.amcox, id == 2)$event)], 3)`)
-and is alive when censored at time `r round(tail(subset(dat.amcox, id == 2)$Time, 1), 3)`.
+recurrent events (at times `r round(subset(dat.amcox, id == 2)$t.stop[1:sum(subset(dat.amcox, id == 2)$event)], 3)`)
+and is alive when censored at time `r round(tail(subset(dat.amcox, id == 2)$t.stop, 1), 3)`.
 
 A side-by-side event plot shows the difference in the recurrent process.
 ```{R comp, message = FALSE}
 library(ggplot2)
 library(gridExtra)
-grid.arrange(plotEvents(Recur(Time, id, event, status) ~ 1, 
+grid.arrange(plotEvents(Recur(t.stop, id, event, status) ~ 1, 
                         data = dat.cox,
                         main = "type = cox") + 
              theme(legend.position = "none"),
-             plotEvents(Recur(Time, id, event, status) ~ 1, 
+             plotEvents(Recur(t.stop, id, event, status) ~ 1, 
                         data = dat.amcox,
                         main = "type = am|cox") + 
              theme(legend.position = "none"),
