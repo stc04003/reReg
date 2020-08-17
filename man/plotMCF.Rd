@@ -7,8 +7,8 @@
 plotMCF(
   formula,
   data,
-  onePanel = FALSE,
   adjrisk = TRUE,
+  onePanel = FALSE,
   smooth = FALSE,
   control = list(),
   ...
@@ -20,12 +20,12 @@ The response must be a recurrent event survival object returned by the \code{Rec
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
 
-\item{onePanel}{an optional logical value indicating whether the mean cumulative functions will be plotted in the same panel.
-This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.}
-
 \item{adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
 This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
 If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
+
+\item{onePanel}{an optional logical value indicating whether the mean cumulative functions will be plotted in the same panel.
+This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.}
 
 \item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
 This feature only works for data with one recurrent event type.}

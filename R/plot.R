@@ -84,7 +84,7 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
 #'   \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
 #'   \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
-#'   \item{legend}{a character string specifying the position of the legend (if any).
+#'   \item{legend.position}{a character string specifying the position of the legend (if any).
 #'   The available options are "right", "left", "top", "bottom", and "none". The default value is "top".}
 #' }
 #' 
@@ -236,7 +236,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
         scale_color_manual(name = "", values = clr.val,
                            labels = shp.lab, breaks = c("terminal", rec.lab))
     gg + theme(panel.background = element_blank(),
-               axis.line = element_line(color = "black"), legend.position = ctrl$legend, 
+               axis.line = element_line(color = "black"), legend.position = ctrl$legend.position, 
                legend.key = element_rect(fill = "white", color = "white")) +
         scale_x_continuous(expand = c(0, 1)) +
         ggtitle(ctrl$main) + labs(x = ctrl$ylab, y = ctrl$xlab) +
@@ -286,7 +286,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' @importFrom scam scam
 #' 
 #' @example inst/examples/ex_plot_MCF.R
-plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
+plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE, 
                      smooth = FALSE, control = list(), ...) {
     call <- match.call()
     ctrl <- plotMCF.control()
@@ -336,13 +336,13 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
     dd <- dd[do.call(order, dd),]
     nn <- table(apply(dd, 1, paste, collapse = ""))
     dd <- unique(dd)
-    dd$n <- as.integer(nn) ## tmp1 in the 1st version
+    dd$n <- as.integer(nn)
     rownames(dd) <- NULL
     k <- length(unique(dd$event)) - 1    
     if (!is.null(vNames)) { ## any covariates/stratifications?
         dd2 <- DF[DF$event == 0, vNames, drop = FALSE]
-        dd2 <- dd2[do.call(order, dd2),, drop = FALSE]
-        nn <- table(apply(dd2, 1, paste, collapse = ""))
+        dd2 <- dd2[do.call(order, dd2),,drop = FALSE]
+        nn <- c(t(table(dd2)))
         dd2 <- unique(dd2)
         dd2$n <- as.integer(nn) ## tmp2 in the 1st version
         rownames(dd2) <- NULL
@@ -422,6 +422,7 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
         for (i in vNames) {
             dat0[,i] <- factor(dat0[,i], labels = paste(i, "=", unique(dat0[,i])))
         }}
+    dat0 <- dat0[complete.cases(dat0),]
     gg <- ggplot(data = dat0, aes(x = time2, y = MCF))
     if (is.null(vNames) & k == 1) {
         gg <- gg + geom_step(size = ctrl$lwd)
@@ -456,7 +457,7 @@ plotMCF <- function(formula, data, onePanel = FALSE, adjrisk = TRUE,
     ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
     if (smooth & k > 1) cat('Smoothing only works for data with one recurrent event type.\n')
     gg + theme(axis.line = element_line(color = "black"),
-               legend.position = ctrl$legend,
+               legend.position = ctrl$legend.position,
                legend.key = element_rect(fill = "white", color = "white"),
                plot.title = element_text(size = 2 * ctrl$base_size),
                strip.text = element_text(size = ctrl$base_size),
@@ -752,7 +753,7 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                terminal.name = NULL,
                                recurrent.name = NULL, 
                                recurrent.type = NULL, 
-                               legend = "top", base_size = 12,
+                               legend.position = "top", base_size = 12,
                                cex = NULL, alpha = .7) {
     if (is.null(ylab)) ylab <- "Subject"
     if (is.null(xlab)) xlab <- "Time"
@@ -761,8 +762,8 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
     if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
     list(xlab = xlab, ylab = ylab, main = main, cex = cex,
          terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type, alpha = alpha, legend = legend,
-         base_size = base_size)
+         recurrent.type = recurrent.type, alpha = alpha,
+         legend.position = legend.position, base_size = base_size)
 }
 
 plotMCF.control <- function(xlab = NULL, ylab = NULL, 
@@ -771,7 +772,7 @@ plotMCF.control <- function(xlab = NULL, ylab = NULL,
                             terminal.name = NULL, 
                             recurrent.name = NULL, 
                             recurrent.type = NULL,
-                            legend = "top") {
+                            legend.position = "top") {
     if (is.null(main)) main <- "Sample cumulative mean function plot"
     if (is.null(ylab)) ylab <- "Cumulative mean"
     if (is.null(xlab)) xlab <- "Time"
@@ -779,7 +780,7 @@ plotMCF.control <- function(xlab = NULL, ylab = NULL,
     if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
     list(xlab = xlab, ylab = ylab, main = main, lwd = lwd, 
          terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type, legend = legend, base_size = base_size)
+         recurrent.type = recurrent.type, legend.position = legend.position, base_size = base_size)
 }
 
 plot.reReg.control <- function(xlab = "Time", ylab = "", main = "") {
