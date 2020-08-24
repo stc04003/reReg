@@ -207,4 +207,25 @@ These includes the methods proposed by
 @lin2000semiparametric, @ghosh2002, and @ghosh2003, that can be called by specifying 
 `method = "cox.LWYY"`, `method = "cox.GL"`, and `method = "am.GL"`, respectively.
 
+
+It is also worth noting that methods in multi-state models could also be applied to analyze recurrent events data.
+For example, suppose all subjects start from the initial state and can transit from it to either an recurrent event
+or a terminal event.
+The state space figure for the process can be plotted by the following
+```{R}    
+library(survival)
+lmat <- cbind(c(.1, .3, .5, .5, .7), c(.5, .75, .75, .25, .75))
+statefig(lmat, cmat)
+```
+Assuming Cox models on the transition probabilities, the common coefficient estimates are
+```{R}
+datCox$state <- with(datCox, factor(event + 2*status, 0:2, c("censor", "recurrent", "terminal")))
+coxph(list(Surv(t.start, t.stop, state) ~ 1,
+           1:2 + 2:2 ~ x1 + x2 / common,
+           1:3 + 2:3 ~ x1 + x2 / common),
+      data=datCox, id=id)
+```
+See the vignette on [Multi-state models and competing risks](https://cran.r-project.org/web/packages/survival/vignettes/compete.pdf)
+for more details.
+		
 ## Reference

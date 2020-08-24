@@ -7,7 +7,8 @@
 plotEvents(
   formula,
   data,
-  result = c("increasing", "decreasing", "asis"),
+  result = c("increasing", "decreasing", "none"),
+  calendarTime = FALSE,
   control = list(),
   ...
 )
@@ -23,8 +24,11 @@ The response must be a recurrent event survival object as returned by function \
 \describe{
   \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
   \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
-  \item{\code{asis}}{present the as is, without sorting.}
+  \item{\code{none}}{present the as is, without sorting.}
 }}
+
+\item{calendarTime}{an optional logical value indicating whether to plot in calendar time.
+When \code{calendarTime = FALSE} (default), the event plot will have patient time on the x-axis.}
 
 \item{control}{a list of control parameters.}
 

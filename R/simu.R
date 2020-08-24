@@ -63,6 +63,7 @@ simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
     if (length(b1) != 2L) stop("Require length(b1) = 2.")
     if (length(a2) != 2L) stop("Require length(a2) = 2.")
     if (length(b2) != 2L) stop("Require length(b2) = 2.")
+    if (n != length(origin) & length(origin) > 1) stop("Invalid length for 'origin'. See '?simSC' for details.")
     allcomb <- apply(expand.grid(c("cox", "am", "sc", "ar"), c("cox", "am", "sc", "ar")), 1, paste, collapse = "|")
     type <- match.arg(type, c("cox", "am", "sc", "ar", allcomb))
     if (grepl("|", type, fixed = TRUE)) {
@@ -111,6 +112,7 @@ simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
         }
     }
     dat <- data.frame(do.call(rbind, lapply(1:n, function(y) simOne(y, Z[y], X[y,], Cen[y], rr[y]))))
+    origin <- rep(origin, unlist(lapply(split(dat$id, dat$id), length)))
     dat$t.start <- do.call(c, lapply(split(dat$Time, dat$id), function(x) c(0, x[-length(x)]))) + origin
     dat$t.stop <- dat$Time + origin
     dat$Time <- NULL

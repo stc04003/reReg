@@ -24,7 +24,7 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #' \describe{
 #'   \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
 #'   \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
-#'   \item{\code{asis}}{present the as is, without sorting.}
+#'   \item{\code{none}}{present the as is, without sorting.}
 #' }
 #' @param control a list of control parameters. See \bold{Details}.
 #' @param mcf.smooth an optional logical value that is passed to the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
@@ -96,8 +96,10 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
 #' \describe{
 #'   \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
 #'   \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
-#'   \item{\code{asis}}{present the as is, without sorting.}
+#'   \item{\code{none}}{present the as is, without sorting.}
 #' }
+#' @param calendarTime an optional logical value indicating whether to plot in calendar time.
+#' When \code{calendarTime = FALSE} (default), the event plot will have patient time on the x-axis.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
@@ -108,10 +110,10 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
 #' @export
 #' 
 #' @return A \code{ggplot} object.
-#' 
+#' @importFrom ggplot2 geom_rect ggplot_build scale_y_continuous
 #' @example inst/examples/ex_plot_event.R
-plotEvents <- function(formula, data, result = c("increasing", "decreasing", "asis"),
-                       control = list(), ...) {
+plotEvents <- function(formula, data, result = c("increasing", "decreasing", "none"),
+                       calendarTime = FALSE, control = list(), ...) {
     result <- match.arg(result)
     ctrl <- plotEvents.control()
     namc <- names(control)
@@ -127,12 +129,14 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     nX <- 0
     if (is.Recur(formula)) {
         DF <- as.data.frame(formula@.Data)
+        isDate <- formula@isDate
         vNames <- NULL
     } else {
         if (missing(data)) obj <- eval(formula[[2]], parent.frame())
         else obj <- eval(formula[[2]], data)
         if (!is.Recur(obj)) stop("Response must be a `Recur` object.")
         nX <- length(formula[[3]])
+        isDate <- obj@isDate        
         if (formula[[3]] == 1) DF <- as.data.frame(obj@.Data)
         if (formula[[3]] != 1 && nX == 1) {
             if (missing(data)) DF <- cbind(obj@.Data, eval(formula[[3]], parent.frame()))
@@ -160,12 +164,16 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     ## dat$status <- ifelse(is.na(dat$status), 0, dat$status)
     ## dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
     newIDtime2 <- function(dat, result = "increasing") {
-        if (result == "asis") {
+        if (result == "none") {
             tmp <- table(dat$id)
             dat$id <- rep(1:length(tmp), tmp[match(unique(dat$id), names(tmp))])
             return(dat)
         } else {
-            tmp <- rank(dat$time2[dat$event == 0], ties.method = "first")
+            ## if (all(dat$origin == 0))
+            if (!calendarTime)
+                tmp <- rank((dat$time2 - dat$origin)[dat$event == 0], ties.method = "first")
+            else
+                tmp <- rank(dat$time2[dat$event == 0], ties.method = "first")
         }
         if (result == "decreasing") tmp <- length(tmp) - tmp + 1
         dat$id <- rep(tmp, table(dat$id))
@@ -204,20 +212,15 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
             DF[,i] <- factor(DF[,i], labels = paste(i, "=", unique(DF[,i])))
         }}
     names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
-    ## DF$id <- factor(DF$id)
-    gg <- ggplot(DF[DF$event == 0,], aes(id, time2)) +
-        geom_bar(stat = "identity", fill = "gray75") +
-        coord_flip() +
-        theme(axis.line.y = element_blank(),
-              axis.title.y = element_text(vjust = 0),
-              axis.text.y = element_blank(),
-              axis.ticks.y = element_blank(),
-              plot.title = element_text(size = 2 * ctrl$base_size),
-              strip.text = element_text(size = ctrl$base_size),
-              legend.text = element_text(size = 1.5 * ctrl$base_size),
-              legend.title = element_text(size = 1.5 * ctrl$base_size),
-              axis.text = element_text(size = ctrl$base_size),
-              axis.title = element_text(size = 1.5 * ctrl$base_size))
+    ## Bars
+    if (calendarTime)
+        gg <- ggplot(DF, aes(xmin = id - .45, xmax = id + .45, ymin = time1, ymax = time2)) +
+            geom_rect(fill = "gray75") + coord_flip()
+    else gg <- ggplot(DF[DF$event == 0,], aes(id, time2 - origin)) +
+             geom_bar(stat = "identity", fill = "gray75") +
+             coord_flip()
+    ## event dots
+    if (!calendarTime) DF$time2 <- DF$time2 - DF$origin
     if (any(table(DF$id) > 0))
         gg <- gg + geom_point(data = DF[DF$event > 0,],
                               aes(id, time2,
@@ -227,20 +230,38 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     if (sum(DF$terminal, na.rm = TRUE) > 0)
         gg <- gg + geom_point(data = DF[DF$terminal > 0,], 
                               aes(id, time2, shape = "terminal", color = "terminal"),
-                              size = sz)    
+                              size = sz)
     if (nX > 0 && formula[[3]] != 1)        
         gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
                               scales = "free", space = "free", switch = "both")
+    ## Add theme and final touch ups
     gg <- gg + scale_shape_manual(name = "", values = shp.val,
                                   labels = shp.lab, breaks = c("terminal", rec.lab)) +
         scale_color_manual(name = "", values = clr.val,
-                           labels = shp.lab, breaks = c("terminal", rec.lab))
-    gg + theme(panel.background = element_blank(),
-               axis.line = element_line(color = "black"), legend.position = ctrl$legend.position, 
-               legend.key = element_rect(fill = "white", color = "white")) +
+                           labels = shp.lab, breaks = c("terminal", rec.lab)) +
+        theme(panel.background = element_blank(),
+              axis.line = element_line(color = "black"),
+              legend.position = ctrl$legend.position, 
+              legend.key = element_rect(fill = "white", color = "white"),
+              axis.line.y = element_blank(),
+              axis.title.y = element_text(vjust = 0),
+              axis.text.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              plot.title = element_text(size = 2 * ctrl$base_size),
+              strip.text = element_text(size = ctrl$base_size),
+              legend.text = element_text(size = 1.5 * ctrl$base_size),
+              legend.title = element_text(size = 1.5 * ctrl$base_size),
+              axis.text = element_text(size = ctrl$base_size),
+              axis.title = element_text(size = 1.5 * ctrl$base_size)) +
         scale_x_continuous(expand = c(0, 1)) +
         ggtitle(ctrl$main) + labs(x = ctrl$ylab, y = ctrl$xlab) +
         guides(shape = guide_legend(override.aes = list(size = 2.7)))
+    if (isDate & calendarTime) {
+        xl <- ggplot_build(gg)$layout$panel_params[[1]]$x$breaks
+        xl <- xl[!is.na(xl)]
+        gg <- gg + scale_y_continuous(breaks = xl, labels = as.Date(xl, origin = "1970-01-01"))
+    }
+    gg
 }
 
 #' Produce Cumulative Sample Mean Function Plots
@@ -499,7 +520,7 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
 #'
 #' @return A \code{ggplot} object.
 #' 
-#' @importFrom ggplot2 geom_smooth geom_step
+#' @importFrom ggplot2 geom_smooth geom_step 
 #' @example inst/examples/ex_plot_reReg.R
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                        smooth = FALSE, control = list(), ...) {

@@ -26,7 +26,7 @@ The available options are
 \describe{
   \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
   \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
-  \item{\code{asis}}{present the as is, without sorting.}
+  \item{\code{none}}{present the as is, without sorting.}
 }}
 
 \item{mcf.adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
