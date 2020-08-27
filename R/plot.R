@@ -192,10 +192,10 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
     shp.val <- c(17, rep(19, k))
     clr.val <- c(alpha("red", ctrl$alpha), hcl(h = seq(120, 360, length.out = k),
                                                l = 60, alpha = ctrl$alpha))
-    rec.lab <- paste("r", 1:k, sep = "")
-    if (k == 1) {
-        shp.lab <- c(ctrl$terminal.name, ctrl$recurrent.name)
-    } 
+    if (k == 0) rec.lab <- NULL
+    else rec.lab <- paste("r", 1:k, sep = "")
+    if (k == 0) shp.lab <- ctrl$terminal.name
+    if (k == 1) shp.lab <- c(ctrl$terminal.name, ctrl$recurrent.name)
     if (k > 1 & is.null(ctrl$recurrent.type)) {
         shp.lab <- c(ctrl$terminal.name, paste(ctrl$recurrent.name, 1:k))
     }
