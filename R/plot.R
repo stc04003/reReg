@@ -129,14 +129,14 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
     nX <- 0
     if (is.Recur(formula)) {
         DF <- as.data.frame(formula@.Data)
-        isDate <- formula@isDate
+        isDate <- "Date" %in% formula@time_class
         vNames <- NULL
     } else {
         if (missing(data)) obj <- eval(formula[[2]], parent.frame())
         else obj <- eval(formula[[2]], data)
         if (!is.Recur(obj)) stop("Response must be a `Recur` object.")
         nX <- length(formula[[3]])
-        isDate <- obj@isDate        
+        isDate <- "Date" %in% obj@time_class
         if (formula[[3]] == 1) DF <- as.data.frame(obj@.Data)
         if (formula[[3]] != 1 && nX == 1) {
             if (missing(data)) DF <- cbind(obj@.Data, eval(formula[[3]], parent.frame()))
