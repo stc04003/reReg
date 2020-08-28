@@ -48,7 +48,7 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasing", "asis"),
                        mcf.adjrisk = TRUE, mcf.smooth = FALSE,
                        control = list(), ...) {
-    result <- match.arg(event.result)
+    event.result <- match.arg(event.result)
     if (!is.Recur(x)) stop("Response must be a `Recur` object.")
     if (!mcf) ctrl <- plotEvents.control()
     if (mcf) ctrl <- plotMCF.control()
@@ -63,7 +63,7 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
     if (!mcf) {
-        return(plotEvents(x, result = event.result, control = ctrl))
+        return(plotEvents(x, event.result = event.result, control = ctrl))
     }
     if (mcf)
         return(plotMCF(x, adjrisk = mcf.adjrisk, smooth = mcf.smooth, control = ctrl))
