@@ -45,7 +45,9 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #'
 #' @return A \code{ggplot} object.
 #' @example inst/examples/ex_plot_reSurv.R
-plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasing", "asis"),
+plot.Recur <- function(x, mcf = FALSE,
+                       event.result = c("increasing", "decreasing", "asis"),
+                       event.calendarTime = FALSE, 
                        mcf.adjrisk = TRUE, mcf.smooth = FALSE,
                        control = list(), ...) {
     event.result <- match.arg(event.result)
@@ -63,7 +65,7 @@ plot.Recur <- function(x, mcf = FALSE, event.result = c("increasing", "decreasin
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
     if (!mcf) {
-        return(plotEvents(x, event.result = event.result, control = ctrl))
+        return(plotEvents(x, result = event.result, calendarTime = event.calendarTime, control = ctrl))
     }
     if (mcf)
         return(plotMCF(x, adjrisk = mcf.adjrisk, smooth = mcf.smooth, control = ctrl))

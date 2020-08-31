@@ -368,7 +368,7 @@ setClass("cox.GL",
 
 setClass("stdErr",
          representation(B = "numeric", parallel = "logical", parCl = "numeric"),
-         prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2),
+         prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2L),
          contains = "VIRTUAL")
 
 setClass("bootstrap", contains = "stdErr")
@@ -453,6 +453,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #'   \item{a0, b0}{initial guesses used for root search.}
 #'   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
 #'   \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
+#'   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
 #'   \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
 #'   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 #' }
@@ -486,14 +487,20 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' @seealso \code{\link{Recur}}, \code{\link{simSC}}
 #'
 #' @example inst/examples/ex_reReg.R
-reReg <- function(formula, data, B = 200, 
+reReg <- function(formula, data, 
                   method = "cox", se = c("resampling", "bootstrap", "NULL"),
-                  control = list()) {
+                  B = 200, control = list()) {
     se <- match.arg(se)
     Call <- match.call()
     if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 
     if (!missing(data)) obj <- eval(formula[[2]], data) 
     if (!is.Recur(obj)) stop("Response must be a `Recur` object")
+    ctrl <- reReg.control()
+    namc <- names(control)
+    if (!all(namc %in% names(ctrl))) 
+        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+    ctrl[namc] <- control
+    
     formula[[2]] <- NULL
     if (formula == ~ 1) {
         DF <- as.data.frame(cbind(obj@.Data, zero = 0))
@@ -544,15 +551,15 @@ reReg <- function(formula, data, B = 200,
         recType <- "am.GL"
         temType <- "am.GL"
     }    
-    engine.control <- control[names(control) %in% names(attr(getClass(method), "slots"))]
-    engine <- do.call("new", c(list(Class = method), engine.control))
+    engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(method), "slots"))]
+    engine <- do.call("new", c(list(Class = method), engine.ctrl))
     engine@recType <- recType
     engine@temType <- temType
     if (se == "NULL" || B == 0)
         stdErr <- NULL
     else {
-        stdErr.control <- control[names(control) %in% names(attr(getClass(se), "slots"))]
-        stdErr <- do.call("new", c(list(Class = se), stdErr.control))
+        stdErr.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(se), "slots"))]
+        stdErr <- do.call("new", c(list(Class = se), stdErr.ctrl))
         stdErr@B <- B
     }
     p <- ncol(DF) - ncol(obj@.Data)
@@ -620,6 +627,21 @@ eqSolve <- function(par, fn, solver, ...) {
         out <- optim(par = par, fn = function(z) sum(fn(z, ...)^2),
                      control = list(trace = FALSE))
     return(out)
+}
+
+reReg.control <- function(solver = "BB::dfsane", tol = 1e-7,
+                          eqType = c("logrank", "gehan"),
+                          a0 = NULL, b0 = NULL,
+                          parallel = FALSE, parCl = NULL) {
+    if (is.null(a0)) a0 <- 0
+    if (is.null(b0)) b0 <- 0
+    if (is.null(parCl)) parCl <- parallel::detectCores() / 2L
+    if (solver == "BB::dfsane") solver <- "dfsane"
+    if (solver == "BB::BBsolve") solver <- "BBsolve"
+    if (solver == "BB::BBoptim") solver <- "BBoptim"
+    eqType <- match.arg(eqType)
+    list(tol = tol, eqType = eqType, a0 = a0, b0 = b0,
+         solver = solver, parallel = parallel, parCl = parCl)
 }
 
 ##############################################################################

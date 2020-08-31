@@ -8,6 +8,7 @@
   x,
   mcf = FALSE,
   event.result = c("increasing", "decreasing", "asis"),
+  event.calendarTime = FALSE,
   mcf.adjrisk = TRUE,
   mcf.smooth = FALSE,
   control = list(),

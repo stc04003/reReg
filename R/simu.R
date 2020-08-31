@@ -112,7 +112,7 @@ simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
         }
     }
     dat <- data.frame(do.call(rbind, lapply(1:n, function(y) simOne(y, Z[y], X[y,], Cen[y], rr[y]))))
-    origin <- rep(origin, unlist(lapply(split(dat$id, dat$id), length)))
+    if (length(origin) > 1) origin <- rep(origin, unlist(lapply(split(dat$id, dat$id), length)))
     dat$t.start <- do.call(c, lapply(split(dat$Time, dat$id), function(x) c(0, x[-length(x)]))) + origin
     dat$t.stop <- dat$Time + origin
     dat$Time <- NULL

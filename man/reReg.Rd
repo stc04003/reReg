@@ -7,9 +7,9 @@
 reReg(
   formula,
   data,
-  B = 200,
   method = "cox",
   se = c("resampling", "bootstrap", "NULL"),
+  B = 200,
   control = list()
 )
 }
@@ -19,12 +19,12 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the \code{"formula"}.}
 
-\item{B}{a numeric value specifies the number of resampling for variance estimation.
-When \code{B = 0}, variance estimation will not be performed.}
-
 \item{method}{a character string specifying the underlying model. See \bold{Details}.}
 
 \item{se}{a character string specifying the method for standard error estimation. See \bold{Details}.}
+
+\item{B}{a numeric value specifies the number of resampling for variance estimation.
+When \code{B = 0}, variance estimation will not be performed.}
 
 \item{control}{a list of control parameters.}
 }
@@ -86,6 +86,7 @@ The \code{control} list consists of the following parameters:
   \item{a0, b0}{initial guesses used for root search.}
   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
   \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
+  \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
   \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 }
