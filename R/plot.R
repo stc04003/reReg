@@ -171,6 +171,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
             dat$id <- rep(1:length(tmp), tmp[match(unique(dat$id), names(tmp))])
             return(dat)
         } else {
+            dat <- dat[order(dat$id),]
             ## if (all(dat$origin == 0))
             if (!calendarTime)
                 tmp <- rank((dat$time2 - dat$origin)[dat$event == 0], ties.method = "first")

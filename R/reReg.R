@@ -629,8 +629,8 @@ eqSolve <- function(par, fn, solver, ...) {
     return(out)
 }
 
-reReg.control <- function(solver = "BB::dfsane", tol = 1e-7,
-                          eqType = c("logrank", "gehan"),
+reReg.control <- function(eqType = c("logrank", "gehan"),
+                          solver = "BB::dfsane", tol = 1e-7,
                           a0 = NULL, b0 = NULL,
                           parallel = FALSE, parCl = NULL) {
     if (is.null(a0)) a0 <- 0
