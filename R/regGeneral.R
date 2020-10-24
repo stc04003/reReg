@@ -147,15 +147,13 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
     ## yi <- rep(df0$time2, m)
     yi <- df0$time2
     ti <- df1$time2
+    t0 <- sort(unique(c(ti, yi)))
     if (is.null(eqType)) {
-        rate <- apply(wgt, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), yi))
+        rate <- apply(wgt, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), t0))
         rate <- apply(rate, 1, quantile, c(.025, .975))
         Lam <- exp(-rate)
-        ind <- !duplicated(yi)
-        Lam.lower <- approxfun(yi[ind], Lam[2, ind],
-                               yleft = min(Lam[2,]), yright = max(Lam[2,]))
-        Lam.upper <- approxfun(yi[ind], Lam[1, ind],
-                               yleft = min(Lam[1,]), yright = max(Lam[1,]))
+        Lam.lower <- approxfun(t0, Lam[2,], yleft = min(Lam[2,]), yright = max(Lam[2,]))
+        Lam.upper <- approxfun(t0, Lam[1,], yleft = min(Lam[1,]), yright = max(Lam[1,]))
         return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
     }
     if (is.null(wgt)) {
@@ -171,8 +169,9 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
     ## yi2 <- as.numeric(df0$time2)
     ## Lam0 <- exp(-rate)
     ## Lam <- Lam0[pmax(1, findInterval(yi2, T0))]
-    rate <- c(reRate(ti, rep(yi, m), wi, yi))
-    Lam <- exp(-rate)
+    rate <- c(reRate(ti, rep(yi, m), wi, t0))
+    Lam0 <- exp(-rate)
+    Lam <- Lam0[findInterval(yi, t0)]
     R <- m / Lam
     R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
@@ -187,8 +186,7 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
                     aconv = fit.a$convergence,
                     log.muZ = fit.a$par[1],
                     zi = R / exp(Xi[,-1, drop = FALSE] %*% fit.a$par[-1]),
-                    Lam0 = approxfun(yi[!duplicated(yi)], Lam[!duplicated(yi)],
-                                     yleft = min(Lam), yright = max(Lam))))
+                    Lam0 = approxfun(t0, Lam0, yleft = min(Lam0), yright = max(Lam0))))
     }
 }
 
