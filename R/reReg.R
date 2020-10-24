@@ -499,8 +499,7 @@ reReg <- function(formula, data,
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control
-    
+    ctrl[namc] <- control    
     formula[[2]] <- NULL
     if (formula == ~ 1) {
         DF <- as.data.frame(cbind(obj@.Data, zero = 0))
@@ -550,7 +549,11 @@ reReg <- function(formula, data,
     if (method == "am.GL") {
         recType <- "am.GL"
         temType <- "am.GL"
-    }    
+    }
+    if (length(unique(DF$time2[DF$event == 0])) == 1 & temType != ".") {
+        temType <- "."
+        cat("Only one unique censoring time is detected, terminal event model is not fitted.\n\n")
+    }
     engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(method), "slots"))]
     engine <- do.call("new", c(list(Class = method), engine.ctrl))
     engine@recType <- recType

@@ -71,8 +71,11 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
                     aconv = c(fit.a$convergence, fit.b$convergence),
                     log.muZ = fit.b$par[1],
                     zi = R / exp(Xi[,-1, drop = FALSE] %*% fit.b$par[-1]),
-                    Lam0 = approxfun(exp(yexa2)[ind], Lam[ind],
-                                     yleft = min(Lam), yright = max(Lam))))
+                    Lam0 = function(x)
+                        approx(x = yexa2[ind], y = Lam[ind], xout = log(x),
+                               yleft = min(Lam), yright = max(Lam))$y))
+                    ## Lam0 = approxfun(exp(yexa2)[ind], Lam[ind],
+                    ##                  yleft = min(Lam), yright = max(Lam))))
     }
 }
 
@@ -134,8 +137,12 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
                     log.muZ = log(mean(zi)), zi = zi,
-                    Lam0 = approxfun(exp(yexa2)[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
-                                     yleft = min(Lam), yright = max(Lam))))
+                    Lam0 = function(x)
+                        approx(x = yexa2[!duplicated(yexa2)], y = Lam[!duplicated(yexa2)],
+                               xout = log(x),
+                               yleft = min(Lam), yright = max(Lam))$y))
+    ## approxfun(exp(yexa2)[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
+    ##                                  yleft = min(Lam), yright = max(Lam))))
     }
 }
 
@@ -238,8 +245,11 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
                     log.muZ = log(mean(R)), zi = R,
-                    Lam0 = approxfun(exp(yexa)[!duplicated(yexa)], Lam[!duplicated(yexa)],
-                                     yleft = min(Lam), yright = max(Lam))))
+                    Lam0 = function(x)
+                        approx(x = yexa[!duplicated(yexa)], y = Lam[!duplicated(yexa)],
+                               xout = log(x), yleft = min(Lam), yright = max(Lam))$y))
+        ## Lam0 = approxfun(exp(yexa)[!duplicated(yexa)], Lam[!duplicated(yexa)],
+        ##                  yleft = min(Lam), yright = max(Lam))))
     }
 }
 
