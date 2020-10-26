@@ -235,7 +235,6 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     status <- DF$terminal
     X <- as.matrix(DF[,-c(1:6)])    
     n <- length(unique(id))
-    p <- ncol(X)
     T <- DF$time2
     mt <- aggregate(event ~ id, data = DF, sum)$event
     clsz <- mt + 1
@@ -261,7 +260,7 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
         convergence <- apply(betaMatrix, 1, function(x)
             1 * (x %*% x > 1e3 * c(res$alpha, res$beta) %*% c(res$alpha, res$beta)))
     } else {
-        betaMatrix <- matrix(0, B, p * 2)
+        betaMatrix <- matrix(0, B, length(res$alpha) + length(res$beta))
         convergence <- rep(0, B)
             for (i in 1:B) {
             sampled.id <- sample(unique(id), n, TRUE)
