@@ -230,6 +230,8 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     ## engine@a0 <- res$alpha
     ## engine@b0 <- res$beta
+    p1 <- length(res$alpha)
+    p2 <- length(res$beta)
     id <- DF$id
     event <- DF$event
     status <- DF$terminal
@@ -260,7 +262,7 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
         convergence <- apply(betaMatrix, 1, function(x)
             1 * (x %*% x > 1e3 * c(res$alpha, res$beta) %*% c(res$alpha, res$beta)))
     } else {
-        betaMatrix <- matrix(0, B, length(res$alpha) + length(res$beta))
+        betaMatrix <- matrix(0, B, p1 + p2)
         convergence <- rep(0, B)
             for (i in 1:B) {
             sampled.id <- sample(unique(id), n, TRUE)
@@ -285,10 +287,13 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     }
     betaVar <- var(betaMatrix[converged, ], na.rm = TRUE)
     betaSE <- sqrt(diag(as.matrix(betaVar)))
-    c(res, list(alphaSE = betaSE[1:p], betaSE = betaSE[1:p + p],
-                alphaVar = as.matrix(betaVar[1:p, 1:p]),
-                betaVar = as.matrix(betaVar[1:p + p, 1:p + p]),
-                SEmat = betaMatrix, B = length(converged)))
+    res <- c(res, list(alphaSE = betaSE[1:p1],
+                       alphaVar = as.matrix(betaVar[1:p1, 1:p1]),
+                       SEmat = betaMatrix, B = length(converged)))
+    if (p2 > 0)
+        return(c(res, betaSE = betaSE[(p1 + 1):(p1 + p2)],
+                 betaVar = as.matrix(betaVar[(p1 + 1):(p1 + p2), (p1 + 1):(p1 + p2)])))
+    else return(res)
 }
 
 ##############################################################################
