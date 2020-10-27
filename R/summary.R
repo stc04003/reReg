@@ -1,4 +1,4 @@
-#' @export
+#' @exportS3Method print reReg
 print.reReg <- function(x, ...) {
     if (!is.reReg(x))
         stop("Must be a reReg object")
@@ -54,7 +54,7 @@ pvalTab <- function(pe, se) {
           z.value = round(pe / se, 3), p.value = round(2 * pnorm(-abs(pe / se)), 3))    
 }
     
-#' @export
+#' @exportS3Method summary reReg
 summary.reReg <- function(object, test = FALSE, ...) {
     if (!is.reReg(object)) stop("Must be a reReg object")
     if (object$method == "nonparametric") {
@@ -107,7 +107,7 @@ summary.reReg <- function(object, test = FALSE, ...) {
 printCoefmat2 <- function(tab) 
     printCoefmat(as.data.frame(tab), P.values = TRUE, has.Pvalue = TRUE, signif.legend = FALSE)
 
-#' @export
+#' @exportS3Method print summary.reReg
 print.summary.reReg <- function(x, ...) {
     cat("Call: \n")
     dput(x$call)
@@ -161,13 +161,13 @@ print.summary.reReg <- function(x, ...) {
     cat("\n")
 }
 
-#' @export
+#' @exportS3Method coef reReg
 coef.reReg <- function(object, ...) {
     if (is.null(object$beta)) return(object$alpha)
     return(as.numeric(c(object$alpha, object$beta)))
 }
 
-#' @export
+#' @exportS3Method vcov reReg
 vcov.reReg <- function(object, ...) {
     if (is.null(object$betaVar)) return(object$alphaVar)
     return(list(alpha.vcov = object$alphaVar, beta.vcov = object$betaVar))
