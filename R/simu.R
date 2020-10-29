@@ -3,9 +3,18 @@
 ###################################################################################
 
 Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa / .5
-Lam0 <- function(t) log(1 + t) / .5
+## Lam0 <- function(t) 2 * log(1 + t) 
 invLam <- function(t, z, exa, exb) (exp(.5 * t * exa / exb / z) - 1) / exa
 invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
+
+#' Function to find inverse of a given Lam
+inv <- function (t, z, exa, exb, fn) {
+    mapply(t, FUN = function(u) {
+        uf <- function(x) u - fn(x, z, exa, exb) ## / Lam.f(10, r, b, model)
+        exp(optim(par = 1, fn = function(y) uf(exp(y))^2, 
+                  control = list(warn.1d.NelderMead = FALSE))$par)
+    })
+}
 
 #' Function to generate simulated recurrent event data
 #'
@@ -35,8 +44,10 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' or \eqn{Z^2 / 30} if \eqn{X_1} is 0.
 #' The observed recurrent events is then observed up to the minimum of \eqn{C},
 #' terminal event, and \eqn{\tau}.
-#' Lastly, we assume the baseline functions
-#' \deqn{\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.}
+#' Lastly, when \code{lam0} is not specified, we assume the baseline rate function
+#' to be \deqn{\lambda_0(t) = \frac{2}{1 + t}}.
+#' On the other hand, when \code{haz0} is not specified, we assume
+#' the baseline hazard function to be \deqn{h_0(t) = \frac{1}{8(1 + t)}}.
 #' 
 #' @param n number of observation.
 #' @param a1,a2,b1,b2 are numeric vectors of length 2.
@@ -49,6 +60,14 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.
 #' @param tau a numeric value specifying the maximum observation time.
 #' @param origin a numeric value specifying the time origin.
+#' @param Lam0 is an optional function that specifies the baseline cumulative rate function.
+#' When left-unspecified, the recurrent events are generated using the
+#' baseline rate function of \deqn{\lambda_0(t) = \frac{2}{1 + t},} or equivalently,
+#' the cumulative rate function of \deqn{\Lambda_0(t) = 2\log(1 + t).}
+#' @param Haz0 is an optional function that specifies the baseline hazard function.
+#' When left-unspecified, the recurrent events are generated using the baseline hazard function
+#' \deqn{h_0(t) = \frac{1}{8(1 + t)},} or equivalently,
+#' the cumulative hazard function of \deqn{H_0(t) = \log(1 + t) / 8.}
 #' @param summary a logical value indicating whether a brief data summary will be printed.
 #'
 #' @seealso \code{\link{reReg}}
@@ -58,13 +77,23 @@ invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
 #' @example inst/examples/ex_simu.R
 simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
                   type = "cox", zVar = .25, tau = 60, origin = 0,
-                  summary = FALSE) {
+                  Lam0 = NULL, Haz0 = NULL, summary = FALSE) {
     if (length(a1) != 2L) stop("Require length(a1) = 2.")
     if (length(b1) != 2L) stop("Require length(b1) = 2.")
     if (length(a2) != 2L) stop("Require length(a2) = 2.")
     if (length(b2) != 2L) stop("Require length(b2) = 2.")
-    if (n != length(origin) & length(origin) > 1) stop("Invalid length for 'origin'. See '?simSC' for details.")
-    allcomb <- apply(expand.grid(c("cox", "am", "sc", "ar"), c("cox", "am", "sc", "ar")), 1, paste, collapse = "|")
+    if (!is.null(Lam0)) {
+        Lam <- function(t, z, exa, exb) z * Lam0(t * exa) * exb / exa
+        invLam <- function(t, z, exa, exb) inv(t, z, exa, exb, Lam)
+    }
+    if (!is.null(Haz0)) {
+        Haz <- function(t, z, exa, exb) z * Haz0(t * exa) * exb / exa
+        invHaz <- function(t, z, exa, exb) inv(t, z, exa, exb, Haz)
+    }
+    if (n != length(origin) & length(origin) > 1)
+        stop("Invalid length for 'origin'. See '?simSC' for details.")
+    allcomb <- apply(expand.grid(c("cox", "am", "sc", "ar"),
+                                 c("cox", "am", "sc", "ar")), 1, paste, collapse = "|")
     type <- match.arg(type, c("cox", "am", "sc", "ar", allcomb))
     if (grepl("|", type, fixed = TRUE)) {
         recType <- substring(type, 1, regexpr("[|]", type) - 1)

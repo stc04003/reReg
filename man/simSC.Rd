@@ -14,6 +14,8 @@ simSC(
   zVar = 0.25,
   tau = 60,
   origin = 0,
+  Lam0 = NULL,
+  Haz0 = NULL,
   summary = FALSE
 )
 }
@@ -34,6 +36,16 @@ When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is
 \item{tau}{a numeric value specifying the maximum observation time.}
 
 \item{origin}{a numeric value specifying the time origin.}
+
+\item{Lam0}{is an optional function that specifies the baseline cumulative rate function.
+When left-unspecified, the recurrent events are generated using the
+baseline rate function of \deqn{\lambda_0(t) = \frac{2}{1 + t}}, or equivalently,
+the cumulative rate function of \deqn{\Lambda_0(t) = 2\log(1 + t)}.}
+
+\item{Haz0}{is an optional function that specifies the baseline hazard function.
+When left-unspecified, the recurrent events are generated using the baseline hazard function
+\deqn{h_0(t) = \frac{1}{8(1 + t)}}, or equivalently,
+the cumulative hazard function of \deqn{H_0(t) = \log(1 + t) / 8}.}
 
 \item{summary}{a logical value indicating whether a brief data summary will be printed.}
 }
@@ -64,8 +76,10 @@ exponential distribution with a rate parameter of 1 / 60 if \eqn{X_1} is 1,
 or \eqn{Z^2 / 30} if \eqn{X_1} is 0.
 The observed recurrent events is then observed up to the minimum of \eqn{C},
 terminal event, and \eqn{\tau}.
-Lastly, we assume the baseline functions
-\deqn{\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.}
+Lastly, when \code{lam0} is not specified, we assume the baseline rate function
+to be \deqn{\lambda_0(t) = \frac{2}{1 + t}}.
+On the other hand, when \code{haz0} is not specified, we assume
+the baseline hazard function to be \deqn{h_0(t) = \frac{1}{8(1 + t)}}.
 }
 \examples{
 set.seed(123)
