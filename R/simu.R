@@ -50,7 +50,7 @@ inv <- function (t, z, exa, exb, fn) {
 #' the baseline hazard function to be \deqn{h_0(t) = \frac{1}{8(1 + t)}}.
 #' 
 #' @param n number of observation.
-#' @param a1,a2,b1,b2 are numeric vectors of length 2.
+#' @param shape1,shape2,size1,size2 are numerical vectors of length 2.
 #' These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}
 #' @param type is a character string specifying the underlying model.
 #' The rate function type and the hazard function type are separated by a vertical bar "|",
@@ -75,13 +75,14 @@ inv <- function (t, z, exa, exb, fn) {
 #'
 #'
 #' @example inst/examples/ex_simu.R
-simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
+simSC <- function(n, shape1 = shape2, size1 = size2, shape2 = shape1, size2 = size1,
                   type = "cox", zVar = .25, tau = 60, origin = 0,
                   Lam0 = NULL, Haz0 = NULL, summary = FALSE) {
-    if (length(a1) != 2L) stop("Require length(a1) = 2.")
-    if (length(b1) != 2L) stop("Require length(b1) = 2.")
-    if (length(a2) != 2L) stop("Require length(a2) = 2.")
-    if (length(b2) != 2L) stop("Require length(b2) = 2.")
+    call <- match.call()
+    if (length(shape1) != 2L) stop("Require length(shape1) = 2.")
+    if (length(size1) != 2L) stop("Require length(size1) = 2.")
+    if (length(shape2) != 2L) stop("Require length(shape2) = 2.")
+    if (length(size2) != 2L) stop("Require length(size2) = 2.")
     if (!is.null(Lam0)) {
         Lam <- function(t, z, exa, exb) z * Lam0(t * exa) * exb / exa
         invLam <- function(t, z, exa, exb) inv(t, z, exa, exb, Lam)
@@ -107,10 +108,10 @@ simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
     Cen <- sapply(1:n, function(x) rexp(1, X[x, 1] / 60 + (1 - X[x, 1]) * Z[x]^2 / 30))
     rr <- rexp(n)
     simOne <- function(id, z, x, cen, rr) {
-        exa1 <- c(exp(x %*% a1))
-        exb1 <- c(exp(x %*% b1))
-        exa2 <- c(exp(x %*% a2))
-        exb2 <- c(exp(x %*% b2))
+        exa1 <- c(exp(x %*% shape1))
+        exb1 <- c(exp(x %*% size1))
+        exa2 <- c(exp(x %*% shape2))
+        exb2 <- c(exp(x %*% size2))
         if (temType == "cox") D <- invHaz(rr, z, 1, exb1)
         if (temType == "ar") D <- invHaz(rr, z, exb1, 1)
         if (temType == "am") D <- invHaz(rr, z, exb1, exb1)
@@ -142,25 +143,33 @@ simSC <- function(n, a1 = a2, b1 = b2, a2 = a1, b2 = b1,
     }
     dat <- data.frame(do.call(rbind, lapply(1:n, function(y) simOne(y, Z[y], X[y,], Cen[y], rr[y]))))
     if (length(origin) > 1) origin <- rep(origin, unlist(lapply(split(dat$id, dat$id), length)))
-    dat$t.start <- do.call(c, lapply(split(dat$Time, dat$id), function(x) c(0, x[-length(x)]))) + origin
+    dat$t.start <- do.call(c, lapply(split(dat$Time, dat$id), function(x)
+        c(0, x[-length(x)]))) + origin
     dat$t.stop <- dat$Time + origin
     dat$Time <- NULL
     if (summary) {
+        dg <- min(3, getOption("digits"))
+        cat("Call: \n")
+        print(call)
         cat("\n")
-        cat("Summary results for number of recurrent event per subject:\n")
-        dat <- dat[order(dat$id),]
-        base <- dat[cumsum(table(dat$id)),] 
+        cat("Sample size:                                   ", n, "\n")
+        cat("Number of recurrent event observed:            ", sum(dat$event), "\n")
+        cat("Average number of recurrent event per subject: ", round(sum(dat$event) / n, dg), "\n")
+        cat("Proportion of subjects with a terminal event:  ", round(sum(dat$status) / n, dg), "\n")
+        base <- dat[cumsum(table(dat$id)), ]
+        y <- base$t.stop
         d <- base$status
-        x1 <- base$x1
-        print(summary(base$m))
-        cat("\n")
-        cat(paste("Number of failures: ", sum(d), " (", round(100 * sum(d) / length(d), 2), "%); ",
-                  "Number of censored events: ", sum(d < 1), " (", round(100 * sum(d < 1) / length(d), 2), "%)\n\n",
-                  sep = ""))
-        cat(paste("Number of x1 == 1: ", sum(x1), " (", round(100 * sum(x1) / length(x1), 2), "%); ",
-                  "Number of x1 == 0: ", sum(x1 < 1), " (", round(100 * sum(x1 < 1) / length(x1), 2), "%)\n", sep = ""))
-        cat("Summary results for x2:\n")
-        print(summary(base$x2))
+        oy <- order(y)
+        d <- d[oy]
+        y <- y[oy]
+        r <- n - rank(y, ties.method = "min") + 1
+        is_first_y <- ! duplicated(y)
+        s <- cumprod(1 - (d / r)[is_first_y])
+        medTem <- ifelse(s[length(s)] > .5, NA, as.numeric(y[is_first_y][which.max(s - .5 < 0)]))
+        if (!is.na(medTem))
+            cat("Median time-to-terminal event:                          ",
+                round(medTem, dg), "\n")            
+        ## cat("Proportion of subjects with a x1 = 1:  ", round(mean(base$x1), dg), "\n")
         cat("\n\n")
     }
     dat$m <- dat$Z <- NULL

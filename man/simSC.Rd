@@ -6,10 +6,10 @@
 \usage{
 simSC(
   n,
-  a1 = a2,
-  b1 = b2,
-  a2 = a1,
-  b2 = b1,
+  shape1 = shape2,
+  size1 = size2,
+  shape2 = shape1,
+  size2 = size1,
   type = "cox",
   zVar = 0.25,
   tau = 60,
@@ -22,7 +22,7 @@ simSC(
 \arguments{
 \item{n}{number of observation.}
 
-\item{a1, a2, b1, b2}{are numeric vectors of length 2.
+\item{shape1, shape2, size1, size2}{are numerical vectors of length 2.
 These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}}
 
 \item{type}{is a character string specifying the underlying model.
@@ -39,13 +39,13 @@ When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is
 
 \item{Lam0}{is an optional function that specifies the baseline cumulative rate function.
 When left-unspecified, the recurrent events are generated using the
-baseline rate function of \deqn{\lambda_0(t) = \frac{2}{1 + t}}, or equivalently,
-the cumulative rate function of \deqn{\Lambda_0(t) = 2\log(1 + t)}.}
+baseline rate function of \deqn{\lambda_0(t) = \frac{2}{1 + t},} or equivalently,
+the cumulative rate function of \deqn{\Lambda_0(t) = 2\log(1 + t).}}
 
 \item{Haz0}{is an optional function that specifies the baseline hazard function.
 When left-unspecified, the recurrent events are generated using the baseline hazard function
-\deqn{h_0(t) = \frac{1}{8(1 + t)}}, or equivalently,
-the cumulative hazard function of \deqn{H_0(t) = \log(1 + t) / 8}.}
+\deqn{h_0(t) = \frac{1}{8(1 + t)},} or equivalently,
+the cumulative hazard function of \deqn{H_0(t) = \log(1 + t) / 8.}}
 
 \item{summary}{a logical value indicating whether a brief data summary will be printed.}
 }
