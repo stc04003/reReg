@@ -6,10 +6,10 @@
 \usage{
 simSC(
   n,
-  shape1 = shape2,
-  size1 = size2,
-  shape2 = shape1,
-  size2 = size1,
+  par1,
+  par2,
+  par3 = par1,
+  par4 = par2,
   type = "cox",
   zVar = 0.25,
   tau = 60,
@@ -22,7 +22,7 @@ simSC(
 \arguments{
 \item{n}{number of observation.}
 
-\item{shape1, shape2, size1, size2}{are numerical vectors of length 2.
+\item{par1, par2, par3, par4}{are numerical vectors of length 2.
 These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}}
 
 \item{type}{is a character string specifying the underlying model.

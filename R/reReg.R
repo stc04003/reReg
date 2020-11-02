@@ -514,8 +514,8 @@ reReg <- function(formula, data,
         DF <- DF[,-which(colnames(DF) == "(Intercept)")]
     }
     DF <- DF[order(DF$id, DF$time2), ]
-    allMethod <- apply(expand.grid(c("cox", "am", "sc", "ar"), c("cox", "am", "sc", "ar", ".")), 1,
-                       paste, collapse = "|")
+    allMethod <- apply(expand.grid(c("cox", "am", "sc", "ar"),
+                                   c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
     allMethod <- c(allMethod, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
     method <- match.arg(method, c("cox", "am", "sc", "ar", allMethod))
     recType <- temType <- NULL

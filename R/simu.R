@@ -50,7 +50,7 @@ inv <- function (t, z, exa, exb, fn) {
 #' the baseline hazard function to be \deqn{h_0(t) = \frac{1}{8(1 + t)}}.
 #' 
 #' @param n number of observation.
-#' @param shape1,shape2,size1,size2 are numerical vectors of length 2.
+#' @param par1,par2,par3,par4 are numerical vectors of length 2.
 #' These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}
 #' @param type is a character string specifying the underlying model.
 #' The rate function type and the hazard function type are separated by a vertical bar "|",
@@ -75,14 +75,13 @@ inv <- function (t, z, exa, exb, fn) {
 #'
 #'
 #' @example inst/examples/ex_simu.R
-simSC <- function(n, shape1 = shape2, size1 = size2, shape2 = shape1, size2 = size1,
+simSC <- function(n, 
+                  par1, par2, par3 = par1, par4 = par2,
                   type = "cox", zVar = .25, tau = 60, origin = 0,
                   Lam0 = NULL, Haz0 = NULL, summary = FALSE) {
     call <- match.call()
-    if (length(shape1) != 2L) stop("Require length(shape1) = 2.")
-    if (length(size1) != 2L) stop("Require length(size1) = 2.")
-    if (length(shape2) != 2L) stop("Require length(shape2) = 2.")
-    if (length(size2) != 2L) stop("Require length(size2) = 2.")
+    if (length(par1) != 2L) stop("Require length(par1) = 2.")
+    if (length(par2) != 2L) stop("Require length(par2) = 2.")
     if (!is.null(Lam0)) {
         Lam <- function(t, z, exa, exb) z * Lam0(t * exa) * exb / exa
         invLam <- function(t, z, exa, exb) inv(t, z, exa, exb, Lam)
@@ -94,7 +93,7 @@ simSC <- function(n, shape1 = shape2, size1 = size2, shape2 = shape1, size2 = si
     if (n != length(origin) & length(origin) > 1)
         stop("Invalid length for 'origin'. See '?simSC' for details.")
     allcomb <- apply(expand.grid(c("cox", "am", "sc", "ar"),
-                                 c("cox", "am", "sc", "ar")), 1, paste, collapse = "|")
+                                 c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
     type <- match.arg(type, c("cox", "am", "sc", "ar", allcomb))
     if (grepl("|", type, fixed = TRUE)) {
         recType <- substring(type, 1, regexpr("[|]", type) - 1)
@@ -105,34 +104,36 @@ simSC <- function(n, shape1 = shape2, size1 = size2, shape2 = shape1, size2 = si
     if (zVar <= 0) Z <- rep(1, n)
     else Z <- rgamma(n, 1/zVar, 1/zVar)
     X <- cbind(sample(0:1, n, TRUE), rnorm(n))
-    Cen <- sapply(1:n, function(x) rexp(1, X[x, 1] / 60 + (1 - X[x, 1]) * Z[x]^2 / 30))
+    Cen <- sapply(1:n, function(x) rexp(1, X[x, 1] / tau + (1 - X[x, 1]) * 2 * Z[x]^2 / tau))
     rr <- rexp(n)
     simOne <- function(id, z, x, cen, rr) {
-        exa1 <- c(exp(x %*% shape1))
-        exb1 <- c(exp(x %*% size1))
-        exa2 <- c(exp(x %*% shape2))
-        exb2 <- c(exp(x %*% size2))
-        if (temType == "cox") D <- invHaz(rr, z, 1, exb1)
-        if (temType == "ar") D <- invHaz(rr, z, exb1, 1)
-        if (temType == "am") D <- invHaz(rr, z, exb1, exb1)
-        if (temType == "sc") D <- invHaz(rr, z, exb1, exb2)
+        exa1 <- exa2 <- exb1 <- exb2 <- 1
+        if (recType == "cox") exa2 <- c(exp(x %*% par1))
+        if (recType == "ar") exa1 <- c(exp(x %*% par1))
+        if (recType == "am") exa1 <- exa2 <- c(exp(x %*% par1))
+        if (recType == "sc") {
+            exa1 <- c(exp(x %*% par1))
+            exa2 <- c(exp(x %*% par2))
+        }
+        if (temType == "cox") exb2 <- c(exp(x %*% par2))
+        if (temType == "ar") exb1 <- c(exp(x %*% par2))
+        if (temType == "am") exb1 <- exb2 <- c(exp(x %*% par2))
+        if (temType == "sc") {
+            exb1 <- c(exp(x %*% par3))
+            exb2 <- c(exp(x %*% par4))
+        }
+        D <- invHaz(rr, z, exb1, exb2)
         y <- min(cen, tau, D) 
         status <- 1 * (y == D)
         m <- -1
         tij <- NULL
-        if (recType == "cox") up <- Lam(y, z, 1, exa1)
-        if (recType == "ar") up <- Lam(y, z, exa1, 1)
-        if (recType == "am") up <- Lam(y, z, exa1, exa1)
-        if (recType == "sc") up <- Lam(y, z, exa1, exa2)
+        up <- Lam(y, z, exa1, exa2)
         while(sum(tij) < up) {
             tij <- c(tij, rexp(1))
             m <- m + 1
         }
         if (m > 0) {
-            if (recType == "cox") tij <- invLam(cumsum(tij[1:m]), z, 1, exa1)
-            if (recType == "ar") tij <- invLam(cumsum(tij[1:m]), z, exa1, 1)
-            if (recType == "am") tij <- invLam(cumsum(tij[1:m]), z, exa1, exa1)
-            if (recType == "sc") tij <- invLam(cumsum(tij[1:m]), z, exa1, exa2)
+            tij <- invLam(cumsum(tij[1:m]), z, exa1, exa2)
             return(data.frame(id = id, Time = c(sort(tij), y),
                               event = c(rep(1, m), 0), status = c(rep(0, m), status),
                               Z = z, m = m, x1 = x[1], x2 = x[2]))
@@ -167,7 +168,7 @@ simSC <- function(n, shape1 = shape2, size1 = size2, shape2 = shape1, size2 = si
         s <- cumprod(1 - (d / r)[is_first_y])
         medTem <- ifelse(s[length(s)] > .5, NA, as.numeric(y[is_first_y][which.max(s - .5 < 0)]))
         if (!is.na(medTem))
-            cat("Median time-to-terminal event:                          ",
+            cat("Median time-to-terminal event:                 ",
                 round(medTem, dg), "\n")            
         ## cat("Proportion of subjects with a x1 = 1:  ", round(mean(base$x1), dg), "\n")
         cat("\n\n")
