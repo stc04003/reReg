@@ -494,6 +494,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 reReg <- function(formula, data, 
                   method = "cox", se = c("resampling", "bootstrap", "NULL"),
                   B = 200, control = list()) {
+    se <- ifelse(is.null(se), "NULL", se)
     se <- match.arg(se)
     Call <- match.call()
     if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 

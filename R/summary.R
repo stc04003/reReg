@@ -16,7 +16,7 @@ print.reReg <- function(x, ...) {
             p <- length(x$alpha) / 2
             mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
                          rep(x$varNames, 2), format(x$alpha, digits = 5))
-            mat <- cbind(mat[,1:p], "    ", mat[,1:p])
+            ## mat <- cbind(mat[,1:p], "    ", mat[,1:p])
             prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", 1 + ncol(mat)), quote = FALSE)
         } else {
             mat <- rbind(x$varNames, format(x$alpha, digits = 5))
@@ -28,7 +28,7 @@ print.reReg <- function(x, ...) {
                 p <- length(x$beta) / 2
                 mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
                              rep(x$varNames, 2), format(x$beta, digits = 5))
-                mat <- cbind(mat[,1:p], "    ", mat[,1:p])
+                ## mat <- cbind(mat[,1:p], "    ", mat[,1:p])
                 prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", 1 + ncol(mat)),
                          quote = FALSE)
             } else {
