@@ -4,13 +4,27 @@
 \alias{plotHaz}
 \title{Plot the Baseline Cumulative Hazard Function for the Terminal Time}
 \usage{
-plotHaz(x, smooth = FALSE, control = list(), ...)
+plotHaz(
+  x,
+  smooth = FALSE,
+  newdata = NULL,
+  frailty = NULL,
+  control = list(),
+  ...
+)
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, returned by the \code{reReg} function.}
 
 \item{smooth}{an optional logical value indicating whether to add a smooth curve
 obtained from a monotone increasing P-splines implemented in package \code{scam}.}
+
+\item{newdata}{an optional data frame contains variables to include in the calculation
+of the cumulative rate function.
+If omitted, the baseline rate function will be plotted.}
+
+\item{frailty}{an optional vector to specify the shared frailty for \code{newdata}.
+If \code{newdata} is given and \code{frailty} is not specified, the}
 
 \item{control}{a list of control parameters.}
 

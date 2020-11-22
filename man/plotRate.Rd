@@ -8,6 +8,8 @@ plotRate(
   x,
   type = c("unrestricted", "scaled", "raw"),
   smooth = FALSE,
+  newdata = NULL,
+  frailty = NULL,
   control = list(),
   ...
 )
@@ -21,6 +23,13 @@ Options are "unrestricted", "scaled", "raw". See \bold{Details}.}
 \item{smooth}{an optional logical value indicating whether to add a smooth curve
 obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
+\item{newdata}{an optional data frame contains variables to include in the calculation
+of the cumulative rate function.
+If omitted, the baseline rate function will be plotted.}
+
+\item{frailty}{an optional vector to specify the shared frailty for \code{newdata}.
+If \code{newdata} is given and \code{frailty} is not specified, the}
+
 \item{control}{a list of control parameters.}
 
 \item{...}{graphical parameters to be passed to methods.
@@ -30,7 +39,7 @@ These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details
 A \code{ggplot} object.
 }
 \description{
-Plot the baseline rate function for an \code{reReg} object.
+Plot the baseline cumulative rate function for an \code{reReg} object.
 }
 \details{
 The \code{plotRate()} plots the estimated baseline cumulative rate function 
