@@ -18,12 +18,16 @@ plotEvents(
 and the predictors on the right.
 The response must be a recurrent event survival object as returned by function \code{Recur()}.}
 
-\item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
+\item{data}{an optional data frame in which to interpret the variables occurring in
+the "\code{formula}".}
 
-\item{result}{an optional character string specifying whether the event plot is sorted by the subjects' terminal time. The available options are
+\item{result}{an optional character string specifying whether the event plot is
+sorted by the subjects' terminal time. The available options are
 \describe{
-  \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
-  \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
+  \item{\code{increasing}}{sort the terminal time from in ascending order (default).
+This places longer terminal times on top. }
+  \item{\code{decreasing}}{sort the terminal time from in descending order (default).
+This places shorter terminal times on top. }
   \item{\code{none}}{present the as is, without sorting.}
 }}
 
@@ -49,12 +53,16 @@ list with the following values:
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is "Subject".}
   \item{main}{customizable title, default value is "Recurrent event plot".}
-  \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-  \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
-  \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
+  \item{terminal.name}{customizable label for terminal event,
+the default value is "Terminal event".}
+  \item{recurrent.name}{customizable legend title for recurrent event,
+the default value is "Recurrent events".}
+  \item{recurrent.types}{customizable label for recurrent event type,
+the default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
   \item{legend.position}{a character string specifying the position of the legend (if any).
-  The available options are "right", "left", "top", "bottom", and "none". The default value is "top".}
+  The available options are "right", "left", "top", "bottom", and "none".
+The default value is "top".}
 }
 }
 \examples{

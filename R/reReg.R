@@ -599,7 +599,7 @@ reReg <- function(formula, data,
         fit$method <- method
     }    
     class(fit) <- "reReg"
-    fit$reTb <- obj@.Data
+    ## fit$reTb <- obj@.Data
     fit$DF <- DF
     fit$call <- Call
     fit$varNames <- names(DF)[-(1:6)]

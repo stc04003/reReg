@@ -9,7 +9,8 @@ plotHaz(x, smooth = FALSE, control = list(), ...)
 \arguments{
 \item{x}{an object of class \code{reReg}, returned by the \code{reReg} function.}
 
-\item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
+\item{smooth}{an optional logical value indicating whether to add a smooth curve
+obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters.}
 

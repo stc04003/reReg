@@ -18,7 +18,8 @@ plotRate(
 \item{type}{a character string specifying the type of rate function to be plotted.
 Options are "unrestricted", "scaled", "raw". See \bold{Details}.}
 
-\item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
+\item{smooth}{an optional logical value indicating whether to add a smooth curve
+obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters.}
 
@@ -49,7 +50,8 @@ to a list with the following values:
   \item{ylab}{customizable y-label, default value is empty.}
   \item{main}{customizable title, default value is "Baseline cumulative rate function".}
 }
-These arguments can also be passed down without specifying a \code{control} list. See \bold{Examples}.
+These arguments can also be specified outside of the \code{control} list.
+See \bold{Examples}.
 }
 \examples{
 data(simDat)

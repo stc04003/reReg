@@ -15,19 +15,26 @@ plotMCF(
 )
 }
 \arguments{
-\item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
+\item{formula}{a formula object, with the response on the left of a "~" operator,
+and the predictors on the right.
 The response must be a recurrent event survival object returned by the \code{Recur()} function.}
 
-\item{data}{an optional data frame in which to interpret the variables occurring in the "\code{formula}".}
+\item{data}{an optional data frame in which to interpret the variables occurring in
+the "\code{formula}".}
 
-\item{adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
-This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+\item{adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function
+as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE},
+subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
 If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
 
-\item{onePanel}{an optional logical value indicating whether the mean cumulative functions will be plotted in the same panel.
-This is only useful when there are multiple recurrent event types or in the presence of (discrete) covariates.}
+\item{onePanel}{an optional logical value indicating whether the mean cumulative functions
+will be plotted in the same panel.
+This is only useful when there are multiple recurrent event types or
+in the presence of (discrete) covariates.}
 
-\item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.
+\item{smooth}{an optional logical value indicating whether to add a smooth curve
+obtained from a monotone increasing P-splines implemented in package \code{scam}.
 This feature only works for data with one recurrent event type.}
 
 \item{control}{a list of control parameters.}
@@ -55,7 +62,8 @@ to a list with the following values:
   \item{ylab}{customizable y-label, default value is "Cumulative mean".}
   \item{main}{customizable title, default value is "Sample cumulative mean function plot".}
 }
-The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list.
+The \code{xlab}, \code{ylab} and \code{main} parameters can also be
+specified outside of the \code{control} list.
 }
 \examples{
 data(simDat)

@@ -16,26 +16,35 @@
 )
 }
 \arguments{
-\item{x}{an object of class \code{Recur} returned by the \code{Recur()} function. See \code{?Recur} for creating \code{Recur} objects.}
+\item{x}{an object of class \code{Recur} returned by the \code{Recur()} function.
+See \code{?Recur} for creating \code{Recur} objects.}
 
 \item{mcf}{an optional logical value indicating whether the mean cumulative function (MCF) will
 be plotted instead of the event plot (default).}
 
-\item{event.result}{an optional character string that is passed to the \code{plotEvents()} function as the \code{result} argument. See \code{\link{plotEvents}}.
+\item{event.result}{an optional character string that is passed to the
+\code{plotEvents()} function as the \code{result} argument. See \code{\link{plotEvents}}.
 This argument is used to specify whether the event plot is sorted by the subjects' terminal time.
 The available options are
 \describe{
-  \item{\code{increasing}}{sort the terminal time from in ascending order (default). This places longer terminal times on top. }
-  \item{\code{decreasing}}{sort the terminal time from in descending order (default). This places shorter terminal times on top. }
+  \item{\code{increasing}}{sort the terminal time from in ascending order (default).
+This places longer terminal times on top. }
+  \item{\code{decreasing}}{sort the terminal time from in descending order (default).
+This places shorter terminal times on top. }
   \item{\code{none}}{present the as is, without sorting.}
 }}
 
-\item{mcf.adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
-This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
+\item{mcf.adjrisk}{an optional logical value that is passed to
+the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+This argument indicates whether risk set size will be adjusted.
+If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times
+as in the Nelson-Aalen estimator.
 If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
 
-\item{mcf.smooth}{an optional logical value that is passed to the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
-This argument indicates whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
+\item{mcf.smooth}{an optional logical value that is passed to
+the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
+This argument indicates whether to add a smooth curve obtained from
+a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
@@ -48,18 +57,25 @@ A \code{ggplot} object.
 Plot the event plot or the mean cumulative function (MCF) from an \code{Recur} object.
 }
 \details{
-The argument \code{control} consists of options with argument defaults to a list with the following values:
+The argument \code{control} consists of options with argument defaults to a list with
+the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
-  \item{ylab}{customizable y-label, default value is "Subject" for event plot and "Cumulative mean" for MCF plot.}
-  \item{main}{customizable title, the default value is "Recurrent event plot" when \code{mcf = FALSE} and
+  \item{ylab}{customizable y-label, default value is "Subject" for event plot and
+"Cumulative mean" for MCF plot.}
+  \item{main}{customizable title, the default value is "Recurrent event plot"
+when \code{mcf = FALSE} and
 "Sample cumulative mean function plot" when \code{mcf = TRUE}.}
-  \item{terminal.name}{customizable label for terminal event, default value is "Terminal event".}
-  \item{recurrent.name}{customizable legend title for recurrent event, default value is "Recurrent events".}
-  \item{recurrent.types}{customizable label for recurrent event type, default value is \code{NULL}.}
+  \item{terminal.name}{customizable label for terminal event,
+the default value is "Terminal event".}
+  \item{recurrent.name}{customizable legend title for recurrent event,
+the default value is "Recurrent events".}
+  \item{recurrent.types}{customizable label for recurrent event type,
+the default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
-The \code{xlab}, \code{ylab} and \code{main} parameters can also be passed down without specifying a \code{control} list. See \bold{Examples}.
+The \code{xlab}, \code{ylab} and \code{main} parameters can be specified
+outside of the \code{control} list. See \bold{Examples}.
 }
 \examples{
 data(simDat)
@@ -79,7 +95,8 @@ reObj2 <- with(simDat, Recur(t.stop, id, event * sample(1:3, nrow(simDat), TRUE)
 plot(reObj2)
 }
 \references{
-Nelson, W. B. (1995) Confidence Limits for Recurrence Data-Applied to Cost or Number of Product Repairs. \emph{Technometrics}, \bold{37}(2): 147--157.
+Nelson, W. B. (1995) Confidence Limits for Recurrence Data-Applied to Cost
+or Number of Product Repairs. \emph{Technometrics}, \bold{37}(2): 147--157.
 }
 \seealso{
 \code{\link{Recur}}, \code{\link{plotEvents}}, \code{\link{plotMCF}}

@@ -51,8 +51,9 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% a0[1:p])
         rate <- c(reRate(texa, yexa, wi, yexa2))
         Lam <- exp(-rate)
-        R <- m / Lam
-        R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+        R <- (m + 0.01) / (Lam + 0.01)
+        ## R <- m / Lam
+        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         zi <- R / exp(Xi[,-1, drop = FALSE] %*% tail(a0, p))
         return(list(value = c(U1(a0[1:p]), U2(a0[-(1:p)])), zi = zi))
     } else {
@@ -63,8 +64,9 @@ reSC <- function(DF, eqType, solver, a0, wgt = NULL) {
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% ahat)
         rate <- c(reRate(texa, yexa, wi, yexa2))
         Lam <- exp(-rate)
-        R <- m / Lam
-        R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+        R <- (m + 0.01) / (Lam + 0.01)
+        ## R <- m / Lam
+        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         fit.b <- eqSolve(a0[-(1:p)], U2, solver)
         ind <- !duplicated(yexa2)
         return(list(alpha = c(fit.a$par, fit.b$par[-1] + fit.a$par),
@@ -118,8 +120,9 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% a0)
         rate <- c(reRate(texa, yexa, wi, yexa2))
         Lam <- exp(-rate)
-        R <- m / Lam
-        R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+        R <- (m + 0.01) / (Lam + 0.01)
+        ## R <- m / Lam
+        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         ## zi <- Wi * R * exp(as.matrix(df0[,-c(1:6)]) %*% a0)
         zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% a0)
         return(list(value = U1(a0), zi = zi))
@@ -131,8 +134,9 @@ reAR <- function(DF, eqType, solver, a0, wgt = NULL) {
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% ahat)
         rate <- c(reRate(texa, yexa, wi, yexa2))
         Lam <- exp(-rate)
-        R <- m / Lam
-        R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+        R <- (m + 0.01) / (Lam + 0.01)
+        ## R <- m / Lam
+        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% fit.a$par)
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
@@ -179,8 +183,9 @@ reCox <- function(DF, eqType, solver, a0, wgt = NULL) {
     rate <- c(reRate(ti, rep(yi, m), wi, t0))
     Lam0 <- exp(-rate)
     Lam <- Lam0[findInterval(yi, t0)]
-    R <- m / Lam
-    R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+    R <- (m + 0.01) / (Lam + 0.01)
+    ## R <- m / Lam
+    ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
     U1 <- function(b) as.numeric(re2(b, R, Xi, Wi))
     if (is.null(solver)) { 
@@ -230,8 +235,9 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         yexa <- log(yi) + xi %*% a0
         rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
         Lam <- exp(-rate)
-        R <- m / Lam
-        R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+        R <- (m + 0.01) / (Lam + 0.01)
+        ## R <- m / Lam
+        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(value = U1(a0), zi = R))
     } else {
         fit.a <- eqSolve(a0, U1, solver)
@@ -240,8 +246,9 @@ reAM <- function(DF, eqType, solver, a0, wgt = NULL) {
         yexa <- log(yi) + xi %*% ahat
         rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
         Lam <- exp(-rate)
-        R <- m / Lam
-        R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+        R <- (m + 0.01) / (Lam + 0.01)
+        ## R <- m / Lam
+        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(alpha = fit.a$par,
                     aconv = fit.a$convergence,
                     log.muZ = log(mean(R)), zi = R,
@@ -350,6 +357,7 @@ temCox <- function(DF, eqType, solver, b0, zi, wgt = NULL) {
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
+    ## zi <- zi / mean(zi)
     if (is.null(eqType)) {
         yi2 <- sort(unique(yi))
         Haz <- apply(wgt, 2, function(e) temHaz(rep(0, p), b0, xi, yi, zi / mean(zi), di, e, yi2))

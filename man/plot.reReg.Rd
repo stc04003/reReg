@@ -17,12 +17,15 @@
 
 \item{baseline}{a character string specifying which baseline function to plot.
 \describe{
-  \item{\code{baseline = "both"}}{plot both the baseline cumulative rate and the baseline cumulative hazard function (if applicable) in separate panels within the same display (default).}
+  \item{\code{baseline = "both"}}{plot both the baseline cumulative rate and
+the baseline cumulative hazard function (if applicable) in separate panels
+within the same display (default).}
   \item{\code{baseline = "rate"}}{plot the baseline cumulative rate function.}
   \item{\code{baseline = "hazard"}}{plot the baseline cumulative hazard function.}
 }}
 
-\item{smooth}{an optional logical value indicating whether to add a smooth curve obtained from a monotone increasing P-splines implemented in package \code{scam}.}
+\item{smooth}{an optional logical value indicating whether to add a smooth curve
+obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
@@ -36,12 +39,15 @@ Plot the baseline cumulative rate function and the baseline cumulative hazard fu
 (if applicable) for an \code{reReg} object.
 }
 \details{
-The argument \code{control} consists of options with argument defaults to a list with the following values:
+The argument \code{control} consists of options with argument defaults to a list
+with the following values:
 \describe{
   \item{xlab}{customizable x-label, default value is "Time".}
   \item{ylab}{customizable y-label, default value is empty.}
-  \item{main}{customizable title, default value are "Baseline cumulative rate and hazard function" when \code{baseline = "both"},
-"Baseline cumulative rate function" when \code{baseline = "rate"}, and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
+  \item{main}{customizable title, default value are "Baseline cumulative rate and
+hazard function" when \code{baseline = "both"},
+"Baseline cumulative rate function" when \code{baseline = "rate"},
+and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 }
 }
 \examples{

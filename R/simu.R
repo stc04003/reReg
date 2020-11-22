@@ -5,7 +5,7 @@
 Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa / .5
 ## Lam0 <- function(t) 2 * log(1 + t) 
 invLam <- function(t, z, exa, exb) (exp(.5 * t * exa / exb / z) - 1) / exa
-invHaz <- function(t, z, exa, exb) (exp(8 * t * exa / exb / z) - 1) / exa
+invHaz <- function(t, z, exa, exb) (exp(5 * t * exa / exb / z) - 1) / exa
 
 #' Function to find inverse of a given Lam
 inv <- function (t, z, exa, exb, fn) {
@@ -104,7 +104,9 @@ simSC <- function(n,
     if (zVar <= 0) Z <- rep(1, n)
     else Z <- rgamma(n, 1/zVar, 1/zVar)
     X <- cbind(sample(0:1, n, TRUE), rnorm(n))
-    Cen <- sapply(1:n, function(x) rexp(1, X[x, 1] / tau + (1 - X[x, 1]) * 2 * Z[x]^2 / tau))
+    ## Cen <- rexp(n, X[,1] / tau + (1 - X[,1]) * 2 * Z^2 / tau)
+    Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
+    ## Cen <- rexp(n, Z^2 / 100)
     rr <- rexp(n)
     simOne <- function(id, z, x, cen, rr) {
         exa1 <- exa2 <- exb1 <- exb2 <- 1
