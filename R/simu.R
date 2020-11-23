@@ -155,6 +155,7 @@ simSC <- function(n,
         cat("Call: \n")
         print(call)
         cat("\n")
+        cat("Summary:\n")
         cat("Sample size:                                   ", n, "\n")
         cat("Number of recurrent event observed:            ", sum(dat$event), "\n")
         cat("Average number of recurrent event per subject: ", round(sum(dat$event) / n, dg), "\n")
