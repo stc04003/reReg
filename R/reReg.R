@@ -291,8 +291,8 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
                        alphaVar = as.matrix(betaVar[1:p1, 1:p1]),
                        SEmat = betaMatrix, B = length(converged)))
     if (p2 > 0)
-        return(c(res, betaSE = betaSE[(p1 + 1):(p1 + p2)],
-                 betaVar = as.matrix(betaVar[(p1 + 1):(p1 + p2), (p1 + 1):(p1 + p2)])))
+        return(c(res, list(betaSE = betaSE[(p1 + 1):(p1 + p2)],
+                           betaVar = as.matrix(betaVar[(p1 + 1):(p1 + p2), (p1 + 1):(p1 + p2)]))))
     else return(res)
 }
 
