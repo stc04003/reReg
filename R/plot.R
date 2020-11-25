@@ -750,7 +750,7 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
                     geom_step(aes(x = time2, y = Y.lower), lty = 2)
         }        
     } else {
-        X <- as.matrix(unique(dat0[,match(x$varNames, names(newdata))]))
+        X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
         if (ncol(X) != length(x$varNames))
             stop(paste0("Variables ",
                         paste(setdiff(fit1$varNames, names(newdata)), collapse = ", "),
@@ -879,7 +879,7 @@ plotHaz <- function(x, smooth = FALSE, newdata = NULL, frailty = NULL, control =
                     geom_step(aes(x = time2,  y = Y.lower), lty = 2)
         }
     } else {
-        X <- as.matrix(unique(dat0[,match(x$varNames, names(newdata))]))
+        X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
         if (ncol(X) != length(x$varNames))
             stop(paste0("Variables ",
                         paste(setdiff(fit1$varNames, names(newdata)), collapse = ", "),
