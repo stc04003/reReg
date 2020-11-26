@@ -137,7 +137,7 @@ plot.Recur <- function(x, mcf = FALSE,
 #' @export
 #' 
 #' @return A \code{ggplot} object.
-#' @importFrom ggplot2 geom_rect ggplot_build scale_y_continuous
+#' @importFrom ggplot2 geom_rect ggplot_build scale_y_continuous 
 #' @example inst/examples/ex_plot_event.R
 plotEvents <- function(formula, data, result = c("increasing", "decreasing", "none"),
                        calendarTime = FALSE, control = list(), ...) {
@@ -554,6 +554,13 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
 #'   \item{\code{baseline = "rate"}}{plot the baseline cumulative rate function.}
 #'   \item{\code{baseline = "hazard"}}{plot the baseline cumulative hazard function.}
 #' }
+#' @param newdata an optional data frame contains variables to include in the calculation
+#' of the cumulative rate function.
+#' If omitted, the baseline rate function will be plotted.
+#' @param frailty an optional vector to specify the shared frailty for \code{newdata}.
+#' If \code{newdata} is given and \code{frailty} is not specified, the
+#' @param showName an optional logical value indicating whether to label the curves
+#' when \code{newdata} is specified.
 #' @param control a list of control parameters. See \bold{Details}.
 #' @param ... additional graphical parameters to be passed to methods.
 #' 
@@ -566,7 +573,8 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
 #' @importFrom ggplot2 geom_smooth geom_step 
 #' @example inst/examples/ex_plot_reReg.R
 plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
-                       smooth = FALSE, control = list(), ...) {
+                       smooth = FALSE, newdata = NULL, frailty = NULL, showName = FALSE,
+                       control = list(), ...) {
     baseline <- match.arg(baseline)
     if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline functions not available for this method.")
@@ -590,21 +598,24 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
     }
     if (!is.reReg(x)) stop("Response must be a `reReg` class")
     if (baseline == "rate")
-        return(plotRate(x, smooth = smooth, control = ctrl))
+        return(plotRate(x, smooth = smooth,
+                        newdata = newdata, frailty = frailty, showName = showName,control = ctrl))
     if (baseline == "hazard")
-        return(plotHaz(x, smooth = smooth, control = ctrl))
-    if (baseline == "both" & x$temType == ".") {
+        return(plotHaz(x, smooth = smooth,
+                       newdata = newdata, frailty = frailty, showName = showName,control = ctrl))
+    if (x$temType == ".") {
         cat(paste("Baseline cumulative hazard function is not available."))
         cat("\nOnly the baseline cumulative rate function is plotted.\n")
-        return(plotRate(x, smooth = smooth, control = ctrl))
+        return(plotRate(x, smooth = smooth,
+                        newdata = newdata, frailty = frailty, showName = showName,control = ctrl))
     }
     dat1 <- dat2 <- x$DF[, "time2", drop = FALSE]
-    dat1$Y <- x$Lam0(dat1$time2)
-    if (!is.null(x$Lam0.upper)) {
-        dat1$Y.upper <- x$Lam0.upper(dat1$time2)
-        dat1$Y.lower <- x$Lam0.lower(dat1$time2)
-    }
-    if (x$temType != ".") {
+    if (is.null(newdata)) {
+        dat1$Y <- x$Lam0(dat1$time2)
+        if (!is.null(x$Lam0.upper)) {
+            dat1$Y.upper <- x$Lam0.upper(dat1$time2)
+            dat1$Y.lower <- x$Lam0.lower(dat1$time2)
+        }
         dat2$Y <- x$Haz0(dat1$time2)
         if (!is.null(x$Haz0.upper)) {    
             dat2$Y.upper <- x$Haz0.upper(dat2$time2)
@@ -614,33 +625,116 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
         dat$group <- c(rep(1, nrow(dat1)), rep(2, nrow(dat2)))
         dat$group <- factor(dat$group, levels = 1:2,
                             labels = c("Baseline cumulative rate", "Baseline cumulative hazard"))
-    }
-    gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
-        facet_grid(group ~ ., scales = "free") +
-        theme(axis.line = element_line(color = "black"),
-              strip.text = element_text(face = "bold", size = 12))   
-    if (smooth) {
-        dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-            x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
-            return(x)}))
-        gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4, size = ctrl$lwd)
-        if (!is.null(x$Lam0.upper)) {
+        gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
+            facet_grid(group ~ ., scales = "free") +
+            theme(axis.line = element_line(color = "black"),
+                  strip.text = element_text(face = "bold", size = 12))   
+        if (smooth) {
             dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-                x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
+                x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
-            gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, size = ctrl$lwd, lty = 2)
+            gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4, size = ctrl$lwd)
+            if (!is.null(x$Lam0.upper)) {
+                dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
+                    x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
+                    return(x)}))
+                gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, size = ctrl$lwd, lty = 2)
+            }
+            if (!is.null(x$Lam0.lower)) {
+                dat <- do.call(rbind, lapply(split(dat, dat$group), function(x) {
+                    x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
+                    return(x)}))
+                gg <- gg + geom_line(aes(time2, y = dat$bs.lower), color = 4, size = ctrl$lwd, lty = 2)
+            }
+        } else {
+            gg <- gg + geom_step()
+            if (!is.null(x$Lam0.upper))
+                gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2)+ 
+                    geom_step(aes(x = time2, y = Y.lower), lty = 2)
         }
-        if (!is.null(x$Lam0.lower)) {
-            dat <- do.call(rbind, lapply(split(dat, dat$group), function(x) {
-                x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
+    }
+    if (!is.null(newdata)) {
+        if (is.null(frailty)) frailty <- exp(x$log.muZ)
+        X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
+        if (ncol(X) != length(x$varNames))
+            stop(paste0("Variables ",
+                        paste(setdiff(fit1$varNames, names(newdata)), collapse = ", "),
+                        " are missing"))
+        p <- ncol(X)
+        exa1 <- exa2 <- exb1 <- exb2 <- 1
+        if (x$recType == "cox") exa2 <- exp(X %*% x$alpha)
+        if (x$recType == "ar") exa1 <- exp(X %*% x$alpha)
+        if (x$recType == "am") exa1 <- exa2 <- exp(X %*% x$alpha)
+        if (x$recType == "sc") {
+            exa1 <- exp(X %*% x$alpha[1:p])
+            exa2 <- exp(X %*% x$alpha[1:p + p])
+        }
+        if (x$temType == "cox") exb2 <- exp(X %*% x$beta)
+        if (x$temType == "ar") exb1 <- exp(X %*% x$beta)
+        if (x$temType == "am") exb1 <- exb2 <- exp(X %*% x$beta)
+        if (x$temType == "sc") {
+            exb1 <- exp(X %*% x$beta[1:p])
+            exb2 <- exp(X %*% x$beta[1:p + p])
+        }
+        exa1 <- rep(drop(exa1), each = nrow(dat1))
+        exa2 <- rep(drop(exa2), each = nrow(dat1))
+        exb1 <- rep(drop(exb1), each = nrow(dat2))
+        exb2 <- rep(drop(exb2), each = nrow(dat2))
+        Y <- frailty * x$Lam0(dat1$time2 * exa1) * exa2 / exa1
+        if (!is.null(x$Lam0.upper)) {
+            Y.upper <- frailty * x$Lam0.upper(dat1$time2 * exa1) * exa2 / exa1
+            Y.lower <- frailty * x$Lam0.lower(dat1$time2 * exa1) * exa2 / exa1
+            dat1 <- data.frame(time2 = dat1$time2,
+                              id = rep(rownames(X), each = nrow(dat1)),
+                              Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
+        } else
+            dat1 <- data.frame(time2 = dat1$time2, id = rep(rownames(X), each = nrow(dat1)), Y = Y)
+        Y <- frailty * x$Haz0(dat2$time2 * exb1) * exb2 / exb1
+        if (!is.null(x$Haz0.upper)) {
+            Y.upper <- frailty * x$Haz0.upper(dat2$time2 * exb1) * exb2 / exb1
+            Y.lower <- frailty * x$Haz0.lower(dat2$time2 * exb1) * exb2 / exb1
+            dat2 <- data.frame(time2 = dat2$time2, id = rep(rownames(X), each = nrow(dat2)),
+                               Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
+        } else
+            dat2 <- data.frame(time2 = dat2$time2, id = rep(rownames(X), each = nrow(dat2)), Y = Y)
+        dat <- rbind(dat1, dat2)
+        dat$group <- c(rep(1, nrow(dat1)), rep(2, nrow(dat2)))
+        dat$group <- factor(dat$group, levels = 1:2,
+                            labels = c("Baseline cumulative rate", "Baseline cumulative hazard"))
+        ## dat$id <- rep(rownames(X), each = 2 * nrow(dat))
+        gg <- ggplot(data = dat, aes(x = time2, y = Y, group = id)) +
+            facet_grid(group ~ ., scales = "free") +
+            theme(axis.line = element_line(color = "black"),
+                  strip.text = element_text(face = "bold", size = 12))   
+        if (smooth) {
+            dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x){
+                x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
-            gg <- gg + geom_line(aes(time2, y = dat$bs.lower), color = 4, size = ctrl$lwd, lty = 2)
+            gg <- gg + geom_line(aes(time2, y = dat$bs, group = id), color = 4, size = ctrl$lwd)
+            if (!is.null(x$Lam0.upper)) {
+                dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x){
+                    x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
+                    return(x)}))
+                gg <- gg + geom_line(aes(time2, y = dat$bs.upper, group = id),
+                                     color = 4, size = ctrl$lwd, lty = 2)
+            }
+            if (!is.null(x$Lam0.lower)) {
+                dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x) {
+                    x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
+                    return(x)}))
+                gg <- gg + geom_line(aes(time2, y = dat$bs.lower, group = id),
+                                     color = 4, size = ctrl$lwd, lty = 2)
+            }
+        } else {
+            gg <- gg + geom_step()
+            if (!is.null(x$Lam0.upper))
+                gg <- gg +
+                    geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) + 
+                    geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
         }
-    } else {
-        gg <- gg + geom_step()
-        if (!is.null(x$Lam0.upper))
-            gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2)+ 
-                geom_step(aes(x = time2, y = Y.lower), lty = 2)
+        if (showName)
+            gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
+                scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
     gg + ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
 }
@@ -679,7 +773,9 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' of the cumulative rate function.
 #' If omitted, the baseline rate function will be plotted.
 #' @param frailty an optional vector to specify the shared frailty for \code{newdata}.
-#' If \code{newdata} is given and \code{frailty} is not specified, the 
+#' If \code{newdata} is given and \code{frailty} is not specified, the
+#' @param showName an optional logical value indicating whether to label the curves
+#' when \code{newdata} is specified.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
@@ -690,15 +786,17 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' @return A \code{ggplot} object.
 #'
 #' @keywords Plots
+#' @importFrom ggplot2 scale_x_continuous
+#' @importFrom directlabels geom_dl
 #' 
 #' @example inst/examples/ex_plot_rate.R
 plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
                      smooth = FALSE, newdata = NULL, frailty = NULL,
-                     control = list(), ...) {
+                     showName = FALSE, control = list(), ...) {
     if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline cumulative rate function is not available")
     if (is.null(frailty)) frailty <- exp(x$log.muZ)
-    if (length(frailty) > 1 & length(frailty) != length(x$varNames))
+    if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
         stop("newdata and frailty are different lengths")
     ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
     namc <- names(control)
@@ -749,12 +847,14 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
                 gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2) +
                     geom_step(aes(x = time2, y = Y.lower), lty = 2)
         }        
-    } else {
+    }
+    if (!is.null(newdata)) {
         X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
         if (ncol(X) != length(x$varNames))
             stop(paste0("Variables ",
                         paste(setdiff(fit1$varNames, names(newdata)), collapse = ", "),
                         " are missing"))
+        p <- ncol(X)
         exa1 <- exa2 <- 1
         if (x$recType == "cox") exa2 <- exp(X %*% x$alpha)
         if (x$recType == "ar") exa1 <- exp(X %*% x$alpha)
@@ -769,10 +869,11 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
         if (!is.null(x$Lam0.upper)) {
             Y.upper <- frailty * x$Lam0.upper(dat$time2 * exa1) * exa2 / exa1
             Y.lower <- frailty * x$Lam0.lower(dat$time2 * exa1) * exa2 / exa1
-            dat <- data.frame(time2 = dat$time2, id = rep(1:nrow(X), each = nrow(dat)),
+            dat <- data.frame(time2 = dat$time2,
+                              id = rep(rownames(X), each = nrow(dat)),
                               Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
         } else
-            dat <- data.frame(time2 = dat$time2, id = rep(1:nrow(X), each = nrow(dat)), Y = Y)
+            dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)), Y = Y)
         gg <- ggplot(data = dat, aes(x = time2, y = Y, group = id)) +
             theme(axis.line = element_line(color = "black"))
         if (smooth) {
@@ -794,7 +895,10 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
                 gg <- gg +
                     geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) +
                     geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
-        }    
+        }
+        if (showName) 
+            gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
+                scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
     gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
 }
@@ -822,6 +926,8 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
 #' If omitted, the baseline rate function will be plotted.
 #' @param frailty an optional vector to specify the shared frailty for \code{newdata}.
 #' If \code{newdata} is given and \code{frailty} is not specified, the
+#' @param showName an optional logical value indicating whether to label the curves
+#' when \code{newdata} is specified.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
@@ -833,14 +939,15 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
 #' @keywords Plots
 #' 
 #' @example inst/examples/ex_plot_Haz.R
-plotHaz <- function(x, smooth = FALSE, newdata = NULL, frailty = NULL, control = list(), ...) {
+plotHaz <- function(x, smooth = FALSE, newdata = NULL, frailty = NULL, showName = FALSE,
+                    control = list(), ...) {
     if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline cumulative hazard function is not available.")
     if (x$temType == ".") {
         stop("Baseline cumulative hazard function is not available.")
     }
     if (is.null(frailty)) frailty <- exp(x$log.muZ)
-    if (length(frailty) > 1 & length(frailty) != length(x$varNames))
+    if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(nesdata))
         stop("newdata and frailty are different lengths")
     ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
     namc <- names(control)
@@ -878,17 +985,19 @@ plotHaz <- function(x, smooth = FALSE, newdata = NULL, frailty = NULL, control =
                 gg <- gg + geom_step(aes(x = time2,  y = Y.upper), lty = 2) +
                     geom_step(aes(x = time2,  y = Y.lower), lty = 2)
         }
-    } else {
+    }
+    if (!is.null(newdata)) { 
         X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
         if (ncol(X) != length(x$varNames))
             stop(paste0("Variables ",
                         paste(setdiff(fit1$varNames, names(newdata)), collapse = ", "),
                         " are missing"))
+        p <- ncol(X)
         exb1 <- exb2 <- 1
-        if (x$recType == "cox") exb2 <- exp(X %*% x$beta)
-        if (x$recType == "ar") exb1 <- exp(X %*% x$beta)
-        if (x$recType == "am") exb1 <- exb2 <- exp(X %*% x$beta)
-        if (x$recType == "sc") {
+        if (x$temType == "cox") exb2 <- exp(X %*% x$beta)
+        if (x$temType == "ar") exb1 <- exp(X %*% x$beta)
+        if (x$temType == "am") exb1 <- exb2 <- exp(X %*% x$beta)
+        if (x$temType == "sc") {
             exb1 <- exp(X %*% x$beta[1:p])
             exb2 <- exp(X %*% x$beta[1:p + p])
         }
@@ -898,10 +1007,10 @@ plotHaz <- function(x, smooth = FALSE, newdata = NULL, frailty = NULL, control =
         if (!is.null(x$Haz0.upper)) {
             Y.upper <- frailty * x$Haz0.upper(dat$time2 * exb1) * exb2 / exb1
             Y.lower <- frailty * x$Haz0.lower(dat$time2 * exb1) * exb2 / exb1
-            dat <- data.frame(time2 = dat$time2, id = rep(1:nrow(X), each = nrow(dat)),
+            dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)),
                               Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
         } else
-            dat <- data.frame(time2 = dat$time2, id = rep(1:nrow(X), each = nrow(dat)), Y = Y)
+            dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)), Y = Y)
         gg <- ggplot(data = dat, aes(x = time2, y = Y, group = id)) +
             theme(axis.line = element_line(color = "black"))
         if (smooth) {
@@ -923,7 +1032,10 @@ plotHaz <- function(x, smooth = FALSE, newdata = NULL, frailty = NULL, control =
                 gg <- gg +
                     geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) +
                     geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
-        }       
+        }
+        if (showName) 
+            gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
+                scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
     gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
 }

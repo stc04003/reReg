@@ -8,6 +8,9 @@
   x,
   baseline = c("both", "rate", "hazard"),
   smooth = FALSE,
+  newdata = NULL,
+  frailty = NULL,
+  showName = FALSE,
   control = list(),
   ...
 )
@@ -26,6 +29,16 @@ within the same display (default).}
 
 \item{smooth}{an optional logical value indicating whether to add a smooth curve
 obtained from a monotone increasing P-splines implemented in package \code{scam}.}
+
+\item{newdata}{an optional data frame contains variables to include in the calculation
+of the cumulative rate function.
+If omitted, the baseline rate function will be plotted.}
+
+\item{frailty}{an optional vector to specify the shared frailty for \code{newdata}.
+If \code{newdata} is given and \code{frailty} is not specified, the}
+
+\item{showName}{an optional logical value indicating whether to label the curves
+when \code{newdata} is specified.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 

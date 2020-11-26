@@ -9,6 +9,7 @@ plotHaz(
   smooth = FALSE,
   newdata = NULL,
   frailty = NULL,
+  showName = FALSE,
   control = list(),
   ...
 )
@@ -25,6 +26,9 @@ If omitted, the baseline rate function will be plotted.}
 
 \item{frailty}{an optional vector to specify the shared frailty for \code{newdata}.
 If \code{newdata} is given and \code{frailty} is not specified, the}
+
+\item{showName}{an optional logical value indicating whether to label the curves
+when \code{newdata} is specified.}
 
 \item{control}{a list of control parameters.}
 
