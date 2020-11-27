@@ -83,7 +83,7 @@ The available methods for variance estimation are:
 The \code{control} list consists of the following parameters:
 \describe{
   \item{tol}{absolute error tolerance.}
-  \item{a0, b0}{initial guesses used for root search.}
+  \item{par1, par2, par3, par4}{initial guesses used for root search.}
   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
   \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }

@@ -4,37 +4,34 @@ print.reReg <- function(x, ...) {
         stop("Must be a reReg object")
     cat("Call: \n")
     dput(x$call)
-    if (all(!is.na(x$alpha)) & !is.null(x$alpha)) {
-        if(x$recType == "cox.LWYY")
-            cat("\nFitted with the Cox model of Lin et al. (2000):")
-        if(x$recType == "cox.GL")
-            cat("\nFitted with the Cox model of Ghosh and Lin (2002):")
-        if(x$recType == "am.GL")
-            cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
-        cat("\nRecurrent event process:")
-        if (x$recType == "sc") {
-            p <- length(x$alpha) / 2
+    if(x$typeRec == "cox.LWYY")
+        cat("\nFitted with the Cox model of Lin et al. (2000):")
+    if(x$typeRec == "cox.GL")
+        cat("\nFitted with the Cox model of Ghosh and Lin (2002):")
+    if(x$typeRec == "am.GL")
+        cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
+    cat("\nRecurrent event process:")
+    if (x$typeRec == "sc") {
+        p <- length(x$par1)
+        mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
+                     rep(x$varNames, 2), format(c(x$par1, x$par2), digits = 5))
+        prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", 1 + ncol(mat)), quote = FALSE)
+    } else {
+        mat <- rbind(x$varNames, format(x$par1, digits = 5))
+        prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", ncol(mat)), quote = FALSE)
+    }    
+    if (length(x$par3) > 0) {
+        cat("\nTerminal event:")
+        if (x$typeRec == "sc") {
+            p <- length(x$par3)
             mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
-                         rep(x$varNames, 2), format(x$alpha, digits = 5))
+                         rep(x$varNames, 2), format(c(x$par3, x$par4), digits = 5))
             ## mat <- cbind(mat[,1:p], "    ", mat[,1:p])
-            prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", 1 + ncol(mat)), quote = FALSE)
+            prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", 1 + ncol(mat)),
+                     quote = FALSE)
         } else {
-            mat <- rbind(x$varNames, format(x$alpha, digits = 5))
+            mat <- rbind(x$varNames, format(x$par3, digits = 5))
             prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", ncol(mat)), quote = FALSE)
-        }
-        if (length(x$beta) > 0) {
-            cat("\nTerminal event:")
-            if (x$recType == "sc") {
-                p <- length(x$beta) / 2
-                mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
-                             rep(x$varNames, 2), format(x$beta, digits = 5))
-                ## mat <- cbind(mat[,1:p], "    ", mat[,1:p])
-                prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", 1 + ncol(mat)),
-                         quote = FALSE)
-            } else {
-                mat <- rbind(x$varNames, format(x$beta, digits = 5))
-                prmatrix(mat, rowlab = rep("", nrow(mat)), collab = rep("", ncol(mat)), quote = FALSE)
-            }
         }
         ## print.default(format(x$alpha, digits = digits), print.gap = 2L, quote = FALSE)
     } else {
@@ -48,10 +45,12 @@ print.reReg <- function(x, ...) {
     }
 }
 
-pvalTab <- function(pe, se) {
+pvalTab <- function(pe, se, names = NULL) {
     if (is.null(se)) se <- NA
-    cbind(Estimate = round(pe, 3), StdErr = round(se, 3),
-          z.value = round(pe / se, 3), p.value = round(2 * pnorm(-abs(pe / se)), 3))    
+    tab <- cbind(Estimate = round(pe, 3), StdErr = round(se, 3),
+                 z.value = round(pe / se, 3), p.value = round(2 * pnorm(-abs(pe / se)), 3))
+    if (!is.null(names)) rownames(tab) <- names
+    return(tab)
 }
     
 #' @exportS3Method summary reReg
@@ -64,44 +63,36 @@ summary.reReg <- function(object, test = FALSE, ...) {
                     tabA = data.frame(time = t0, rate = object$Lam0(t0), hazard = object$Haz0(t0)))
         out
     }
-    if (object$method != "nonparametric" & all(!is.na(object$alpha))) {
-        tabA <- pvalTab(object$alpha, object$alphaSE)
-        if (object$recType == "sc") {
-            p <- length(object$alpha) / 2
-            rownames(tabA) <- rep(object$varNames, 2)
-            tabA <- list(tabA1 = tabA[1:p,, drop = FALSE], tabA2 = tabA[-(1:p),, drop = FALSE])
-        } else rownames(tabA) <- object$varNames
+    if (object$method != "nonparametric") {
+        tabA <- pvalTab(object$par1, object$par1.se, object$varNames)
+        if (object$typeRec == "sc") 
+            tabA <- list(tabA1 = tabA,
+                         tabA2 = pvalTab(object$par2, object$par2.se, object$varNames))
         out <- list(call = object$call, method = object$method, tabA = tabA)
-        if (!is.null(object$beta)) {
-            tabB <- pvalTab(object$beta, object$betaSE)
-            if (object$temType == "sc") {
-                p <- length(object$beta) / 2
-                rownames(tabB) <- rep(object$varNames, 2)
-                tabB <- list(tabB1 = tabB[1:p,, drop = FALSE], tabB2 = tabB[-(1:p),, drop = FALSE])
-            } else rownames(tabB) <- object$varNames
-            out$tabB <- tabB
-        }
-        if (object$recType == "sc" & object$se == "resampling") {
-            p <- length(object$alpha) / 2
-            out$HA.chi <- object$alpha[1:p] %*%
-                solve(object$varMat[1:p, 1:p, drop = FALSE]) %*% object$alpha[1:p]
-            out$HB.chi <- object$alpha[-(1:p)] %*%
-                solve(object$varMat[1:p, 1:p, drop = FALSE] +
-                      object$varMat[(p+2):(2*p+1), (p+2):(2*p+1), drop = FALSE] +
-                      2 * object$varMat[1:p, (p+2):(2*p+1), drop = FALSE]) %*%
-                object$alpha[-(1:p)]
-            g <- object$alpha[-(1:p)] - object$alpha[1:p]
-            out$HG.chi <- g %*% solve(object$varMat[(p+2):(2*p+1), (p+2):(2*p+1), drop = FALSE]) %*% g
+        if (!is.null(object$par3))
+            out$tabB <- pvalTab(object$par3, object$par3.se, object$varNames)
+        if (object$typeTem == "sc")
+            out$tabB <- list(tabB1 = out$tabB,
+                             tabB2 = pvalTab(object$par4, object$par4.se, object$varNames))
+        if (object$typeRec == "sc" & object$se == "resampling") {
+            p <- length(object$par1)
+            out$HA.chi <- object$par1 %*% solve(object$par1.vcov) %*% object$par1
+            out$HB.chi <- object$par2 %*%
+                solve(object$par1.vcov + object$par2.vcov[-1, -1] +
+                      2 * object$vcovRec[1:p, (p+2):(2*p+1), drop = FALSE]) %*%
+                object$par2
+            g <- object$par2 - object$par1
+            out$HG.chi <- g %*% solve(object$par2.vcov[-1,-1]) %*% g
             out$HA.pval <- 1 - pchisq(out$HA.chi, p)
             out$HB.pval <- 1 - pchisq(out$HB.chi, p)
             out$HG.pval <- 1 - pchisq(out$HG.chi, p)
         }
-        out$recType <- object$recType
-        out$temType <- object$temType
+        out$typeRec <- object$typeRec
+        out$typeTem <- object$typeTem
         out$test <- test
     }
     class(out) <- "summary.reReg"
-    out
+    return(out)
 }
 
 printCoefmat2 <- function(tab) 
@@ -112,13 +103,13 @@ print.summary.reReg <- function(x, ...) {
     cat("Call: \n")
     dput(x$call)
     if (x$method != "nonparametric" & !is.na(x$tabA)[1]) {
-        if(x$recType == "cox.LWYY")
+        if(x$typeRec == "cox.LWYY")
             cat("\nFitted with the Cox model of Lin et al. (2000):")
-        if(x$recType == "cox.GL")
+        if(x$typeRec == "cox.GL")
             cat("\nFitted with the Cox model of Ghosh and Lin (2002):")
-        if(x$recType == "am.GL")
+        if(x$typeRec == "am.GL")
             cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
-        if (x$recType == "sc") {
+        if (x$typeRec == "sc") {
             p <- nrow(x$tabA$tabA1)
             cat("\nRecurrent event process (shape):\n")
             printCoefmat2(x$tabA[[1]])
@@ -141,10 +132,10 @@ print.summary.reReg <- function(x, ...) {
             printCoefmat(x$tabA)
         }
         ## Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)
-        if (x$temType != ".") {
-            if (x$temType == "sc") {
+        if (x$typeTem != ".") {
+            if (x$typeTem == "sc") {
                 p <- nrow(x$tabB$tabB1)
-                cat("\nTerminal event (shape):\n")
+                cat("\n\nTerminal event (shape):\n")
                 printCoefmat2(x$tabB[[1]])
                 cat("\nTerminal event (size):\n")
                 printCoefmat2(x$tabB[[2]])
@@ -163,12 +154,10 @@ print.summary.reReg <- function(x, ...) {
 
 #' @exportS3Method coef reReg
 coef.reReg <- function(object, ...) {
-    if (is.null(object$beta)) return(object$alpha)
-    return(as.numeric(c(object$alpha, object$beta)))
+    as.numeric(c(f2$par1, f2$par2, f2$par3, f2$par4))
 }
 
 #' @exportS3Method vcov reReg
 vcov.reReg <- function(object, ...) {
-    if (is.null(object$betaVar)) return(object$alphaVar)
-    return(list(alpha.vcov = object$alphaVar, beta.vcov = object$betaVar))
+    lsit(vcovRec = object$vcovRec, vcovTem = object$vcovTem)
 }

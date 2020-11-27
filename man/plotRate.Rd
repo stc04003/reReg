@@ -6,23 +6,17 @@
 \usage{
 plotRate(
   x,
-  type = c("unrestricted", "scaled", "raw"),
-  smooth = FALSE,
   newdata = NULL,
   frailty = NULL,
   showName = FALSE,
+  type = c("unrestricted", "scaled", "raw"),
+  smooth = FALSE,
   control = list(),
   ...
 )
 }
 \arguments{
 \item{x}{an object of class \code{reReg}, usually returned by the \code{reReg} function.}
-
-\item{type}{a character string specifying the type of rate function to be plotted.
-Options are "unrestricted", "scaled", "raw". See \bold{Details}.}
-
-\item{smooth}{an optional logical value indicating whether to add a smooth curve
-obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{newdata}{an optional data frame contains variables to include in the calculation
 of the cumulative rate function.
@@ -33,6 +27,12 @@ If \code{newdata} is given and \code{frailty} is not specified, the}
 
 \item{showName}{an optional logical value indicating whether to label the curves
 when \code{newdata} is specified.}
+
+\item{type}{a character string specifying the type of rate function to be plotted.
+Options are "unrestricted", "scaled", "raw". See \bold{Details}.}
+
+\item{smooth}{an optional logical value indicating whether to add a smooth curve
+obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 
 \item{control}{a list of control parameters.}
 

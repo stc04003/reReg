@@ -21,9 +21,9 @@
 residuals.reReg <- function(object, model = c("recurrent", "failure"), ...) {
     if (!is.reReg(object)) stop("Must be a reReg object")
     model <- match.arg(model)
-    if (object$recType %in% c("cox.LWYY", "cox.GL", "am.GL"))
+    if (object$typeRec %in% c("cox.LWYY", "cox.GL", "am.GL"))
         stop("Residuals calculation not available.")
-    if (object$temType == "." & model == "failure")
+    if (object$typeTem == "." & model == "failure")
         stop("Residuals on failure model not available. ")
     t0 <- object$DF$time2
     X <- as.matrix(subset(object$DF, select = object$varNames))
@@ -33,12 +33,12 @@ residuals.reReg <- function(object, model = c("recurrent", "failure"), ...) {
     p <- length(object$varNames)
     if (model == "recurrent") {
         exa1 <- exa2 <- 1
-        if (object$recType == "cox") exa2 <- exp(X %*% object$alpha)
-        if (object$recType == "ar") exa1 <- exp(X %*% object$alpha)
-        if (object$recType == "am") exa1 <- exa2 <- exp(X %*% object$alpha)
-        if (object$recType == "sc") {
-            exa1 <- exp(X %*% object$alpha[1:p])
-            exa2 <- exp(X %*% object$alpha[1:p + p])
+        if (object$typeRec == "cox") exa2 <- exp(X %*% object$par1)
+        if (object$typeRec == "ar") exa1 <- exp(X %*% object$par1)
+        if (object$typeRec == "am") exa1 <- exa2 <- exp(X %*% object$par1)
+        if (object$typeRec == "sc") {
+            exa1 <- exp(X %*% object$par1)
+            exa2 <- exp(X %*% object$par2)
         }
         E <- drop(rep(object$zi, mi) * object$Lam0(t0 * exa1) * exa2 / exa1)
         names(E) <- NULL
@@ -46,12 +46,12 @@ residuals.reReg <- function(object, model = c("recurrent", "failure"), ...) {
     }
     if (model == "failure") {
         exb1 <- exb2 <- 1
-        if (object$temType == "cox") exb2 <- exp(X %*% object$beta)
-        if (object$temType == "ar") exb1 <- exp(X %*% object$beta)
-        if (object$temType == "am") exb1 <- exb2 <- exp(X %*% object$beta)
-        if (object$temType == "sc") {
-            exb1 <- exp(X %*% object$beta[1:p])
-            exb2 <- exp(X %*% object$beta[1:p + p])
+        if (object$typeTem == "cox") exb2 <- exp(X %*% object$par3)
+        if (object$typeTem == "ar") exb1 <- exp(X %*% object$par3)
+        if (object$typeTem == "am") exb1 <- exb2 <- exp(X %*% object$par3)
+        if (object$typeTem == "sc") {
+            exb1 <- exp(X %*% object$par3)
+            exb2 <- exp(X %*% object$par4)
         }
         E <- drop(rep(object$zi, mi) * object$Haz0(t0 * exb1) * exb2 / exb1)
         names(E) <- NULL

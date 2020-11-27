@@ -96,10 +96,10 @@ simSC <- function(n,
                                  c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
     type <- match.arg(type, c("cox", "am", "sc", "ar", allcomb))
     if (grepl("|", type, fixed = TRUE)) {
-        recType <- substring(type, 1, regexpr("[|]", type) - 1)
-        temType <- substring(type, regexpr("[|]", type) + 1)
+        typeRec <- substring(type, 1, regexpr("[|]", type) - 1)
+        typeTem <- substring(type, regexpr("[|]", type) + 1)
     } else {
-        recType <- temType <- type
+        typeRec <- typeTem <- type
     }
     if (zVar <= 0) Z <- rep(1, n)
     else Z <- rgamma(n, 1/zVar, 1/zVar)
@@ -110,17 +110,17 @@ simSC <- function(n,
     rr <- rexp(n)
     simOne <- function(id, z, x, cen, rr) {
         exa1 <- exa2 <- exb1 <- exb2 <- 1
-        if (recType == "cox") exa2 <- c(exp(x %*% par1))
-        if (recType == "ar") exa1 <- c(exp(x %*% par1))
-        if (recType == "am") exa1 <- exa2 <- c(exp(x %*% par1))
-        if (recType == "sc") {
+        if (typeRec == "cox") exa2 <- c(exp(x %*% par1))
+        if (typeRec == "ar") exa1 <- c(exp(x %*% par1))
+        if (typeRec == "am") exa1 <- exa2 <- c(exp(x %*% par1))
+        if (typeRec == "sc") {
             exa1 <- c(exp(x %*% par1))
             exa2 <- c(exp(x %*% par2))
         }
-        if (temType == "cox") exb2 <- c(exp(x %*% par2))
-        if (temType == "ar") exb1 <- c(exp(x %*% par2))
-        if (temType == "am") exb1 <- exb2 <- c(exp(x %*% par2))
-        if (temType == "sc") {
+        if (typeTem == "cox") exb2 <- c(exp(x %*% par2))
+        if (typeTem == "ar") exb1 <- c(exp(x %*% par2))
+        if (typeTem == "am") exb1 <- exb2 <- c(exp(x %*% par2))
+        if (typeTem == "sc") {
             exb1 <- c(exp(x %*% par3))
             exb2 <- c(exp(x %*% par4))
         }

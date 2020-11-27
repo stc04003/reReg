@@ -576,7 +576,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                        smooth = FALSE, newdata = NULL, frailty = NULL, showName = FALSE,
                        control = list(), ...) {
     baseline <- match.arg(baseline)
-    if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
+    if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline functions not available for this method.")
     if (baseline == "both") {
         ctrl <- plot.reReg.control(main = "Baseline cumulative rate and cumulative hazard functions")
@@ -603,7 +603,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
     if (baseline == "hazard")
         return(plotHaz(x, smooth = smooth,
                        newdata = newdata, frailty = frailty, showName = showName,control = ctrl))
-    if (x$temType == ".") {
+    if (x$typeTem == ".") {
         cat(paste("Baseline cumulative hazard function is not available."))
         cat("\nOnly the baseline cumulative rate function is plotted.\n")
         return(plotRate(x, smooth = smooth,
@@ -662,19 +662,19 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
                         " are missing"))
         p <- ncol(X)
         exa1 <- exa2 <- exb1 <- exb2 <- 1
-        if (x$recType == "cox") exa2 <- exp(X %*% x$alpha)
-        if (x$recType == "ar") exa1 <- exp(X %*% x$alpha)
-        if (x$recType == "am") exa1 <- exa2 <- exp(X %*% x$alpha)
-        if (x$recType == "sc") {
-            exa1 <- exp(X %*% x$alpha[1:p])
-            exa2 <- exp(X %*% x$alpha[1:p + p])
+        if (x$typeRec == "cox") exa2 <- exp(X %*% x$par1)
+        if (x$typeRec == "ar") exa1 <- exp(X %*% x$par1)
+        if (x$typeRec == "am") exa1 <- exa2 <- exp(X %*% x$par1)
+        if (x$typeRec == "sc") {
+            exa1 <- exp(X %*% x$par1)
+            exa2 <- exp(X %*% x$par2)
         }
-        if (x$temType == "cox") exb2 <- exp(X %*% x$beta)
-        if (x$temType == "ar") exb1 <- exp(X %*% x$beta)
-        if (x$temType == "am") exb1 <- exb2 <- exp(X %*% x$beta)
-        if (x$temType == "sc") {
-            exb1 <- exp(X %*% x$beta[1:p])
-            exb2 <- exp(X %*% x$beta[1:p + p])
+        if (x$typeTem == "cox") exb2 <- exp(X %*% x$par3)
+        if (x$typeTem == "ar") exb1 <- exp(X %*% x$par3)
+        if (x$typeTem == "am") exb1 <- exb2 <- exp(X %*% x$par3)
+        if (x$typeTem == "sc") {
+            exb1 <- exp(X %*% x$par3)
+            exb2 <- exp(X %*% x$par4)
         }
         exa1 <- rep(drop(exa1), each = nrow(dat1))
         exa2 <- rep(drop(exa2), each = nrow(dat1))
@@ -790,10 +790,10 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' @importFrom directlabels geom_dl
 #' 
 #' @example inst/examples/ex_plot_rate.R
-plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
-                     smooth = FALSE, newdata = NULL, frailty = NULL,
-                     showName = FALSE, control = list(), ...) {
-    if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
+plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE, 
+                     type = c("unrestricted", "scaled", "raw"),
+                     smooth = FALSE, control = list(), ...) {
+    if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline cumulative rate function is not available")
     if (is.null(frailty)) frailty <- exp(x$log.muZ)
     if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
@@ -856,12 +856,12 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
                         " are missing"))
         p <- ncol(X)
         exa1 <- exa2 <- 1
-        if (x$recType == "cox") exa2 <- exp(X %*% x$alpha)
-        if (x$recType == "ar") exa1 <- exp(X %*% x$alpha)
-        if (x$recType == "am") exa1 <- exa2 <- exp(X %*% x$alpha)
-        if (x$recType == "sc") {
-            exa1 <- exp(X %*% x$alpha[1:p])
-            exa2 <- exp(X %*% x$alpha[1:p + p])
+        if (x$typeRec == "cox") exa2 <- exp(X %*% x$par1)
+        if (x$typeRec == "ar") exa1 <- exp(X %*% x$par1)
+        if (x$typeRec == "am") exa1 <- exa2 <- exp(X %*% x$par1)
+        if (x$typeRec == "sc") {
+            exa1 <- exp(X %*% x$par1)
+            exa2 <- exp(X %*% x$par2)
         }
         exa1 <- rep(drop(exa1), each = nrow(dat))
         exa2 <- rep(drop(exa2), each = nrow(dat))        
@@ -939,11 +939,11 @@ plotRate <- function(x, type = c("unrestricted", "scaled", "raw"),
 #' @keywords Plots
 #' 
 #' @example inst/examples/ex_plot_Haz.R
-plotHaz <- function(x, smooth = FALSE, newdata = NULL, frailty = NULL, showName = FALSE,
+plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE, smooth = FALSE, 
                     control = list(), ...) {
-    if (x$recType %in% c("cox.GL", "cox.LWYY", "am.GL"))
+    if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline cumulative hazard function is not available.")
-    if (x$temType == ".") {
+    if (x$typeTem == ".") {
         stop("Baseline cumulative hazard function is not available.")
     }
     if (is.null(frailty)) frailty <- exp(x$log.muZ)
@@ -994,12 +994,12 @@ plotHaz <- function(x, smooth = FALSE, newdata = NULL, frailty = NULL, showName 
                         " are missing"))
         p <- ncol(X)
         exb1 <- exb2 <- 1
-        if (x$temType == "cox") exb2 <- exp(X %*% x$beta)
-        if (x$temType == "ar") exb1 <- exp(X %*% x$beta)
-        if (x$temType == "am") exb1 <- exb2 <- exp(X %*% x$beta)
-        if (x$temType == "sc") {
-            exb1 <- exp(X %*% x$beta[1:p])
-            exb2 <- exp(X %*% x$beta[1:p + p])
+        if (x$typeTem == "cox") exb2 <- exp(X %*% x$par3)
+        if (x$typeTem == "ar") exb1 <- exp(X %*% x$par3)
+        if (x$typeTem == "am") exb1 <- exb2 <- exp(X %*% x$par3)
+        if (x$typeTem == "sc") {
+            exb1 <- exp(X %*% x$par3)
+            exb2 <- exp(X %*% x$par4)
         }
         exb1 <- rep(drop(exb1), each = nrow(dat))
         exb2 <- rep(drop(exb2), each = nrow(dat))        
