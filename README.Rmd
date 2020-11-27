@@ -39,7 +39,7 @@ You can install reReg from github with:
 
 ```{r gh-installation, eval = FALSE}
 ## install.packages("devtools")
-devtools::install_github("stc04003/reReg")
+devtools::install_github("stc04003/reReg", ref = "main")
 ```
 
 ### Online documentation 
