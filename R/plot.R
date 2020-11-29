@@ -509,7 +509,7 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
         dat0 <- do.call(rbind, lapply(split(dat0, dat0$GrpInd), function(x){
             x$bs <- scam(x$MCF ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
             return(x)}))       
-        gg <- gg + geom_line(aes(time2, y = dat0$bs), color = 4, size = ctrl$lwd)
+        gg <- gg + geom_line(data = dat0, aes(time2, y = bs), color = 4, size = ctrl$lwd)
         ## geom_smooth(method = "scam", formula = y ~ s(x, k = 10, bs = "mpi"), size = ctrl$lwd, se = FALSE)
     }
     ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
@@ -554,6 +554,10 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
 #'   \item{\code{baseline = "rate"}}{plot the baseline cumulative rate function.}
 #'   \item{\code{baseline = "hazard"}}{plot the baseline cumulative hazard function.}
 #' }
+#' @param rateType a character string specifying the type of rate function to be plotted.
+#' This argument passed to the \code{plotRate()} function as the \code{type} argument.
+#' See \code{\link{plotRate}}.
+#' Options are "unrestricted", "scaled", "bounded". 
 #' @param newdata an optional data frame contains variables to include in the calculation
 #' of the cumulative rate function.
 #' If omitted, the baseline rate function will be plotted.
@@ -572,17 +576,20 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
 #' 
 #' @importFrom ggplot2 geom_smooth geom_step 
 #' @example inst/examples/ex_plot_reReg.R
-plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
+plot.reReg <- function(x,
+                       baseline = c("both", "rate", "hazard"),
+                       type = c("unrestricted", "bounded", "scaled"),
                        smooth = FALSE, newdata = NULL, frailty = NULL, showName = FALSE,
                        control = list(), ...) {
     baseline <- match.arg(baseline)
+    type <- match.arg(type)
     if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline functions not available for this method.")
     if (baseline == "both") {
         ctrl <- plot.reReg.control(main = "Baseline cumulative rate and cumulative hazard functions")
         if (x$method == "cox.LWYY")
             ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
-        smooth  <- FALSE
+        ## smooth  <- FALSE
     }
     if (baseline == "rate") ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
     if (baseline == "hazard") ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
@@ -598,25 +605,29 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
     }
     if (!is.reReg(x)) stop("Response must be a `reReg` class")
     if (baseline == "rate")
-        return(plotRate(x, smooth = smooth,
-                        newdata = newdata, frailty = frailty, showName = showName,control = ctrl))
+        return(plotRate(x, smooth = smooth, type = type,
+                        newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
     if (baseline == "hazard")
         return(plotHaz(x, smooth = smooth,
-                       newdata = newdata, frailty = frailty, showName = showName,control = ctrl))
+                       newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
     if (x$typeTem == ".") {
         cat(paste("Baseline cumulative hazard function is not available."))
         cat("\nOnly the baseline cumulative rate function is plotted.\n")
-        return(plotRate(x, smooth = smooth,
-                        newdata = newdata, frailty = frailty, showName = showName,control = ctrl))
+        return(plotRate(x, smooth = smooth, type = type,
+                        newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
     }
     dat1 <- dat2 <- x$DF[, "time2", drop = FALSE]
     if (is.null(newdata)) {
-        dat1$Y <- x$Lam0(dat1$time2)
+        if (type == "unrestricted") dat1$Y <- x$Lam0(dat1$time2) * exp(x$log.muZ)
+        if (type == "scaled") dat1$Y <- x$Lam0(dat1$time2) / x$Lam0(max(dat1$time2))
+        if (type == "bounded") dat1$Y <- x$Lam0(dat1$time2)
         if (!is.null(x$Lam0.upper)) {
             dat1$Y.upper <- x$Lam0.upper(dat1$time2)
             dat1$Y.lower <- x$Lam0.lower(dat1$time2)
         }
-        dat2$Y <- x$Haz0(dat1$time2)
+        if (type == "unrestricted") dat2$Y <- x$Haz0(dat2$time2) * exp(x$log.muZ)
+        if (type == "scaled") dat2$Y <- x$Haz0(dat2$time2) / x$Haz0(max(dat2$time2))
+        if (type == "bounded") dat2$Y <- x$Haz0(dat2$time2)
         if (!is.null(x$Haz0.upper)) {    
             dat2$Y.upper <- x$Haz0.upper(dat2$time2)
             dat2$Y.lower <- x$Haz0.lower(dat2$time2)
@@ -633,18 +644,18 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
             dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
                 x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
-            gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4, size = ctrl$lwd)
+            gg <- gg + geom_line(data = dat, aes(time2, y = bs), color = 4)
             if (!is.null(x$Lam0.upper)) {
                 dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
                     x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                     return(x)}))
-                gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, size = ctrl$lwd, lty = 2)
+                gg <- gg + geom_line(data = dat, aes(time2, y = bs.upper), color = 4, lty = 2)
             }
             if (!is.null(x$Lam0.lower)) {
                 dat <- do.call(rbind, lapply(split(dat, dat$group), function(x) {
                     x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                     return(x)}))
-                gg <- gg + geom_line(aes(time2, y = dat$bs.lower), color = 4, size = ctrl$lwd, lty = 2)
+                gg <- gg + geom_line(data = dat, aes(time2, y = bs.lower), color = 4, lty = 2)
             }
         } else {
             gg <- gg + geom_step()
@@ -710,20 +721,20 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
             dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x){
                 x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
-            gg <- gg + geom_line(aes(time2, y = dat$bs, group = id), color = 4, size = ctrl$lwd)
+            gg <- gg + geom_line(data = dat, aes(time2, y = bs, group = id), color = 4)
             if (!is.null(x$Lam0.upper)) {
                 dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x){
                     x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                     return(x)}))
-                gg <- gg + geom_line(aes(time2, y = dat$bs.upper, group = id),
-                                     color = 4, size = ctrl$lwd, lty = 2)
+                gg <- gg + geom_line(data = dat, aes(time2, y = bs.upper, group = id),
+                                     color = 4, lty = 2)
             }
             if (!is.null(x$Lam0.lower)) {
                 dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x) {
                     x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                     return(x)}))
-                gg <- gg + geom_line(aes(time2, y = dat$bs.lower, group = id),
-                                     color = 4, size = ctrl$lwd, lty = 2)
+                gg <- gg + geom_line(data = dat, aes(time2, y = bs.lower, group = id),
+                                     color = 4, lty = 2)
             }
         } else {
             gg <- gg + geom_step()
@@ -750,7 +761,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' is plotted under the assumption \eqn{E(Z) = 1}.
 #' When \code{type = "scaled"}, the baseline cumulative rate function is plotted
 #' under the assumption \eqn{\Lambda(\min(Y^\ast, \tau)) = 1}.
-#' When \code{type = "raw"}, the baseline cumulative rate function is plotted
+#' When \code{type = "bounded"}, the baseline cumulative rate function is plotted
 #' under the assumption \eqn{\Lambda(\tau) = 1}.
 #' See \code{?reReg} for the specification of the notations and underlying models.
 #' 
@@ -766,7 +777,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param type a character string specifying the type of rate function to be plotted.
-#' Options are "unrestricted", "scaled", "raw". See \bold{Details}.
+#' Options are "unrestricted", "scaled", "bounded". See \bold{Details}.
 #' @param smooth an optional logical value indicating whether to add a smooth curve
 #' obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' @param newdata an optional data frame contains variables to include in the calculation
@@ -791,7 +802,7 @@ plot.reReg <- function(x, baseline = c("both", "rate", "hazard"),
 #' 
 #' @example inst/examples/ex_plot_rate.R
 plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE, 
-                     type = c("unrestricted", "scaled", "raw"),
+                     type = c("unrestricted", "bounded", "scaled"),
                      smooth = FALSE, control = list(), ...) {
     if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline cumulative rate function is not available")
@@ -815,9 +826,9 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
     if (is.null(newdata)) {    
         if (type == "unrestricted") dat$Y <- x$Lam0(dat$time2) * exp(x$log.muZ)
         if (type == "scaled") dat$Y <- x$Lam0(dat$time2) / x$Lam0(max(dat$time2))
-        if (type == "raw") dat$Y <- x$Lam0(dat$time2)
+        if (type == "bounded") dat$Y <- x$Lam0(dat$time2)
         if (!is.null(x$Lam0.upper)) {
-            if (type == "raw") {
+            if (type == "bounded") {
                 dat$Y.upper <- x$Lam0.upper(dat$time2)
                 dat$Y.lower <- x$Lam0.lower(dat$time2)
             }
@@ -939,8 +950,9 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #' @keywords Plots
 #' 
 #' @example inst/examples/ex_plot_Haz.R
-plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE, smooth = FALSE, 
-                    control = list(), ...) {
+plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
+                    type = c("unrestricted", "bounded", "scaled"),
+                    smooth = FALSE, control = list(), ...) {
     if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline cumulative hazard function is not available.")
     if (x$typeTem == ".") {
@@ -960,13 +972,27 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE, smooth 
         namp <- namp[namp %in% names(ctrl)]
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
+    type <- match.arg(type)
     if (!is.reReg(x)) stop("Response must be a `reReg` class.")
     dat <- x$DF[, "time2", drop = FALSE]
     if (is.null(newdata)) {
-        dat$Y <- x$Haz0(dat$time2)
+        if (type == "unrestricted") dat$Y <- x$Haz0(dat$time2) * exp(x$log.muZ)
+        if (type == "scaled") dat$Y <- x$Haz0(dat$time2) / x$Haz0(max(dat$time2))
+        if (type == "bounded") dat$Y <- x$Haz0(dat$time2)
+        ## dat$Y <- x$Haz0(dat$time2)
         if (!is.null(x$Haz0.upper)) {
-            dat$Y.upper <- x$Haz0.upper(dat$time2)
-            dat$Y.lower <- x$Haz0.lower(dat$time2)
+            if (type == "bounded") {
+                dat$Y.upper <- x$Haz0.upper(dat$time2)
+                dat$Y.lower <- x$Haz0.lower(dat$time2)
+            }
+            if (type == "unrestricted") {
+                dat$Y.upper <- x$Haz0.upper(dat$time2) * exp(x$log.muZ)
+                dat$Y.lower <- x$Haz0.lower(dat$time2) * exp(x$log.muZ)
+            }
+            if (type == "scaled") {
+                dat$Y.upper <- x$Haz0.upper(dat$time2) / x$Haz0(max(dat$time2))
+                dat$Y.lower <- x$Haz0.lower(dat$time2) / x$Haz0(max(dat$time2))
+            }
         }
         gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
             theme(axis.line = element_line(color = "black"))

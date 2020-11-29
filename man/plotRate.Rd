@@ -9,7 +9,7 @@ plotRate(
   newdata = NULL,
   frailty = NULL,
   showName = FALSE,
-  type = c("unrestricted", "scaled", "raw"),
+  type = c("unrestricted", "bounded", "scaled"),
   smooth = FALSE,
   control = list(),
   ...
@@ -29,7 +29,7 @@ If \code{newdata} is given and \code{frailty} is not specified, the}
 when \code{newdata} is specified.}
 
 \item{type}{a character string specifying the type of rate function to be plotted.
-Options are "unrestricted", "scaled", "raw". See \bold{Details}.}
+Options are "unrestricted", "scaled", "bounded". See \bold{Details}.}
 
 \item{smooth}{an optional logical value indicating whether to add a smooth curve
 obtained from a monotone increasing P-splines implemented in package \code{scam}.}
@@ -52,7 +52,7 @@ When \code{type = "unrestricted"} (default), the baseline cumulative rate functi
 is plotted under the assumption \eqn{E(Z) = 1}.
 When \code{type = "scaled"}, the baseline cumulative rate function is plotted
 under the assumption \eqn{\Lambda(\min(Y^\ast, \tau)) = 1}.
-When \code{type = "raw"}, the baseline cumulative rate function is plotted
+When \code{type = "bounded"}, the baseline cumulative rate function is plotted
 under the assumption \eqn{\Lambda(\tau) = 1}.
 See \code{?reReg} for the specification of the notations and underlying models.
 

@@ -9,6 +9,7 @@ plotHaz(
   newdata = NULL,
   frailty = NULL,
   showName = FALSE,
+  type = c("unrestricted", "bounded", "scaled"),
   smooth = FALSE,
   control = list(),
   ...
