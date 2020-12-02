@@ -10,7 +10,7 @@ print.reReg <- function(x, ...) {
         cat("\nFitted with the Cox model of Ghosh and Lin (2002):")
     if(x$typeRec == "am.GL")
         cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
-    cat("\nRecurrent event process:")
+    if (x$typeTem != ".") cat("\nRecurrent event process:")
     if (x$typeRec == "sc") {
         p <- length(x$par1)
         mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
@@ -47,8 +47,8 @@ print.reReg <- function(x, ...) {
 
 pvalTab <- function(pe, se, names = NULL) {
     if (is.null(se)) se <- NA
-    tab <- cbind(Estimate = round(pe, 3), StdErr = round(se, 3),
-                 z.value = round(pe / se, 3), p.value = round(2 * pnorm(-abs(pe / se)), 3))
+    tab <- cbind(Estimate = round(pe, 5), StdErr = round(se, 5),
+                 z.value = round(pe / se, 5), p.value = round(2 * pnorm(-abs(pe / se)), 5))
     if (!is.null(names)) rownames(tab) <- names
     return(tab)
 }

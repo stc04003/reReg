@@ -9,7 +9,6 @@
 regFit.am.GL <- function(DF, engine, stdErr) {
     DF0 <- DF[DF$event == 0,]
     p <- ncol(DF0) - 6
-    alpha <- beta <- gamma <- rep(0, p)
     Y <- log(DF0$time2)
     X <- as.matrix(DF0[,-(1:6)])
     status <- DF0$terminal
@@ -39,8 +38,8 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     fit.a <- eqSolve(engine@par1, ghoshU2, engine@solver)
     fit.b$par <- -fit.b$par
     fit.a$par <- -fit.a$par
-    out <- list(alpha = fit.a$par, aconv = fit.a$convergence,
-                beta = fit.b$par, bconv = fit.b$convergence, muZ = NA)
+    out <- list(par1 = fit.a$par, par1.conv = fit.a$convergence,
+                par3 = fit.b$par, par3.conv = fit.b$convergence, muZ = NA)
     out$typeRec <- engine@typeRec
     out$typeTem <- engine@typeTem
     return(out)
@@ -50,7 +49,6 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     DF0 <- DF[DF$event == 0,]
     p <- ncol(DF0) - 6
-    alpha <- beta <- gamma <- rep(0, p)
     Y <- log(DF0$time2)
     X <- as.matrix(DF0[,-(1:6)])
     status <- DF0$terminal
@@ -78,11 +76,11 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
         if (r == "s2") return(s2)
         return(c(s1, s2))
     }
-    V <- var(t(apply(E, 2, function(x) Sn(-res$alpha, -res$beta, x))))
+    V <- var(t(apply(E, 2, function(x) Sn(-res$par1, -res$par3, x))))
     V1 <- V[1:p, 1:p]
     V2 <- V[1:p + p, 1:p + p]
-    lmfit1 <- t(apply(Z, 2, function(x) Sn(-res$alpha + x / sqrt(n), -res$beta, rep(1, n), "s1")))
-    lmfit2 <- t(apply(Z, 2, function(x) Sn(-res$alpha, -res$beta + x / sqrt(n), rep(1, n), "s2")))
+    lmfit1 <- t(apply(Z, 2, function(x) Sn(-res$par1 + x / sqrt(n), -res$par3, rep(1, n), "s1")))
+    lmfit2 <- t(apply(Z, 2, function(x) Sn(-res$par1, -res$par3 + x / sqrt(n), rep(1, n), "s2")))
     if (p == 1) {
         J1 <- coef(lm(sqrt(n) * c(lmfit1) ~ c(Z)))[-1]
         J2 <- coef(lm(sqrt(n) * c(lmfit2) ~ c(Z)))[-1]
@@ -96,7 +94,7 @@ regFit.am.GL.resampling <- function(DF, engine, stdErr) {
     else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))    
     aSE <- sqrt(diag(aVar))
     bSE <- sqrt(diag(bVar))
-    out <- c(res, list(alphaSE = aSE, betaSE = bSE, alphaVar = aVar, betaVar = bVar))
+    out <- c(res, list(par1.se = aSE, par3.se = bSE, par1.vcov = aVar, par3.vcov = bVar))
     out$typeRec <- engine@typeRec
     out$typeTem <- engine@typeTem
     return(out)
@@ -112,7 +110,7 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
     T <- DF$time2
     T0 <- unlist(lapply(split(T, id), function(x) c(0, x[-length(x)])))
     fit.coxph <- coxph(Surv(T0, T, event) ~ X + cluster(id))
-    out <- list(alpha = coef(fit.coxph), alphaSE = sqrt(diag(vcov(fit.coxph))))
+    out <- list(par1 = coef(fit.coxph), par1.se = sqrt(diag(vcov(fit.coxph))))
     out$typeRec <- engine@typeRec
     out$typeTem <- engine@typeTem
     return(out)
@@ -142,9 +140,9 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                   alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
-    out <- list(alpha = out$par,
-                beta = coef(fit.coxph),
-                betaSE = sqrt(diag(vcov(fit.coxph))))
+    out <- list(par1 = out$par,
+                par3 = coef(fit.coxph),
+                par3.se = sqrt(diag(vcov(fit.coxph))))
     out$typeRec <- engine@typeRec
     out$typeTem <- engine@typeTem
     return(out)}
@@ -234,9 +232,9 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
             par4.se <- sqrt(diag(par4.vcov))
             res <- c(res, list(par4.vcov = par4.vcov, par4.se = par4.se))
         }
+        res$vcovTem <- temVar
     }
     res$vcovRec <- recVar
-    res$vcovTem <- temVar
     return(res)
 }
 
