@@ -587,7 +587,7 @@ plot.reReg <- function(x,
         stop("Baseline functions not available for this method.")
     if (baseline == "both") {
         ctrl <- plot.reReg.control(main = "Baseline cumulative rate and cumulative hazard functions")
-        if (x$method == "cox.LWYY")
+        if (x$typeRec == "cox.LWYY")
             ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
         ## smooth  <- FALSE
     }
@@ -644,18 +644,18 @@ plot.reReg <- function(x,
             dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
                 x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
-            gg <- gg + geom_line(data = dat, aes(time2, y = bs), color = 4)
+            gg <- gg + geom_line(data = dat, aes(time2, y = bs), color = "black")
             if (!is.null(x$Lam0.upper)) {
                 dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
                     x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                     return(x)}))
-                gg <- gg + geom_line(data = dat, aes(time2, y = bs.upper), color = 4, lty = 2)
+                gg <- gg + geom_line(data = dat, aes(time2, y = bs.upper), color = "black", lty = 2)
             }
             if (!is.null(x$Lam0.lower)) {
                 dat <- do.call(rbind, lapply(split(dat, dat$group), function(x) {
                     x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                     return(x)}))
-                gg <- gg + geom_line(data = dat, aes(time2, y = bs.lower), color = 4, lty = 2)
+                gg <- gg + geom_line(data = dat, aes(time2, y = bs.lower), color = "black", lty = 2)
             }
         } else {
             gg <- gg + geom_step()
@@ -721,20 +721,20 @@ plot.reReg <- function(x,
             dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x){
                 x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                 return(x)}))
-            gg <- gg + geom_line(data = dat, aes(time2, y = bs, group = id), color = 4)
+            gg <- gg + geom_line(data = dat, aes(time2, y = bs, group = id), color = "black")
             if (!is.null(x$Lam0.upper)) {
                 dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x){
                     x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                     return(x)}))
                 gg <- gg + geom_line(data = dat, aes(time2, y = bs.upper, group = id),
-                                     color = 4, lty = 2)
+                                     color = "black", lty = 2)
             }
             if (!is.null(x$Lam0.lower)) {
                 dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x) {
                     x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
                     return(x)}))
                 gg <- gg + geom_line(data = dat, aes(time2, y = bs.lower, group = id),
-                                     color = 4, lty = 2)
+                                     color = "black", lty = 2)
             }
         } else {
             gg <- gg + geom_step()

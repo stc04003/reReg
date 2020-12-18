@@ -320,7 +320,7 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
 }
 
 ##############################################################################
-                                        # Nonparametric (~1)
+## Nonparametric (~1)
 ##############################################################################
 
 ## ~1
@@ -345,6 +345,7 @@ npFit <- function(DF, B = 0) {
         Lam <- exp(-rate)
         Haz <- apply(E2, 2, function(e) temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, e, yi2))
         Haz <- apply(Haz, 1, quantile, c(.025, .975))
+        zi <- (m + 0.01) / (Lam + 0.01)
         return(list(Lam0.lower = approxfun(yi[!duplicated(yi)], Lam[2, !duplicated(yi)],
                                            yleft = min(Lam[2,]), yright = max(Lam[2,])),
                     Lam0.upper = approxfun(yi[!duplicated(yi)], Lam[1, !duplicated(yi)],
@@ -352,7 +353,8 @@ npFit <- function(DF, B = 0) {
                     Haz0.lower = approxfun(yi2, Haz[1,],
                                            yleft = min(Haz[1,]), yright = max(Haz[1,])),
                     Haz0.upper = approxfun(yi2, Haz[2,],
-                                           yleft = min(Haz[2,]), yright = max(Haz[2,]))))
+                                           yleft = min(Haz[2,]), yright = max(Haz[2,])),
+                    log.muZ = log(mean(zi))))
     } else {    
         rate <- c(reRate(ti, rep(yi, m), wi, yi))
         Lam <- exp(-rate)
@@ -360,7 +362,8 @@ npFit <- function(DF, B = 0) {
                           yleft = min(Lam), yright = max(Lam))
         Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
         Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
-        return(list(Lam0 = Lam0, Haz0 = Haz0))
+        zi <- (m + 0.01) / (Lam + 0.01)
+        return(list(Lam0 = Lam0, Haz0 = Haz0, log.muZ = log(mean(zi))))
     }    
 }
 
@@ -634,7 +637,7 @@ reReg <- function(formula, data,
     if (formula == ~1) {
         if (engine@baseSE) fit <- npFit(DF, B)
         else fit <- npFit(DF)
-        fit$method <- "nonparametric"
+        fit$typeTem <- fit$typeRec <- "nonparametric"
     } else {
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
         if (method == "general" & engine@baseSE) {
