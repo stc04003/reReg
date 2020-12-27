@@ -154,7 +154,7 @@ print.summary.reReg <- function(x, ...) {
 
 #' @exportS3Method coef reReg
 coef.reReg <- function(object, ...) {
-    as.numeric(c(f2$par1, f2$par2, f2$par3, f2$par4))
+    as.numeric(c(object$par1, object$par2, object$par3, object$par4))
 }
 
 #' @exportS3Method vcov reReg
