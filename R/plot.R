@@ -391,7 +391,10 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
     ## dd <- subset(DF, select = c("event", vNames, "time2"))
     dd <- DF[,c("event", vNames, "time2")]
     dd <- dd[do.call(order, dd),]
-    nn <- table(apply(dd, 1, paste, collapse = ""))
+    if (is.null(vNames))
+        nn <- c(table(dd$time2[dd$event == 0]), table(dd$time2[dd$event == 1]))
+    else nn <- unlist(lapply(split(dd, dd[vNames]), function(x)
+        c(table(x$time2[x$event == 0]), table(x$time2[x$event == 1]))))
     dd <- unique(dd)
     dd$n <- as.integer(nn)
     rownames(dd) <- NULL
