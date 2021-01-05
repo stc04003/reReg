@@ -14,7 +14,7 @@
 #' @param par2 is \theta from Xu et al. (2019)
 #' @importFrom utils tail
 #' @noRd
-reSC <- function(DF, eqType, solver, par1, par2, wgt = NULL) {
+reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, wgt = NULL) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -55,8 +55,12 @@ reSC <- function(DF, eqType, solver, par1, par2, wgt = NULL) {
         texa <- log(ti) + xi %*% par1
         yexa <- log(yii) + xi %*% par1
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
-        rate <- c(reRate(texa, yexa, wi, yexa2))
-        Lam <- exp(-rate)
+        if (is.null(Lam0)) {
+            rate <- c(reRate(texa, yexa, wi, yexa2))
+            Lam <- exp(-rate)
+        } else {
+            Lam <- Lam0(exp(yexa2))
+        }
         R <- (m + 0.01) / (Lam + 0.01)
         ## R <- m / Lam
         ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
@@ -91,7 +95,7 @@ reSC <- function(DF, eqType, solver, par1, par2, wgt = NULL) {
     }
 }
 
-reAR <- function(DF, eqType, solver, par1, wgt = NULL) {
+reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, wgt = NULL) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -128,8 +132,12 @@ reAR <- function(DF, eqType, solver, par1, wgt = NULL) {
         texa <- log(ti) + xi %*% par1
         yexa <- log(yii) + xi %*% par1
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
-        rate <- c(reRate(texa, yexa, wi, yexa2))
-        Lam <- exp(-rate)
+        if (is.null(Lam0)) {
+            rate <- c(reRate(texa, yexa, wi, yexa2))
+            Lam <- exp(-rate)
+        } else {
+            Lam <- Lam0(exp(yexa))
+        }
         R <- (m + 0.01) / (Lam + 0.01)
         zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% par1)
         return(list(value = U1(par1), zi = zi))
@@ -159,7 +167,7 @@ reAR <- function(DF, eqType, solver, par1, wgt = NULL) {
 
 #' @param par1 is \gamma in Huang et al (2004)
 #' @noRd
-reCox <- function(DF, eqType, solver, par1, wgt = NULL) {
+reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, wgt = NULL) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -189,9 +197,13 @@ reCox <- function(DF, eqType, solver, par1, wgt = NULL) {
     ## yi2 <- as.numeric(df0$time2)
     ## Lam0 <- exp(-rate)
     ## Lam <- Lam0[pmax(1, findInterval(yi2, T0))]
-    rate <- c(reRate(ti, rep(yi, m), wi, t0))
-    Lam0 <- exp(-rate)
-    Lam <- Lam0[findInterval(yi, t0)]
+    if (is.null(Lam0)) {
+        rate <- c(reRate(ti, rep(yi, m), wi, t0))
+        Lam0 <- exp(-rate)
+        Lam <- Lam0[findInterval(yi, t0)]
+    } else {
+        Lam <- Lam0(yi)
+    }
     R <- (m + 0.01) / (Lam + 0.01)
     ## R <- m / Lam
     ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
@@ -211,7 +223,7 @@ reCox <- function(DF, eqType, solver, par1, wgt = NULL) {
     }
 }
 
-reAM <- function(DF, eqType, solver, par1, wgt = NULL) {
+reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, wgt = NULL) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -242,11 +254,13 @@ reAM <- function(DF, eqType, solver, par1, wgt = NULL) {
     if (is.null(solver)) {
         texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% par1
         yexa <- log(yi) + xi %*% par1
-        rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
-        Lam <- exp(-rate)
+        if (is.null(Lam0)) {
+            rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
+            Lam <- exp(-rate)
+        } else {
+            Lam <- Lam0(exp(yexa))
+        }
         R <- (m + 0.01) / (Lam + 0.01)
-        ## R <- m / Lam
-        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(value = U1(par1), zi = R))
     } else {
         fit.a <- eqSolve(par1, U1, solver)
@@ -256,8 +270,6 @@ reAM <- function(DF, eqType, solver, par1, wgt = NULL) {
         rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
         Lam <- exp(-rate)
         R <- (m + 0.01) / (Lam + 0.01)
-        ## R <- m / Lam
-        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(par1 = fit.a$par,
                     par1.conv = fit.a$convergence,
                     log.muZ = log(mean(R)), zi = R,

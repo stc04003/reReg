@@ -176,7 +176,7 @@ simSC <- function(n,
         ## cat("Proportion of subjects with a x1 = 1:  ", round(mean(base$x1), dg), "\n")
         cat("\n\n")
     }
-    dat$m <- dat$Z <- NULL
-    dat <- dat[,c(1, 6:7, 2:5)]
+    ## dat$m <- dat$Z <- NULL
+    ## dat <- dat[,c(1, 6:7, 2:5)]
     return(dat)
 }

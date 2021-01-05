@@ -162,13 +162,14 @@ regFit.general <- function(DF, engine, stdErr) {
     return(out)
 }
 
-s1 <- function(type, DF, eqType, solver, par1, par2, wgt = NULL) {
-    if (type == "sc") return(reSC(DF, eqType, solver, par1, par2, wgt))
-    if (type == "cox") return(reCox(DF, eqType, solver, par1, wgt))
-    if (type == "am") return(reAM(DF, eqType, solver, par1, wgt))
-    if (type == "ar") return(reAR(DF, eqType, solver, par1, wgt))
+s1 <- function(type, DF, eqType, solver, par1, par2, Lam0 = NULL, wgt = NULL) {
+    if (type == "sc") return(reSC(DF, eqType, solver, par1, par2, Lam0, wgt))
+    if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, wgt))
+    if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, wgt))
+    if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, wgt))
     return(NULL)
 }
+
 s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL) {
     if (type == "sc") return(temSC(DF, eqType, solver, par3, par4, zi, wgt))
     if (type == "cox") return(temCox(DF, eqType, solver, par3, zi, wgt))
@@ -189,7 +190,7 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     E2 <- matrix(rexp(n * B), n)
     p <- ncol(DF) - 6
     tmpV <- sapply(1:B, function(ee) {
-        tmp <- s1(engine@typeRec, DF, engine@eqType, NULL, res$par1, res$par2, E1[,ee])
+        tmp <- s1(engine@typeRec, DF, engine@eqType, NULL, res$par1, res$par2, res$Lam0, E1[,ee])
         c(tmp$value, s2(engine@typeTem, DF, engine@eqType, NULL, res$par3, res$par4,
                         E2[,ee] * tmp$zi, E2[,ee]))
     })
