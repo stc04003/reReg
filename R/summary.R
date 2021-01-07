@@ -159,5 +159,5 @@ coef.reReg <- function(object, ...) {
 
 #' @exportS3Method vcov reReg
 vcov.reReg <- function(object, ...) {
-    lsit(vcovRec = object$vcovRec, vcovTem = object$vcovTem)
+    list(vcovRec = object$vcovRec, vcovTem = object$vcovTem)
 }
