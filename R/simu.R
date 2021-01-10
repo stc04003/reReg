@@ -103,7 +103,7 @@ simSC <- function(n,
     }
     if (zVar <= 0) Z <- rep(1, n)
     else Z <- rgamma(n, 1/zVar, 1/zVar)
-    X <- cbind(sample(0:1, n, TRUE), rnorm(n))
+    X <- cbind(sample(0:1, n, TRUE), rnorm(n, sd = .5))
     ## Cen <- rexp(n, X[,1] / tau + (1 - X[,1]) * 2 * Z^2 / tau)
     Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
     ## Cen <- rexp(n, Z^2 / 100)

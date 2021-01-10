@@ -204,8 +204,8 @@ reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, wgt = NULL) {
     } else {
         Lam <- Lam0(yi)
     }
-    R <- (m + 0.01) / (Lam + 0.01)
-    ## R <- m / Lam
+    ## R <- (m + 0.01) / (Lam + 0.01)
+    R <- m / Lam
     ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
     U1 <- function(b) as.numeric(re2(b, R, Xi, Wi))
