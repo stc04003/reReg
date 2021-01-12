@@ -523,7 +523,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, 
-                  method = "cox", se = c("bootstrap", "resampling", "NULL"),
+                  method = "cox", se = c("resampling", "bootstrap", "NULL"),
                   B = 200, control = list()) {
     se <- ifelse(is.null(se), "NULL", se)
     se <- match.arg(se)
