@@ -311,8 +311,9 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     if (len2 > 0)
         res <- c(res, list(par2.vcov = bVar[1:len2 + len1, 1:len2 + len1],
                            par2.se = bSE[1:len2 + len1]))
-    res <- c(res, list(par3.vcov = bVar[1:len3 + len1 + len2, 1:len3 + len1 + len2],
-                       par3.se = bSE[1:len3 + len1 + len2]))
+    if (len3 > 0)
+        res <- c(res, list(par3.vcov = bVar[1:len3 + len1 + len2, 1:len3 + len1 + len2],
+                           par3.se = bSE[1:len3 + len1 + len2]))
     if (len4 > 0)
         res <- c(res, list(par4.vcov = bVar[1:len4 + len1 + len2 + len3, 1:len4 + len1 + len2 + len3],
                            par4.se = bSE[1:len4 + len1 + len2 + len3]))
