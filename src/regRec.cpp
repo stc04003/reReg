@@ -34,7 +34,7 @@ arma::vec reRate(const arma::vec& T,
 
 arma::mat matvec(arma::mat x, arma::vec y) {
   arma::mat out(x.n_rows, x.n_cols);
-  for (int i = 0; i < x.n_cols; i++) {
+  for (size_t i = 0; i < x.n_cols; i++) {
     out.col(i) = x.col(i) % y;
   }
   return out;
@@ -52,11 +52,11 @@ arma::rowvec reLog(const arma::vec& a,
   arma::vec texa = log(T) + X * a;
   arma::vec yexa = log(Y) + X * a;
   arma::rowvec out(p, arma::fill::zeros);
-  // arma::mat XW = X % repmat(W, 1, p);
   arma::mat XW = matvec(X, W);
   for (int i = 0; i < n; i++) {
     arma::uvec w = find((texa - texa[i]) % (yexa - texa[i]) <= 0);
     out += W(i) * (X.row(i) - sum(XW.rows(w), 0) / sum(W(w)));
+    // out += W(i) * (X.row(i) - sum(X.rows(w), 0) / w.n_elem);
   }
   return out;
 }
@@ -130,17 +130,17 @@ arma::rowvec am1(const arma::vec& a,
   arma::vec m2 = cumsum(m); 
   arma::mat Xi(nm, p, arma::fill::zeros);
   arma::vec Yi(nm, arma::fill::zeros);
-  arma::vec Wi(nm, arma::fill::zeros);
+  // arma::vec Wi(nm, arma::fill::zeros);
   arma::vec T0 = log(Y) + X * a;
   int mn = m.n_elem;
   for (int i = 0; i < mn; i ++) {
     if (i == 0 && m(i) > 0) {
-      Wi.subvec(0, m2(i) - 1).fill(W(i));
+      // Wi.subvec(0, m2(i) - 1).fill(W(i));
       Yi.subvec(0, m2(i) - 1).fill(Y(i));
       Xi.submat(0, 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
     }
     if (i > 0 && m(i) > 0) {
-      Wi.subvec(m2(i - 1), m2(i) - 1).fill(W(i));
+      // Wi.subvec(m2(i - 1), m2(i) - 1).fill(W(i));
       Yi.subvec(m2(i - 1), m2(i) - 1).fill(Y(i));
       Xi.submat(m2(i - 1), 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
     }
@@ -152,26 +152,22 @@ arma::rowvec am1(const arma::vec& a,
   for (int i = 0; i < nm; i++) {
     for (int j = 0; j < nm; j++) {
       if ((texa[i] <= yexa[j]) && (texa[i] >= texa[j])) {
-	de(i) += Wi[j];
+	// de(i) += Wi[j];
+	de(i) += 1;
       }
     }
   }
   for (int k = 0; k < n; k++) {
     for (int i = 0; i < nm; i++) {
       if (texa[i] >= T0[k] && de(i) > 0) {
-        Lam[k] += Wi(i) / de(i);
+        // Lam[k] += Wi(i) / de(i);
+	Lam[k] += 1 / de(i);
       }
     }
   }
   Lam = exp(-Lam); 
   arma::vec R = m / Lam;
-  int Rn = R.n_elem;
-  for (int i = 0; i < Rn; i ++) {
-    if (R[i] > 100000) R[i] = (m[i] + 0.01) / (Lam[i] + 0.01);
-  }
-  return (W % (R - mean(W % R))).t() * X / n;
-  // return (W % (mean(W) * R - mean(W % R))).t() * X / n;
-  // return (W % (R - mean(R))).t() * X / n;
+  return ((W % R - mean(W % R))).t() * X / n;
 }
 
 // Used for terminal events

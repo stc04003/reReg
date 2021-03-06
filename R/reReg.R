@@ -162,11 +162,11 @@ regFit.general <- function(DF, engine, stdErr) {
     return(out)
 }
 
-s1 <- function(type, DF, eqType, solver, par1, par2, Lam0 = NULL, wgt = NULL) {
-    if (type == "sc") return(reSC(DF, eqType, solver, par1, par2, Lam0, wgt))
-    if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, wgt))
-    if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, wgt))
-    if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, wgt))
+s1 <- function(type, DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NULL) {
+    if (type == "sc") return(reSC(DF, eqType, solver, par1, par2, Lam0, w1, w2))
+    if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, w1))
+    if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, w1))
+    if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, w1))
     return(NULL)
 }
 
@@ -186,14 +186,12 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     n <- length(unique(DF$id))
     B <- stdErr@B
-    E1 <- matrix(rexp(n * B), n)
-    E2 <- matrix(rexp(n * B), n)
     p <- ncol(DF) - 6
-    tmpV <- sapply(1:B, function(ee) {
-        tmp <- s1(engine@typeRec, DF, engine@eqType, NULL, res$par1, res$par2, res$Lam0, E1[,ee])
-        c(tmp$value, s2(engine@typeTem, DF, engine@eqType, NULL, res$par3, res$par4,
-                        E2[,ee] * tmp$zi, E2[,ee]))
-    })
+    tmpV <- replicate(B,
+                      c(s1(engine@typeRec, DF, engine@eqType, NULL, res$par1, res$par2,
+                           res$Lam0, rexp(n), rexp(n))$value,
+                        s2(engine@typeTem, DF, engine@eqType, NULL, res$par3, res$par4,
+                           rexp(n) * res$zi, rexp(n))))    
     V <- var(t(tmpV))
     Z <- matrix(rnorm(ncol(V) * B), B)
     len1 <- length(res$par1)
@@ -203,13 +201,11 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     na <- len1 + len2
     nb <- len3 + len4
     L <- apply(Z, 1, function(zz) {
-        tmp <- s1(engine@typeRec, DF, engine@eqType, NULL,
-                  res$par1 + zz[1:len1] / sqrt(n), res$par2 + zz[1:len2 + len1] / sqrt(n))
-        c(tmp$value, s2(engine@typeTem, DF, engine@eqType, NULL,
-                        res$par3 + zz[1:len3 + len1 + len2] / sqrt(n),
-                        res$par4 + zz[1:len4 + len1 + len2 + len3] / sqrt(n), tmp$zi))
-                        ## b0 + tail(zz, nb) / sqrt(n), tmp$zi))
-    })
+    c(s1(engine@typeRec, DF, engine@eqType, NULL,
+         res$par1 + zz[1:len1] / sqrt(n), res$par2 + zz[1:len2 + len1] / sqrt(n), res$Lam0)$value,
+      s2(engine@typeTem, DF, engine@eqType, NULL,
+         res$par3 + zz[1:len3 + len1 + len2] / sqrt(n),
+         res$par4 + zz[1:len4 + len1 + len2 + len3] / sqrt(n), res$zi))})
     L <- t(L)
     J <- solve(t(Z) %*% Z) %*% t(Z) %*% (sqrt(n) * L)
     recVar <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
@@ -268,14 +264,11 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
             tmp <- regFit(DF2, engine, NULL)
-            if (engine@typeRec == "sc")
-                return(c(tmp$par1, c(0, tmp$par1) + tmp$par2, tmp$par3, tmp$par4))
-            else return(c(tmp$par1, tmp$par2, tmp$par3, tmp$par4))
+            return(c(tmp$par1, tmp$par2, tmp$par3, tmp$par4))
         })
         stopCluster(cl)
         bCoef <- t(out)
-        convergence <- apply(bCoef, 1,
-                             function(x) 1 * (x %*% x > 1e3 * bound %*% bound))
+        convergence <- apply(bCoef, 1, function(x) 1 * (x %*% x > 1e3 * bound %*% bound))
     } else {
         bCoef <- matrix(0, B, length(bound))
         convergence <- rep(0, B)
@@ -285,10 +278,7 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
             tmp <- regFit(DF2, engine, NULL)
-            if (engine@typeRec == "sc")
-                bCoef[i,] <- c(tmp$par1, c(0, tmp$par1) + tmp$par2, tmp$par3, tmp$par4)
-            else
-                bCoef[i,] <- c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)
+            bCoef[i,] <- c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)
             convergence[i] <- 1 * (bCoef[i,] %*% bCoef[i,] > 1e3 * bound %*% bound)
         }
     }
@@ -312,12 +302,17 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     if (len2 > 0)
         res <- c(res, list(par2.vcov = bVar[1:len2 + len1, 1:len2 + len1],
                            par2.se = bSE[1:len2 + len1]))
-    res <- c(res, list(par3.vcov = bVar[1:len3 + len1 + len2, 1:len3 + len1 + len2],
-                       par3.se = bSE[1:len3 + len1 + len2]))
+    if (len3 > 0) 
+        res <- c(res, list(par3.vcov = bVar[1:len3 + len1 + len2, 1:len3 + len1 + len2],
+                           par3.se = bSE[1:len3 + len1 + len2]))
     if (len4 > 0)
         res <- c(res, list(par4.vcov = bVar[1:len4 + len1 + len2 + len3, 1:len4 + len1 + len2 + len3],
                            par4.se = bSE[1:len4 + len1 + len2 + len3]))
-    else return(res)
+    if (engine@typeRec == "sc") {
+        res$par2.vcov <- bVar[1:len1, 1:len1] + bVar[2:len2 + len1, 2:len2 + len1] + 2 * bVar[1:len1, 2:len2 + len1]
+        res$par2.se <- sqrt(diag(res$par2.vcov))
+    }
+    return(res)
 }
 
 ##############################################################################
@@ -654,9 +649,10 @@ reReg <- function(formula, data,
     fit$varNames <- names(DF)[-(1:6)]
     fit$se <- se
     if (engine@typeRec == "cox") fit$par1 <- fit$par1[-1]
-    if (engine@typeRec == "sc") fit$par2 <- fit$par1 + fit$par2[-1]
+    if (engine@typeRec == "sc" & se != "bootstrap") fit$par2 <- fit$par1 + fit$par2[-1]
+    if (engine@typeRec == "sc" & se == "bootstrap") fit$par2 <- fit$par2[-1]
+    if (se != "NULL" & se != "bootstrap" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]   
     if (se != "NULL" & engine@typeRec == "cox") fit$par1.se <- fit$par1.se[-1]
-    if (se != "NULL" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]
     fit <- fit[order(names(fit))]
     class(fit) <- "reReg"
     return(fit)
