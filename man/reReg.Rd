@@ -7,7 +7,7 @@
 reReg(
   formula,
   data,
-  method = "cox",
+  model = "cox",
   se = c("resampling", "bootstrap", "NULL"),
   B = 200,
   control = list()
@@ -19,7 +19,7 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the \code{"formula"}.}
 
-\item{method}{a character string specifying the underlying model. See \bold{Details}.}
+\item{model}{a character string specifying the underlying model. See \bold{Details}.}
 
 \item{se}{a character string specifying the method for standard error estimation. See \bold{Details}.}
 
@@ -50,28 +50,28 @@ where \eqn{\lambda_0(t)} is the baseline rate function,
 \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
 rate function and the hazard function, respectively.
 The model includes several popular semiparametric models as special cases,
-which can be specified via the \code{method} argument with the rate function
+which can be specified via the \code{model} argument with the rate function
 and hazard function separated by "\code{|}".
 For examples,
 Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
-can be called with \code{method = "cox|."};
+can be called with \code{model = "cox|."};
 Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
-can be called with \code{method = "cox|cox"};
+can be called with \code{model = "cox|cox"};
 Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
-can be called with \code{method = "am|am"};
-Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
+can be called with \code{model = "am|am"};
+Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc|."}.
 Users can mix the models depending on the application. For example,
-\code{method = "cox|ar"} postulate a Cox proportional model for the
+\code{model = "cox|ar"} postulate a Cox proportional model for the
 recurrent event rate function and an accelerated rate model for
 the terminal event hazard function (\eqn{\alpha = \theta = 0}).
-If only one method is specified without an "\code{|}",
+If only one model is specified without an "\code{|}",
 it is used for both the rate function and the hazard function.
-For example, specifying \code{method = "cox"} is equivalent to \code{method = "cox|cox"}.
-Some methods that assumes \code{Z = 1} and requires independent
+For example, specifying \code{model = "cox"} is equivalent to \code{model = "cox|cox"}.
+Some models that assumes \code{Z = 1} and requires independent
 censoring are also implemented in \code{reReg};
-these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
-\code{method = "cox.GL"} for Ghosh and Lin (2002),
-and \code{method = "am.GL"} for Ghosh and Lin (2003).
+these includes \code{model = "cox.LWYY"} for Lin et al. (2000),
+\code{model = "cox.GL"} for Ghosh and Lin (2002),
+and \code{model = "am.GL"} for Ghosh and Lin (2003).
 
 The available methods for variance estimation are:
 \describe{

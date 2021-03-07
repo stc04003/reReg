@@ -1,7 +1,7 @@
 ## globalVariables("DF") ## global variables for reReg
 
 ##############################################################################
-## Functions for different methods
+## Functions for different models
 ## stdErr is estimated with resampling if method = sc or am.xc,
 ##        bootstrap otherwise
 ##############################################################################
@@ -132,7 +132,8 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
     cumHaz <- basehaz(fit.coxph)
     ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
     wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
-        approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1, yright = min(exp(-cumHaz$hazard * x)),
+        approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1,
+                  yright = min(exp(-cumHaz$hazard * x)),
                   method = "constant")(T))
     wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
     wgt <- ifelse(wgt > 1e5, 1e5, wgt)
@@ -447,28 +448,28 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
 #' rate function and the hazard function, respectively.
 #' The model includes several popular semiparametric models as special cases,
-#' which can be specified via the \code{method} argument with the rate function
+#' which can be specified via the \code{model} argument with the rate function
 #' and hazard function separated by "\code{|}".
 #' For examples,
 #' Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
-#' can be called with \code{method = "cox|."};
+#' can be called with \code{model = "cox|."};
 #' Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
-#' can be called with \code{method = "cox|cox"};
+#' can be called with \code{model = "cox|cox"};
 #' Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
-#' can be called with \code{method = "am|am"};
-#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
+#' can be called with \code{model = "am|am"};
+#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc|."}.
 #' Users can mix the models depending on the application. For example,
-#' \code{method = "cox|ar"} postulate a Cox proportional model for the
+#' \code{model = "cox|ar"} postulate a Cox proportional model for the
 #' recurrent event rate function and an accelerated rate model for
 #' the terminal event hazard function (\eqn{\alpha = \theta = 0}).
-#' If only one method is specified without an "\code{|}",
+#' If only one model is specified without an "\code{|}",
 #' it is used for both the rate function and the hazard function.
-#' For example, specifying \code{method = "cox"} is equivalent to \code{method = "cox|cox"}.
-#' Some methods that assumes \code{Z = 1} and requires independent
+#' For example, specifying \code{model = "cox"} is equivalent to \code{model = "cox|cox"}.
+#' Some models that assumes \code{Z = 1} and requires independent
 #' censoring are also implemented in \code{reReg};
-#' these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
-#' \code{method = "cox.GL"} for Ghosh and Lin (2002),
-#' and \code{method = "am.GL"} for Ghosh and Lin (2003).
+#' these includes \code{model = "cox.LWYY"} for Lin et al. (2000),
+#' \code{model = "cox.GL"} for Ghosh and Lin (2002),
+#' and \code{model = "am.GL"} for Ghosh and Lin (2003).
 #'
 #' The available methods for variance estimation are:
 #' \describe{
@@ -493,7 +494,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' @param data  an optional data frame in which to interpret the variables occurring in the \code{"formula"}.
 #' @param B a numeric value specifies the number of resampling for variance estimation.
 #' When \code{B = 0}, variance estimation will not be performed.
-#' @param method a character string specifying the underlying model. See \bold{Details}.
+#' @param model a character string specifying the underlying model. See \bold{Details}.
 #' @param se a character string specifying the method for standard error estimation. See \bold{Details}.
 #' @param control a list of control parameters.
 #'
@@ -518,7 +519,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, 
-                  method = "cox", se = c("resampling", "bootstrap", "NULL"),
+                  model = "cox", se = c("resampling", "bootstrap", "NULL"),
                   B = 200, control = list()) {
     se <- ifelse(is.null(se), "NULL", se)
     se <- match.arg(se)
@@ -541,46 +542,47 @@ reReg <- function(formula, data,
         DF <- DF[,-which(colnames(DF) == "(Intercept)")]
     }
     DF <- DF[order(DF$id, DF$time2), ]
-    allMethod <- apply(expand.grid(c("cox", "am", "sc", "ar"),
+    allModel <- apply(expand.grid(c("cox", "am", "sc", "ar"),
                                    c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
-    allMethod <- c(allMethod, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
-    method <- match.arg(method, c("cox", "am", "sc", "ar", allMethod))
+    allModel <- c(allModel, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
+    model <- match.arg(model, c("cox", "am", "sc", "ar", allModel))
     typeRec <- typeTem <- NULL
-    if (grepl("|", method, fixed = TRUE)) {
-        typeRec <- substring(method, 1, regexpr("[|]", method) - 1)
-        typeTem <- substring(method, regexpr("[|]", method) + 1)
-        method <- "general"
+    if (grepl("|", model, fixed = TRUE)) {
+        typeRec <- substring(model, 1, regexpr("[|]", model) - 1)
+        typeTem <- substring(model, regexpr("[|]", model) + 1)
+        model <- "general"
     }
-    if (method %in% c("cox", "am", "sc", "ar")) {
-        typeRec <- typeTem <- method
-        method <- "general"
+    if (model %in% c("cox", "am", "sc", "ar")) {
+        typeRec <- model
+        typeTem <- "."
+        model <- "general"
     }
     ## Special cases:
-    if (method == "cox.HW") {
+    if (model == "cox.HW") {
         typeRec <- typeTem <- "cox"
-        method <- "general"
+        model <- "general"
     }
-    if (method == "am.XCHWY") {
+    if (model == "am.XCHWY") {
         typeRec <- typeTem <- "am"
-        method <- "general"
+        model <- "general"
     }
-    if (method == "sc.XCYH") {
+    if (model == "sc.XCYH") {
         typeRec <- "sc"
         typeTem <- "."
-        method <- "general"        
+        model <- "general"        
     }
-    if (method == "cox.LWYY") {
+    if (model == "cox.LWYY") {
         typeRec <- "cox.LWYY"
         typeTem <- "."
     }
-    if (method == "cox.GL") typeRec <- typeTem <- "cox.GL"
-    if (method == "am.GL") typeRec <- typeTem <- "am.GL"
+    if (model == "cox.GL") typeRec <- typeTem <- "cox.GL"
+    if (model == "am.GL") typeRec <- typeTem <- "am.GL"
     if (length(unique(DF$time2[DF$event == 0])) == 1 & typeTem != ".") {
         typeTem <- "."
         cat("Only one unique censoring time is detected, terminal event model is not fitted.\n\n")
     }
-    engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(method), "slots"))]
-    engine <- do.call("new", c(list(Class = method), engine.ctrl))
+    engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(model), "slots"))]
+    engine <- do.call("new", c(list(Class = model), engine.ctrl))
     engine@typeRec <- typeRec
     engine@typeTem <- typeTem
     if (se == "NULL" || B == 0)
@@ -592,7 +594,7 @@ reReg <- function(formula, data,
     }
     ## initial values
     p <- ncol(DF) - ncol(obj@.Data)
-    if (method == "general") {
+    if (model == "general") {
         if (typeRec == "cox") {
             if (length(engine@par1) == 1) engine@par1 <- rep(engine@par1, p + 1)
             if (length(engine@par1) == p) engine@par1 <- c(0, engine@par1)
@@ -636,12 +638,11 @@ reReg <- function(formula, data,
         fit$typeTem <- fit$typeRec <- "nonparametric"
     } else {
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
-        if (method == "general" & engine@baseSE) {
+        if (model == "general" & engine@baseSE) {
             fit <- c(fit, npFitSE(DF, fit$typeRec, fit$typeTem,
                                   fit$par1, fit$par2, fit$par3, fit$par4,
                                   fit$zi, B))
         }
-        fit$method <- method
     }    
     ## fit$reTb <- obj@.Data
     fit$DF <- DF
