@@ -9,4 +9,6 @@
 #' @export mcf
 #' @importClassesFrom reda mcf.formula
 #' @exportClass mcf.formula
+#' @importMethodsFrom reda plot
+#' @exportMethod plot
 NULL

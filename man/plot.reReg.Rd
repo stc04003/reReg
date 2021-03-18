@@ -4,10 +4,9 @@
 \alias{plot.reReg}
 \title{Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function}
 \usage{
-\method{plot}{reReg}(
+plot.reReg(
   x,
   baseline = c("both", "rate", "hazard"),
-  type = c("unrestricted", "bounded", "scaled"),
   smooth = FALSE,
   newdata = NULL,
   frailty = NULL,
@@ -44,11 +43,6 @@ when \code{newdata} is specified.}
 \item{control}{a list of control parameters. See \bold{Details}.}
 
 \item{...}{additional graphical parameters to be passed to methods.}
-
-\item{rateType}{a character string specifying the type of rate function to be plotted.
-This argument passed to the \code{plotRate()} function as the \code{type} argument.
-See \code{\link{plotRate}}.
-Options are "unrestricted", "scaled", "bounded".}
 }
 \value{
 A \code{ggplot} object.

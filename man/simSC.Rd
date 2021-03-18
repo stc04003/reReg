@@ -10,7 +10,7 @@ simSC(
   par2,
   par3 = par1,
   par4 = par2,
-  type = "cox",
+  model = "cox",
   zVar = 0.25,
   tau = 60,
   origin = 0,
@@ -25,7 +25,7 @@ simSC(
 \item{par1, par2, par3, par4}{are numerical vectors of length 2.
 These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}}
 
-\item{type}{is a character string specifying the underlying model.
+\item{model}{is a character string specifying the underlying model.
 The rate function type and the hazard function type are separated by a vertical bar "|",
 with the rate function on the left. For example, \code{type = "cox|am"} generates the recurrent process from a Cox model and
 the terminal event from an accelerated mean model. Setting \code{type = "cox"} gives \code{type = "cox|cox"}.}

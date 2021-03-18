@@ -42,12 +42,12 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #' the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
 #' This argument indicates whether to add a smooth curve obtained from
 #' a monotone increasing P-splines implemented in package \code{scam}.
-#' @param mcf.adjrisk an optional logical value that is passed to
-#' the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+#' @param mcf.adjustRiskset an optional logical value that is passed to
+#' the \code{plotMCF()} function as the \code{adjustRiskset} argument. See \code{\link{plotMCF}}.
 #' This argument indicates whether risk set size will be adjusted.
-#' If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times
+#' If \code{mcf.adjustRiskset = TRUE}, subjects leave the risk set after terminal times
 #' as in the Nelson-Aalen estimator.
-#' If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time. 
+#' If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after terminal time. 
 #' @param mcf an optional logical value indicating whether the mean cumulative function (MCF) will
 #' be plotted instead of the event plot (default).
 #' @param ... additional graphical parameters to be passed to methods.
@@ -62,10 +62,11 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #'
 #' @return A \code{ggplot} object.
 #' @example inst/examples/ex_plot_reSurv.R
+#' @exportS3Method plot Recur
 plot.Recur <- function(x, mcf = FALSE,
                        event.result = c("increasing", "decreasing", "asis"),
                        event.calendarTime = FALSE, 
-                       mcf.adjrisk = TRUE, mcf.smooth = FALSE,
+                       mcf.adjustRiskset = TRUE, mcf.smooth = FALSE,
                        control = list(), ...) {
     event.result <- match.arg(event.result)
     if (!is.Recur(x)) stop("Response must be a `Recur` object.")
@@ -85,7 +86,7 @@ plot.Recur <- function(x, mcf = FALSE,
         return(plotEvents(x, result = event.result, calendarTime = event.calendarTime, control = ctrl))
     }
     if (mcf)
-        return(plotMCF(x, adjrisk = mcf.adjrisk, smooth = mcf.smooth, control = ctrl))
+        return(plotMCF(x, adjustRiskset = mcf.adjustRiskset, smooth = mcf.smooth, control = ctrl))
 }
 
 #' Produce Event Plots
@@ -297,9 +298,9 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
 #' Plot the mean cumulative function (MCF) for an \code{Recur} object.
 #' The usage of the function is similar to that of \code{plot.Recur()} but with more flexible options.
 #'
-#' When \code{adjrisk = TRUE}, the \code{plotMCF()} is equivalent to
+#' When \code{adjustRiskset = TRUE}, the \code{plotMCF()} is equivalent to
 #' the Nelson-Aalen estimator for the intensity function of the recurrent event process.
-#' When \code{adjrisk = FALSE}, the \code{plotMCF()} does not adjust for the risk set and
+#' When \code{adjustRiskset = FALSE}, the \code{plotMCF()} does not adjust for the risk set and
 #' assumes all subjects remain at risk after the last observed recurrent event.
 #' This is known as the survivor rate function.
 #' The argument \code{control} consists of options with argument defaults
@@ -317,11 +318,11 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
 #' The response must be a recurrent event survival object returned by the \code{Recur()} function.
 #' @param data an optional data frame in which to interpret the variables occurring in
 #' the "\code{formula}".
-#' @param adjrisk an optional logical value that is passed to the \code{plotMCF()} function
-#' as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
-#' This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE},
+#' @param adjustRiskset an optional logical value that is passed to the \code{plotMCF()} function
+#' as the \code{adjustRiskset} argument. See \code{\link{plotMCF}}.
+#' This argument indicates whether risk set size will be adjusted. If \code{mcf.adjustRiskset = TRUE},
 #' subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
-#' If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time. 
+#' If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after terminal time. 
 #' @param smooth an optional logical value indicating whether to add a smooth curve
 #' obtained from a monotone increasing P-splines implemented in package \code{scam}.
 #' This feature only works for data with one recurrent event type.
@@ -343,7 +344,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
 #' @importFrom scam scam
 #' 
 #' @example inst/examples/ex_plot_MCF.R
-plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE, 
+plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE, 
                      smooth = FALSE, control = list(), ...) {
     call <- match.call()
     ctrl <- plotMCF.control()
@@ -409,13 +410,13 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
         ## as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":"))))
         rec0 <- tmp1[tmp1$event == 0,]
         dat0 <- do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
-            x$adjrisk = apply(x, 1, function(y)
+            x$adjustRiskset = apply(x, 1, function(y)
                 as.numeric(y['n.y']) - sum(rec0$n.x[as.numeric(y['time2'])> rec0$time2 &
                                                     rec0$GrpInd == as.numeric(y['GrpInd'])]))
             return(x)}))
         dat0$n.x <- dat0$n.x * (dat0$event > 0)
         rec0$time2 <- rec0$n.x <- 0
-        rec0$adjrisk <- 1
+        rec0$adjustRiskset <- 1
         dat0 <- unique(rbind(dat0, rec0))
         rownames(dat0) <- NULL
         ## Number of recurrent types
@@ -428,10 +429,10 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
             dat0$event <- dat0$event[1]
         }
         dat0 <- dat0[order(dat0$event, dat0$GrpInd, dat0$time2),]
-        if (adjrisk) {
+        if (adjustRiskset) {
             dat0 <- do.call(rbind, 
                             lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
-                                x$mu <- x$n.x / x$adjrisk
+                                x$mu <- x$n.x / x$adjustRiskset
                                 x$MCF <- cumsum(x$mu)
                                 return(x)}))
         } else {
@@ -444,13 +445,13 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
     } else { ## no covariates
         dd$n.y <- length(unique(DF$id))
         rec0 <- dd[dd$event == 0, ]
-        dd$adjrisk <- apply(dd, 1, function(x) x[4] - sum(rec0$n[x[2] > rec0$time2]))
+        dd$adjustRiskset <- apply(dd, 1, function(x) x[4] - sum(rec0$n[x[2] > rec0$time2]))
         dd$n <- dd$n * (dd$event > 0)
         rec0$time2 <- rec0$n <- 0
-        rec0$adjrisk <- 1
+        rec0$adjustRiskset <- 1
         dat0 <- unique(rbind(dd, rec0))       
         dat0 <- dat0[order(dat0$time2),]
-        dat0$mu <- dat0$n / (adjrisk * dat0$adjrisk + (!adjrisk) * dat0$n.y)
+        dat0$mu <- dat0$n / (adjustRiskset * dat0$adjustRiskset + (!adjustRiskset) * dat0$n.y)
         dat0$MCF <- cumsum(dat0$mu)
     }
     if (k == 1) {
@@ -554,10 +555,10 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
 #'   \item{\code{baseline = "rate"}}{plot the baseline cumulative rate function.}
 #'   \item{\code{baseline = "hazard"}}{plot the baseline cumulative hazard function.}
 #' }
-#' @param rateType a character string specifying the type of rate function to be plotted.
-#' This argument passed to the \code{plotRate()} function as the \code{type} argument.
-#' See \code{\link{plotRate}}.
-#' Options are "unrestricted", "scaled", "bounded". 
+## #' @param rateType a character string specifying the type of rate function to be plotted.
+## #' This argument is passed to the \code{plotRate()} function as the \code{type} argument.
+## #' See \code{\link{plotRate}}.
+## #' Options are "unrestricted", "scaled", "bounded". 
 #' @param newdata an optional data frame contains variables to include in the calculation
 #' of the cumulative rate function.
 #' If omitted, the baseline rate function will be plotted.
@@ -576,23 +577,25 @@ plotMCF <- function(formula, data, adjrisk = TRUE, onePanel = FALSE,
 #' 
 #' @importFrom ggplot2 geom_smooth geom_step 
 #' @example inst/examples/ex_plot_reReg.R
+#' @exportS3Method plot reReg
 plot.reReg <- function(x,
                        baseline = c("both", "rate", "hazard"),
-                       type = c("unrestricted", "bounded", "scaled"),
+                       ## type = c("unrestricted", "bounded", "scaled"),
                        smooth = FALSE, newdata = NULL, frailty = NULL, showName = FALSE,
                        control = list(), ...) {
     baseline <- match.arg(baseline)
-    type <- match.arg(type)
+    ## type <- match.arg(type)
+    type <- "unrestricted"
     if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline functions not available for this method.")
     if (baseline == "both") {
-        ctrl <- plot.reReg.control(main = "Baseline cumulative rate and cumulative hazard functions")
+        ctrl <- plot.reReg.control(ylab = "Baseline cumulative rate and cumulative hazard functions")
         if (x$typeRec == "cox.LWYY")
-            ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
+            ctrl <- plot.reReg.control(ylab = "Baseline cumulative rate function")
         ## smooth  <- FALSE
     }
-    if (baseline == "rate") ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
-    if (baseline == "hazard") ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
+    if (baseline == "rate") ctrl <- plot.reReg.control(ylab = "Baseline cumulative rate function")
+    if (baseline == "hazard") ctrl <- plot.reReg.control(ylab = "Baseline cumulative hazard function")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -1075,7 +1078,8 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                cex = NULL, alpha = .7) {
     if (is.null(ylab)) ylab <- "Subject"
     if (is.null(xlab)) xlab <- "Time"
-    if (is.null(main)) main <- "Recurrent event plot"
+    if (is.null(main)) main <- ""
+        ## main <- "Recurrent event plot"
     if (is.null(terminal.name)) terminal.name <-  "Terminal event"
     if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
     list(xlab = xlab, ylab = ylab, main = main, cex = cex,
@@ -1091,7 +1095,8 @@ plotMCF.control <- function(xlab = NULL, ylab = NULL,
                             recurrent.name = NULL, 
                             recurrent.type = NULL,
                             legend.position = "top") {
-    if (is.null(main)) main <- "Sample cumulative mean function plot"
+    if (is.null(main)) main <- ""
+        ## main <- "Sample cumulative mean function plot"
     if (is.null(ylab)) ylab <- "Cumulative mean"
     if (is.null(xlab)) xlab <- "Time"
     if (is.null(terminal.name)) terminal.name <-  "Terminal event"

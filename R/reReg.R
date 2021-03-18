@@ -518,10 +518,11 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' @seealso \code{\link{Recur}}, \code{\link{simSC}}
 #'
 #' @example inst/examples/ex_reReg.R
-reReg <- function(formula, data, 
-                  model = "cox", se = c("resampling", "bootstrap", "NULL"),
-                  B = 200, control = list()) {
-    se <- ifelse(is.null(se), "NULL", se)
+reReg <- function(formula, data, model = "cox", B = 0,
+                  se = c("bootstrap", "resampling"),
+                  control = list()) {
+                  ## se = c("resampling", "bootstrap", "NULL"),
+    ## se <- ifelse(is.null(se), "NULL", se)
     se <- match.arg(se)
     Call <- match.call()
     if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 
@@ -581,6 +582,8 @@ reReg <- function(formula, data,
         typeTem <- "."
         cat("Only one unique censoring time is detected, terminal event model is not fitted.\n\n")
     }
+    ## Temporary fix 
+    if (typeRec != "sc")  se <- "bootstrap"
     engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(model), "slots"))]
     engine <- do.call("new", c(list(Class = model), engine.ctrl))
     engine@typeRec <- typeRec

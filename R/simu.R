@@ -52,7 +52,7 @@ inv <- function (t, z, exa, exb, fn) {
 #' @param n number of observation.
 #' @param par1,par2,par3,par4 are numerical vectors of length 2.
 #' These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}
-#' @param type is a character string specifying the underlying model.
+#' @param model is a character string specifying the underlying model.
 #' The rate function type and the hazard function type are separated by a vertical bar "|",
 #' with the rate function on the left. For example, \code{type = "cox|am"} generates the recurrent process from a Cox model and
 #' the terminal event from an accelerated mean model. Setting \code{type = "cox"} gives \code{type = "cox|cox"}.
@@ -77,7 +77,7 @@ inv <- function (t, z, exa, exb, fn) {
 #' @example inst/examples/ex_simu.R
 simSC <- function(n, 
                   par1, par2, par3 = par1, par4 = par2,
-                  type = "cox", zVar = .25, tau = 60, origin = 0,
+                  model = "cox", zVar = .25, tau = 60, origin = 0,
                   Lam0 = NULL, Haz0 = NULL, summary = FALSE) {
     call <- match.call()
     if (length(par1) != 2L) stop("Require length(par1) = 2.")
@@ -94,12 +94,12 @@ simSC <- function(n,
         stop("Invalid length for 'origin'. See '?simSC' for details.")
     allcomb <- apply(expand.grid(c("cox", "am", "sc", "ar"),
                                  c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
-    type <- match.arg(type, c("cox", "am", "sc", "ar", allcomb))
-    if (grepl("|", type, fixed = TRUE)) {
-        typeRec <- substring(type, 1, regexpr("[|]", type) - 1)
-        typeTem <- substring(type, regexpr("[|]", type) + 1)
+    model <- match.arg(model, c("cox", "am", "sc", "ar", allcomb))
+    if (grepl("|", model, fixed = TRUE)) {
+        typeRec <- substring(model, 1, regexpr("[|]", model) - 1)
+        typeTem <- substring(model, regexpr("[|]", model) + 1)
     } else {
-        typeRec <- typeTem <- type
+        typeRec <- typeTem <- model
     }
     if (zVar <= 0) Z <- rep(1, n)
     else Z <- rgamma(n, 1/zVar, 1/zVar)

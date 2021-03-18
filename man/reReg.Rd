@@ -8,8 +8,8 @@ reReg(
   formula,
   data,
   model = "cox",
-  se = c("resampling", "bootstrap", "NULL"),
-  B = 200,
+  B = 0,
+  se = c("bootstrap", "resampling"),
   control = list()
 )
 }
@@ -21,10 +21,10 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{model}{a character string specifying the underlying model. See \bold{Details}.}
 
-\item{se}{a character string specifying the method for standard error estimation. See \bold{Details}.}
-
 \item{B}{a numeric value specifies the number of resampling for variance estimation.
 When \code{B = 0}, variance estimation will not be performed.}
+
+\item{se}{a character string specifying the method for standard error estimation. See \bold{Details}.}
 
 \item{control}{a list of control parameters.}
 }

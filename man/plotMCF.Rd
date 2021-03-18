@@ -7,7 +7,7 @@
 plotMCF(
   formula,
   data,
-  adjrisk = TRUE,
+  adjustRiskset = TRUE,
   onePanel = FALSE,
   smooth = FALSE,
   control = list(),
@@ -22,11 +22,11 @@ The response must be a recurrent event survival object returned by the \code{Rec
 \item{data}{an optional data frame in which to interpret the variables occurring in
 the "\code{formula}".}
 
-\item{adjrisk}{an optional logical value that is passed to the \code{plotMCF()} function
-as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
-This argument indicates whether risk set size will be adjusted. If \code{mcf.adjrisk = TRUE},
+\item{adjustRiskset}{an optional logical value that is passed to the \code{plotMCF()} function
+as the \code{adjustRiskset} argument. See \code{\link{plotMCF}}.
+This argument indicates whether risk set size will be adjusted. If \code{mcf.adjustRiskset = TRUE},
 subjects leave the risk set after terminal times as in the Nelson-Aalen estimator.
-If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
+If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after terminal time.}
 
 \item{onePanel}{an optional logical value indicating whether the mean cumulative functions
 will be plotted in the same panel.
@@ -50,9 +50,9 @@ Plot the mean cumulative function (MCF) for an \code{Recur} object.
 The usage of the function is similar to that of \code{plot.Recur()} but with more flexible options.
 }
 \details{
-When \code{adjrisk = TRUE}, the \code{plotMCF()} is equivalent to
+When \code{adjustRiskset = TRUE}, the \code{plotMCF()} is equivalent to
 the Nelson-Aalen estimator for the intensity function of the recurrent event process.
-When \code{adjrisk = FALSE}, the \code{plotMCF()} does not adjust for the risk set and
+When \code{adjustRiskset = FALSE}, the \code{plotMCF()} does not adjust for the risk set and
 assumes all subjects remain at risk after the last observed recurrent event.
 This is known as the survivor rate function.
 The argument \code{control} consists of options with argument defaults

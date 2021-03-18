@@ -4,12 +4,12 @@
 \alias{plot.Recur}
 \title{Produce Event Plot or Mean Cumulative Function Plot}
 \usage{
-\method{plot}{Recur}(
+plot.Recur(
   x,
   mcf = FALSE,
   event.result = c("increasing", "decreasing", "asis"),
   event.calendarTime = FALSE,
-  mcf.adjrisk = TRUE,
+  mcf.adjustRiskset = TRUE,
   mcf.smooth = FALSE,
   control = list(),
   ...
@@ -34,12 +34,12 @@ This places shorter terminal times on top. }
   \item{\code{none}}{present the as is, without sorting.}
 }}
 
-\item{mcf.adjrisk}{an optional logical value that is passed to
-the \code{plotMCF()} function as the \code{adjrisk} argument. See \code{\link{plotMCF}}.
+\item{mcf.adjustRiskset}{an optional logical value that is passed to
+the \code{plotMCF()} function as the \code{adjustRiskset} argument. See \code{\link{plotMCF}}.
 This argument indicates whether risk set size will be adjusted.
-If \code{mcf.adjrisk = TRUE}, subjects leave the risk set after terminal times
+If \code{mcf.adjustRiskset = TRUE}, subjects leave the risk set after terminal times
 as in the Nelson-Aalen estimator.
-If \code{mcf.adjrisk = FALSE}, subjects remain in the risk set after terminal time.}
+If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after terminal time.}
 
 \item{mcf.smooth}{an optional logical value that is passed to
 the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
