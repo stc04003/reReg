@@ -2,11 +2,6 @@
 ## Codes to generate simulated data
 ###################################################################################
 
-Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa / .5
-## Lam0 <- function(t) 2 * log(1 + t) 
-invLam <- function(t, z, exa, exb) (exp(.5 * t * exa / exb / z) - 1) / exa
-invHaz <- function(t, z, exa, exb) (exp(5 * t * exa / exb / z) - 1) / exa
-
 #' Function to find inverse of a given Lam
 inv <- function (t, z, exa, exb, fn) {
     mapply(t, FUN = function(u) {
@@ -50,14 +45,10 @@ inv <- function (t, z, exa, exb, fn) {
 #' the baseline hazard function to be \deqn{h_0(t) = \frac{1}{8(1 + t)}}.
 #' 
 #' @param n number of observation.
-#' @param par1,par2,par3,par4 are numerical vectors of length 2.
-#' These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}
-#' @param model is a character string specifying the underlying model.
-#' The rate function type and the hazard function type are separated by a vertical bar "|",
-#' with the rate function on the left. For example, \code{type = "cox|am"} generates the recurrent process from a Cox model and
-#' the terminal event from an accelerated mean model. Setting \code{type = "cox"} gives \code{type = "cox|cox"}.
-#' @param zVar a numeric variable specifying the variance of the fraility variable,\eqn{Z}, when \code{zVar} > 0.
-#' When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.
+#' @param shape1,size1,shape2,size2 are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}
+#' @param censoring a numeric variable specifying the censoring times for each of the \eqn{n} observation.
+#' @param covariates a matrix of covariates.
+#' @param frailty a numeric variable specifying the frailty variable.
 #' @param tau a numeric value specifying the maximum observation time.
 #' @param origin a numeric value specifying the time origin.
 #' @param Lam0 is an optional function that specifies the baseline cumulative rate function.
@@ -73,78 +64,70 @@ inv <- function (t, z, exa, exb, fn) {
 #' @seealso \code{\link{reReg}}
 #' @export
 #'
-#'
 #' @example inst/examples/ex_simu.R
 simSC <- function(n, 
-                  par1, par2, par3 = par1, par4 = par2,
-                  model = "cox", zVar = .25, tau = 60, origin = 0,
-                  Lam0 = NULL, Haz0 = NULL, summary = FALSE) {
+                  shape1 = NULL, size1 = NULL, shape2 = NULL, size2 = NULL,
+                  censoring = NULL, covariates = NULL, frailty = NULL, tau = NULL, origin = NULL,
+                  Lam0 = NULL, Haz0 = NULL, covX = NULL, summary = FALSE) {
     call <- match.call()
-    if (length(par1) != 2L) stop("Require length(par1) = 2.")
-    if (length(par2) != 2L) stop("Require length(par2) = 2.")
-    if (!is.null(Lam0)) {
+    if (is.null(tau)) tau <- 60
+    if (is.null(origin)) origin <- 0
+    if (is.null(frailty)) Z <- rgamma(n, 4, 4)
+    else Z <- frailty
+    if (is.null(covariates)) {
+        X <- cbind(sample(0:1, n, TRUE), rnorm(n, sd = .5))
+        Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
+    } else X <- covariates
+    if (!is.null(censoring)) Cen <- censoring
+    p <- ncol(X)
+    if (is.null(shape1)) shape1 <- rep(0, p)
+    if (is.null(shape2)) shape2 <- rep(0, p)    
+    if (is.null(size1)) size1 <- rep(-1, p)
+    if (is.null(size2)) size2 <- rep(1, p)
+    msg.mismatch <- function(x)
+        paste("Parameter", substitute(x), "does not match with the number of covariates.")
+    if (length(shape1) != p) stop(msg.mismatch(shape1))
+    if (length(shape2) != p) stop(msg.mismatch(shape2))
+    if (length(size1) != p) stop(msg.mismatch(size1))
+    if (length(size2) != p) stop(msg.mismatch(size2))
+    ## lapply(list(shape1, shape2, size1, size2), mismatch, p = p)
+    if (is.null(Lam0)) {
+        Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa / .5
+        invLam <- function(t, z, exa, exb) (exp(.5 * t * exa / exb / z) - 1) / exa
+    } else {
         Lam <- function(t, z, exa, exb) z * Lam0(t * exa) * exb / exa
         invLam <- function(t, z, exa, exb) inv(t, z, exa, exb, Lam)
     }
-    if (!is.null(Haz0)) {
+    if (is.null(Haz0)) {
+        invHaz <- function(t, z, exa, exb) (exp(5 * t * exa / exb / z) - 1) / exa
+    } else {
         Haz <- function(t, z, exa, exb) z * Haz0(t * exa) * exb / exa
         invHaz <- function(t, z, exa, exb) inv(t, z, exa, exb, Haz)
     }
     if (n != length(origin) & length(origin) > 1)
         stop("Invalid length for 'origin'. See '?simSC' for details.")
-    allcomb <- apply(expand.grid(c("cox", "am", "sc", "ar"),
-                                 c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
-    model <- match.arg(model, c("cox", "am", "sc", "ar", allcomb))
-    if (grepl("|", model, fixed = TRUE)) {
-        typeRec <- substring(model, 1, regexpr("[|]", model) - 1)
-        typeTem <- substring(model, regexpr("[|]", model) + 1)
-    } else {
-        typeRec <- typeTem <- model
-    }
-    if (zVar <= 0) Z <- rep(1, n)
-    else Z <- rgamma(n, 1/zVar, 1/zVar)
-    X <- cbind(sample(0:1, n, TRUE), rnorm(n, sd = .5))
-    ## Cen <- rexp(n, X[,1] / tau + (1 - X[,1]) * 2 * Z^2 / tau)
-    Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
-    ## Cen <- rexp(n, Z^2 / 100)
-    rr <- rexp(n)
-    simOne <- function(id, z, x, cen, rr) {
-        exa1 <- exa2 <- exb1 <- exb2 <- 1
-        if (typeRec == "cox") exa2 <- c(exp(x %*% par1))
-        if (typeRec == "ar") exa1 <- c(exp(x %*% par1))
-        if (typeRec == "am") exa1 <- exa2 <- c(exp(x %*% par1))
-        if (typeRec == "sc") {
-            exa1 <- c(exp(x %*% par1))
-            exa2 <- c(exp(x %*% par2))
-        }
-        if (typeTem == "cox") exb2 <- c(exp(x %*% par2))
-        if (typeTem == "ar") exb1 <- c(exp(x %*% par2))
-        if (typeTem == "am") exb1 <- exb2 <- c(exp(x %*% par2))
-        if (typeTem == "sc") {
-            exb1 <- c(exp(x %*% par3))
-            exb2 <- c(exp(x %*% par4))
-        }
-        D <- invHaz(rr, z, exb1, exb2)
-        y <- min(cen, tau, D) 
+    simOne <- function(id, z, x, cen) {
+        D <- invHaz(rexp(1), z, c(exp(x %*% shape2)), c(exp(x %*% size2)))
+        y <- min(cen, tau, D)
         status <- 1 * (y == D)
         m <- -1
         tij <- NULL
-        up <- Lam(y, z, exa1, exa2)
+        up <- Lam(y, z, c(exp(x %*% shape1)), c(exp(x %*% size1)))
         while(sum(tij) < up) {
             tij <- c(tij, rexp(1))
             m <- m + 1
         }
         if (m > 0) {
-            tij <- invLam(cumsum(tij[1:m]), z, exa1, exa2)
+            tij <- invLam(cumsum(tij[1:m]), z, c(exp(x %*% shape1)), c(exp(x %*% size1)))
             return(data.frame(id = id, Time = c(sort(tij), y),
                               event = c(rep(1, m), 0), status = c(rep(0, m), status),
-                              Z = z, m = m, x1 = x[1], x2 = x[2]))
+                              Z = z, m = m, x = t(x)))
         } else {
             return(data.frame(id = id, Time = y, event = 0, status = status,
-                              Z = z, m = m, x1 = x[1], x2 = x[2]))
+                              Z = z, m = m, x = t(x)))
         }
     }
-    dat <- data.frame(do.call(rbind, lapply(1:n, function(y) simOne(y, Z[y], X[y,], Cen[y], rr[y]))))
+    dat <- data.frame(do.call(rbind, lapply(1:n, function(i) simOne(i, Z[i], X[i,], Cen[i]))))
     if (length(origin) > 1) origin <- rep(origin, unlist(lapply(split(dat$id, dat$id), length)))
     dat$t.start <- do.call(c, lapply(split(dat$Time, dat$id), function(x)
         c(0, x[-length(x)]))) + origin
@@ -176,7 +159,10 @@ simSC <- function(n,
         ## cat("Proportion of subjects with a x1 = 1:  ", round(mean(base$x1), dg), "\n")
         cat("\n\n")
     }
-    ## dat$m <- dat$Z <- NULL
+    dat$m <- dat$Z <- NULL
     ## dat <- dat[,c(1, 6:7, 2:5)]
-    return(dat)
+    ## Reorder columns
+    ord <- c("id", "t.start", "t.stop", "event", "status")
+    dat[,c(ord, setdiff(names(dat), ord))]
 }
+               

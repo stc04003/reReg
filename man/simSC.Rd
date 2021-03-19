@@ -6,32 +6,31 @@
 \usage{
 simSC(
   n,
-  par1,
-  par2,
-  par3 = par1,
-  par4 = par2,
-  model = "cox",
-  zVar = 0.25,
-  tau = 60,
-  origin = 0,
+  shape1 = NULL,
+  size1 = NULL,
+  shape2 = NULL,
+  size2 = NULL,
+  censoring = NULL,
+  covariates = NULL,
+  frailty = NULL,
+  tau = NULL,
+  origin = NULL,
   Lam0 = NULL,
   Haz0 = NULL,
+  covX = NULL,
   summary = FALSE
 )
 }
 \arguments{
 \item{n}{number of observation.}
 
-\item{par1, par2, par3, par4}{are numerical vectors of length 2.
-These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}}
+\item{shape1, size1, shape2, size2}{are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}}
 
-\item{model}{is a character string specifying the underlying model.
-The rate function type and the hazard function type are separated by a vertical bar "|",
-with the rate function on the left. For example, \code{type = "cox|am"} generates the recurrent process from a Cox model and
-the terminal event from an accelerated mean model. Setting \code{type = "cox"} gives \code{type = "cox|cox"}.}
+\item{censoring}{a numeric variable specifying the censoring times for each of the \eqn{n} observation.}
 
-\item{zVar}{a numeric variable specifying the variance of the fraility variable,\eqn{Z}, when \code{zVar} > 0.
-When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.}
+\item{covariates}{a matrix of covariates.}
+
+\item{frailty}{a numeric variable specifying the frailty variable.}
 
 \item{tau}{a numeric value specifying the maximum observation time.}
 
@@ -83,7 +82,7 @@ the baseline hazard function to be \deqn{h_0(t) = \frac{1}{8(1 + t)}}.
 }
 \examples{
 set.seed(123)
-simSC(100, c(-1, 1), c(-1, 1), summary = TRUE)
+simSC(100, summary = TRUE)
 }
 \seealso{
 \code{\link{reReg}}
