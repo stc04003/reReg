@@ -6,29 +6,30 @@
 \usage{
 simSC(
   n,
-  shape1 = NULL,
-  size1 = NULL,
-  shape2 = NULL,
-  size2 = NULL,
-  censoring = NULL,
-  covariates = NULL,
-  frailty = NULL,
-  tau = NULL,
-  origin = NULL,
-  Lam0 = NULL,
-  Haz0 = NULL,
-  covX = NULL,
-  summary = FALSE
+  summary = FALSE,
+  shape1,
+  size1,
+  shape2,
+  size2,
+  covariates,
+  censoring,
+  frailty,
+  tau,
+  origin,
+  Lam0,
+  Haz0
 )
 }
 \arguments{
 \item{n}{number of observation.}
 
+\item{summary}{a logical value indicating whether a brief data summary will be printed.}
+
 \item{shape1, size1, shape2, size2}{are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}}
 
-\item{censoring}{a numeric variable specifying the censoring times for each of the \eqn{n} observation.}
-
 \item{covariates}{a matrix of covariates.}
+
+\item{censoring}{a numeric variable specifying the censoring times for each of the \eqn{n} observation.}
 
 \item{frailty}{a numeric variable specifying the frailty variable.}
 
@@ -45,8 +46,6 @@ the cumulative rate function of \deqn{\Lambda_0(t) = 2\log(1 + t).}}
 When left-unspecified, the recurrent events are generated using the baseline hazard function
 \deqn{h_0(t) = \frac{1}{8(1 + t)},} or equivalently,
 the cumulative hazard function of \deqn{H_0(t) = \log(1 + t) / 8.}}
-
-\item{summary}{a logical value indicating whether a brief data summary will be printed.}
 }
 \description{
 The function \code{simSC()} generates simulated recurrent event data from either

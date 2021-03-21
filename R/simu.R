@@ -65,25 +65,25 @@ inv <- function (t, z, exa, exb, fn) {
 #' @export
 #'
 #' @example inst/examples/ex_simu.R
-simSC <- function(n, 
-                  shape1 = NULL, size1 = NULL, shape2 = NULL, size2 = NULL,
-                  censoring = NULL, covariates = NULL, frailty = NULL, tau = NULL, origin = NULL,
-                  Lam0 = NULL, Haz0 = NULL, covX = NULL, summary = FALSE) {
+simSC <- function(n, summary = FALSE,
+                  shape1, size1, shape2, size2,
+                  covariates, censoring, frailty, tau, origin,
+                  Lam0, Haz0) {
     call <- match.call()
-    if (is.null(tau)) tau <- 60
-    if (is.null(origin)) origin <- 0
-    if (is.null(frailty)) Z <- rgamma(n, 4, 4)
+    if (missing(tau)) tau <- 60
+    if (missing(origin)) origin <- 0
+    if (missing(frailty)) Z <- rgamma(n, 4, 4)
     else Z <- frailty
-    if (is.null(covariates)) {
+    if (missing(covariates)) {
         X <- cbind(sample(0:1, n, TRUE), rnorm(n, sd = .5))
         Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
     } else X <- covariates
-    if (!is.null(censoring)) Cen <- censoring
+    if (!missing(censoring)) Cen <- censoring
     p <- ncol(X)
-    if (is.null(shape1)) shape1 <- rep(0, p)
-    if (is.null(shape2)) shape2 <- rep(0, p)    
-    if (is.null(size1)) size1 <- rep(-1, p)
-    if (is.null(size2)) size2 <- rep(1, p)
+    if (missing(shape1)) shape1 <- rep(0, p)
+    if (missing(shape2)) shape2 <- rep(0, p)    
+    if (missing(size1)) size1 <- rep(-1, p)
+    if (missing(size2)) size2 <- rep(1, p)
     msg.mismatch <- function(x)
         paste("Parameter", substitute(x), "does not match with the number of covariates.")
     if (length(shape1) != p) stop(msg.mismatch(shape1))
@@ -91,14 +91,14 @@ simSC <- function(n,
     if (length(size1) != p) stop(msg.mismatch(size1))
     if (length(size2) != p) stop(msg.mismatch(size2))
     ## lapply(list(shape1, shape2, size1, size2), mismatch, p = p)
-    if (is.null(Lam0)) {
+    if (missing(Lam0)) {
         Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa / .5
         invLam <- function(t, z, exa, exb) (exp(.5 * t * exa / exb / z) - 1) / exa
     } else {
         Lam <- function(t, z, exa, exb) z * Lam0(t * exa) * exb / exa
         invLam <- function(t, z, exa, exb) inv(t, z, exa, exb, Lam)
     }
-    if (is.null(Haz0)) {
+    if (missing(Haz0)) {
         invHaz <- function(t, z, exa, exb) (exp(5 * t * exa / exb / z) - 1) / exa
     } else {
         Haz <- function(t, z, exa, exb) z * Haz0(t * exa) * exb / exa
@@ -128,6 +128,7 @@ simSC <- function(n,
         }
     }
     dat <- data.frame(do.call(rbind, lapply(1:n, function(i) simOne(i, Z[i], X[i,], Cen[i]))))
+    names(dat)[grep("x.", names(dat))] <- paste0("x", 1:p)
     if (length(origin) > 1) origin <- rep(origin, unlist(lapply(split(dat$id, dat$id), length)))
     dat$t.start <- do.call(c, lapply(split(dat$Time, dat$id), function(x)
         c(0, x[-length(x)]))) + origin

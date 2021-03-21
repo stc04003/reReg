@@ -138,7 +138,7 @@ plot.Recur <- function(x, mcf = FALSE,
 #' @export
 #' 
 #' @return A \code{ggplot} object.
-#' @importFrom ggplot2 geom_rect ggplot_build scale_y_continuous 
+#' @importFrom ggplot2 geom_rect ggplot_build scale_y_continuous unit
 #' @example inst/examples/ex_plot_event.R
 plotEvents <- function(formula, data, result = c("increasing", "decreasing", "none"),
                        calendarTime = FALSE, control = list(), ...) {
@@ -575,7 +575,8 @@ plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE,
 #'
 #' @return A \code{ggplot} object.
 #' 
-#' @importFrom ggplot2 geom_smooth geom_step 
+#' @importFrom ggplot2 geom_smooth geom_step ggplotGrob
+#' @importFrom grid grid.draw
 #' @example inst/examples/ex_plot_reReg.R
 #' @exportS3Method plot reReg
 plot.reReg <- function(x,
@@ -588,14 +589,10 @@ plot.reReg <- function(x,
     type <- "unrestricted"
     if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline functions not available for this method.")
-    if (baseline == "both") {
-        ctrl <- plot.reReg.control(ylab = "Baseline cumulative rate and cumulative hazard functions")
-        if (x$typeRec == "cox.LWYY")
-            ctrl <- plot.reReg.control(ylab = "Baseline cumulative rate function")
-        ## smooth  <- FALSE
-    }
-    if (baseline == "rate") ctrl <- plot.reReg.control(ylab = "Baseline cumulative rate function")
-    if (baseline == "hazard") ctrl <- plot.reReg.control(ylab = "Baseline cumulative hazard function")
+    if (baseline == "both" & x$typeRec == "cox.LWYY")
+        ctrl <- plot.reReg.control(ylab = "Rate")
+    if (baseline %in% c("both", "rate")) ctrl <- plot.reReg.control(ylab = "Rate")
+    if (baseline == "hazard") ctrl <- plot.reReg.control(ylab = "Hazard")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -619,138 +616,22 @@ plot.reReg <- function(x,
         return(plotRate(x, smooth = smooth, type = type,
                         newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
     }
-    dat1 <- dat2 <- x$DF[, "time2", drop = FALSE]
-    if (is.null(newdata)) {
-        if (type == "unrestricted") dat1$Y <- x$Lam0(dat1$time2) * exp(x$log.muZ)
-        if (type == "scaled") dat1$Y <- x$Lam0(dat1$time2) / x$Lam0(max(dat1$time2))
-        if (type == "bounded") dat1$Y <- x$Lam0(dat1$time2)
-        if (!is.null(x$Lam0.upper)) {
-            dat1$Y.upper <- x$Lam0.upper(dat1$time2)
-            dat1$Y.lower <- x$Lam0.lower(dat1$time2)
-        }
-        if (type == "unrestricted") dat2$Y <- x$Haz0(dat2$time2) * exp(x$log.muZ)
-        if (type == "scaled") dat2$Y <- x$Haz0(dat2$time2) / x$Haz0(max(dat2$time2))
-        if (type == "bounded") dat2$Y <- x$Haz0(dat2$time2)
-        if (!is.null(x$Haz0.upper)) {    
-            dat2$Y.upper <- x$Haz0.upper(dat2$time2)
-            dat2$Y.lower <- x$Haz0.lower(dat2$time2)
-        }
-        dat <- rbind(dat1, dat2)
-        dat$group <- c(rep(1, nrow(dat1)), rep(2, nrow(dat2)))
-        dat$group <- factor(dat$group, levels = 1:2,
-                            labels = c("Baseline cumulative rate", "Baseline cumulative hazard"))
-        gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
-            facet_grid(group ~ ., scales = "free") +
-            theme(axis.line = element_line(color = "black"),
-                  strip.text = element_text(face = "bold", size = 12))   
-        if (smooth) {
-            dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-                x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
-                return(x)}))
-            gg <- gg + geom_line(data = dat, aes(time2, y = bs), color = "black")
-            if (!is.null(x$Lam0.upper)) {
-                dat <- do.call(rbind, lapply(split(dat, dat$group), function(x){
-                    x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
-                    return(x)}))
-                gg <- gg + geom_line(data = dat, aes(time2, y = bs.upper), color = "black", lty = 2)
-            }
-            if (!is.null(x$Lam0.lower)) {
-                dat <- do.call(rbind, lapply(split(dat, dat$group), function(x) {
-                    x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
-                    return(x)}))
-                gg <- gg + geom_line(data = dat, aes(time2, y = bs.lower), color = "black", lty = 2)
-            }
-        } else {
-            gg <- gg + geom_step()
-            if (!is.null(x$Lam0.upper))
-                gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2)+ 
-                    geom_step(aes(x = time2, y = Y.lower), lty = 2)
-        }
-    }
-    if (!is.null(newdata)) {
-        if (is.null(frailty)) frailty <- exp(x$log.muZ)
-        X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
-        if (ncol(X) != length(x$varNames))
-            stop(paste0("Variables ",
-                        paste(setdiff(fit1$varNames, names(newdata)), collapse = ", "),
-                        " are missing"))
-        p <- ncol(X)
-        exa1 <- exa2 <- exb1 <- exb2 <- 1
-        if (x$typeRec == "cox") exa2 <- exp(X %*% x$par1)
-        if (x$typeRec == "ar") exa1 <- exp(X %*% x$par1)
-        if (x$typeRec == "am") exa1 <- exa2 <- exp(X %*% x$par1)
-        if (x$typeRec == "sc") {
-            exa1 <- exp(X %*% x$par1)
-            exa2 <- exp(X %*% x$par2)
-        }
-        if (x$typeTem == "cox") exb2 <- exp(X %*% x$par3)
-        if (x$typeTem == "ar") exb1 <- exp(X %*% x$par3)
-        if (x$typeTem == "am") exb1 <- exb2 <- exp(X %*% x$par3)
-        if (x$typeTem == "sc") {
-            exb1 <- exp(X %*% x$par3)
-            exb2 <- exp(X %*% x$par4)
-        }
-        exa1 <- rep(drop(exa1), each = nrow(dat1))
-        exa2 <- rep(drop(exa2), each = nrow(dat1))
-        exb1 <- rep(drop(exb1), each = nrow(dat2))
-        exb2 <- rep(drop(exb2), each = nrow(dat2))
-        Y <- frailty * x$Lam0(dat1$time2 * exa1) * exa2 / exa1
-        if (!is.null(x$Lam0.upper)) {
-            Y.upper <- frailty * x$Lam0.upper(dat1$time2 * exa1) * exa2 / exa1
-            Y.lower <- frailty * x$Lam0.lower(dat1$time2 * exa1) * exa2 / exa1
-            dat1 <- data.frame(time2 = dat1$time2,
-                              id = rep(rownames(X), each = nrow(dat1)),
-                              Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
-        } else
-            dat1 <- data.frame(time2 = dat1$time2, id = rep(rownames(X), each = nrow(dat1)), Y = Y)
-        Y <- frailty * x$Haz0(dat2$time2 * exb1) * exb2 / exb1
-        if (!is.null(x$Haz0.upper)) {
-            Y.upper <- frailty * x$Haz0.upper(dat2$time2 * exb1) * exb2 / exb1
-            Y.lower <- frailty * x$Haz0.lower(dat2$time2 * exb1) * exb2 / exb1
-            dat2 <- data.frame(time2 = dat2$time2, id = rep(rownames(X), each = nrow(dat2)),
-                               Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
-        } else
-            dat2 <- data.frame(time2 = dat2$time2, id = rep(rownames(X), each = nrow(dat2)), Y = Y)
-        dat <- rbind(dat1, dat2)
-        dat$group <- c(rep(1, nrow(dat1)), rep(2, nrow(dat2)))
-        dat$group <- factor(dat$group, levels = 1:2,
-                            labels = c("Baseline cumulative rate", "Baseline cumulative hazard"))
-        ## dat$id <- rep(rownames(X), each = 2 * nrow(dat))
-        gg <- ggplot(data = dat, aes(x = time2, y = Y, group = id)) +
-            facet_grid(group ~ ., scales = "free") +
-            theme(axis.line = element_line(color = "black"),
-                  strip.text = element_text(face = "bold", size = 12))   
-        if (smooth) {
-            dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x){
-                x$bs <- scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
-                return(x)}))
-            gg <- gg + geom_line(data = dat, aes(time2, y = bs, group = id), color = "black")
-            if (!is.null(x$Lam0.upper)) {
-                dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x){
-                    x$bs.upper <- scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
-                    return(x)}))
-                gg <- gg + geom_line(data = dat, aes(time2, y = bs.upper, group = id),
-                                     color = "black", lty = 2)
-            }
-            if (!is.null(x$Lam0.lower)) {
-                dat <- do.call(rbind, lapply(split(dat, list(dat$group, dat$id)), function(x) {
-                    x$bs.lower <- scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
-                    return(x)}))
-                gg <- gg + geom_line(data = dat, aes(time2, y = bs.lower, group = id),
-                                     color = "black", lty = 2)
-            }
-        } else {
-            gg <- gg + geom_step()
-            if (!is.null(x$Lam0.upper))
-                gg <- gg +
-                    geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) + 
-                    geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
-        }
-        if (showName)
-            gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
-                scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
-    }
-    gg + ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
+    g1 <- plotRate(x, smooth = smooth, type = type,
+                   newdata = newdata, frailty = frailty, showName = showName, control = ctrl)
+    g2 <- plotHaz(x, smooth = smooth, type = type,
+                  newdata = newdata, frailty = frailty, showName = showName, control = ctrl)
+    g1 <- g1 + ylab("Rate") + xlab("") +
+        facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative rate")) +
+        theme(axis.title.x = element_blank(),
+              axis.ticks.x = element_blank(),
+              plot.margin = unit(c(0, 0, -.5, 0), "cm"))  + ggtitle(ctrl$main)
+    g2 <- g2 + ylab("Hazard") + xlab("Time") + 
+        facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative hazard")) +
+        theme(plot.margin = unit(c(-.5, 0, 0, 0), "cm"))        
+    g1 <- ggplotGrob(g1)
+    g2 <- ggplotGrob(g2)
+    grid.draw(rbind(g1, g2))
+    ## gg + ggtitle(ctrl$main)
 }
 
 #' Plotting the Baseline Cumulative Rate Function for the Recurrent Event Process
@@ -812,7 +693,8 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
     if (is.null(frailty)) frailty <- exp(x$log.muZ)
     if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
         stop("newdata and frailty are different lengths")
-    ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
+    ## ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
+    ctrl <- plot.reReg.control(ylab = "Rate")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -914,7 +796,13 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
             gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
                 scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
-    gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
+    gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab) +
+        theme(plot.title = element_text(size = 2 * ctrl$base_size),
+              strip.text = element_text(size = ctrl$base_size),
+              legend.text = element_text(size = 1.5 * ctrl$base_size),
+              legend.title = element_text(size = 1.5 * ctrl$base_size),
+              axis.text = element_text(size = ctrl$base_size),
+              axis.title = element_text(size = 1.5 * ctrl$base_size))
 }
 
 #' Plot the Baseline Cumulative Hazard Function for the Terminal Time
@@ -964,7 +852,8 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
     if (is.null(frailty)) frailty <- exp(x$log.muZ)
     if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(nesdata))
         stop("newdata and frailty are different lengths")
-    ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
+    ## ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
+    ctrl <- plot.reReg.control(ylab = "Hazard")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -1066,7 +955,13 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
             gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
                 scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
-    gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab)
+    gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab) +
+        theme(plot.title = element_text(size = 2 * ctrl$base_size),
+              strip.text = element_text(size = ctrl$base_size),
+              legend.text = element_text(size = 1.5 * ctrl$base_size),
+              legend.title = element_text(size = 1.5 * ctrl$base_size),
+              axis.text = element_text(size = ctrl$base_size),
+              axis.title = element_text(size = 1.5 * ctrl$base_size))
 }
 
 plotEvents.control <- function(xlab = NULL, ylab = NULL,
@@ -1106,7 +1001,7 @@ plotMCF.control <- function(xlab = NULL, ylab = NULL,
          recurrent.type = recurrent.type, legend.position = legend.position, base_size = base_size)
 }
 
-plot.reReg.control <- function(xlab = "Time", ylab = "", main = "") {
-    list(xlab = xlab, ylab = ylab, main = main)
+plot.reReg.control <- function(xlab = "Time", ylab = "", main = "", base_size = 12) {
+    list(xlab = xlab, ylab = ylab, main = main, base_size = base_size)
 }
 
