@@ -85,8 +85,14 @@ plot.Recur <- function(x, mcf = FALSE,
     if (!mcf) {
         return(plotEvents(x, result = event.result, calendarTime = event.calendarTime, control = ctrl))
     }
-    if (mcf)
-        return(plotMCF(x, adjustRiskset = mcf.adjustRiskset, smooth = mcf.smooth, control = ctrl))
+    if (mcf) {
+        if (!mcf.adjustRiskset) {
+            x@.Data[,5] <- 0
+            x@.Data[x@.Data[,4] == 0, 2] <- Inf
+        }
+        return(plot(mcf(x ~ 1)))
+        ## return(plotMCF(x, adjustRiskset = mcf.adjustRiskset, smooth = mcf.smooth, control = ctrl))
+    }
 }
 
 #' Produce Event Plots
