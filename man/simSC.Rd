@@ -11,7 +11,7 @@ simSC(
   size1,
   shape2,
   size2,
-  covariates,
+  xmat,
   censoring,
   frailty,
   tau,
@@ -27,7 +27,7 @@ simSC(
 
 \item{shape1, size1, shape2, size2}{are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}}
 
-\item{covariates}{a matrix of covariates.}
+\item{xmat}{a matrix of covariates.}
 
 \item{censoring}{a numeric variable specifying the censoring times for each of the \eqn{n} observation.}
 

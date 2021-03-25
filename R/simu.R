@@ -47,7 +47,7 @@ inv <- function (t, z, exa, exb, fn) {
 #' @param n number of observation.
 #' @param shape1,size1,shape2,size2 are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}
 #' @param censoring a numeric variable specifying the censoring times for each of the \eqn{n} observation.
-#' @param covariates a matrix of covariates.
+#' @param xmat a matrix of covariates.
 #' @param frailty a numeric variable specifying the frailty variable.
 #' @param tau a numeric value specifying the maximum observation time.
 #' @param origin a numeric value specifying the time origin.
@@ -67,17 +67,17 @@ inv <- function (t, z, exa, exb, fn) {
 #' @example inst/examples/ex_simu.R
 simSC <- function(n, summary = FALSE,
                   shape1, size1, shape2, size2,
-                  covariates, censoring, frailty, tau, origin,
+                  xmat, censoring, frailty, tau, origin,
                   Lam0, Haz0) {
     call <- match.call()
     if (missing(tau)) tau <- 60
     if (missing(origin)) origin <- 0
     if (missing(frailty)) Z <- rgamma(n, 4, 4)
     else Z <- frailty
-    if (missing(covariates)) {
+    if (missing(xmat)) {
         X <- cbind(sample(0:1, n, TRUE), rnorm(n, sd = .5))
         Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
-    } else X <- covariates
+    } else X <- xmat
     if (!missing(censoring)) Cen <- censoring
     p <- ncol(X)
     if (missing(shape1)) shape1 <- rep(0, p)
