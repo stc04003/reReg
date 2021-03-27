@@ -43,11 +43,13 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #' This argument indicates whether to add a smooth curve obtained from
 #' a monotone increasing P-splines implemented in package \code{scam}.
 #' @param mcf.adjustRiskset an optional logical value that is passed to
-#' the \code{plotMCF()} function as the \code{adjustRiskset} argument. See \code{\link{plotMCF}}.
+#' the \code{mcf()} function as the \code{adjustRiskset} argument. See \code{\link{mcf}}.
 #' This argument indicates whether risk set size will be adjusted.
 #' If \code{mcf.adjustRiskset = TRUE}, subjects leave the risk set after terminal times
 #' as in the Nelson-Aalen estimator.
-#' If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after terminal time. 
+#' If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after terminal time.
+#' @param mcf.conf.int an optional logical value that is passed to
+#' the \code{mcf()} function as the \code{conf.int} argument. See \code{\link{mcf}}.
 #' @param mcf an optional logical value indicating whether the mean cumulative function (MCF) will
 #' be plotted instead of the event plot (default).
 #' @param ... additional graphical parameters to be passed to methods.
@@ -66,7 +68,9 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 plot.Recur <- function(x, mcf = FALSE,
                        event.result = c("increasing", "decreasing", "asis"),
                        event.calendarTime = FALSE, 
-                       mcf.adjustRiskset = TRUE, mcf.smooth = FALSE,
+                       mcf.adjustRiskset = TRUE,
+                       mcf.smooth = FALSE,
+                       mcf.conf.int = FALSE,
                        control = list(), ...) {
     event.result <- match.arg(event.result)
     if (!is.Recur(x)) stop("Response must be a `Recur` object.")
@@ -86,11 +90,7 @@ plot.Recur <- function(x, mcf = FALSE,
         return(plotEvents(x, result = event.result, calendarTime = event.calendarTime, control = ctrl))
     }
     if (mcf) {
-        if (!mcf.adjustRiskset) {
-            x@.Data[,5] <- 0
-            x@.Data[x@.Data[,4] == 0, 2] <- Inf
-        }
-        return(plot(mcf(x ~ 1)))
+        return(plot(mcf(x ~ 1, adjustRiskset = mcf.adjustRiskset), conf.int = mcf.conf.int))
         ## return(plotMCF(x, adjustRiskset = mcf.adjustRiskset, smooth = mcf.smooth, control = ctrl))
     }
 }
@@ -270,6 +270,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
         gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
                               scales = "free", space = "free", switch = "both")
     ## Add theme and final touch ups
+    if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
     gg <- gg + scale_shape_manual(name = "", values = shp.val,
                                   labels = shp.lab, breaks = c("terminal", rec.lab)) +
         scale_color_manual(name = "", values = clr.val,
@@ -289,7 +290,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
               axis.text = element_text(size = ctrl$base_size),
               axis.title = element_text(size = 1.5 * ctrl$base_size)) +
         scale_x_continuous(expand = c(0, 1)) +
-        ggtitle(ctrl$main) + labs(x = ctrl$ylab, y = ctrl$xlab) +
+        labs(x = ctrl$ylab, y = ctrl$xlab) +
         guides(shape = guide_legend(override.aes = list(size = 2.7)))
     if (isDate & calendarTime) {
         xl <- ggplot_build(gg)$layout$panel_params[[1]]$x$breaks
@@ -521,6 +522,7 @@ plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE,
     }
     ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
     if (smooth & k > 1) cat('Smoothing only works for data with one recurrent event type.\n')
+    if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
     gg + theme(axis.line = element_line(color = "black"),
                legend.position = ctrl$legend.position,
                legend.key = element_rect(fill = "white", color = "white"),
@@ -530,7 +532,7 @@ plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE,
                legend.title = element_text(size = 1.5 * ctrl$base_size),
                axis.text = element_text(size = ctrl$base_size),
                axis.title = element_text(size = 1.5 * ctrl$base_size)) +
-        ggtitle(ctrl$main) + labs(y = ctrl$ylab, x = ctrl$xlab)
+        labs(y = ctrl$ylab, x = ctrl$xlab)
 }
 
 #' Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function
@@ -626,14 +628,15 @@ plot.reReg <- function(x,
                    newdata = newdata, frailty = frailty, showName = showName, control = ctrl)
     g2 <- plotHaz(x, smooth = smooth, type = type,
                   newdata = newdata, frailty = frailty, showName = showName, control = ctrl)
+    if (ctrl$main != "") g1 <- g1 + ggtitle(ctrl$main) 
     g1 <- g1 + ylab("Rate") + xlab("") +
-        facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative rate")) +
+        ## facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative rate")) +
         theme(axis.title.x = element_blank(),
               axis.ticks.x = element_blank(),
-              plot.margin = unit(c(0, 0, -.5, 0), "cm"))  + ggtitle(ctrl$main)
+              plot.margin = unit(c(0, 0, 0, 0), "cm"))
     g2 <- g2 + ylab("Hazard") + xlab("Time") + 
-        facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative hazard")) +
-        theme(plot.margin = unit(c(-.5, 0, 0, 0), "cm"))        
+        ## facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative hazard")) +
+        theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))        
     g1 <- ggplotGrob(g1)
     g2 <- ggplotGrob(g2)
     grid.draw(rbind(g1, g2))
@@ -712,6 +715,7 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
     type <- match.arg(type)
+    if (x$typeRec == "nonparametric") type <- "bounded"
     if (!is.reReg(x)) stop("Response must be a `reReg` class")    
     dat <- x$DF[,"time2",drop = FALSE]
     if (is.null(newdata)) {    
@@ -802,11 +806,13 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
             gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
                 scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
-    gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab) +
+    if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
+    gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
         theme(plot.title = element_text(size = 2 * ctrl$base_size),
               strip.text = element_text(size = ctrl$base_size),
               legend.text = element_text(size = 1.5 * ctrl$base_size),
               legend.title = element_text(size = 1.5 * ctrl$base_size),
+              axis.line = element_blank(),
               axis.text = element_text(size = ctrl$base_size),
               axis.title = element_text(size = 1.5 * ctrl$base_size))
 }
@@ -961,11 +967,13 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
             gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
                 scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
-    gg + ggtitle(ctrl$main) + labs(x = ctrl$xlab, y = ctrl$ylab) +
+    if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
+    gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
         theme(plot.title = element_text(size = 2 * ctrl$base_size),
               strip.text = element_text(size = ctrl$base_size),
               legend.text = element_text(size = 1.5 * ctrl$base_size),
               legend.title = element_text(size = 1.5 * ctrl$base_size),
+              axis.line = element_blank(),
               axis.text = element_text(size = ctrl$base_size),
               axis.title = element_text(size = 1.5 * ctrl$base_size))
 }

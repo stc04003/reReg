@@ -9,7 +9,7 @@ reReg(
   data,
   model = "cox",
   B = 0,
-  se = c("bootstrap", "resampling"),
+  se = c("npb", "mult"),
   control = list()
 )
 }
@@ -21,7 +21,7 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{model}{a character string specifying the underlying model. See \bold{Details}.}
 
-\item{B}{a numeric value specifies the number of resampling for variance estimation.
+\item{B}{a numeric value specifies the number of bootstraps for variance estimation.
 When \code{B = 0}, variance estimation will not be performed.}
 
 \item{se}{a character string specifying the method for standard error estimation. See \bold{Details}.}
@@ -76,8 +76,8 @@ and \code{model = "am.GL"} for Ghosh and Lin (2003).
 The available methods for variance estimation are:
 \describe{
   \item{NULL}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-  \item{resampling}{performs the efficient resampling-based variance estimation.}
-  \item{bootstrap}{performs nonparametric bootstrap.}
+  \item{npb}{performs nonparametric bootstrap.}
+  \item{mult}{performs the efficient resampling-based variance estimation.}
 }
 
 The \code{control} list consists of the following parameters:
@@ -87,7 +87,7 @@ The \code{control} list consists of the following parameters:
   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
   \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
-  \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
+  \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "npb"} is called.}
   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 }
 }

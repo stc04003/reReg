@@ -45,9 +45,9 @@ inv <- function (t, z, exa, exb, fn) {
 #' the baseline hazard function to be \deqn{h_0(t) = \frac{1}{8(1 + t)}}.
 #' 
 #' @param n number of observation.
-#' @param shape1,size1,shape2,size2 are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}
+#' @param alpha,beta,eta,theta are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}
 #' @param censoring a numeric variable specifying the censoring times for each of the \eqn{n} observation.
-#' @param xmat a matrix of covariates.
+#' @param xmat an optional matrix specifying the design matrix.
 #' @param frailty a numeric variable specifying the frailty variable.
 #' @param tau a numeric value specifying the maximum observation time.
 #' @param origin a numeric value specifying the time origin.
@@ -66,7 +66,7 @@ inv <- function (t, z, exa, exb, fn) {
 #'
 #' @example inst/examples/ex_simu.R
 simSC <- function(n, summary = FALSE,
-                  shape1, size1, shape2, size2,
+                  alpha, beta, eta, theta,
                   xmat, censoring, frailty, tau, origin,
                   Lam0, Haz0) {
     call <- match.call()
@@ -80,17 +80,17 @@ simSC <- function(n, summary = FALSE,
     } else X <- xmat
     if (!missing(censoring)) Cen <- censoring
     p <- ncol(X)
-    if (missing(shape1)) shape1 <- rep(0, p)
-    if (missing(shape2)) shape2 <- rep(0, p)    
-    if (missing(size1)) size1 <- rep(-1, p)
-    if (missing(size2)) size2 <- rep(1, p)
+    if (missing(alpha)) alpha <- rep(0, p)
+    if (missing(eta)) eta <- rep(0, p)    
+    if (missing(beta)) beta <- rep(-1, p)
+    if (missing(theta)) theta <- rep(1, p)
     msg.mismatch <- function(x)
         paste("Parameter", substitute(x), "does not match with the number of covariates.")
-    if (length(shape1) != p) stop(msg.mismatch(shape1))
-    if (length(shape2) != p) stop(msg.mismatch(shape2))
-    if (length(size1) != p) stop(msg.mismatch(size1))
-    if (length(size2) != p) stop(msg.mismatch(size2))
-    ## lapply(list(shape1, shape2, size1, size2), mismatch, p = p)
+    if (length(alpha) != p) stop(msg.mismatch(alpha))
+    if (length(eta) != p) stop(msg.mismatch(eta))
+    if (length(beta) != p) stop(msg.mismatch(beta))
+    if (length(theta) != p) stop(msg.mismatch(theta))
+    ## lapply(list(alpha, eta, beta, theta), mismatch, p = p)
     if (missing(Lam0)) {
         Lam <- function(t, z, exa, exb) z * exb * log(1 + t * exa) / exa / .5
         invLam <- function(t, z, exa, exb) (exp(.5 * t * exa / exb / z) - 1) / exa
@@ -107,18 +107,18 @@ simSC <- function(n, summary = FALSE,
     if (n != length(origin) & length(origin) > 1)
         stop("Invalid length for 'origin'. See '?simSC' for details.")
     simOne <- function(id, z, x, cen) {
-        D <- invHaz(rexp(1), z, c(exp(x %*% shape2)), c(exp(x %*% size2)))
+        D <- invHaz(rexp(1), z, c(exp(x %*% eta)), c(exp(x %*% theta)))
         y <- min(cen, tau, D)
         status <- 1 * (y == D)
         m <- -1
         tij <- NULL
-        up <- Lam(y, z, c(exp(x %*% shape1)), c(exp(x %*% size1)))
+        up <- Lam(y, z, c(exp(x %*% alpha)), c(exp(x %*% beta)))
         while(sum(tij) < up) {
             tij <- c(tij, rexp(1))
             m <- m + 1
         }
         if (m > 0) {
-            tij <- invLam(cumsum(tij[1:m]), z, c(exp(x %*% shape1)), c(exp(x %*% size1)))
+            tij <- invLam(cumsum(tij[1:m]), z, c(exp(x %*% alpha)), c(exp(x %*% beta)))
             return(data.frame(id = id, Time = c(sort(tij), y),
                               event = c(rep(1, m), 0), status = c(rep(0, m), status),
                               Z = z, m = m, x = t(x)))

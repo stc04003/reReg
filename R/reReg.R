@@ -45,7 +45,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     return(out)
 }
 
-regFit.am.GL.resampling <- function(DF, engine, stdErr) {
+regFit.am.GL.mult <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     DF0 <- DF[DF$event == 0,]
     p <- ncol(DF0) - 6
@@ -179,7 +179,7 @@ s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL) {
     return(NULL)
 }
 
-regFit.general.resampling <- function(DF, engine, stdErr) {
+regFit.general.mult <- function(DF, engine, stdErr) {
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
@@ -239,7 +239,7 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
 ##############################################################################
 # Variance estimation 
 ##############################################################################
-regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
+regFit.Engine.npb <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
@@ -321,7 +321,52 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
 ##############################################################################
 
 ## ~1
-npFit <- function(DF, B = 0) {
+## ## Using perturbation
+## npFit <- function(DF, B = 0) {
+##     df0 <- DF[DF$event == 0,]
+##     df1 <- DF[DF$event == 1,]
+##     rownames(df0) <- rownames(df1) <- NULL
+##     m <- aggregate(event ~ id, data = DF, sum)[, 2]
+##     yi <- df0$time2
+##     ti <- df1$time2
+##     zi <- wi <- rep(1, length(ti))
+##     di <- df0$terminal
+##     xi <- as.matrix(df0[,-c(1:6)])
+##     p <- ncol(xi)
+##     yi2 <- sort(unique(yi))
+##     rate <- c(reRate(ti, rep(yi, m), wi, yi))
+##     Lam <- exp(-rate)
+##     keep <- !duplicated(yi)
+##     Lam0 <- approxfun(yi[keep], Lam[keep],
+##                       yleft = min(Lam), yright = max(Lam))
+##     Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
+##     Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
+##     zi <- (m + 0.01) / (Lam + 0.01)
+##     out <- list(Lam0 = Lam0, Haz0 = Haz0, log.muZ = log(mean(zi)))
+##     if (B > 0) {
+##         n <- length(unique(DF$id))
+##         E1 <- matrix(rexp(n * B), n)
+##         E2 <- matrix(rexp(n * B), n)
+##         rate <- apply(E1, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), yi))
+##         rate <- apply(rate, 1, quantile, c(.025, .975))
+##         Lam <- exp(-rate)
+##         Haz <- apply(E2, 2, function(e) temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, e, yi2))
+##         Haz <- apply(Haz, 1, quantile, c(.025, .975))
+##         zi <- (m + 0.01) / (Lam + 0.01)
+##         out$Lam0.lower <- approxfun(yi[keep], Lam[2, keep],
+##                                     yleft = min(Lam[2,]), yright = max(Lam[2,]))
+##         out$Lam0.upper <- approxfun(yi[keep], Lam[1, keep],
+##                                     yleft = min(Lam[1,]), yright = max(Lam[1,]))
+##         out$Haz0.lower <- approxfun(yi2, Haz[1,],
+##                                     yleft = min(Haz[1,]), yright = max(Haz[1,]))
+##         out$Haz0.upper <- approxfun(yi2, Haz[2,],
+##                                     yleft = min(Haz[2,]), yright = max(Haz[2,]))
+##     }
+##     return(out)
+## }
+
+## Using bootstrap
+npFit0 <- function(DF) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -333,36 +378,66 @@ npFit <- function(DF, B = 0) {
     xi <- as.matrix(df0[,-c(1:6)])
     p <- ncol(xi)
     yi2 <- sort(unique(yi))
-    if (B > 0) {
-        n <- length(unique(DF$id))
-        E1 <- matrix(rexp(n * B), n)
-        E2 <- matrix(rexp(n * B), n)
-        rate <- apply(E1, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), yi))
-        rate <- apply(rate, 1, quantile, c(.025, .975))
-        Lam <- exp(-rate)
-        Haz <- apply(E2, 2, function(e) temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, e, yi2))
-        Haz <- apply(Haz, 1, quantile, c(.025, .975))
-        zi <- (m + 0.01) / (Lam + 0.01)
-        return(list(Lam0.lower = approxfun(yi[!duplicated(yi)], Lam[2, !duplicated(yi)],
-                                           yleft = min(Lam[2,]), yright = max(Lam[2,])),
-                    Lam0.upper = approxfun(yi[!duplicated(yi)], Lam[1, !duplicated(yi)],
-                                           yleft = min(Lam[1,]), yright = max(Lam[1,])),
-                    Haz0.lower = approxfun(yi2, Haz[1,],
-                                           yleft = min(Haz[1,]), yright = max(Haz[1,])),
-                    Haz0.upper = approxfun(yi2, Haz[2,],
-                                           yleft = min(Haz[2,]), yright = max(Haz[2,])),
-                    log.muZ = log(mean(zi))))
-    } else {    
-        rate <- c(reRate(ti, rep(yi, m), wi, yi))
-        Lam <- exp(-rate)
-        Lam0 <- approxfun(yi[!duplicated(yi)], Lam[!duplicated(yi)],
-                          yleft = min(Lam), yright = max(Lam))
-        Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
-        Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
-        zi <- (m + 0.01) / (Lam + 0.01)
-        return(list(Lam0 = Lam0, Haz0 = Haz0, log.muZ = log(mean(zi))))
-    }    
+    rate <- c(reRate(ti, rep(yi, m), wi, yi))
+    Lam <- exp(-rate)
+    keep <- !duplicated(yi)
+    Lam0 <- approxfun(yi[keep], Lam[keep],
+                      yleft = min(Lam), yright = max(Lam))
+    Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
+    Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
+    zi <- (m + 0.01) / (Lam + 0.01)
+    out <- list(Lam0 = Lam0, Haz0 = Haz0, log.muZ = log(mean(zi)))
 }
+
+npFit <- function(DF, B = 0) {
+    out <- npFit0(DF)
+    df0 <- DF[DF$event == 0,]
+    mt <- aggregate(event ~ id, data = DF, sum)$event
+    clsz <- mt + 1
+    t0 <- sort(unique(DF$time2))
+    LamB <- HazB <- matrix(NA, length(t0), B)
+    if (B > 0) {
+        for (i in 1:B) {
+            sampled.id <- sample(df0$id, nrow(df0), TRUE)
+            ind <- unlist(sapply(sampled.id, function(x) which(DF$id == x)))
+            DF2 <- DF[ind,]
+            DF2$id <- rep(1:nrow(df0), clsz[sampled.id])
+            tmp <- npFit0(DF2)
+            LamB[,i] <- tmp$Lam0(t0) * exp(tmp$log.muZ)
+            HazB[,i] <- tmp$Haz0(t0) * exp(tmp$log.muZ)
+        }
+        Lam.sd <- apply(LamB, 1, sd)
+        Haz.sd <- apply(HazB, 1, sd)
+        LamB.lower <- out$Lam0(t0) * exp(out$log.muZ) - 1.96 * Lam.sd
+        LamB.upper <- out$Lam0(t0) * exp(out$log.muZ) + 1.96 * Lam.sd
+        HazB.lower <- out$Haz0(t0) * exp(out$log.muZ) - 1.96 * Haz.sd
+        HazB.upper <- out$Haz0(t0) * exp(out$log.muZ) + 1.96 * Haz.sd
+        out$Lam0.lower <- approxfun(t0, LamB.lower, yleft = min(LamB.lower), yright = max(LamB.lower))
+        out$Lam0.upper <- approxfun(t0, LamB.upper, yleft = min(LamB.upper), yright = max(LamB.upper))
+        out$Haz0.lower <- approxfun(t0, HazB.lower, yleft = min(HazB.lower), yright = max(HazB.lower))
+        out$Haz0.upper <- approxfun(t0, HazB.upper, yleft = min(HazB.upper), yright = max(HazB.upper))
+        ## LamB.lower <- apply(LamB, 1, quantile, .025)
+        ## LamB.upper <- apply(LamB, 1, quantile, .975)
+        ## HazB.lower <- apply(HazB, 1, quantile, .025)
+        ## HazB.upper <- apply(HazB, 1, quantile, .975)
+        ## out$Lam0.lower <- approxfun(t0, LamB.lower,
+        ##                             yleft = min(LamB.lower), yright = max(LamB.lower))
+        ## out$Lam0.upper <- approxfun(t0, LamB.upper,
+        ##                             yleft = min(LamB.upper), yright = max(LamB.upper))
+        ## out$Haz0.lower <- approxfun(t0, HazB.lower,
+        ##                             yleft = min(HazB.lower), yright = max(HazB.lower))
+        ## out$Haz0.upper <- approxfun(t0, HazB.upper,
+        ##                             yleft = min(HazB.upper), yright = max(HazB.upper))
+    }
+    out$Lam0 <- approxfun(t0, out$Lam0(t0) * exp(out$log.muZ),
+                          yleft = min(out$Lam0(t0) * exp(out$log.muZ)),
+                          yright = max(out$Lam0(t0) * exp(out$log.muZ)))
+    out$Haz0 <- approxfun(t0, out$Haz0(t0) * exp(out$log.muZ),
+                          yleft = min(out$Haz0(t0) * exp(out$log.muZ)),
+                          yright = max(out$Haz0(t0) * exp(out$log.muZ)))
+    return(out)
+}
+
 
 npFitSE <- function(DF, typeRec, typeTem, par1, par2, par3, par4, zi, B) {
     n <- length(unique(DF$id))
@@ -402,8 +477,8 @@ setClass("stdErr",
          prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2L),
          contains = "VIRTUAL")
 
-setClass("bootstrap", contains = "stdErr")
-setClass("resampling", contains = "stdErr")
+setClass("npb", contains = "stdErr")
+setClass("mult", contains = "stdErr")
 
 
 ##############################################################################
@@ -412,17 +487,17 @@ setClass("resampling", contains = "stdErr")
 setGeneric("regFit", function(DF, engine, stdErr) {standardGeneric("regFit")})
 
 setMethod("regFit", signature(engine = "general", stdErr = "NULL"), regFit.general)
-setMethod("regFit", signature(engine = "general", stdErr = "resampling"), regFit.general.resampling)
+setMethod("regFit", signature(engine = "general", stdErr = "mult"), regFit.general.mult)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "NULL"), regFit.cox.LWYY)
-setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), regFit.cox.LWYY)
-setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "resampling"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "npb"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "mult"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.GL", stdErr = "NULL"), regFit.cox.GL)
-setMethod("regFit", signature(engine = "cox.GL", stdErr = "resampling"), regFit.cox.GL)
+setMethod("regFit", signature(engine = "cox.GL", stdErr = "mult"), regFit.cox.GL)
 setMethod("regFit", signature(engine = "am.GL", stdErr = "NULL"), regFit.am.GL)
-setMethod("regFit", signature(engine = "Engine", stdErr = "bootstrap"),
-          regFit.Engine.Bootstrap)
-setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
-          regFit.am.GL.resampling)
+setMethod("regFit", signature(engine = "Engine", stdErr = "npb"),
+          regFit.Engine.npb)
+setMethod("regFit", signature(engine = "am.GL", stdErr = "mult"),
+          regFit.am.GL.mult)
 
 
 #' Fits Semiparametric Regression Models for Recurrent Event Data
@@ -474,8 +549,8 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' The available methods for variance estimation are:
 #' \describe{
 #'   \item{NULL}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-#'   \item{resampling}{performs the efficient resampling-based variance estimation.}
-#'   \item{bootstrap}{performs nonparametric bootstrap.}
+#'   \item{npb}{performs nonparametric bootstrap.}
+#'   \item{mult}{performs the efficient resampling-based variance estimation.}
 #' }
 #'
 #' The \code{control} list consists of the following parameters:
@@ -485,14 +560,14 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #'   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
 #'   \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
 #'   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
-#'   \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
+#'   \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "npb"} is called.}
 #'   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 #' }
 #' 
 #' @param formula a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{Recur}.
 #' @param data  an optional data frame in which to interpret the variables occurring in the \code{"formula"}.
-#' @param B a numeric value specifies the number of resampling for variance estimation.
+#' @param B a numeric value specifies the number of bootstraps for variance estimation.
 #' When \code{B = 0}, variance estimation will not be performed.
 #' @param model a character string specifying the underlying model. See \bold{Details}.
 #' @param se a character string specifying the method for standard error estimation. See \bold{Details}.
@@ -519,7 +594,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, model = "cox", B = 0,
-                  se = c("bootstrap", "resampling"),
+                  se = c("npb", "mult"),
                   control = list()) {
                   ## se = c("resampling", "bootstrap", "NULL"),
     ## se <- ifelse(is.null(se), "NULL", se)
@@ -583,7 +658,7 @@ reReg <- function(formula, data, model = "cox", B = 0,
         cat("Only one unique censoring time is detected, terminal event model is not fitted.\n\n")
     }
     ## Temporary fix 
-    if (typeRec != "sc")  se <- "bootstrap"
+    if (typeRec != "sc")  se <- "npb"
     engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(model), "slots"))]
     engine <- do.call("new", c(list(Class = model), engine.ctrl))
     engine@typeRec <- typeRec
@@ -636,6 +711,7 @@ reReg <- function(formula, data, model = "cox", B = 0,
         }
     }
     if (formula == ~1) {
+        engine@baseSE <- B > 0
         if (engine@baseSE) fit <- npFit(DF, B)
         else fit <- npFit(DF)
         fit$typeTem <- fit$typeRec <- "nonparametric"
@@ -653,9 +729,9 @@ reReg <- function(formula, data, model = "cox", B = 0,
     fit$varNames <- names(DF)[-(1:6)]
     fit$se <- se
     if (engine@typeRec == "cox") fit$par1 <- fit$par1[-1]
-    if (engine@typeRec == "sc" & se != "bootstrap") fit$par2 <- fit$par1 + fit$par2[-1]
-    if (engine@typeRec == "sc" & se == "bootstrap") fit$par2 <- fit$par2[-1]
-    if (se != "NULL" & se != "bootstrap" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]   
+    if (engine@typeRec == "sc" & se != "npb") fit$par2 <- fit$par1 + fit$par2[-1]
+    if (engine@typeRec == "sc" & se == "npb") fit$par2 <- fit$par2[-1]
+    if (se != "NULL" & se != "npb" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]   
     if (se != "NULL" & engine@typeRec == "cox") fit$par1.se <- fit$par1.se[-1]
     fit <- fit[order(names(fit))]
     class(fit) <- "reReg"
@@ -694,20 +770,16 @@ eqSolve <- function(par, fn, solver, ...) {
 
 reReg.control <- function(eqType = c("logrank", "gehan"),
                           solver = "BB::dfsane", tol = 1e-7,
-                          par1 = NULL, par2 = NULL, par3 = NULL, par4 = NULL, 
-                          baseSE = FALSE, parallel = FALSE, parCl = NULL) {
-    if (is.null(par1)) par1 <- 0
-    if (is.null(par2)) par2 <- 0
-    if (is.null(par3)) par3 <- 0
-    if (is.null(par4)) par4 <- 0
+                          init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
+                          baseSE = FALSE, npb.parallel = FALSE, parCl = NULL) {
     if (is.null(parCl)) parCl <- parallel::detectCores() / 2L
     if (solver == "BB::dfsane") solver <- "dfsane"
     if (solver == "BB::BBsolve") solver <- "BBsolve"
     if (solver == "BB::BBoptim") solver <- "BBoptim"
     eqType <- match.arg(eqType)
-    list(tol = tol, eqType = eqType,
-         par1 = par1, par2 = par2, par3 = par3, par4 = par4,
-         solver = solver, parallel = parallel, parCl = parCl)
+    list(tol = tol, eqType = eqType, solver = solver,
+         par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
+         baseSE = baseSE, parallel = npb.parallel, parCl = parCl)
 }
 
 ##############################################################################

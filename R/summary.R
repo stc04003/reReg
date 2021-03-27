@@ -74,7 +74,7 @@ summary.reReg <- function(object, test = FALSE, ...) {
         if (object$typeTem == "sc")
             out$tabB <- list(tabB1 = out$tabB,
                              tabB2 = pvalTab(object$par4, object$par4.se, object$varNames))
-        if (object$typeRec == "sc" & object$se == "resampling") {
+        if (object$typeRec == "sc" & object$se == "mult") {
             p <- length(object$par1)
             out$HA.chi <- object$par1 %*% solve(object$par1.vcov) %*% object$par1
             out$HB.chi <- object$par2 %*%

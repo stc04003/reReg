@@ -11,6 +11,7 @@ plot.Recur(
   event.calendarTime = FALSE,
   mcf.adjustRiskset = TRUE,
   mcf.smooth = FALSE,
+  mcf.conf.int = FALSE,
   control = list(),
   ...
 )
@@ -35,7 +36,7 @@ This places shorter terminal times on top. }
 }}
 
 \item{mcf.adjustRiskset}{an optional logical value that is passed to
-the \code{plotMCF()} function as the \code{adjustRiskset} argument. See \code{\link{plotMCF}}.
+the \code{mcf()} function as the \code{adjustRiskset} argument. See \code{\link{mcf}}.
 This argument indicates whether risk set size will be adjusted.
 If \code{mcf.adjustRiskset = TRUE}, subjects leave the risk set after terminal times
 as in the Nelson-Aalen estimator.
@@ -45,6 +46,9 @@ If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after termi
 the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
 This argument indicates whether to add a smooth curve obtained from
 a monotone increasing P-splines implemented in package \code{scam}.}
+
+\item{mcf.conf.int}{an optional logical value that is passed to
+the \code{mcf()} function as the \code{conf.int} argument. See \code{\link{mcf}}.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 

@@ -7,10 +7,10 @@
 simSC(
   n,
   summary = FALSE,
-  shape1,
-  size1,
-  shape2,
-  size2,
+  alpha,
+  beta,
+  eta,
+  theta,
   xmat,
   censoring,
   frailty,
@@ -25,9 +25,9 @@ simSC(
 
 \item{summary}{a logical value indicating whether a brief data summary will be printed.}
 
-\item{shape1, size1, shape2, size2}{are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}}
+\item{alpha, beta, eta, theta}{are numerical vectors correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model, respectively. See \bold{Details}}
 
-\item{xmat}{a matrix of covariates.}
+\item{xmat}{an optional matrix specifying the design matrix.}
 
 \item{censoring}{a numeric variable specifying the censoring times for each of the \eqn{n} observation.}
 
