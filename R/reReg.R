@@ -366,7 +366,7 @@ regFit.Engine.npb <- function(DF, engine, stdErr) {
 ## }
 
 ## Using bootstrap
-npFit0 <- function(DF) {
+npFit0 <- function(DF, typeTem = ".") {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event == 1,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -383,13 +383,18 @@ npFit0 <- function(DF) {
     keep <- !duplicated(yi)
     Lam0 <- approxfun(yi[keep], Lam[keep],
                       yleft = min(Lam), yright = max(Lam))
-    Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
-    Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
     zi <- (m + 0.01) / (Lam + 0.01)
-    out <- list(Lam0 = Lam0, Haz0 = Haz0, log.muZ = log(mean(zi)))
+    
+    if (typeTem != ".") {
+        Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
+        Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
+        return(list(Lam0 = Lam0, Haz0 = Haz0, log.muZ = log(mean(zi))))
+    } else {
+        return(list(Lam0 = Lam0, log.muZ = log(mean(zi))))
+    }    
 }
 
-npFit <- function(DF, B = 0) {
+npFit <- function(DF, B = 0, typeTem = ".") {
     out <- npFit0(DF)
     df0 <- DF[DF$event == 0,]
     mt <- aggregate(event ~ id, data = DF, sum)$event
@@ -404,18 +409,22 @@ npFit <- function(DF, B = 0) {
             DF2$id <- rep(1:nrow(df0), clsz[sampled.id])
             tmp <- npFit0(DF2)
             LamB[,i] <- tmp$Lam0(t0) * exp(tmp$log.muZ)
-            HazB[,i] <- tmp$Haz0(t0) * exp(tmp$log.muZ)
+            if (typeTem != ".") HazB[,i] <- tmp$Haz0(t0) * exp(tmp$log.muZ)
         }
         Lam.sd <- apply(LamB, 1, sd)
-        Haz.sd <- apply(HazB, 1, sd)
+        if (typeTem != ".") Haz.sd <- apply(HazB, 1, sd)
         LamB.lower <- out$Lam0(t0) * exp(out$log.muZ) - 1.96 * Lam.sd
         LamB.upper <- out$Lam0(t0) * exp(out$log.muZ) + 1.96 * Lam.sd
-        HazB.lower <- out$Haz0(t0) * exp(out$log.muZ) - 1.96 * Haz.sd
-        HazB.upper <- out$Haz0(t0) * exp(out$log.muZ) + 1.96 * Haz.sd
+        if (typeTem != ".") HazB.lower <- out$Haz0(t0) * exp(out$log.muZ) - 1.96 * Haz.sd
+        if (typeTem != ".") HazB.upper <- out$Haz0(t0) * exp(out$log.muZ) + 1.96 * Haz.sd
         out$Lam0.lower <- approxfun(t0, LamB.lower, yleft = min(LamB.lower), yright = max(LamB.lower))
         out$Lam0.upper <- approxfun(t0, LamB.upper, yleft = min(LamB.upper), yright = max(LamB.upper))
-        out$Haz0.lower <- approxfun(t0, HazB.lower, yleft = min(HazB.lower), yright = max(HazB.lower))
-        out$Haz0.upper <- approxfun(t0, HazB.upper, yleft = min(HazB.upper), yright = max(HazB.upper))
+        if (typeTem != ".")
+            out$Haz0.lower <-
+                approxfun(t0, HazB.lower, yleft = min(HazB.lower), yright = max(HazB.lower))
+        if (typeTem != ".")
+            out$Haz0.upper <-
+                approxfun(t0, HazB.upper, yleft = min(HazB.upper), yright = max(HazB.upper))
         ## LamB.lower <- apply(LamB, 1, quantile, .025)
         ## LamB.upper <- apply(LamB, 1, quantile, .975)
         ## HazB.lower <- apply(HazB, 1, quantile, .025)
@@ -432,9 +441,10 @@ npFit <- function(DF, B = 0) {
     out$Lam0 <- approxfun(t0, out$Lam0(t0) * exp(out$log.muZ),
                           yleft = min(out$Lam0(t0) * exp(out$log.muZ)),
                           yright = max(out$Lam0(t0) * exp(out$log.muZ)))
-    out$Haz0 <- approxfun(t0, out$Haz0(t0) * exp(out$log.muZ),
-                          yleft = min(out$Haz0(t0) * exp(out$log.muZ)),
-                          yright = max(out$Haz0(t0) * exp(out$log.muZ)))
+    if (typeTem != ".") 
+        out$Haz0 <- approxfun(t0, out$Haz0(t0) * exp(out$log.muZ),
+                              yleft = min(out$Haz0(t0) * exp(out$log.muZ)),
+                              yright = max(out$Haz0(t0) * exp(out$log.muZ)))
     return(out)
 }
 
@@ -567,6 +577,8 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "mult"),
 #' @param formula a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{Recur}.
 #' @param data  an optional data frame in which to interpret the variables occurring in the \code{"formula"}.
+#' @param subset n optional logical vector specifying a subset of observations to be used
+#' in the fitting process.
 #' @param B a numeric value specifies the number of bootstraps for variance estimation.
 #' When \code{B = 0}, variance estimation will not be performed.
 #' @param model a character string specifying the underlying model. See \bold{Details}.
@@ -593,30 +605,42 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "mult"),
 #' @seealso \code{\link{Recur}}, \code{\link{simSC}}
 #'
 #' @example inst/examples/ex_reReg.R
-reReg <- function(formula, data, model = "cox", B = 0,
-                  se = c("npb", "mult"),
+reReg <- function(formula, data, subset,
+                  model = "cox", B = 0, se = c("npb", "mult"),
                   control = list()) {
-                  ## se = c("resampling", "bootstrap", "NULL"),
+    ## se = c("resampling", "bootstrap", "NULL"),
     ## se <- ifelse(is.null(se), "NULL", se)
     se <- match.arg(se)
     Call <- match.call()
-    if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 
-    if (!missing(data)) obj <- eval(formula[[2]], data) 
+    if (missing(formula)) stop("Argument 'formula' is required.")
+    if (missing(data)) 
+        data <- environment(formula)
+    if (!missing(subset)) {
+        sSubset <- substitute(subset)
+        subIdx <- eval(sSubset, data, parent.frame())
+        if (!is.logical(subIdx)) 
+            stop("'subset' must be logical")
+        subIdx <- subIdx & !is.na(subIdx)
+        data <- data[subIdx, ]
+    }    
+    mf <- match.call(expand.dots = FALSE)
+    m <- match(c("formula", "data"), names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    mf$data <- data
+    mf$drop.unused.levels <- TRUE
+    mf[[1L]] <- quote(stats::model.frame)
+    mf <- eval(mf, parent.frame())
+    DF <- do.call(cbind, mf)
+    DF <- as.data.frame(DF)
+    obj <- model.response(mf)
     if (!is.Recur(obj)) stop("Response must be a `Recur` object")
+    formula[[2]] <- NULL
+    if (formula == ~ 1) DF$zero = 0 
     ctrl <- reReg.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control    
-    formula[[2]] <- NULL
-    if (formula == ~ 1) {
-        DF <- as.data.frame(cbind(obj@.Data, zero = 0))
-    } else {
-        ## remove intercept
-        if (!missing(data)) DF <- as.data.frame(cbind(obj@.Data, model.matrix(formula, data)))
-        if (missing(data)) DF <- as.data.frame(cbind(obj@.Data, model.matrix(formula, parent.frame())))
-        DF <- DF[,-which(colnames(DF) == "(Intercept)")]
-    }
+    ctrl[namc] <- control
     DF <- DF[order(DF$id, DF$time2), ]
     allModel <- apply(expand.grid(c("cox", "am", "sc", "ar"),
                                    c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
@@ -671,7 +695,7 @@ reReg <- function(formula, data, model = "cox", B = 0,
         stdErr@B <- B
     }
     ## initial values
-    p <- ncol(DF) - ncol(obj@.Data)
+    p <- ncol(DF) - ncol(mf[[1]])
     if (model == "general") {
         if (typeRec == "cox") {
             if (length(engine@par1) == 1) engine@par1 <- rep(engine@par1, p + 1)
@@ -712,9 +736,10 @@ reReg <- function(formula, data, model = "cox", B = 0,
     }
     if (formula == ~1) {
         engine@baseSE <- B > 0
-        if (engine@baseSE) fit <- npFit(DF, B)
-        else fit <- npFit(DF)
-        fit$typeTem <- fit$typeRec <- "nonparametric"
+        if (engine@baseSE) fit <- npFit(DF, B, typeTem)
+        else fit <- npFit(DF, 0, typeTem)
+        fit$typeRec <- "nonparametric"
+        fit$typeTem <- typeTem
     } else {
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
         if (model == "general" & engine@baseSE) {

@@ -619,8 +619,8 @@ plot.reReg <- function(x,
         return(plotHaz(x, smooth = smooth,
                        newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
     if (x$typeTem == ".") {
-        cat(paste("Baseline cumulative hazard function is not available."))
-        cat("\nOnly the baseline cumulative rate function is plotted.\n")
+        ## cat(paste("Baseline cumulative hazard function is not available."))
+        ## cat("\nOnly the baseline cumulative rate function is plotted.\n")
         return(plotRate(x, smooth = smooth, type = type,
                         newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
     }

@@ -7,6 +7,7 @@
 reReg(
   formula,
   data,
+  subset,
   model = "cox",
   B = 0,
   se = c("npb", "mult"),
@@ -18,6 +19,9 @@ reReg(
 The response must be a recurrent event survival object as returned by function \code{Recur}.}
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the \code{"formula"}.}
+
+\item{subset}{n optional logical vector specifying a subset of observations to be used
+in the fitting process.}
 
 \item{model}{a character string specifying the underlying model. See \bold{Details}.}
 

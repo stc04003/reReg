@@ -164,6 +164,8 @@ simSC <- function(n, summary = FALSE,
     ## dat <- dat[,c(1, 6:7, 2:5)]
     ## Reorder columns
     ord <- c("id", "t.start", "t.stop", "event", "status")
-    dat[,c(ord, setdiff(names(dat), ord))]
+    dat <- dat[,c(ord, setdiff(names(dat), ord))]
+    attr(dat, "Call") <- call
+    return(dat)
 }
                
