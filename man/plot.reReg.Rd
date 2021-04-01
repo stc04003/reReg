@@ -65,13 +65,15 @@ and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 }
 \examples{
 data(simDat)
-fm <- Recur(t.stop, id, event, status) ~ x1 + x2
+fm <- Recur(t.start \%to\% t.stop, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = simDat, method = "cox", B = 0)
+fit <- reReg(fm, data = simDat, B = 0)
 plot(fit)
-plot(fit, baseline = "rate")
-plot(fit, baseline = "rate", xlab = "Time (days)", smooth = TRUE)
+plot(fit, xlab = "Time (days)", smooth = TRUE)
 
+## Predicted cumulative rate and hazard given covariates
+newdata <- expand.grid(x1 = 0:1, x2 = mean(simDat$x2))
+plot(fit, newdata = newdata, showName = TRUE)
 }
 \seealso{
 \code{\link{reReg}}

@@ -10,7 +10,7 @@ reReg(
   subset,
   model = "cox",
   B = 0,
-  se = c("npb", "mult"),
+  se = c("boot", "sand"),
   control = list()
 )
 }
@@ -28,7 +28,11 @@ in the fitting process.}
 \item{B}{a numeric value specifies the number of bootstraps for variance estimation.
 When \code{B = 0}, variance estimation will not be performed.}
 
-\item{se}{a character string specifying the method for standard error estimation. See \bold{Details}.}
+\item{se}{a character string specifying the method for the variance estimation. See \bold{Details}.
+\describe{
+   \item{\code{boot}}{ nonparametric bootstrap approach}
+   \item{\code{sand}}{ resampling-based sandwich estimator}
+}}
 
 \item{control}{a list of control parameters.}
 }
@@ -51,19 +55,19 @@ where \eqn{\lambda_0(t)} is the baseline rate function,
 \eqn{h_0(t)} is the baseline hazard function,
 \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
 \eqn{Z} is an unobserved shared frailty variable, and
-\eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
-rate function and the hazard function, respectively.
+\eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters,
+respectively.
 The model includes several popular semiparametric models as special cases,
 which can be specified via the \code{model} argument with the rate function
 and hazard function separated by "\code{|}".
 For examples,
 Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
-can be called with \code{model = "cox|."};
+can be called with \code{model = "cox"};
 Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
 can be called with \code{model = "cox|cox"};
 Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
 can be called with \code{model = "am|am"};
-Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc|."}.
+Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc"}.
 Users can mix the models depending on the application. For example,
 \code{model = "cox|ar"} postulate a Cox proportional model for the
 recurrent event rate function and an accelerated rate model for
@@ -79,38 +83,33 @@ and \code{model = "am.GL"} for Ghosh and Lin (2003).
 
 The available methods for variance estimation are:
 \describe{
-  \item{NULL}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-  \item{npb}{performs nonparametric bootstrap.}
-  \item{mult}{performs the efficient resampling-based variance estimation.}
+  \item{boot}{performs nonparametric bootstrap.}
+  \item{sand}{performs the efficient resampling-based variance estimation.}
 }
 
 The \code{control} list consists of the following parameters:
 \describe{
   \item{tol}{absolute error tolerance.}
-  \item{par1, par2, par3, par4}{initial guesses used for root search.}
+  \item{alpha, beta, eta, theta}{initial guesses used for root search.}
   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-  \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
-  \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "npb"} is called.}
+  \item{boot.parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "boot"} is called.}
   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 }
 }
 \examples{
-fm <- Recur(Time, id, event, status) ~ x1 + x2
+data(simDat)
 
-## Joint Cox/Accelerated Mean Model
-set.seed(1)
-dat <- simSC(50, c(-1, 1), c(-1, 1), type = "cox|am")
-(fit <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, 
-              data = dat, method = "cox|am", B = 50))
-summary(fit)
+## Nonparametric estimate
+plot(reReg(Recur(t.start \%to\% t.stop, id, event, status) ~ 1, data = simDat, B = 50))
 
-## Generalized Scale-Change Model
-set.seed(1)
-dat <- simSC(50, c(-1, 1), c(-1, 1), type = "sc")
-(fit <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, 
-              data = dat, method = "sc|.", B = 50))
-summary(fit)
+fm <- Recur(t.start \%to\% t.stop, id, event, status) ~ x1 + x2
+## Fit the Cox rate model
+summary(reReg(fm, data = simDat, model = "cox", B = 50))
+## Fit the joint Cox/Cox model
+summary(reReg(fm, data = simDat, model = "cox|cox", B = 50))
+## Fit the scale-change rate model
+summary(reReg(fm, data = simDat, model = "sc", B = 50, se = "mult"))
 }
 \references{
 Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.

@@ -45,7 +45,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     return(out)
 }
 
-regFit.am.GL.mult <- function(DF, engine, stdErr) {
+regFit.am.GL.sand <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     DF0 <- DF[DF$event == 0,]
     p <- ncol(DF0) - 6
@@ -179,7 +179,7 @@ s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL) {
     return(NULL)
 }
 
-regFit.general.mult <- function(DF, engine, stdErr) {
+regFit.general.sand <- function(DF, engine, stdErr) {
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
@@ -239,7 +239,7 @@ regFit.general.mult <- function(DF, engine, stdErr) {
 ##############################################################################
 # Variance estimation 
 ##############################################################################
-regFit.Engine.npb <- function(DF, engine, stdErr) {
+regFit.Engine.boot <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
@@ -346,8 +346,8 @@ setClass("stdErr",
          prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2L),
          contains = "VIRTUAL")
 
-setClass("npb", contains = "stdErr")
-setClass("mult", contains = "stdErr")
+setClass("boot", contains = "stdErr")
+setClass("sand", contains = "stdErr")
 
 
 ##############################################################################
@@ -356,17 +356,17 @@ setClass("mult", contains = "stdErr")
 setGeneric("regFit", function(DF, engine, stdErr) {standardGeneric("regFit")})
 
 setMethod("regFit", signature(engine = "general", stdErr = "NULL"), regFit.general)
-setMethod("regFit", signature(engine = "general", stdErr = "mult"), regFit.general.mult)
+setMethod("regFit", signature(engine = "general", stdErr = "sand"), regFit.general.sand)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "NULL"), regFit.cox.LWYY)
-setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "npb"), regFit.cox.LWYY)
-setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "mult"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "boot"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "sand"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.GL", stdErr = "NULL"), regFit.cox.GL)
-setMethod("regFit", signature(engine = "cox.GL", stdErr = "mult"), regFit.cox.GL)
+setMethod("regFit", signature(engine = "cox.GL", stdErr = "sand"), regFit.cox.GL)
 setMethod("regFit", signature(engine = "am.GL", stdErr = "NULL"), regFit.am.GL)
-setMethod("regFit", signature(engine = "Engine", stdErr = "npb"),
-          regFit.Engine.npb)
-setMethod("regFit", signature(engine = "am.GL", stdErr = "mult"),
-          regFit.am.GL.mult)
+setMethod("regFit", signature(engine = "Engine", stdErr = "boot"),
+          regFit.Engine.boot)
+setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
+          regFit.am.GL.sand)
 
 
 #' Fits Semiparametric Regression Models for Recurrent Event Data
@@ -389,19 +389,19 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "mult"),
 #' \eqn{h_0(t)} is the baseline hazard function,
 #' \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
 #' \eqn{Z} is an unobserved shared frailty variable, and
-#' \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
-#' rate function and the hazard function, respectively.
+#' \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters,
+#' respectively.
 #' The model includes several popular semiparametric models as special cases,
 #' which can be specified via the \code{model} argument with the rate function
 #' and hazard function separated by "\code{|}".
 #' For examples,
 #' Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
-#' can be called with \code{model = "cox|."};
+#' can be called with \code{model = "cox"};
 #' Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
 #' can be called with \code{model = "cox|cox"};
 #' Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
 #' can be called with \code{model = "am|am"};
-#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc|."}.
+#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc"}.
 #' Users can mix the models depending on the application. For example,
 #' \code{model = "cox|ar"} postulate a Cox proportional model for the
 #' recurrent event rate function and an accelerated rate model for
@@ -417,20 +417,18 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "mult"),
 #'
 #' The available methods for variance estimation are:
 #' \describe{
-#'   \item{NULL}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-#'   \item{npb}{performs nonparametric bootstrap.}
-#'   \item{mult}{performs the efficient resampling-based variance estimation.}
+#'   \item{boot}{performs nonparametric bootstrap.}
+#'   \item{sand}{performs the efficient resampling-based variance estimation.}
 #' }
 #'
 #' The \code{control} list consists of the following parameters:
 #' \describe{
 #'   \item{tol}{absolute error tolerance.}
-#'   \item{par1, par2, par3, par4}{initial guesses used for root search.}
+#'   \item{alpha, beta, eta, theta}{initial guesses used for root search.}
 #'   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-#'   \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
 #'   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
-#'   \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "npb"} is called.}
-#'   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+#'   \item{boot.parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "boot"} is called.}
+#'   \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 #' }
 #' 
 #' @param formula a formula object, with the response on the left of a "~" operator, and the predictors on the right.
@@ -441,7 +439,11 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "mult"),
 #' @param B a numeric value specifies the number of bootstraps for variance estimation.
 #' When \code{B = 0}, variance estimation will not be performed.
 #' @param model a character string specifying the underlying model. See \bold{Details}.
-#' @param se a character string specifying the method for standard error estimation. See \bold{Details}.
+#' @param se a character string specifying the method for the variance estimation. See \bold{Details}.
+#' \describe{
+#'    \item{\code{boot}}{ nonparametric bootstrap approach}
+#'    \item{\code{sand}}{ resampling-based sandwich estimator}
+#' }
 #' @param control a list of control parameters.
 #'
 #' @export
@@ -465,7 +467,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "mult"),
 #'
 #' @example inst/examples/ex_reReg.R
 reReg <- function(formula, data, subset,
-                  model = "cox", B = 0, se = c("npb", "mult"),
+                  model = "cox", B = 0, se = c("boot", "sand"),
                   control = list()) {
     ## se = c("resampling", "bootstrap", "NULL"),
     ## se <- ifelse(is.null(se), "NULL", se)
@@ -541,7 +543,7 @@ reReg <- function(formula, data, subset,
         cat("Only one unique censoring time is detected, terminal event model is not fitted.\n\n")
     }
     ## Temporary fix 
-    if (typeRec != "sc")  se <- "npb"
+    if (typeRec != "sc")  se <- "boot"
     engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(model), "slots"))]
     engine <- do.call("new", c(list(Class = model), engine.ctrl))
     engine@typeRec <- typeRec
@@ -607,9 +609,9 @@ reReg <- function(formula, data, subset,
     fit$varNames <- names(DF)[-(1:6)]
     fit$se <- se
     if (engine@typeRec == "cox") fit$par1 <- fit$par1[-1]
-    if (engine@typeRec == "sc" & se != "npb") fit$par2 <- fit$par1 + fit$par2[-1]
-    if (engine@typeRec == "sc" & se == "npb") fit$par2 <- fit$par2[-1]
-    if (se != "NULL" & se != "npb" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]   
+    if (engine@typeRec == "sc" & se != "boot") fit$par2 <- fit$par1 + fit$par2[-1]
+    if (engine@typeRec == "sc" & se == "boot") fit$par2 <- fit$par2[-1]
+    if (se != "NULL" & se != "boot" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]   
     if (se != "NULL" & engine@typeRec == "cox") fit$par1.se <- fit$par1.se[-1]
     fit <- fit[order(names(fit))]
     class(fit) <- "reReg"
@@ -650,8 +652,8 @@ reReg.control <- function(eqType = c("logrank", "gehan"),
                           solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optim"),
                           tol = 1e-7,
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
-                          npb.parallel = FALSE, parCl = NULL) {
-    if (is.null(parCl)) parCl <- parallel::detectCores() / 2L
+                          boot.parallel = FALSE, boot.parCl = NULL) {
+    if (is.null(boot.parCl)) boot.parCl <- parallel::detectCores() / 2L
     solver <- match.arg(solver)
     if (solver == "BB::dfsane") solver <- "dfsane"
     if (solver == "BB::BBsolve") solver <- "BBsolve"
@@ -659,7 +661,7 @@ reReg.control <- function(eqType = c("logrank", "gehan"),
     eqType <- match.arg(eqType)
     list(tol = tol, eqType = eqType, solver = solver,
          par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
-         parallel = npb.parallel, parCl = parCl)
+         parallel = boot.parallel, parCl = boot.parCl)
 }
 
 ##############################################################################

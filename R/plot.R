@@ -22,7 +22,7 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
 #' }
 #' The \code{xlab}, \code{ylab} and \code{main} parameters can be specified
-#' outside of the \code{control} list. See \bold{Examples}.
+#' outside of the \code{control} list. 
 #' 
 #' @param x an object of class \code{Recur} returned by the \code{Recur()} function.
 #' See \code{?Recur} for creating \code{Recur} objects.
@@ -33,28 +33,25 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #' \describe{
 #'   \item{\code{increasing}}{sort the terminal time from in ascending order (default).
 #' This places longer terminal times on top. }
-#'   \item{\code{decreasing}}{sort the terminal time from in descending order (default).
+#'   \item{\code{decreasing}}{sort the terminal time from in descending order.
 #' This places shorter terminal times on top. }
-#'   \item{\code{none}}{present the as is, without sorting.}
+#'   \item{\code{none}}{present the event plots as is, without sorting by the terminal times.}
 #' }
 #' @param control a list of control parameters. See \bold{Details}.
-#' @param mcf.smooth an optional logical value that is passed to
-#' the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
-#' This argument indicates whether to add a smooth curve obtained from
-#' a monotone increasing P-splines implemented in package \code{scam}.
 #' @param mcf.adjustRiskset an optional logical value that is passed to
-#' the \code{mcf()} function as the \code{adjustRiskset} argument. See \code{\link{mcf}}.
+#' the \code{mcf()} function as the \code{adjustRiskset} argument. 
 #' This argument indicates whether risk set size will be adjusted.
 #' If \code{mcf.adjustRiskset = TRUE}, subjects leave the risk set after terminal times
 #' as in the Nelson-Aalen estimator.
 #' If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after terminal time.
 #' @param mcf.conf.int an optional logical value that is passed to
-#' the \code{mcf()} function as the \code{conf.int} argument. See \code{\link{mcf}}.
+#' the \code{mcf()} function as the \code{conf.int} argument. See \code{\link{mcf}} for details.
 #' @param mcf an optional logical value indicating whether the mean cumulative function (MCF) will
-#' be plotted instead of the event plot (default).
+#' be plotted instead of the event plot. When \code{mcf = TRUE},
+#' the \code{mcf} is internally called. See \code{\link{mcf}} for details.
 #' @param ... additional graphical parameters to be passed to methods.
 #'  
-#' @seealso \code{\link{Recur}}, \code{\link{plotEvents}}, \code{\link{plotMCF}}
+#' @seealso \code{\link{Recur}}, \code{\link{plotEvents}}, \code{\link{mcf}}
 #'
 #' @references Nelson, W. B. (1995) Confidence Limits for Recurrence Data-Applied to Cost
 #' or Number of Product Repairs. \emph{Technometrics}, \bold{37}(2): 147--157.
@@ -63,13 +60,12 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #' @export
 #'
 #' @return A \code{ggplot} object.
-#' @example inst/examples/ex_plot_reSurv.R
+#' @example inst/examples/ex_plot_Recur.R
 #' @exportS3Method plot Recur
 plot.Recur <- function(x, mcf = FALSE,
                        event.result = c("increasing", "decreasing", "asis"),
                        event.calendarTime = FALSE, 
                        mcf.adjustRiskset = TRUE,
-                       mcf.smooth = FALSE,
                        mcf.conf.int = FALSE,
                        control = list(), ...) {
     event.result <- match.arg(event.result)
@@ -100,12 +96,15 @@ plot.Recur <- function(x, mcf = FALSE,
 #' Plot the event plot for an \code{Recur} object.
 #' The usage of the function is similar to that of \code{plot.Recur()} but with more flexible options.
 #'
-#' The argument \code{control} consists of options with argument defaults to a
-#' list with the following values:
+#' The argument \code{control} consists of options with argument defaults to a list with
+#' the following values:
 #' \describe{
 #'   \item{xlab}{customizable x-label, default value is "Time".}
-#'   \item{ylab}{customizable y-label, default value is "Subject".}
-#'   \item{main}{customizable title, default value is "Recurrent event plot".}
+#'   \item{ylab}{customizable y-label, default value is "Subject" for event plot and
+#' "Cumulative mean" for MCF plot.}
+#'   \item{main}{customizable title, the default value is "Recurrent event plot"
+#' when \code{mcf = FALSE} and
+#' "Sample cumulative mean function plot" when \code{mcf = TRUE}.}
 #'   \item{terminal.name}{customizable label for terminal event,
 #' the default value is "Terminal event".}
 #'   \item{recurrent.name}{customizable legend title for recurrent event,
@@ -113,10 +112,9 @@ plot.Recur <- function(x, mcf = FALSE,
 #'   \item{recurrent.types}{customizable label for recurrent event type,
 #' the default value is \code{NULL}.}
 #'   \item{alpha}{between 0 and 1, controls the transparency of points.}
-#'   \item{legend.position}{a character string specifying the position of the legend (if any).
-#'   The available options are "right", "left", "top", "bottom", and "none".
-#' The default value is "top".}
 #' }
+#' The \code{xlab}, \code{ylab} and \code{main} parameters can be specified
+#' outside of the \code{control} list. 
 #' 
 #' @param formula  a formula object, with the response on the left of a "~" operator,
 #' and the predictors on the right.
@@ -128,13 +126,13 @@ plot.Recur <- function(x, mcf = FALSE,
 #' \describe{
 #'   \item{\code{increasing}}{sort the terminal time from in ascending order (default).
 #' This places longer terminal times on top. }
-#'   \item{\code{decreasing}}{sort the terminal time from in descending order (default).
+#'   \item{\code{decreasing}}{sort the terminal time from in descending order.
 #' This places shorter terminal times on top. }
-#'   \item{\code{none}}{present the as is, without sorting.}
+#'   \item{\code{none}}{present the event plots as is, without sorting by the terminal times.}
 #' }
 #' @param calendarTime an optional logical value indicating whether to plot in calendar time.
 #' When \code{calendarTime = FALSE} (default), the event plot will have patient time on the x-axis.
-#' @param control a list of control parameters.
+#' @param control a list of control parameters. See \bold{Details}.
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
 #'
@@ -303,7 +301,8 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
 #' Produce Cumulative Sample Mean Function Plots
 #'
 #' Plot the mean cumulative function (MCF) for an \code{Recur} object.
-#' The usage of the function is similar to that of \code{plot.Recur()} but with more flexible options.
+#' The usage of the function is similar to that of \code{plot.Recur()} 
+#' but with more flexible options.
 #'
 #' When \code{adjustRiskset = TRUE}, the \code{plotMCF()} is equivalent to
 #' the Nelson-Aalen estimator for the intensity function of the recurrent event process.
@@ -349,6 +348,8 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
 #' 
 #' @importFrom ggplot2 guides guide_legend
 #' @importFrom scam scam
+#'
+#' @noRd
 #' 
 #' @example inst/examples/ex_plot_MCF.R
 plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE, 
@@ -666,7 +667,6 @@ plot.reReg <- function(x,
 #'   \item{main}{customizable title, default value is "Baseline cumulative rate function".}
 #' }
 #' These arguments can also be specified outside of the \code{control} list.
-#' See \bold{Examples}.
 #'
 #' @param x an object of class \code{reReg}, usually returned by the \code{reReg} function.
 #' @param type a character string specifying the type of rate function to be plotted.
@@ -835,7 +835,6 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #'   \item{main}{customizable title, default value is "Baseline cumulative hazard function".}
 #' }
 #' These arguments can also be passed down without specifying a \code{control} list.
-#' See \bold{Examples}.
 #'
 #' @param x an object of class \code{reReg}, returned by the \code{reReg} function.
 #' @param smooth an optional logical value indicating whether to add a smooth curve
@@ -1035,7 +1034,10 @@ plot.reReg.control <- function(xlab = "Time", ylab = "", main = "", base_size = 
 #' @param name an optional character string to specify the legend labels.
 #' 
 #' @export
-cBase <- function(..., legend.title, legend.labels) {
+#' @keywords Plots
+#' 
+#' @example inst/examples/ex_basebind.R
+basebind <- function(..., legend.title, legend.labels) {
     gglst <- list(...)
     if (any(sapply(gglst, function(x) attr(x, "from")) != "reReg"))
         stop("Plots must be created from reReg objects")

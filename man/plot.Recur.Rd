@@ -10,7 +10,6 @@ plot.Recur(
   event.result = c("increasing", "decreasing", "asis"),
   event.calendarTime = FALSE,
   mcf.adjustRiskset = TRUE,
-  mcf.smooth = FALSE,
   mcf.conf.int = FALSE,
   control = list(),
   ...
@@ -21,7 +20,8 @@ plot.Recur(
 See \code{?Recur} for creating \code{Recur} objects.}
 
 \item{mcf}{an optional logical value indicating whether the mean cumulative function (MCF) will
-be plotted instead of the event plot (default).}
+be plotted instead of the event plot. When \code{mcf = TRUE},
+the \code{mcf} is internally called. See \code{\link{mcf}} for details.}
 
 \item{event.result}{an optional character string that is passed to the
 \code{plotEvents()} function as the \code{result} argument. See \code{\link{plotEvents}}.
@@ -30,25 +30,20 @@ The available options are
 \describe{
   \item{\code{increasing}}{sort the terminal time from in ascending order (default).
 This places longer terminal times on top. }
-  \item{\code{decreasing}}{sort the terminal time from in descending order (default).
+  \item{\code{decreasing}}{sort the terminal time from in descending order.
 This places shorter terminal times on top. }
-  \item{\code{none}}{present the as is, without sorting.}
+  \item{\code{none}}{present the event plots as is, without sorting by the terminal times.}
 }}
 
 \item{mcf.adjustRiskset}{an optional logical value that is passed to
-the \code{mcf()} function as the \code{adjustRiskset} argument. See \code{\link{mcf}}.
+the \code{mcf()} function as the \code{adjustRiskset} argument. 
 This argument indicates whether risk set size will be adjusted.
 If \code{mcf.adjustRiskset = TRUE}, subjects leave the risk set after terminal times
 as in the Nelson-Aalen estimator.
 If \code{mcf.adjustRiskset = FALSE}, subjects remain in the risk set after terminal time.}
 
-\item{mcf.smooth}{an optional logical value that is passed to
-the \code{plotMCF()} function as the \code{smooth} argument. See \code{\link{plotMCF}}.
-This argument indicates whether to add a smooth curve obtained from
-a monotone increasing P-splines implemented in package \code{scam}.}
-
 \item{mcf.conf.int}{an optional logical value that is passed to
-the \code{mcf()} function as the \code{conf.int} argument. See \code{\link{mcf}}.}
+the \code{mcf()} function as the \code{conf.int} argument. See \code{\link{mcf}} for details.}
 
 \item{control}{a list of control parameters. See \bold{Details}.}
 
@@ -79,30 +74,38 @@ the default value is \code{NULL}.}
   \item{alpha}{between 0 and 1, controls the transparency of points.}
 }
 The \code{xlab}, \code{ylab} and \code{main} parameters can be specified
-outside of the \code{control} list. See \bold{Examples}.
+outside of the \code{control} list.
 }
 \examples{
 data(simDat)
-reObj <- with(simDat, Recur(t.stop, id, event, status))
+reObj <- with(simDat, Recur(t.start \%to\% t.stop, id, event, status))
 
 ## Event plots:
 plot(reObj)
 plot(reObj, event.result = "decreasing")
 
+## With (hypothetical) multiple event types
+simDat$event2 <- with(simDat, ifelse(t.stop > 10 & event > 0, 2, event))
+reObj2 <- with(simDat, Recur(t.start \%to\% t.stop, id, event2, status))
+plot(reObj2)
+
+## With (hypothetical) calendar times
+simDat2 <- simDat
+simDat2$t.start <- as.Date(simDat2$t.start + simDat2$x2 * 5, origin = "20-01-01")
+simDat2$t.stop <- as.Date(simDat2$t.stop + simDat2$x2 * 5, origin = "20-01-01")
+reObj3 <- with(simDat2, Recur(t.start \%to\% t.stop, id, event, status))
+plot(reObj3, event.calendarTime = TRUE)
+
 ## MCF plots
 plot(reObj, mcf = TRUE)
-plot(reObj, mcf = TRUE, mcf.adjrisk = FALSE)
+plot(reObj, mcf = TRUE, mcf.adjustRiskset = FALSE)
 
-## With (hypothetical) multiple event types
-set.seed(1)
-reObj2 <- with(simDat, Recur(t.stop, id, event * sample(1:3, nrow(simDat), TRUE), status))
-plot(reObj2)
 }
 \references{
 Nelson, W. B. (1995) Confidence Limits for Recurrence Data-Applied to Cost
 or Number of Product Repairs. \emph{Technometrics}, \bold{37}(2): 147--157.
 }
 \seealso{
-\code{\link{Recur}}, \code{\link{plotEvents}}, \code{\link{plotMCF}}
+\code{\link{Recur}}, \code{\link{plotEvents}}, \code{\link{mcf}}
 }
 \keyword{Plots}
