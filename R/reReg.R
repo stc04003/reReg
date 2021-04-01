@@ -303,7 +303,7 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     if (len2 > 0)
         res <- c(res, list(par2.vcov = bVar[1:len2 + len1, 1:len2 + len1],
                            par2.se = bSE[1:len2 + len1]))
-    if (len3 > 0) 
+    if (len3 > 0)
         res <- c(res, list(par3.vcov = bVar[1:len3 + len1 + len2, 1:len3 + len1 + len2],
                            par3.se = bSE[1:len3 + len1 + len2]))
     if (len4 > 0)
@@ -466,6 +466,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' @seealso \code{\link{Recur}}, \code{\link{simSC}}
 #'
 #' @example inst/examples/ex_reReg.R
+
 reReg <- function(formula, data, subset,
                   model = "cox", B = 0, se = c("boot", "sand"),
                   control = list()) {
