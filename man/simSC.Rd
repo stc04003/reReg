@@ -6,32 +6,35 @@
 \usage{
 simSC(
   n,
-  par1,
-  par2,
-  par3 = par1,
-  par4 = par2,
-  type = "cox",
-  zVar = 0.25,
-  tau = 60,
-  origin = 0,
-  Lam0 = NULL,
-  Haz0 = NULL,
-  summary = FALSE
+  summary = FALSE,
+  para,
+  xmat,
+  censoring,
+  frailty,
+  tau,
+  origin,
+  Lam0,
+  Haz0
 )
 }
 \arguments{
 \item{n}{number of observation.}
 
-\item{par1, par2, par3, par4}{are numerical vectors of length 2.
-These correspond to the \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta} in the joint model. See \bold{Details}}
+\item{summary}{a logical value indicating whether a brief data summary will be printed.}
 
-\item{type}{is a character string specifying the underlying model.
-The rate function type and the hazard function type are separated by a vertical bar "|",
-with the rate function on the left. For example, \code{type = "cox|am"} generates the recurrent process from a Cox model and
-the terminal event from an accelerated mean model. Setting \code{type = "cox"} gives \code{type = "cox|cox"}.}
+\item{para}{a list of numerical vectors for the regression coefficients
+in the joint scale-change model. 
+The names of the list elements are \code{alpha}, \code{beta}, \code{eta}, and
+\code{theta}, correspond to \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta}
+in the joint scale-change model, respectively.
+See \bold{Details} for \code{\link{reReg()}}.}
 
-\item{zVar}{a numeric variable specifying the variance of the fraility variable,\eqn{Z}, when \code{zVar} > 0.
-When \code{zVar} = 0, \eqn{Z} is set to a fixed constant 1. The default value is 0.25.}
+\item{xmat}{an optional matrix specifying the design matrix.}
+
+\item{censoring}{a numeric variable specifying the censoring times for each of the
+\eqn{n} observation.}
+
+\item{frailty}{a numeric variable specifying the frailty variable.}
 
 \item{tau}{a numeric value specifying the maximum observation time.}
 
@@ -44,10 +47,8 @@ the cumulative rate function of \deqn{\Lambda_0(t) = 2\log(1 + t).}}
 
 \item{Haz0}{is an optional function that specifies the baseline hazard function.
 When left-unspecified, the recurrent events are generated using the baseline hazard function
-\deqn{h_0(t) = \frac{1}{8(1 + t)},} or equivalently,
-the cumulative hazard function of \deqn{H_0(t) = \log(1 + t) / 8.}}
-
-\item{summary}{a logical value indicating whether a brief data summary will be printed.}
+\deqn{h_0(t) = \frac{1}{5(1 + t)},} or equivalently,
+the cumulative hazard function of \deqn{H_0(t) = \log(1 + t) / 5.}}
 }
 \description{
 The function \code{simSC()} generates simulated recurrent event data from either
@@ -60,30 +61,40 @@ the terminal events.
 Specifically, the rate function, \eqn{\lambda(t)}, of the recurrent process
 can be specified as one of the following model:
 \deqn{\lambda(t) = Z \lambda_0(te^{X^\top\alpha}) e^{X^\top\beta}, h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta}, }
-where \eqn{\lambda_0(t)} is the baseline rate function, \eqn{h_0(t)} is the baseline hazard function,
+where \eqn{\lambda_0(t)} is the baseline rate function,
+\eqn{h_0(t)} is the baseline hazard function,
 \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
 \eqn{Z} is an unobserved shared frailty variable, and
 \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
 rate function and the hazard function, respectively.
 
-For all scenarios, two covariates are considered; \eqn{X = (X_1, X_2)}, where
-\eqn{X_1} follows a Bernoulli distribution with probability 0.5 and
-\eqn{X_2} follows a standard normal distribution.
-The censoring time could be either independent (given covariates) or informative.
-The simulated data is used for illustration.
-An informative censoring time, \eqn{C}, is generated separately from an
-exponential distribution with a rate parameter of 1 / 60 if \eqn{X_1} is 1,
-or \eqn{Z^2 / 30} if \eqn{X_1} is 0.
-The observed recurrent events is then observed up to the minimum of \eqn{C},
-terminal event, and \eqn{\tau}.
-Lastly, when \code{lam0} is not specified, we assume the baseline rate function
-to be \deqn{\lambda_0(t) = \frac{2}{1 + t}}.
-On the other hand, when \code{haz0} is not specified, we assume
-the baseline hazard function to be \deqn{h_0(t) = \frac{1}{8(1 + t)}}.
+Under the default settings, the \code{simSC()} function assumes \eqn{p = 2}
+and the regression parameters to be \eqn{\alpha = \eta = (0, 0)^\top},
+and \eqn{\beta = \theta = (1, 1)^\top}.
+When the \code{xmat} argument is not specified, the \code{simSC()} function
+assumes \eqn{X_i} is a two-dimensional vector \eqn{X_i = (X_{i1}, X_{i2}), i = 1, \ldots, n},
+where \eqn{X_{i1}} is a Bernoulli variable with rate 0.5 and
+\eqn{X_{i2}} is a standard normal variable.
+With the default \code{xmat}, the censoring time $C$ is generated from
+an independent uniform distribution in \eqn{[0, 2\tau X_{i1} + 2Z^2\tau(1 - X_{i1})]}.
+Thus, the censoring distribution is covariate dependent and
+is informative when \eqn{Z} is not a constant.
+When the \code{frailty} argument is not specified, the frailty variable \eqn{Z} is generated
+from a gamma distribution with a unit mean and a variance of 0.25.
+The default values for \code{tau} and \code{origin} are 60 and 0, respectively.
+When arguments \code{Lam0} and \code{Haz0} are left unspecified,
+the \code{simSC()} function uses \eqn{\Lambda_0(t) = 2\log(1 + t)}
+and \eqn{H_0(t) = \log(1 + t) / 5}, respectively.
+This is equivalent to setting
+\code{Lam0 = function(x) 2 * log(1 + x)} and \code{Haz0 = function(x) log(1 + x) / 5}.
+Overall, the default specifications generate the recurrent events and the terminal events
+from the model:
+\deqn{\lambda(t) = \displaystyle \frac{2Z}{1 + te^{-X_{i1} - X_{i2}}},
+h(t) = \displaystyle \frac{Z}{5(1 + te^{X_{i1} + X_{i2}})},  t\in[0, 60].}
 }
 \examples{
 set.seed(123)
-simSC(100, c(-1, 1), c(-1, 1), summary = TRUE)
+simSC(100, summary = TRUE)
 }
 \seealso{
 \code{\link{reReg}}

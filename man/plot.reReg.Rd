@@ -4,10 +4,9 @@
 \alias{plot.reReg}
 \title{Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function}
 \usage{
-\method{plot}{reReg}(
+plot.reReg(
   x,
   baseline = c("both", "rate", "hazard"),
-  type = c("unrestricted", "bounded", "scaled"),
   smooth = FALSE,
   newdata = NULL,
   frailty = NULL,
@@ -44,11 +43,6 @@ when \code{newdata} is specified.}
 \item{control}{a list of control parameters. See \bold{Details}.}
 
 \item{...}{additional graphical parameters to be passed to methods.}
-
-\item{rateType}{a character string specifying the type of rate function to be plotted.
-This argument passed to the \code{plotRate()} function as the \code{type} argument.
-See \code{\link{plotRate}}.
-Options are "unrestricted", "scaled", "bounded".}
 }
 \value{
 A \code{ggplot} object.
@@ -71,13 +65,15 @@ and "Baseline cumulative hazard function" when \code{baseline = "hazard"}.}
 }
 \examples{
 data(simDat)
-fm <- Recur(t.stop, id, event, status) ~ x1 + x2
+fm <- Recur(t.start \%to\% t.stop, id, event, status) ~ x1 + x2
 
-fit <- reReg(fm, data = simDat, method = "cox", B = 0)
+fit <- reReg(fm, data = simDat, B = 0)
 plot(fit)
-plot(fit, baseline = "rate")
-plot(fit, baseline = "rate", xlab = "Time (days)", smooth = TRUE)
+plot(fit, xlab = "Time (days)", smooth = TRUE)
 
+## Predicted cumulative rate and hazard given covariates
+newdata <- expand.grid(x1 = 0:1, x2 = mean(simDat$x2))
+plot(fit, newdata = newdata, showName = TRUE)
 }
 \seealso{
 \code{\link{reReg}}

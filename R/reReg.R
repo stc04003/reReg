@@ -1,7 +1,7 @@
 ## globalVariables("DF") ## global variables for reReg
 
 ##############################################################################
-## Functions for different methods
+## Functions for different models
 ## stdErr is estimated with resampling if method = sc or am.xc,
 ##        bootstrap otherwise
 ##############################################################################
@@ -45,7 +45,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
     return(out)
 }
 
-regFit.am.GL.resampling <- function(DF, engine, stdErr) {
+regFit.am.GL.sand <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     DF0 <- DF[DF$event == 0,]
     p <- ncol(DF0) - 6
@@ -132,7 +132,8 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
     cumHaz <- basehaz(fit.coxph)
     ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
     wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
-        approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1, yright = min(exp(-cumHaz$hazard * x)),
+        approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1,
+                  yright = min(exp(-cumHaz$hazard * x)),
                   method = "constant")(T))
     wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
     wgt <- ifelse(wgt > 1e5, 1e5, wgt)
@@ -162,13 +163,14 @@ regFit.general <- function(DF, engine, stdErr) {
     return(out)
 }
 
-s1 <- function(type, DF, eqType, solver, par1, par2, wgt = NULL) {
-    if (type == "sc") return(reSC(DF, eqType, solver, par1, par2, wgt))
-    if (type == "cox") return(reCox(DF, eqType, solver, par1, wgt))
-    if (type == "am") return(reAM(DF, eqType, solver, par1, wgt))
-    if (type == "ar") return(reAR(DF, eqType, solver, par1, wgt))
+s1 <- function(type, DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NULL) {
+    if (type == "sc") return(reSC(DF, eqType, solver, par1, par2, Lam0, w1, w2))
+    if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, w1))
+    if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, w1))
+    if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, w1))
     return(NULL)
 }
+
 s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL) {
     if (type == "sc") return(temSC(DF, eqType, solver, par3, par4, zi, wgt))
     if (type == "cox") return(temCox(DF, eqType, solver, par3, zi, wgt))
@@ -177,7 +179,7 @@ s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL) {
     return(NULL)
 }
 
-regFit.general.resampling <- function(DF, engine, stdErr) {
+regFit.general.sand <- function(DF, engine, stdErr) {
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
         print("Warning: Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
@@ -185,14 +187,12 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     n <- length(unique(DF$id))
     B <- stdErr@B
-    E1 <- matrix(rexp(n * B), n)
-    E2 <- matrix(rexp(n * B), n)
     p <- ncol(DF) - 6
-    tmpV <- sapply(1:B, function(ee) {
-        tmp <- s1(engine@typeRec, DF, engine@eqType, NULL, res$par1, res$par2, E1[,ee])
-        c(tmp$value, s2(engine@typeTem, DF, engine@eqType, NULL, res$par3, res$par4,
-                        E2[,ee] * tmp$zi, E2[,ee]))
-    })
+    tmpV <- replicate(B,
+                      c(s1(engine@typeRec, DF, engine@eqType, NULL, res$par1, res$par2,
+                           res$Lam0, rexp(n), rexp(n))$value,
+                        s2(engine@typeTem, DF, engine@eqType, NULL, res$par3, res$par4,
+                           rexp(n) * res$zi, rexp(n))))    
     V <- var(t(tmpV))
     Z <- matrix(rnorm(ncol(V) * B), B)
     len1 <- length(res$par1)
@@ -202,13 +202,11 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
     na <- len1 + len2
     nb <- len3 + len4
     L <- apply(Z, 1, function(zz) {
-        tmp <- s1(engine@typeRec, DF, engine@eqType, NULL,
-                  res$par1 + zz[1:len1] / sqrt(n), res$par2 + zz[1:len2 + len1] / sqrt(n))
-        c(tmp$value, s2(engine@typeTem, DF, engine@eqType, NULL,
-                        res$par3 + zz[1:len3 + len1 + len2] / sqrt(n),
-                        res$par4 + zz[1:len4 + len1 + len2 + len3] / sqrt(n), tmp$zi))
-                        ## b0 + tail(zz, nb) / sqrt(n), tmp$zi))
-    })
+    c(s1(engine@typeRec, DF, engine@eqType, NULL,
+         res$par1 + zz[1:len1] / sqrt(n), res$par2 + zz[1:len2 + len1] / sqrt(n), res$Lam0)$value,
+      s2(engine@typeTem, DF, engine@eqType, NULL,
+         res$par3 + zz[1:len3 + len1 + len2] / sqrt(n),
+         res$par4 + zz[1:len4 + len1 + len2 + len3] / sqrt(n), res$zi))})
     L <- t(L)
     J <- solve(t(Z) %*% Z) %*% t(Z) %*% (sqrt(n) * L)
     recVar <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
@@ -241,7 +239,7 @@ regFit.general.resampling <- function(DF, engine, stdErr) {
 ##############################################################################
 # Variance estimation 
 ##############################################################################
-regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
+regFit.Engine.boot <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     id <- DF$id
     event <- DF$event
@@ -267,14 +265,11 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
             tmp <- regFit(DF2, engine, NULL)
-            if (engine@typeRec == "sc")
-                return(c(tmp$par1, c(0, tmp$par1) + tmp$par2, tmp$par3, tmp$par4))
-            else return(c(tmp$par1, tmp$par2, tmp$par3, tmp$par4))
+            return(c(tmp$par1, tmp$par2, tmp$par3, tmp$par4))
         })
         stopCluster(cl)
         bCoef <- t(out)
-        convergence <- apply(bCoef, 1,
-                             function(x) 1 * (x %*% x > 1e3 * bound %*% bound))
+        convergence <- apply(bCoef, 1, function(x) 1 * (x %*% x > 1e3 * bound %*% bound))
     } else {
         bCoef <- matrix(0, B, length(bound))
         convergence <- rep(0, B)
@@ -284,10 +279,7 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
             tmp <- regFit(DF2, engine, NULL)
-            if (engine@typeRec == "sc")
-                bCoef[i,] <- c(tmp$par1, c(0, tmp$par1) + tmp$par2, tmp$par3, tmp$par4)
-            else
-                bCoef[i,] <- c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)
+            bCoef[i,] <- c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)
             convergence[i] <- 1 * (bCoef[i,] %*% bCoef[i,] > 1e3 * bound %*% bound)
         }
     }
@@ -317,63 +309,11 @@ regFit.Engine.Bootstrap <- function(DF, engine, stdErr) {
     if (len4 > 0)
         res <- c(res, list(par4.vcov = bVar[1:len4 + len1 + len2 + len3, 1:len4 + len1 + len2 + len3],
                            par4.se = bSE[1:len4 + len1 + len2 + len3]))
-    else return(res)
-}
-
-##############################################################################
-## Nonparametric (~1)
-##############################################################################
-
-## ~1
-npFit <- function(DF, B = 0) {
-    df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
-    rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[, 2]
-    yi <- df0$time2
-    ti <- df1$time2
-    zi <- wi <- rep(1, length(ti))
-    di <- df0$terminal
-    xi <- as.matrix(df0[,-c(1:6)])
-    p <- ncol(xi)
-    yi2 <- sort(unique(yi))
-    if (B > 0) {
-        n <- length(unique(DF$id))
-        E1 <- matrix(rexp(n * B), n)
-        E2 <- matrix(rexp(n * B), n)
-        rate <- apply(E1, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), yi))
-        rate <- apply(rate, 1, quantile, c(.025, .975))
-        Lam <- exp(-rate)
-        Haz <- apply(E2, 2, function(e) temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, e, yi2))
-        Haz <- apply(Haz, 1, quantile, c(.025, .975))
-        zi <- (m + 0.01) / (Lam + 0.01)
-        return(list(Lam0.lower = approxfun(yi[!duplicated(yi)], Lam[2, !duplicated(yi)],
-                                           yleft = min(Lam[2,]), yright = max(Lam[2,])),
-                    Lam0.upper = approxfun(yi[!duplicated(yi)], Lam[1, !duplicated(yi)],
-                                           yleft = min(Lam[1,]), yright = max(Lam[1,])),
-                    Haz0.lower = approxfun(yi2, Haz[1,],
-                                           yleft = min(Haz[1,]), yright = max(Haz[1,])),
-                    Haz0.upper = approxfun(yi2, Haz[2,],
-                                           yleft = min(Haz[2,]), yright = max(Haz[2,])),
-                    log.muZ = log(mean(zi))))
-    } else {    
-        rate <- c(reRate(ti, rep(yi, m), wi, yi))
-        Lam <- exp(-rate)
-        Lam0 <- approxfun(yi[!duplicated(yi)], Lam[!duplicated(yi)],
-                          yleft = min(Lam), yright = max(Lam))
-        Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
-        Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
-        zi <- (m + 0.01) / (Lam + 0.01)
-        return(list(Lam0 = Lam0, Haz0 = Haz0, log.muZ = log(mean(zi))))
-    }    
-}
-
-npFitSE <- function(DF, typeRec, typeTem, par1, par2, par3, par4, zi, B) {
-    n <- length(unique(DF$id))
-    E1 <- matrix(rexp(n * B), n)
-    E2 <- matrix(rexp(n * B), n)
-    c(s1(typeRec, DF, NULL, NULL, par1, par2, E1),
-      s2(typeTem, DF, NULL, NULL, par3, par4, zi, E2))
+    if (engine@typeRec == "sc") {
+        res$par2.vcov <- bVar[1:len1, 1:len1] + bVar[2:len2 + len1, 2:len2 + len1] + 2 * bVar[1:len1, 2:len2 + len1]
+        res$par2.se <- sqrt(diag(res$par2.vcov))
+    }
+    return(res)
 }
 
 ##############################################################################
@@ -406,8 +346,8 @@ setClass("stdErr",
          prototype(B = 100, parallel = FALSE, parCl = parallel::detectCores() / 2L),
          contains = "VIRTUAL")
 
-setClass("bootstrap", contains = "stdErr")
-setClass("resampling", contains = "stdErr")
+setClass("boot", contains = "stdErr")
+setClass("sand", contains = "stdErr")
 
 
 ##############################################################################
@@ -416,17 +356,17 @@ setClass("resampling", contains = "stdErr")
 setGeneric("regFit", function(DF, engine, stdErr) {standardGeneric("regFit")})
 
 setMethod("regFit", signature(engine = "general", stdErr = "NULL"), regFit.general)
-setMethod("regFit", signature(engine = "general", stdErr = "resampling"), regFit.general.resampling)
+setMethod("regFit", signature(engine = "general", stdErr = "sand"), regFit.general.sand)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "NULL"), regFit.cox.LWYY)
-setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "bootstrap"), regFit.cox.LWYY)
-setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "resampling"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "boot"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "sand"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.GL", stdErr = "NULL"), regFit.cox.GL)
-setMethod("regFit", signature(engine = "cox.GL", stdErr = "resampling"), regFit.cox.GL)
+setMethod("regFit", signature(engine = "cox.GL", stdErr = "sand"), regFit.cox.GL)
 setMethod("regFit", signature(engine = "am.GL", stdErr = "NULL"), regFit.am.GL)
-setMethod("regFit", signature(engine = "Engine", stdErr = "bootstrap"),
-          regFit.Engine.Bootstrap)
-setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
-          regFit.am.GL.resampling)
+setMethod("regFit", signature(engine = "Engine", stdErr = "boot"),
+          regFit.Engine.boot)
+setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
+          regFit.am.GL.sand)
 
 
 #' Fits Semiparametric Regression Models for Recurrent Event Data
@@ -449,57 +389,61 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' \eqn{h_0(t)} is the baseline hazard function,
 #' \eqn{X} is a \eqn{n} by \eqn{p} covariate matrix and \eqn{\alpha},
 #' \eqn{Z} is an unobserved shared frailty variable, and
-#' \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
-#' rate function and the hazard function, respectively.
+#' \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters,
+#' respectively.
 #' The model includes several popular semiparametric models as special cases,
-#' which can be specified via the \code{method} argument with the rate function
+#' which can be specified via the \code{model} argument with the rate function
 #' and hazard function separated by "\code{|}".
 #' For examples,
 #' Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
-#' can be called with \code{method = "cox|."};
+#' can be called with \code{model = "cox"};
 #' Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
-#' can be called with \code{method = "cox|cox"};
+#' can be called with \code{model = "cox|cox"};
 #' Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
-#' can be called with \code{method = "am|am"};
-#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{method = "sc|."}.
+#' can be called with \code{model = "am|am"};
+#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc"}.
 #' Users can mix the models depending on the application. For example,
-#' \code{method = "cox|ar"} postulate a Cox proportional model for the
+#' \code{model = "cox|ar"} postulate a Cox proportional model for the
 #' recurrent event rate function and an accelerated rate model for
 #' the terminal event hazard function (\eqn{\alpha = \theta = 0}).
-#' If only one method is specified without an "\code{|}",
+#' If only one model is specified without an "\code{|}",
 #' it is used for both the rate function and the hazard function.
-#' For example, specifying \code{method = "cox"} is equivalent to \code{method = "cox|cox"}.
-#' Some methods that assumes \code{Z = 1} and requires independent
+#' For example, specifying \code{model = "cox"} is equivalent to \code{model = "cox|cox"}.
+#' Some models that assumes \code{Z = 1} and requires independent
 #' censoring are also implemented in \code{reReg};
-#' these includes \code{method = "cox.LWYY"} for Lin et al. (2000),
-#' \code{method = "cox.GL"} for Ghosh and Lin (2002),
-#' and \code{method = "am.GL"} for Ghosh and Lin (2003).
+#' these includes \code{model = "cox.LWYY"} for Lin et al. (2000),
+#' \code{model = "cox.GL"} for Ghosh and Lin (2002),
+#' and \code{model = "am.GL"} for Ghosh and Lin (2003).
 #'
 #' The available methods for variance estimation are:
 #' \describe{
-#'   \item{NULL}{variance estimation will not be performed. This is equivalent to setting \code{B = 0}.}
-#'   \item{resampling}{performs the efficient resampling-based variance estimation.}
-#'   \item{bootstrap}{performs nonparametric bootstrap.}
+#'   \item{boot}{performs nonparametric bootstrap.}
+#'   \item{sand}{performs the efficient resampling-based variance estimation.}
 #' }
 #'
 #' The \code{control} list consists of the following parameters:
 #' \describe{
 #'   \item{tol}{absolute error tolerance.}
-#'   \item{par1, par2, par3, par4}{initial guesses used for root search.}
+#'   \item{alpha, beta, eta, theta}{initial guesses used for root search.}
 #'   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-#'   \item{baseSE}{an logical value indicating whether the 95\% confidence bounds for the baseline functions will be computed.}
 #'   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
-#'   \item{parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "bootstrap"} is called.}
-#'   \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+#'   \item{boot.parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "boot"} is called.}
+#'   \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 #' }
 #' 
 #' @param formula a formula object, with the response on the left of a "~" operator, and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{Recur}.
 #' @param data  an optional data frame in which to interpret the variables occurring in the \code{"formula"}.
-#' @param B a numeric value specifies the number of resampling for variance estimation.
+#' @param subset n optional logical vector specifying a subset of observations to be used
+#' in the fitting process.
+#' @param B a numeric value specifies the number of bootstraps for variance estimation.
 #' When \code{B = 0}, variance estimation will not be performed.
-#' @param method a character string specifying the underlying model. See \bold{Details}.
-#' @param se a character string specifying the method for standard error estimation. See \bold{Details}.
+#' @param model a character string specifying the underlying model. See \bold{Details}.
+#' @param se a character string specifying the method for the variance estimation. See \bold{Details}.
+#' \describe{
+#'    \item{\code{boot}}{ nonparametric bootstrap approach}
+#'    \item{\code{sand}}{ resampling-based sandwich estimator}
+#' }
 #' @param control a list of control parameters.
 #'
 #' @export
@@ -522,70 +466,87 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "resampling"),
 #' @seealso \code{\link{Recur}}, \code{\link{simSC}}
 #'
 #' @example inst/examples/ex_reReg.R
-reReg <- function(formula, data, 
-                  method = "cox", se = c("bootstrap", "NULL"),
-                  B = 200, control = list()) {
-    se <- ifelse(is.null(se), "NULL", se)
+
+reReg <- function(formula, data, subset,
+                  model = "cox", B = 0, se = c("boot", "sand"),
+                  control = list()) {
+    ## se = c("resampling", "bootstrap", "NULL"),
+    ## se <- ifelse(is.null(se), "NULL", se)
     se <- match.arg(se)
     Call <- match.call()
-    if (missing(data)) obj <- eval(formula[[2]], parent.frame()) 
-    if (!missing(data)) obj <- eval(formula[[2]], data) 
+    if (missing(formula)) stop("Argument 'formula' is required.")
+    if (missing(data)) 
+        data <- environment(formula)
+    if (!missing(subset)) {
+        sSubset <- substitute(subset)
+        subIdx <- eval(sSubset, data, parent.frame())
+        if (!is.logical(subIdx)) 
+            stop("'subset' must be logical")
+        subIdx <- subIdx & !is.na(subIdx)
+        data <- data[subIdx, ]
+    }    
+    mf <- match.call(expand.dots = FALSE)
+    m <- match(c("formula", "data"), names(mf), 0L)
+    mf <- mf[c(1L, m)]
+    mf$data <- data
+    mf$drop.unused.levels <- TRUE
+    mf[[1L]] <- quote(stats::model.frame)
+    mf <- eval(mf, parent.frame())
+    DF <- do.call(cbind, mf)
+    DF <- as.data.frame(DF)
+    obj <- model.response(mf)
     if (!is.Recur(obj)) stop("Response must be a `Recur` object")
+    formula[[2]] <- NULL
+    if (formula == ~ 1) DF$zero = 0 
     ctrl <- reReg.control()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control    
-    formula[[2]] <- NULL
-    if (formula == ~ 1) {
-        DF <- as.data.frame(cbind(obj@.Data, zero = 0))
-    } else {
-        ## remove intercept
-        if (!missing(data)) DF <- as.data.frame(cbind(obj@.Data, model.matrix(formula, data)))
-        if (missing(data)) DF <- as.data.frame(cbind(obj@.Data, model.matrix(formula, parent.frame())))
-        DF <- DF[,-which(colnames(DF) == "(Intercept)")]
-    }
+    ctrl[namc] <- control
     DF <- DF[order(DF$id, DF$time2), ]
-    allMethod <- apply(expand.grid(c("cox", "am", "sc", "ar"),
+    allModel <- apply(expand.grid(c("cox", "am", "sc", "ar"),
                                    c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
-    allMethod <- c(allMethod, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
-    method <- match.arg(method, c("cox", "am", "sc", "ar", allMethod))
+    allModel <- c(allModel, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
+    model <- match.arg(model, c("cox", "am", "sc", "ar", allModel))
     typeRec <- typeTem <- NULL
-    if (grepl("|", method, fixed = TRUE)) {
-        typeRec <- substring(method, 1, regexpr("[|]", method) - 1)
-        typeTem <- substring(method, regexpr("[|]", method) + 1)
-        method <- "general"
+    if (grepl("|", model, fixed = TRUE)) {
+        typeRec <- substring(model, 1, regexpr("[|]", model) - 1)
+        typeTem <- substring(model, regexpr("[|]", model) + 1)
+        model <- "general"
     }
-    if (method %in% c("cox", "am", "sc", "ar")) {
-        typeRec <- typeTem <- method
-        method <- "general"
+    if (model %in% c("cox", "am", "sc", "ar")) {
+        typeRec <- model
+        typeTem <- "."
+        model <- "general"
     }
     ## Special cases:
-    if (method == "cox.HW") {
+    if (model == "cox.HW") {
         typeRec <- typeTem <- "cox"
-        method <- "general"
+        model <- "general"
     }
-    if (method == "am.XCHWY") {
+    if (model == "am.XCHWY") {
         typeRec <- typeTem <- "am"
-        method <- "general"
+        model <- "general"
     }
-    if (method == "sc.XCYH") {
+    if (model == "sc.XCYH") {
         typeRec <- "sc"
         typeTem <- "."
-        method <- "general"        
+        model <- "general"        
     }
-    if (method == "cox.LWYY") {
+    if (model == "cox.LWYY") {
         typeRec <- "cox.LWYY"
         typeTem <- "."
     }
-    if (method == "cox.GL") typeRec <- typeTem <- "cox.GL"
-    if (method == "am.GL") typeRec <- typeTem <- "am.GL"
+    if (model == "cox.GL") typeRec <- typeTem <- "cox.GL"
+    if (model == "am.GL") typeRec <- typeTem <- "am.GL"
     if (length(unique(DF$time2[DF$event == 0])) == 1 & typeTem != ".") {
         typeTem <- "."
         cat("Only one unique censoring time is detected, terminal event model is not fitted.\n\n")
     }
-    engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(method), "slots"))]
-    engine <- do.call("new", c(list(Class = method), engine.ctrl))
+    ## Temporary fix 
+    if (typeRec != "sc")  se <- "boot"
+    engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(model), "slots"))]
+    engine <- do.call("new", c(list(Class = model), engine.ctrl))
     engine@typeRec <- typeRec
     engine@typeTem <- typeTem
     if (se == "NULL" || B == 0)
@@ -596,8 +557,8 @@ reReg <- function(formula, data,
         stdErr@B <- B
     }
     ## initial values
-    p <- ncol(DF) - ncol(obj@.Data)
-    if (method == "general") {
+    p <- ncol(DF) - ncol(mf[[1]])
+    if (model == "general") {
         if (typeRec == "cox") {
             if (length(engine@par1) == 1) engine@par1 <- rep(engine@par1, p + 1)
             if (length(engine@par1) == p) engine@par1 <- c(0, engine@par1)
@@ -635,28 +596,24 @@ reReg <- function(formula, data,
             }
         }
     }
+    engine@baseSE <- B > 0
     if (formula == ~1) {
-        if (engine@baseSE) fit <- npFit(DF, B)
-        else fit <- npFit(DF)
-        fit$typeTem <- fit$typeRec <- "nonparametric"
+        if (engine@baseSE) fit <- npFit(DF, B, typeTem)
+        else fit <- npFit(DF, 0, typeTem)
+        fit$typeRec <- "nonparametric"
+        fit$typeTem <- typeTem
     } else {
         fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
-        if (method == "general" & engine@baseSE) {
-            fit <- c(fit, npFitSE(DF, fit$typeRec, fit$typeTem,
-                                  fit$par1, fit$par2, fit$par3, fit$par4,
-                                  fit$zi, B))
-        }
-        fit$method <- method
     }    
-    ## fit$reTb <- obj@.Data
     fit$DF <- DF
     fit$call <- Call
     fit$varNames <- names(DF)[-(1:6)]
     fit$se <- se
     if (engine@typeRec == "cox") fit$par1 <- fit$par1[-1]
-    if (engine@typeRec == "sc") fit$par2 <- fit$par1 + fit$par2[-1]
+    if (engine@typeRec == "sc" & se != "boot") fit$par2 <- fit$par1 + fit$par2[-1]
+    if (engine@typeRec == "sc" & se == "boot") fit$par2 <- fit$par2[-1]
+    if (se != "NULL" & se != "boot" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]   
     if (se != "NULL" & engine@typeRec == "cox") fit$par1.se <- fit$par1.se[-1]
-    if (se != "NULL" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]
     fit <- fit[order(names(fit))]
     class(fit) <- "reReg"
     return(fit)
@@ -693,21 +650,19 @@ eqSolve <- function(par, fn, solver, ...) {
 }
 
 reReg.control <- function(eqType = c("logrank", "gehan"),
-                          solver = "BB::dfsane", tol = 1e-7,
-                          par1 = NULL, par2 = NULL, par3 = NULL, par4 = NULL, 
-                          baseSE = FALSE, parallel = FALSE, parCl = NULL) {
-    if (is.null(par1)) par1 <- 0
-    if (is.null(par2)) par2 <- 0
-    if (is.null(par3)) par3 <- 0
-    if (is.null(par4)) par4 <- 0
-    if (is.null(parCl)) parCl <- parallel::detectCores() / 2L
+                          solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optim"),
+                          tol = 1e-7,
+                          init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
+                          boot.parallel = FALSE, boot.parCl = NULL) {
+    if (is.null(boot.parCl)) boot.parCl <- parallel::detectCores() / 2L
+    solver <- match.arg(solver)
     if (solver == "BB::dfsane") solver <- "dfsane"
     if (solver == "BB::BBsolve") solver <- "BBsolve"
     if (solver == "BB::BBoptim") solver <- "BBoptim"
     eqType <- match.arg(eqType)
-    list(tol = tol, eqType = eqType,
-         par1 = par1, par2 = par2, par3 = par3, par4 = par4,
-         solver = solver, parallel = parallel, parCl = parCl)
+    list(tol = tol, eqType = eqType, solver = solver,
+         par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
+         parallel = boot.parallel, parCl = boot.parCl)
 }
 
 ##############################################################################

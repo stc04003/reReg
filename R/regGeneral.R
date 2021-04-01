@@ -14,11 +14,11 @@
 #' @param par2 is \theta from Xu et al. (2019)
 #' @importFrom utils tail
 #' @noRd
-reSC <- function(DF, eqType, solver, par1, par2, wgt = NULL) {
+reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NULL) {
     df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
+    df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
     p <- ncol(xi)
     yi <- df0$time2
@@ -29,7 +29,7 @@ reSC <- function(DF, eqType, solver, par1, par2, wgt = NULL) {
         texa <- log(ti) + xi %*% par1
         yexa <- log(yii) + xi %*% par1
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
-        rate <- apply(wgt, 2, function(e) reRate(texa, yexa, rep(e, m), yexa2))
+        rate <- apply(w1, 2, function(e) reRate(texa, yexa, rep(e, m), yexa2))
         rate <- apply(rate, 1, quantile, c(.025, .975))
         Lam <- exp(-rate)
         ind <- !duplicated(yexa2)
@@ -39,36 +39,32 @@ reSC <- function(DF, eqType, solver, par1, par2, wgt = NULL) {
                                yleft = min(Lam[1, ]), yright = max(Lam[1, ]))
         return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
     }
-    if (is.null(wgt)) {
-        Wi <- rep(1, length(m))
-        wi <- rep(Wi, m)
-    } else {
-        if (length(wgt) != length(m)) stop("Weight length mismatch")
-        Wi <- wgt
-        wi <- rep(wgt, m)
-    }
-    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, wi))
-    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, wi))
+    if (is.null(w1)) w1 <- rep(1, length(m))
+    if (is.null(w2)) w2 <- rep(1, length(m))
+    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, rep(w1, m)))
+    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, rep(w1, m)))
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
-    U2 <- function(b) as.numeric(re2(b, R, Xi, Wi))
+    U2 <- function(b) as.numeric(re2(b, R, Xi, w1))
     if (is.null(solver)) {
         texa <- log(ti) + xi %*% par1
         yexa <- log(yii) + xi %*% par1
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
-        rate <- c(reRate(texa, yexa, wi, yexa2))
-        Lam <- exp(-rate)
-        R <- (m + 0.01) / (Lam + 0.01)
-        ## R <- m / Lam
-        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+        if (is.null(Lam0)) {
+            rate <- c(reRate(texa, yexa, rep(w1, m), yexa2))
+            Lam <- exp(-rate)
+        } else {
+            Lam <- Lam0(exp(yexa2))
+        }
+        R <- w2 * (m + 0.01) / (Lam + 0.01)
         zi <- R / exp(Xi[,-1, drop = FALSE] %*% par2[-1])
-        return(list(value = c(U1(par1), U2(par2)), zi = zi))
+        return(list(value = c(U1(par1), re2(par2, R, Xi, rep(1, length(m)))), zi = zi))
     } else {
         fit.a <- eqSolve(par1, U1, solver)
         ahat <- fit.a$par
         texa <- log(ti) + xi %*% ahat
         yexa <- log(yii) + xi %*% ahat
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% ahat)
-        rate <- c(reRate(texa, yexa, wi, yexa2))
+        rate <- c(reRate(texa, yexa, rep(w1, m), yexa2))
         Lam <- exp(-rate)
         R <- (m + 0.01) / (Lam + 0.01)
         ## R <- m / Lam
@@ -91,11 +87,11 @@ reSC <- function(DF, eqType, solver, par1, par2, wgt = NULL) {
     }
 }
 
-reAR <- function(DF, eqType, solver, par1, wgt = NULL) {
+reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
+    df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
     yi <- df0$time2
     yii <- rep(yi, m)
@@ -114,32 +110,29 @@ reAR <- function(DF, eqType, solver, par1, wgt = NULL) {
                                yleft = min(Lam[1,]), yright = max(Lam[1,]))
         return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
     }
-    if (is.null(wgt)) {
-        Wi <- rep(1, length(m))
-        wi <- rep(Wi, m)
-    } else {
-        if (length(wgt) != length(m)) stop("Weight length mismatch")
-        Wi <- wgt
-        wi <- rep(wgt, m)
-    }
-    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, wi))
-    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, wi))
+    if (is.null(w1)) w1 <- rep(1, length(m))
+    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, rep(w1, m)))
+    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, rep(w1, m)))
     if (is.null(solver)) {
         texa <- log(ti) + xi %*% par1
-        yexa <- log(yii) + xi %*% par1
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
-        rate <- c(reRate(texa, yexa, wi, yexa2))
-        Lam <- exp(-rate)
+        if (is.null(Lam0)) {
+            yexa <- log(yii) + xi %*% par1
+            rate <- c(reRate(texa, yexa, rep(w1, m), yexa2))
+            Lam <- exp(-rate)
+        } else {
+            Lam <- Lam0(exp(yexa2))
+        }
         R <- (m + 0.01) / (Lam + 0.01)
         zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% par1)
-        return(list(value = U1(par1), zi = zi))
+        return(list(value = U1(par1) / length(m), zi = zi))
     } else {
         fit.a <- eqSolve(par1, U1, solver)
         ahat <- fit.a$par
         texa <- log(ti) + xi %*% ahat
         yexa <- log(yii) + xi %*% ahat
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% ahat)
-        rate <- c(reRate(texa, yexa, wi, yexa2))
+        rate <- c(reRate(texa, yexa, rep(w1, m), yexa2))
         Lam <- exp(-rate)
         R <- (m + 0.01) / (Lam + 0.01)
         ## R <- m / Lam
@@ -158,12 +151,16 @@ reAR <- function(DF, eqType, solver, par1, wgt = NULL) {
 }
 
 #' @param par1 is \gamma in Huang et al (2004)
+#' @param eqType is either logrank or gehan; if Null this only returns baseline estimate 
+#' @param solver specifies the solver; if NULL evaluate the estimating equation instead of solving it
+#' @param Lam0 is the estiamted cumulative baseline rate function; if NULL calculate here
+#' 
 #' @noRd
-reCox <- function(DF, eqType, solver, par1, wgt = NULL) {
+reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
+    df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
     ## yi <- rep(df0$time2, m)
     yi <- df0$time2
     ti <- df1$time2
@@ -176,31 +173,21 @@ reCox <- function(DF, eqType, solver, par1, wgt = NULL) {
         Lam.upper <- approxfun(t0, Lam[1,], yleft = min(Lam[1,]), yright = max(Lam[1,]))
         return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
     }
-    if (is.null(wgt)) {
-        Wi <- rep(1, length(m))
-        wi <- rep(Wi, m)
+    if (is.null(w1)) w1 <- rep(1, length(m))
+    if (is.null(Lam0)) {
+        rate <- c(reRate(ti, rep(yi, m), rep(w1, m), t0))
+        Lam0 <- exp(-rate)
+        Lam <- Lam0[findInterval(yi, t0)]
     } else {
-        if (length(wgt) != length(m)) stop("Weight length mismatch")
-        Wi <- wgt
-        wi <- rep(wgt, m)
+        Lam <- Lam0(yi)
     }
-    ## T0 <- sort(unique(c(ti, yi)))
-    ## rate <- c(reRate(ti, yi, wi, T0))
-    ## yi2 <- as.numeric(df0$time2)
-    ## Lam0 <- exp(-rate)
-    ## Lam <- Lam0[pmax(1, findInterval(yi2, T0))]
-    rate <- c(reRate(ti, rep(yi, m), wi, t0))
-    Lam0 <- exp(-rate)
-    Lam <- Lam0[findInterval(yi, t0)]
-    R <- (m + 0.01) / (Lam + 0.01)
-    ## R <- m / Lam
-    ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
+    ## R <- (m + 0.01) / (Lam + 0.01)
+    R <- m / Lam
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
-    U1 <- function(b) as.numeric(re2(b, R, Xi, Wi))
+    U1 <- function(b) as.numeric(re2(b, R, Xi, w1))
     if (is.null(solver)) { 
         return(list(value = U1(par1),
                     zi = R / exp(Xi[,-1, drop = FALSE] %*% par1[-1])))
-                    ## zi = Wi * R / exp(Xi[,-1, drop = FALSE] %*% par1[-1])))
     } else {
         fit.a <- eqSolve(par1, U1, solver)
         return(list(par1 = fit.a$par, ## alpha = fit.a$par[-1],
@@ -211,11 +198,11 @@ reCox <- function(DF, eqType, solver, par1, wgt = NULL) {
     }
 }
 
-reAM <- function(DF, eqType, solver, par1, wgt = NULL) {
+reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
+    df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df0[,-c(1:6)])
     yi <- df0$time2
     ti <- df1$time2
@@ -232,32 +219,27 @@ reAM <- function(DF, eqType, solver, par1, wgt = NULL) {
                                yleft = min(Lam[1,]), yright = max(Lam[1,]))
         return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
     }
-    if (is.null(wgt)) {
-        Wi <- rep(1, length(m))
-    } else {
-        if (length(wgt) != length(m)) stop("Weight length mismatch")
-        Wi <- wgt
-    }
-    U1 <- function(a) as.numeric(am1(a, ti, yi, Wi, xi, m))
+    if (is.null(w1)) w1 <- rep(1, length(m))
+    U1 <- function(a) as.numeric(am1(a, ti, yi, w1, xi, m))
     if (is.null(solver)) {
         texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% par1
         yexa <- log(yi) + xi %*% par1
-        rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
-        Lam <- exp(-rate)
+        if (is.null(Lam0)) {
+            rate <- c(reRate(texa, rep(yexa, m), rep(w1, m), yexa))
+            Lam <- exp(-rate)
+        } else {
+            Lam <- Lam0(exp(yexa))
+        }
         R <- (m + 0.01) / (Lam + 0.01)
-        ## R <- m / Lam
-        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-        return(list(value = U1(par1), zi = R))
+        return(list(value = as.numeric(U1(par1)), zi = R))
     } else {
         fit.a <- eqSolve(par1, U1, solver)
         ahat <- fit.a$par
         texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% ahat
         yexa <- log(yi) + xi %*% ahat
-        rate <- c(reRate(texa, rep(yexa, m), rep(Wi, m), yexa))
+        rate <- c(reRate(texa, rep(yexa, m), rep(w1, m), yexa))
         Lam <- exp(-rate)
         R <- (m + 0.01) / (Lam + 0.01)
-        ## R <- m / Lam
-        ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         return(list(par1 = fit.a$par,
                     par1.conv = fit.a$convergence,
                     log.muZ = log(mean(R)), zi = R,

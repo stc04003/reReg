@@ -32,6 +32,14 @@ arma::vec reRate(const arma::vec& T,
   return out;
 }
 
+arma::mat matvec(arma::mat x, arma::vec y) {
+  arma::mat out(x.n_rows, x.n_cols);
+  for (size_t i = 0; i < x.n_cols; i++) {
+    out.col(i) = x.col(i) % y;
+  }
+  return out;
+}
+
 //' @noRd
 // [[Rcpp::export]]
 arma::rowvec reLog(const arma::vec& a,
@@ -44,21 +52,39 @@ arma::rowvec reLog(const arma::vec& a,
   arma::vec texa = log(T) + X * a;
   arma::vec yexa = log(Y) + X * a;
   arma::rowvec out(p, arma::fill::zeros);
-  arma::rowvec nu(p);
+  arma::mat XW = matvec(X, W);
   for (int i = 0; i < n; i++) {
-    nu.zeros();
-    double de = 0;
-    for (int j = 0; j < n; j++) {
-      if ((texa[i] <= yexa[j]) & (texa[i] >= texa[j])) {
-        nu += W(j) * X.row(j);
-        de += W(j);
-      }
-    }
-    out += W(i) * (X.row(i) - nu / de); 
+    arma::uvec w = find((texa - texa[i]) % (yexa - texa[i]) <= 0);
+    out += W(i) * (X.row(i) - sum(XW.rows(w), 0) / sum(W(w)));
+    // out += W(i) * (X.row(i) - sum(X.rows(w), 0) / w.n_elem);
   }
   return out;
 }
 
+// arma::rowvec reLog(const arma::vec& a,
+// 		   const arma::mat& X,
+// 		   const arma::vec& T,
+// 		   const arma::vec& Y,
+// 		   const arma::vec& W) {
+//   int n = Y.n_elem;
+//   int p = a.n_elem;
+//   arma::vec texa = log(T) + X * a;
+//   arma::vec yexa = log(Y) + X * a;
+//   arma::rowvec out(p, arma::fill::zeros);
+//   arma::rowvec nu(p);
+//   for (int i = 0; i < n; i++) {
+//     nu.zeros();
+//     double de = 0;
+//     for (int j = 0; j < n; j++) {
+//       if ((texa[i] <= yexa[j]) & (texa[i] >= texa[j])) {
+//         nu += W(j) * X.row(j);
+//         de += W(j);
+//       }
+//     }
+//     out += W(i) * (X.row(i) - nu / de); 
+//   }
+//   return out;
+// }
 //' @noRd
 // [[Rcpp::export]]
 arma::rowvec re2(const arma::vec& b,
@@ -104,17 +130,17 @@ arma::rowvec am1(const arma::vec& a,
   arma::vec m2 = cumsum(m); 
   arma::mat Xi(nm, p, arma::fill::zeros);
   arma::vec Yi(nm, arma::fill::zeros);
-  arma::vec Wi(nm, arma::fill::zeros);
+  // arma::vec Wi(nm, arma::fill::zeros);
   arma::vec T0 = log(Y) + X * a;
   int mn = m.n_elem;
   for (int i = 0; i < mn; i ++) {
     if (i == 0 && m(i) > 0) {
-      Wi.subvec(0, m2(i) - 1).fill(W(i));
+      // Wi.subvec(0, m2(i) - 1).fill(W(i));
       Yi.subvec(0, m2(i) - 1).fill(Y(i));
       Xi.submat(0, 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
     }
     if (i > 0 && m(i) > 0) {
-      Wi.subvec(m2(i - 1), m2(i) - 1).fill(W(i));
+      // Wi.subvec(m2(i - 1), m2(i) - 1).fill(W(i));
       Yi.subvec(m2(i - 1), m2(i) - 1).fill(Y(i));
       Xi.submat(m2(i - 1), 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
     }
@@ -126,26 +152,22 @@ arma::rowvec am1(const arma::vec& a,
   for (int i = 0; i < nm; i++) {
     for (int j = 0; j < nm; j++) {
       if ((texa[i] <= yexa[j]) && (texa[i] >= texa[j])) {
-	de(i) += Wi[j];
+	// de(i) += Wi[j];
+	de(i) += 1;
       }
     }
   }
   for (int k = 0; k < n; k++) {
     for (int i = 0; i < nm; i++) {
       if (texa[i] >= T0[k] && de(i) > 0) {
-        Lam[k] += Wi(i) / de(i);
+        // Lam[k] += Wi(i) / de(i);
+	Lam[k] += 1 / de(i);
       }
     }
   }
   Lam = exp(-Lam); 
   arma::vec R = m / Lam;
-  int Rn = R.n_elem;
-  for (int i = 0; i < Rn; i ++) {
-    if (R[i] > 100000) R[i] = (m[i] + 0.01) / (Lam[i] + 0.01);
-  }
-  // return (W % (R - mean(W % R))).t() * X / n;
-  return (W % (mean(W) * R - mean(W % R))).t() * X / n;
-  // return (W % (R - mean(R))).t() * X / n;
+  return ((W % R - mean(W % R))).t() * X / n;
 }
 
 // Used for terminal events
@@ -196,7 +218,8 @@ arma::rowvec temScLog(const arma::vec& a,
   arma::vec yexa = Y % exp(X * a);
   arma::vec ebax = exp(X * (b - a)); 
   arma::mat Iij = arma::conv_to<arma::mat>::from(repmat(yexa, 1, n) <= repmat(yexa, 1, n).t());
-  arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
+  // arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
+  arma::mat nu = Iij * matvec(X, ebax % Z % W);
   arma::mat de = Iij * (ebax % Z % W);
   arma::mat tmp = nu / repmat(de, 1, nu.n_cols);
   tmp.replace(arma::datum::nan, 0);
@@ -238,18 +261,42 @@ arma::rowvec temLog(const arma::vec& a,
 		    const arma::vec& D,
 		    const arma::vec& W) {
   int n = Y.n_elem;
+  int p = X.n_cols;
   arma::vec yexa = Y % exp(X * a);
-  arma::vec ebax = exp(X * (b - a)); 
-  arma::mat Iij = arma::conv_to<arma::mat>::from(repmat(yexa, 1, n) <= repmat(yexa, 1, n).t());
-  // arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
-  // arma::mat de = Iij * (ebax % Z % W);
-  arma::mat nu = Iij * (X % repmat(ebax % Z, 1, X.n_cols));
-  arma::mat de = Iij * (ebax % Z);
-  arma::mat tmp = nu / repmat(de, 1, nu.n_cols);
-  tmp.replace(arma::datum::nan, 0);
-  arma::mat D2 = repmat(D % W, 1, X.n_cols);
-  return (sum(X % D2, 0) - sum(tmp % D2, 0)) / n;
+  arma::vec ebaxZ = Z % exp(X * (b - a));
+  arma::uvec ind = stable_sort_index(yexa, "descend");
+  arma::vec ordD = D(ind);
+  arma::vec ordW = W(ind);
+  arma::mat xz = X % repmat(ebaxZ, 1, p);
+  xz = cumsum(xz.rows(ind), 0);
+  // Rcpp::Rcout << ind;
+  arma::mat c1 = X.rows(ind);
+  arma::vec tmp = cumsum(ebaxZ(ind));
+  arma::mat r = c1 - xz / repmat(tmp, 1, p);
+  r.replace(arma::datum::nan, 0);
+  return sum(repmat(ordW % ordD, 1, p) % r, 0) / n;
 }
+
+// arma::rowvec temLog(const arma::vec& a,
+// 		    const arma::vec& b,
+// 		    const arma::mat& X,
+// 		    const arma::vec& Y,
+// 		    const arma::vec& Z,
+// 		    const arma::vec& D,
+// 		    const arma::vec& W) {
+//   int n = Y.n_elem;
+//   arma::vec yexa = Y % exp(X * a);
+//   arma::vec ebax = exp(X * (b - a)); 
+//   arma::mat Iij = arma::conv_to<arma::mat>::from(repmat(yexa, 1, n) <= repmat(yexa, 1, n).t());
+//   // arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
+//   // arma::mat de = Iij * (ebax % Z % W);
+//   arma::mat nu = Iij * (X % repmat(ebax % Z, 1, X.n_cols));
+//   arma::mat de = Iij * (ebax % Z);
+//   arma::mat tmp = nu / repmat(de, 1, nu.n_cols);
+//   tmp.replace(arma::datum::nan, 0);
+//   arma::mat D2 = repmat(D % W, 1, X.n_cols);
+//   return (sum(X % D2, 0) - sum(tmp % D2, 0)) / n;
+// }
 
 // [[Rcpp::export]]
 Rcpp::NumericVector temGehan(const arma::vec& a,

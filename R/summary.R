@@ -36,8 +36,8 @@ print.reReg <- function(x, ...) {
         ## print.default(format(x$alpha, digits = digits), print.gap = 2L, quote = FALSE)
     } else {
         n <- length(unique(x$DF$id))
-        nevent <- sum(x$DF$event)
-        avg.event <- sum(x$DF$event) / n
+        nevent <- sum(x$DF$event > 0)
+        avg.event <- nevent / n
         cat("\nNumber of subjects:", n)
         cat("\nNumber of recurrent events:", nevent)
         cat("\nAverage recurrent events per subject:", avg.event)
@@ -56,25 +56,25 @@ pvalTab <- function(pe, se, names = NULL) {
 #' @exportS3Method summary reReg
 summary.reReg <- function(object, test = FALSE, ...) {
     if (!is.reReg(object)) stop("Must be a reReg object")
-    if (object$method == "nonparametric") {
+    if (object$typeRec == "nonparametric") {
         t0 <- sort(unique(c(object$DF$time1, object$DF$time2)))
         t0 <- t0[t0 > 0]
-        out <- list(call = object$call, method = object$method, 
+        out <- list(call = object$call, typeRec = object$typeRec, 
                     tabA = data.frame(time = t0, rate = object$Lam0(t0), hazard = object$Haz0(t0)))
         out
     }
-    if (object$method != "nonparametric") {
+    if (object$typeRec != "nonparametric") {
         tabA <- pvalTab(object$par1, object$par1.se, object$varNames)
         if (object$typeRec == "sc") 
             tabA <- list(tabA1 = tabA,
                          tabA2 = pvalTab(object$par2, object$par2.se, object$varNames))
-        out <- list(call = object$call, method = object$method, tabA = tabA)
+        out <- list(call = object$call, typeRec = object$typeRec, tabA = tabA)
         if (!is.null(object$par3))
             out$tabB <- pvalTab(object$par3, object$par3.se, object$varNames)
         if (object$typeTem == "sc")
             out$tabB <- list(tabB1 = out$tabB,
                              tabB2 = pvalTab(object$par4, object$par4.se, object$varNames))
-        if (object$typeRec == "sc" & object$se == "resampling") {
+        if (object$typeRec == "sc" & !is.null(object$par1.vcov) & !is.null(object$par2.vcov)) {
             p <- length(object$par1)
             out$HA.chi <- object$par1 %*% solve(object$par1.vcov) %*% object$par1
             out$HB.chi <- object$par2 %*%
@@ -102,7 +102,7 @@ printCoefmat2 <- function(tab)
 print.summary.reReg <- function(x, ...) {
     cat("Call: \n")
     dput(x$call)
-    if (x$method != "nonparametric" & !is.na(x$tabA)[1]) {
+    if (x$typeRec != "nonparametric" & !is.na(x$tabA)[1]) {
         if(x$typeRec == "cox.LWYY")
             cat("\nFitted with the Cox model of Lin et al. (2000):")
         if(x$typeRec == "cox.GL")
@@ -145,7 +145,7 @@ print.summary.reReg <- function(x, ...) {
             }
         }
     }    
-    if (x$method == "nonparametric") {
+    if (x$typeRec == "nonparametric") {
         cat("\n")
         print(round(unique(x$tabA), 4), row.names = FALSE)
     }
@@ -159,5 +159,5 @@ coef.reReg <- function(object, ...) {
 
 #' @exportS3Method vcov reReg
 vcov.reReg <- function(object, ...) {
-    lsit(vcovRec = object$vcovRec, vcovTem = object$vcovTem)
+    list(vcovRec = object$vcovRec, vcovTem = object$vcovTem)
 }
