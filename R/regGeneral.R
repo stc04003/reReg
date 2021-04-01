@@ -16,9 +16,9 @@
 #' @noRd
 reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NULL) {
     df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
+    df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
     p <- ncol(xi)
     yi <- df0$time2
@@ -89,9 +89,9 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
 
 reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
+    df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df1[,-c(1:6)])
     yi <- df0$time2
     yii <- rep(yi, m)
@@ -158,9 +158,9 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
 #' @noRd
 reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
+    df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
     ## yi <- rep(df0$time2, m)
     yi <- df0$time2
     ti <- df1$time2
@@ -200,9 +200,9 @@ reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
 
 reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     df0 <- DF[DF$event == 0,]
-    df1 <- DF[DF$event == 1,]
+    df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
-    m <- aggregate(event ~ id, data = DF, sum)[,2]
+    m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
     xi <- as.matrix(df0[,-c(1:6)])
     yi <- df0$time2
     ti <- df1$time2

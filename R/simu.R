@@ -3,6 +3,7 @@
 ###################################################################################
 
 #' Function to find inverse of a given Lam
+#' @noRd
 inv <- function (t, z, exa, exb, fn) {
     mapply(t, FUN = function(u) {
         uf <- function(x) u - fn(x, z, exa, exb) ## / Lam.f(10, r, b, model)

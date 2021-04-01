@@ -715,7 +715,10 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
         ctrl[namp] <- lapply(namp, function(x) call[[x]])
     }
     type <- match.arg(type)
-    if (x$typeRec == "nonparametric") type <- "bounded"
+    if (x$typeRec == "nonparametric") {
+        type <- "bounded"
+        ctrl$ylab = "MCF Estimates"
+    }
     if (!is.reReg(x)) stop("Response must be a `reReg` class")    
     dat <- x$DF[,"time2",drop = FALSE]
     if (is.null(newdata)) {    
@@ -807,7 +810,7 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
                 scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
     if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
-    gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
+    gg <- gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
         theme(plot.title = element_text(size = 2 * ctrl$base_size),
               strip.text = element_text(size = ctrl$base_size),
               legend.text = element_text(size = 1.5 * ctrl$base_size),
@@ -815,6 +818,8 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
               axis.line = element_blank(),
               axis.text = element_text(size = ctrl$base_size),
               axis.title = element_text(size = 1.5 * ctrl$base_size))
+    attr(gg, "from") <- "reReg"
+    return(gg)
 }
 
 #' Plot the Baseline Cumulative Hazard Function for the Terminal Time
@@ -968,7 +973,7 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
                 scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
     }
     if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
-    gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
+    gg <- gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
         theme(plot.title = element_text(size = 2 * ctrl$base_size),
               strip.text = element_text(size = ctrl$base_size),
               legend.text = element_text(size = 1.5 * ctrl$base_size),
@@ -976,6 +981,8 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
               axis.line = element_blank(),
               axis.text = element_text(size = ctrl$base_size),
               axis.title = element_text(size = 1.5 * ctrl$base_size))
+    attr(gg, "from") <- "reReg"
+    return(gg)
 }
 
 plotEvents.control <- function(xlab = NULL, ylab = NULL,
@@ -1019,3 +1026,41 @@ plot.reReg.control <- function(xlab = "Time", ylab = "", main = "", base_size = 
     list(xlab = xlab, ylab = ylab, main = main, base_size = base_size)
 }
 
+#' Function used to combine baseline functions in one plot
+#'
+#' Combine different plots into one.
+#'
+#' @param ... \code{ggplot} objects created by plotting \code{reReg} objects.
+#' @param legend.title an optional character string to specify the legend title.
+#' @param name an optional character string to specify the legend labels.
+#' 
+#' @export
+cBase <- function(..., legend.title, legend.labels) {
+    gglst <- list(...)
+    if (any(sapply(gglst, function(x) attr(x, "from")) != "reReg"))
+        stop("Plots must be created from reReg objects")
+    if (missing(legend.title)) legend.title <- ""
+    ctrl <- plot.reReg.control()
+    nargs <- length(gglst)
+    if (missing(legend.labels)) legend.labels <- 1:nargs
+    if (length(legend.labels) != nargs) {
+        cat('The length of "name" mismatched, default names are used.\n')
+        legend.labels <- 1:nargs
+    }
+    d <- do.call(rbind, lapply(gglst, function(x) x$data))
+    nobs <- sapply(gglst, function(x) nrow(x$data))
+    d$group <- factor(rep(1:nargs, nobs), labels = legend.labels)
+    gg <- ggplot(data = d, aes(x = time2, y = Y, color = group)) + geom_step()
+    if (!is.null(d$Y.upper)) 
+        gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2) +
+            geom_step(aes(x = time2, y = Y.lower), lty = 2)
+    gg + labs(x = gglst[[1]]$labels$x, y = gglst[[1]]$labels$y, color = legend.title) +
+        theme(plot.title = element_text(size = 2 * ctrl$base_size),
+              strip.text = element_text(size = ctrl$base_size),
+              legend.position = ctrl$legend.position,
+              legend.text = element_text(size = 1.5 * ctrl$base_size),
+              legend.title = element_text(size = 1.5 * ctrl$base_size),
+              axis.line = element_blank(),
+              axis.text = element_text(size = ctrl$base_size),
+              axis.title = element_text(size = 1.5 * ctrl$base_size))
+}

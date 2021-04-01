@@ -36,8 +36,8 @@ print.reReg <- function(x, ...) {
         ## print.default(format(x$alpha, digits = digits), print.gap = 2L, quote = FALSE)
     } else {
         n <- length(unique(x$DF$id))
-        nevent <- sum(x$DF$event)
-        avg.event <- sum(x$DF$event) / n
+        nevent <- sum(x$DF$event > 0)
+        avg.event <- nevent / n
         cat("\nNumber of subjects:", n)
         cat("\nNumber of recurrent events:", nevent)
         cat("\nAverage recurrent events per subject:", avg.event)
