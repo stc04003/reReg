@@ -18,6 +18,7 @@ Imports:
     nleqslv,
     SQUAREM,
     survival,
+    directlabels,
     ggplot2,
     MASS,
     methods,

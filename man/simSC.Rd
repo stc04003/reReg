@@ -27,7 +27,7 @@ in the joint scale-change model.
 The names of the list elements are \code{alpha}, \code{beta}, \code{eta}, and
 \code{theta}, correspond to \eqn{\alpha}, \eqn{\beta}, \eqn{\eta}, and \eqn{\theta}
 in the joint scale-change model, respectively.
-See \bold{Details} for \code{\link{reReg()}}.}
+See \bold{Details} for \code{\link{reReg}}.}
 
 \item{xmat}{an optional matrix specifying the design matrix.}
 

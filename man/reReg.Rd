@@ -94,7 +94,7 @@ The \code{control} list consists of the following parameters:
   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
   \item{boot.parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "boot"} is called.}
-  \item{parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+  \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 }
 }
 \examples{
@@ -109,7 +109,7 @@ summary(reReg(fm, data = simDat, model = "cox", B = 50))
 ## Fit the joint Cox/Cox model
 summary(reReg(fm, data = simDat, model = "cox|cox", B = 50))
 ## Fit the scale-change rate model
-summary(reReg(fm, data = simDat, model = "sc", B = 50, se = "mult"))
+summary(reReg(fm, data = simDat, model = "sc", B = 50, se = "sand"))
 }
 \references{
 Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.

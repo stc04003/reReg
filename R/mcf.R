@@ -7,10 +7,20 @@
 #' @name mcf
 #' @importFrom reda mcf
 #' @export mcf
-#' @importClassesFrom reda mcf.formula
-#' @exportClass mcf.formula
 #' @importMethodsFrom reda plot
 #' @exportMethod plot
 #'
 #' @example inst/examples/ex_mcf.R
+NULL
+
+
+#' The \code{mcf.formula} class is imported from \code{reda}.
+#'
+#' The class \code{mcf.formula} represents a mcf formula.
+#' See \code{reda} for details.
+#'
+#' @rdname mcf.formula-class
+#' @name mcf.formula-class
+#' @importClassesFrom reda mcf.formula
+#' @exportClass mcf.formula
 NULL

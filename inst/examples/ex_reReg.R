@@ -9,4 +9,4 @@ summary(reReg(fm, data = simDat, model = "cox", B = 50))
 ## Fit the joint Cox/Cox model
 summary(reReg(fm, data = simDat, model = "cox|cox", B = 50))
 ## Fit the scale-change rate model
-summary(reReg(fm, data = simDat, model = "sc", B = 50, se = "mult"))
+summary(reReg(fm, data = simDat, model = "sc", B = 50, se = "sand"))

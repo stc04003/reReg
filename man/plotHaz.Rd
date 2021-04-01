@@ -28,6 +28,9 @@ If \code{newdata} is given and \code{frailty} is not specified, the}
 \item{showName}{an optional logical value indicating whether to label the curves
 when \code{newdata} is specified.}
 
+\item{type}{a character string specifying the type of rate function to be plotted.
+Options are "unrestricted", "scaled", "bounded". See \bold{Details}.}
+
 \item{smooth}{an optional logical value indicating whether to add a smooth curve
 obtained from a monotone increasing P-splines implemented in package \code{scam}.}
 

@@ -1,4 +1,4 @@
-globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
+globalVariables(c("time1", "time2", "group", "Y", "Y.upper", "Y.lower", "id", "event", "origin", "MCF", "bs"))
 
 #' Produce Event Plot or Mean Cumulative Function Plot
 #'
@@ -37,6 +37,9 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #' This places shorter terminal times on top. }
 #'   \item{\code{none}}{present the event plots as is, without sorting by the terminal times.}
 #' }
+#' @param event.calendarTime an optional logical value indicating whether to plot in calendar time.
+#' When \code{event.calendarTime = FALSE} (default),
+#' the event plot will have patient time on the x-axis.
 #' @param control a list of control parameters. See \bold{Details}.
 #' @param mcf.adjustRiskset an optional logical value that is passed to
 #' the \code{mcf()} function as the \code{adjustRiskset} argument. 
@@ -61,7 +64,7 @@ globalVariables(c("time2", "Y", "Y.upper", "Y.lower", "id", "event", "MCF"))
 #'
 #' @return A \code{ggplot} object.
 #' @example inst/examples/ex_plot_Recur.R
-#' @exportS3Method plot Recur
+#' @method plot Recur
 plot.Recur <- function(x, mcf = FALSE,
                        event.result = c("increasing", "decreasing", "asis"),
                        event.calendarTime = FALSE, 
@@ -342,7 +345,6 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
 #' 
 #' @seealso \code{\link{Recur}}, \code{\link{plot.Recur}}
 #' @keywords Plots
-#' @export
 #'
 #' @return A \code{ggplot} object.
 #' 
@@ -587,7 +589,7 @@ plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE,
 #' @importFrom ggplot2 geom_smooth geom_step ggplotGrob
 #' @importFrom grid grid.draw
 #' @example inst/examples/ex_plot_reReg.R
-#' @exportS3Method plot reReg
+#' @method plot reReg
 plot.reReg <- function(x,
                        baseline = c("both", "rate", "hazard"),
                        ## type = c("unrestricted", "bounded", "scaled"),
@@ -761,7 +763,7 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
         X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
         if (ncol(X) != length(x$varNames))
             stop(paste0("Variables ",
-                        paste(setdiff(fit1$varNames, names(newdata)), collapse = ", "),
+                        paste(setdiff(x$varNames, names(newdata)), collapse = ", "),
                         " are missing"))
         p <- ncol(X)
         exa1 <- exa2 <- 1
@@ -846,6 +848,8 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #' If \code{newdata} is given and \code{frailty} is not specified, the
 #' @param showName an optional logical value indicating whether to label the curves
 #' when \code{newdata} is specified.
+#' @param type a character string specifying the type of rate function to be plotted.
+#' Options are "unrestricted", "scaled", "bounded". See \bold{Details}.
 #' @param control a list of control parameters.
 #' @param ... graphical parameters to be passed to methods.
 #' These include \code{xlab}, \code{ylab}, \code{main}, and more. See \bold{Details}.
@@ -866,7 +870,7 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
         stop("Baseline cumulative hazard function is not available.")
     }
     if (is.null(frailty)) frailty <- exp(x$log.muZ)
-    if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(nesdata))
+    if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
         stop("newdata and frailty are different lengths")
     ## ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
     ctrl <- plot.reReg.control(ylab = "Hazard")
@@ -924,7 +928,7 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
         X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
         if (ncol(X) != length(x$varNames))
             stop(paste0("Variables ",
-                        paste(setdiff(fit1$varNames, names(newdata)), collapse = ", "),
+                        paste(setdiff(x$varNames, names(newdata)), collapse = ", "),
                         " are missing"))
         p <- ncol(X)
         exb1 <- exb2 <- 1
@@ -1031,7 +1035,7 @@ plot.reReg.control <- function(xlab = "Time", ylab = "", main = "", base_size = 
 #'
 #' @param ... \code{ggplot} objects created by plotting \code{reReg} objects.
 #' @param legend.title an optional character string to specify the legend title.
-#' @param name an optional character string to specify the legend labels.
+#' @param legend.labels an optional character string to specify the legend labels.
 #' 
 #' @export
 #' @keywords Plots

@@ -4,7 +4,7 @@
 \alias{plot.reReg}
 \title{Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function}
 \usage{
-plot.reReg(
+\method{plot}{reReg}(
   x,
   baseline = c("both", "rate", "hazard"),
   smooth = FALSE,

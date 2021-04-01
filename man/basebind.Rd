@@ -11,7 +11,7 @@ basebind(..., legend.title, legend.labels)
 
 \item{legend.title}{an optional character string to specify the legend title.}
 
-\item{name}{an optional character string to specify the legend labels.}
+\item{legend.labels}{an optional character string to specify the legend labels.}
 }
 \description{
 Combine different plots into one.

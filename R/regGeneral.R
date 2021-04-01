@@ -100,7 +100,7 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
         texa <- log(ti) + xi %*% par1
         yexa <- log(yii) + xi %*% par1
         yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
-        rate <- apply(wgt, 2, function(e) reRate(texa, yexa, rep(e, m), yexa2))
+        rate <- apply(w1, 2, function(e) reRate(texa, yexa, rep(e, m), yexa2))
         rate <- apply(rate, 1, quantile, c(.025, .975))
         Lam <- exp(-rate)
         ind <- !duplicated(yexa2)
@@ -166,7 +166,7 @@ reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     ti <- df1$time2
     t0 <- sort(unique(c(ti, yi)))
     if (is.null(eqType)) {
-        rate <- apply(wgt, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), t0))
+        rate <- apply(w1, 2, function(e) reRate(ti, rep(yi, m), rep(e, m), t0))
         rate <- apply(rate, 1, quantile, c(.025, .975))
         Lam <- exp(-rate)
         Lam.lower <- approxfun(t0, Lam[2,], yleft = min(Lam[2,]), yright = max(Lam[2,]))
@@ -209,7 +209,7 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     if (is.null(eqType)) {
         texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% par1
         yexa <- log(yi) + xi %*% par1
-        rate <- apply(wgt, 2, function(e) reRate(texa, rep(yexa, m), rep(e, m), yexa))
+        rate <- apply(w1, 2, function(e) reRate(texa, rep(yexa, m), rep(e, m), yexa))
         rate <- apply(rate, 1, quantile, c(.025, .975))
         Lam <- exp(-rate)
         ind <- !duplicated(yexa)

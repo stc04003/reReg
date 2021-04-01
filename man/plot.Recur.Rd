@@ -4,7 +4,7 @@
 \alias{plot.Recur}
 \title{Produce Event Plot or Mean Cumulative Function Plot}
 \usage{
-plot.Recur(
+\method{plot}{Recur}(
   x,
   mcf = FALSE,
   event.result = c("increasing", "decreasing", "asis"),
@@ -34,6 +34,10 @@ This places longer terminal times on top. }
 This places shorter terminal times on top. }
   \item{\code{none}}{present the event plots as is, without sorting by the terminal times.}
 }}
+
+\item{event.calendarTime}{an optional logical value indicating whether to plot in calendar time.
+When \code{event.calendarTime = FALSE} (default),
+the event plot will have patient time on the x-axis.}
 
 \item{mcf.adjustRiskset}{an optional logical value that is passed to
 the \code{mcf()} function as the \code{adjustRiskset} argument. 
