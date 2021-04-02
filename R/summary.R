@@ -11,7 +11,7 @@ print.reReg <- function(x, ...) {
     if(x$typeRec == "am.GL")
         cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
     if (x$typeTem != ".") cat("\nRecurrent event process:")
-    if (x$typeRec == "sc") {
+    if (x$typeRec == "gsc") {
         p <- length(x$par1)
         mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
                      rep(x$varNames, 2), format(c(x$par1, x$par2), digits = 5))
@@ -22,7 +22,7 @@ print.reReg <- function(x, ...) {
     }    
     if (length(x$par3) > 0) {
         cat("\nTerminal event:")
-        if (x$typeRec == "sc") {
+        if (x$typeRec == "gsc") {
             p <- length(x$par3)
             mat <- rbind(c("Shape", rep("", p - 1), "Size", rep("", p - 1)),
                          rep(x$varNames, 2), format(c(x$par3, x$par4), digits = 5))
@@ -65,16 +65,16 @@ summary.reReg <- function(object, test = FALSE, ...) {
     }
     if (object$typeRec != "nonparametric") {
         tabA <- pvalTab(object$par1, object$par1.se, object$varNames)
-        if (object$typeRec == "sc") 
+        if (object$typeRec == "gsc") 
             tabA <- list(tabA1 = tabA,
                          tabA2 = pvalTab(object$par2, object$par2.se, object$varNames))
         out <- list(call = object$call, typeRec = object$typeRec, tabA = tabA)
         if (!is.null(object$par3))
             out$tabB <- pvalTab(object$par3, object$par3.se, object$varNames)
-        if (object$typeTem == "sc")
+        if (object$typeTem == "gsc")
             out$tabB <- list(tabB1 = out$tabB,
                              tabB2 = pvalTab(object$par4, object$par4.se, object$varNames))
-        if (object$typeRec == "sc" & !is.null(object$par1.vcov) & !is.null(object$par2.vcov)) {
+        if (object$typeRec == "gsc" & !is.null(object$par1.vcov) & !is.null(object$par2.vcov)) {
             p <- length(object$par1)
             out$HA.chi <- object$par1 %*% solve(object$par1.vcov) %*% object$par1
             out$HB.chi <- object$par2 %*%
@@ -109,7 +109,7 @@ print.summary.reReg <- function(x, ...) {
             cat("\nFitted with the Cox model of Ghosh and Lin (2002):")
         if(x$typeRec == "am.GL")
             cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
-        if (x$typeRec == "sc") {
+        if (x$typeRec == "gsc") {
             p <- nrow(x$tabA$tabA1)
             cat("\nRecurrent event process (shape):\n")
             printCoefmat2(x$tabA[[1]])
@@ -133,7 +133,7 @@ print.summary.reReg <- function(x, ...) {
         }
         ## Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)
         if (x$typeTem != ".") {
-            if (x$typeTem == "sc") {
+            if (x$typeTem == "gsc") {
                 p <- nrow(x$tabB$tabB1)
                 cat("\n\nTerminal event (shape):\n")
                 printCoefmat2(x$tabB[[1]])

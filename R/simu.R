@@ -14,11 +14,11 @@ inv <- function (t, z, exa, exb, fn) {
 
 #' Function to generate simulated recurrent event data
 #'
-#' The function \code{simSC()} generates simulated recurrent event data from either
-#' a Cox-type model, an accelerated mean model, an accelerated rate model, or a scale-change model.
+#' The function \code{simGSC()} generates simulated recurrent event data from either
+#' a Cox-type model, an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 #'
 #' 
-#' The function \code{simSC()} generates simulated recurrent event data over
+#' The function \code{simGSC()} generates simulated recurrent event data over
 #' the interval \eqn{(0, \tau)} based on the specification of the recurrent process and
 #' the terminal events.
 #' Specifically, the rate function, \eqn{\lambda(t)}, of the recurrent process
@@ -31,10 +31,10 @@ inv <- function (t, z, exa, exb, fn) {
 #' \eqn{(\alpha, \eta)} and \eqn{(\beta, \theta)} correspond to the shape and size parameters of the
 #' rate function and the hazard function, respectively.
 #'
-#' Under the default settings, the \code{simSC()} function assumes \eqn{p = 2}
+#' Under the default settings, the \code{simGSC()} function assumes \eqn{p = 2}
 #' and the regression parameters to be \eqn{\alpha = \eta = (0, 0)^\top},
 #' and \eqn{\beta = \theta = (1, 1)^\top}.
-#' When the \code{xmat} argument is not specified, the \code{simSC()} function
+#' When the \code{xmat} argument is not specified, the \code{simGSC()} function
 #' assumes \eqn{X_i} is a two-dimensional vector \eqn{X_i = (X_{i1}, X_{i2}), i = 1, \ldots, n},
 #' where \eqn{X_{i1}} is a Bernoulli variable with rate 0.5 and
 #' \eqn{X_{i2}} is a standard normal variable.
@@ -46,7 +46,7 @@ inv <- function (t, z, exa, exb, fn) {
 #' from a gamma distribution with a unit mean and a variance of 0.25.
 #' The default values for \code{tau} and \code{origin} are 60 and 0, respectively.
 #' When arguments \code{Lam0} and \code{Haz0} are left unspecified,
-#' the \code{simSC()} function uses \eqn{\Lambda_0(t) = 2\log(1 + t)}
+#' the \code{simGSC()} function uses \eqn{\Lambda_0(t) = 2\log(1 + t)}
 #' and \eqn{H_0(t) = \log(1 + t) / 5}, respectively.
 #' This is equivalent to setting
 #' \code{Lam0 = function(x) 2 * log(1 + x)} and \code{Haz0 = function(x) log(1 + x) / 5}.
@@ -83,7 +83,7 @@ inv <- function (t, z, exa, exb, fn) {
 #' @export
 #'
 #' @example inst/examples/ex_simu.R
-simSC <- function(n, summary = FALSE, para,
+simGSC <- function(n, summary = FALSE, para,
                   xmat, censoring, frailty, tau, origin,
                   Lam0, Haz0) {
     call <- match.call()
@@ -94,8 +94,12 @@ simSC <- function(n, summary = FALSE, para,
     if (missing(xmat)) {
         X <- cbind(sample(0:1, n, TRUE), rnorm(n, sd = .5))
         Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
-    } else X <- xmat
-    if (!missing(censoring)) Cen <- censoring
+    } else {
+        if (!missing(censoring)) Cen <- censoring
+        if (missing(censoring)) Cen <- runif(n, 0, tau)
+        X <- xmat
+    }
+    
     p <- ncol(X)
     para0 <- list(alpha = rep(0, p), beta = rep(-1, p), eta = rep(0, p), theta = rep(1, p))
     if (missing(para)) para <- para0
@@ -126,7 +130,7 @@ simSC <- function(n, summary = FALSE, para,
         invHaz <- function(t, z, exa, exb) inv(t, z, exa, exb, Haz)
     }
     if (n != length(origin) & length(origin) > 1)
-        stop("Invalid length for 'origin'. See '?simSC' for details.")
+        stop("Invalid length for 'origin'. See '?simGSC' for details.")
     simOne <- function(id, z, x, cen) {
         D <- invHaz(rexp(1), z, c(exp(x %*% eta)), c(exp(x %*% theta)))
         y <- min(cen, tau, D)

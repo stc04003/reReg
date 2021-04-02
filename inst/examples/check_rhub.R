@@ -1,7 +1,7 @@
 ## Make sure email is already validated
 library(rhub)
 
-setwd("/home/schiou/RPackages/reReg/")
+setwd("../../")
 
 check_for_cran()
 check_on_centos()

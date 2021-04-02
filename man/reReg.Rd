@@ -67,7 +67,7 @@ Huang and Wang (2004) (\eqn{\alpha = \eta = 0})
 can be called with \code{model = "cox|cox"};
 Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
 can be called with \code{model = "am|am"};
-Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc"}.
+Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "gsc"}.
 Users can mix the models depending on the application. For example,
 \code{model = "cox|ar"} postulate a Cox proportional model for the
 recurrent event rate function and an accelerated rate model for
@@ -109,7 +109,7 @@ summary(reReg(fm, data = simDat, model = "cox", B = 50))
 ## Fit the joint Cox/Cox model
 summary(reReg(fm, data = simDat, model = "cox|cox", B = 50))
 ## Fit the scale-change rate model
-summary(reReg(fm, data = simDat, model = "sc", B = 50, se = "sand"))
+summary(reReg(fm, data = simDat, model = "gsc", B = 50, se = "sand"))
 }
 \references{
 Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
@@ -133,5 +133,5 @@ Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scal
 Processes under Informative Censoring. \emph{Statistica Sinica}: pre-print.
 }
 \seealso{
-\code{\link{Recur}}, \code{\link{simSC}}
+\code{\link{Recur}}, \code{\link{simGSC}}
 }

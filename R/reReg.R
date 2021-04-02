@@ -2,7 +2,7 @@
 
 ##############################################################################
 ## Functions for different models
-## stdErr is estimated with resampling if method = sc or am.xc,
+## stdErr is estimated with resampling if method = gsc or am.xc,
 ##        bootstrap otherwise
 ##############################################################################
 
@@ -164,7 +164,7 @@ regFit.general <- function(DF, engine, stdErr) {
 }
 
 s1 <- function(type, DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NULL) {
-    if (type == "sc") return(reSC(DF, eqType, solver, par1, par2, Lam0, w1, w2))
+    if (type == "gsc") return(reSC(DF, eqType, solver, par1, par2, Lam0, w1, w2))
     if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, w1))
     if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, w1))
     if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, w1))
@@ -172,7 +172,7 @@ s1 <- function(type, DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 
 }
 
 s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL) {
-    if (type == "sc") return(temSC(DF, eqType, solver, par3, par4, zi, wgt))
+    if (type == "gsc") return(temSC(DF, eqType, solver, par3, par4, zi, wgt))
     if (type == "cox") return(temCox(DF, eqType, solver, par3, zi, wgt))
     if (type == "am") return(temAM(DF, eqType, solver, par3, zi, wgt))
     if (type == "ar") return(temAR(DF, eqType, solver, par3, zi, wgt))
@@ -309,7 +309,7 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     if (len4 > 0)
         res <- c(res, list(par4.vcov = bVar[1:len4 + len1 + len2 + len3, 1:len4 + len1 + len2 + len3],
                            par4.se = bSE[1:len4 + len1 + len2 + len3]))
-    if (engine@typeRec == "sc") {
+    if (engine@typeRec == "gsc") {
         res$par2.vcov <- bVar[1:len1, 1:len1] + bVar[2:len2 + len1, 2:len2 + len1] + 2 * bVar[1:len1, 2:len2 + len1]
         res$par2.se <- sqrt(diag(res$par2.vcov))
     }
@@ -336,7 +336,7 @@ setClass("cox.LWYY", contains = "Engine")
 setClass("cox.HW", contains = "Engine")
 setClass("am.XCHWY", contains = "Engine")
 setClass("am.GL", contains = "Engine")
-setClass("sc.XCYH", representation(muZ = "numeric"),
+setClass("gsc.XCYH", representation(muZ = "numeric"),
          prototype(muZ = 0), contains = "Engine")
 setClass("cox.GL",
          representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
@@ -401,7 +401,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' can be called with \code{model = "cox|cox"};
 #' Xu et al. (2017) (\eqn{\alpha = \beta} and \eqn{\eta = \theta})
 #' can be called with \code{model = "am|am"};
-#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "sc"}.
+#' Xu et al. (2019) (\eqn{\eta = \theta = 0}) can be called with \code{model = "gsc"}.
 #' Users can mix the models depending on the application. For example,
 #' \code{model = "cox|ar"} postulate a Cox proportional model for the
 #' recurrent event rate function and an accelerated rate model for
@@ -463,12 +463,13 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #'
 #' @importFrom stats approxfun optim model.response
 #' 
-#' @seealso \code{\link{Recur}}, \code{\link{simSC}}
+#' @seealso \code{\link{Recur}}, \code{\link{simGSC}}
 #'
 #' @example inst/examples/ex_reReg.R
 
 reReg <- function(formula, data, subset,
-                  model = "cox", B = 0, se = c("boot", "sand"),
+                  model = "cox",
+                  B = 0, se = c("boot", "sand"),
                   control = list()) {
     ## se = c("resampling", "bootstrap", "NULL"),
     ## se <- ifelse(is.null(se), "NULL", se)
@@ -504,17 +505,17 @@ reReg <- function(formula, data, subset,
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
     ctrl[namc] <- control
     DF <- DF[order(DF$id, DF$time2), ]
-    allModel <- apply(expand.grid(c("cox", "am", "sc", "ar"),
-                                   c("cox", "am", "sc", "ar", ".")), 1, paste, collapse = "|")
-    allModel <- c(allModel, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "sc.XCYH")
-    model <- match.arg(model, c("cox", "am", "sc", "ar", allModel))
+    allModel <- apply(expand.grid(c("cox", "am", "gsc", "ar"),
+                                   c("cox", "am", "gsc", "ar", ".")), 1, paste, collapse = "|")
+    allModel <- c(allModel, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "gsc.XCYH")
+    model <- match.arg(model, c("cox", "am", "gsc", "ar", allModel))
     typeRec <- typeTem <- NULL
     if (grepl("|", model, fixed = TRUE)) {
         typeRec <- substring(model, 1, regexpr("[|]", model) - 1)
         typeTem <- substring(model, regexpr("[|]", model) + 1)
         model <- "general"
     }
-    if (model %in% c("cox", "am", "sc", "ar")) {
+    if (model %in% c("cox", "am", "gsc", "ar")) {
         typeRec <- model
         typeTem <- "."
         model <- "general"
@@ -528,8 +529,8 @@ reReg <- function(formula, data, subset,
         typeRec <- typeTem <- "am"
         model <- "general"
     }
-    if (model == "sc.XCYH") {
-        typeRec <- "sc"
+    if (model == "gsc.XCYH") {
+        typeRec <- "gsc"
         typeTem <- "."
         model <- "general"        
     }
@@ -544,7 +545,7 @@ reReg <- function(formula, data, subset,
         cat("Only one unique censoring time is detected, terminal event model is not fitted.\n\n")
     }
     ## Temporary fix 
-    if (typeRec != "sc")  se <- "boot"
+    if (typeRec != "gsc")  se <- "boot"
     engine.ctrl <- ctrl[names(ctrl) %in% names(attr(getClass(model), "slots"))]
     engine <- do.call("new", c(list(Class = model), engine.ctrl))
     engine@typeRec <- typeRec
@@ -571,7 +572,7 @@ reReg <- function(formula, data, subset,
                     stop("The length of initial value does not match with the number of covariates.")
             }
         }
-        if (typeRec == "sc") {
+        if (typeRec == "gsc") {
             if (length(engine@par1) == 1) engine@par1 <- rep(engine@par1, p)
             if (length(engine@par2) == 1) engine@par2 <- rep(engine@par2, p + 1)
             if (length(engine@par2) == p) engine@par2 <- c(0, engine@par2)
@@ -610,9 +611,9 @@ reReg <- function(formula, data, subset,
     fit$varNames <- names(DF)[-(1:6)]
     fit$se <- se
     if (engine@typeRec == "cox") fit$par1 <- fit$par1[-1]
-    if (engine@typeRec == "sc" & se != "boot") fit$par2 <- fit$par1 + fit$par2[-1]
-    if (engine@typeRec == "sc" & se == "boot") fit$par2 <- fit$par2[-1]
-    if (se != "NULL" & se != "boot" & engine@typeRec == "sc") fit$par2.se <- fit$par2.se[-1]   
+    if (engine@typeRec == "gsc" & se != "boot") fit$par2 <- fit$par1 + fit$par2[-1]
+    if (engine@typeRec == "gsc" & se == "boot") fit$par2 <- fit$par2[-1]
+    if (se != "NULL" & se != "boot" & engine@typeRec == "gsc") fit$par2.se <- fit$par2.se[-1]   
     if (se != "NULL" & engine@typeRec == "cox") fit$par1.se <- fit$par1.se[-1]
     fit <- fit[order(names(fit))]
     class(fit) <- "reReg"

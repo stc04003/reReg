@@ -36,7 +36,7 @@ residuals.reReg <- function(object, model = c("recurrent", "failure"), ...) {
         if (object$typeRec == "cox") exa2 <- exp(X %*% object$par1)
         if (object$typeRec == "ar") exa1 <- exp(X %*% object$par1)
         if (object$typeRec == "am") exa1 <- exa2 <- exp(X %*% object$par1)
-        if (object$typeRec == "sc") {
+        if (object$typeRec == "gsc") {
             exa1 <- exp(X %*% object$par1)
             exa2 <- exp(X %*% object$par2)
         }
@@ -49,7 +49,7 @@ residuals.reReg <- function(object, model = c("recurrent", "failure"), ...) {
         if (object$typeTem == "cox") exb2 <- exp(X %*% object$par3)
         if (object$typeTem == "ar") exb1 <- exp(X %*% object$par3)
         if (object$typeTem == "am") exb1 <- exb2 <- exp(X %*% object$par3)
-        if (object$typeTem == "sc") {
+        if (object$typeTem == "gsc") {
             exb1 <- exp(X %*% object$par3)
             exb2 <- exp(X %*% object$par4)
         }
