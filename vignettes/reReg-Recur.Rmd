@@ -1,0 +1,152 @@
+---
+title: "Creating `Recur` objects"
+author: Sy Han (Steven) Chiou
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+bibliography: ../inst/bib/reReg.bib
+vignette: >
+  %\VignetteIndexEntry{Creating `Recur` objects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}{inputenc}
+---
+
+```{r default, include = FALSE, collapse = TRUE}
+library(knitr)
+opts_chunk$set(prompt = TRUE, comment = "")
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+In this vignette, we demonstrate how to create a recurrent event object with the
+`Recur()` function from the __`reda`__ package [@R:reda].
+The `Recur()` function is imported when the __`reReg`__ package is loaded.
+The `Recur` objectbundles together a set of recurrent times, failure time, and censoring status, 
+with the convenience that it can be used as the response in model formula in the __`reReg`__ package.
+We will illustrate the usage of `Recur()` with the `cgd` data set from the __`survival`__ [@R:survival]
+and the `readmission` data set from the __`frailtypack`__ 
+package [@rondeau2012frailtypack, @gonzalez2005sex]. 
+
+```{r load-pkg, message = FALSE}
+library(reReg)
+packageVersion("reReg")
+```
+
+```{r data}
+data(readmission, package = "frailtypack")
+head(readmission)
+readmission <- subset(readmission, !(id %in% c(60, 109, 280)))
+attach(readmission)
+```
+
+##  The`Recur` object
+The `Recur()` function is modeled after the `Surv()` function in the __`survival`__ package [@R:survival]. 
+The function interface of `Recur()` is
+```{R}
+args(Recur)
+```
+The six arguments are 
+
+* `time` a vector that represents the time of recurrent events and censoring, 
+or as a list of time intervals that contains the starting time and the ending time of the interval. 
+In the latter, the intervals are assumed to be open on the left and closed on the right, 
+where the right end points are the time of recurrent events and censoring.
+* `id` specifies the subject identity. It can be numeric vector, character vector, or a factor vector.  If it is left unspecified, `Recur()` will assume that each row represents a subject.
+* `event` is a numeric vector that represents the types of the recurrent events. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.
+* `terminal` is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector.  Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified `terminal` should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of `terminal` at the last recurrent episode.
+* `origin` a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value.  The length of the specified `origin` should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins.  However, one subject must have the same origin. In addition to numeric values, `Date` and `difftime` are also supported and converted to numeric values.
+* `check` is a character value specifying how to perform the checks for recurrent event data.  Errors or warnings will be thrown, respectively, if the `check` is specified to be `"hard""’"` (default) or `"soft""’"`.  If `check = "none"` is specified, no data checking procedure will be run.
+
+When the time origin is zero for all subjects as in the `readmission` data set, 
+the `time` argument can be specified with `time = t.stop` or with `time = t.start %to% t.stop`, 
+where the infix operator `%to%` is used to create a list of two elements containing the endpoints of the time intervals.
+When `check = "hard"` or `check = "soft"`,
+the \code{Recur()} function performs an internal check for possible issues on the data structure.
+The \code{Recur()} function terminates and issues an error message once the check failed if
+\code{check = "hard"} (default).
+On the contrary, \code{Recur()} would proceed with a warning message when \code{check = "soft"}
+or without a warning message when \code{check = "none"}.
+The checking criterion includes the following:
+\begin{enumerate}
+\item Every subject must have one censoring time.
+\item Each subject's censoring time must be greater than all recurrent event times.
+\item Recurrent event and censoring times cannot be missing.
+\item Recurrent event and censoring times cannot be earlier than the orgin time.
+\item When the \code{time} argument is a list, the time intervals cannot overlap.
+\end{enumerate} 
+
+The `Recur()` function matches the arguments by position when the arguments''' names are not specified.
+Among all the arguments,
+only the argument 'time' does not have default values and has to be specified by users.
+The default value for the argument 'id' is 'seq_along(time)', thus,
+'Recur()' assumes each row specifies the time point for each subject when 'id' is not specified.
+However, using the default value 'id' defeats the purpose using recurrent event methods.
+The default value for the argument 'event' is a numerical vector,
+where the values 0 and 1 are used to indicate whether the endpoint
+of the time intervals in 'time' is a
+non-recurrent event or a recurrent event, respectively.
+The 'event' argument can accommodate more than one types of recurrent events;
+in this case the reference level (value 0) is used to indicate non-recurrent event.
+On the other hand, a zero vector is used as the default value for arguments
+'terminal' and 'orgin'.
+
+
+The default values in 'Recur()' are chosen so that 'Recur()' can be conveniently adopted
+in common situations.
+For example, in situations where the recurrent events are observed continuously and
+in the absence of terminal events,
+the 'event' and 'terminal' arguments can be left unspecified.
+In this case, the last entry within each subject will be treated as a censoring time. 
+One example is the 'cgd' data from the __*survival*__ package, 
+where the recurrent event is the serious infection observed from
+a placebo controlled trial of gamma interferon in chronic granulotamous disease.
+A terminal event was not defined in the 'cgd' data and
+the patients were observed through the end of study.
+For this dataset, the `Recur` object can be constructed as below:
+```{R, output.lines = 1:10}
+data(cgd, package = "survival")
+with(cgd, Recur(tstart %2% tstop, id))
+```
+
+
+
+For each subject, the function `Recur()` prints intervals to represent the duration until the next event 
+(a recurrent event or a terminal event).
+The `Recur` object for the `readmission` dataset can be constructed as below:
+```{r Recur-obj-short2, eval = TRUE, output.lines = 1:10}
+Recur(t.stop, id, event, death)
+```
+The `readmission` example above shows patient id \#1 experienced 2 hostpital readmissions 
+with a terminal event at `t = 1037` (days).
+The `+` at `t = 1037` indicates the terminal time was censored, e.g., this patient did not experience the event of interest (death) at `t = 1037`.
+Similarly, patient id \#3 has one readmission and died at `t = 783` (days) as indicated by `*` at `783`.
+On the other hand patient id \# 4 has more than 3 readmissions and was censored at `t = 2048` (days).
+The readmission intervals was suppressed to prevent printing results wider than the screen allowance.
+The number of intervals to be printed can be tuned using the `options` and argument `reda.Recur.maxPrint`. 
+
+
+Readers are referred to a separate [vignette on `Recur()`](https://wenjie-stat.me/reda/articles/reda-recur) for a detailed introduction of `Recur()`.
+**<span style="color:red">The `reSurv()` function is being deprecated in Version 1.2.0.</span>**
+In the current version, the `reSurv()` function can still be used, but the `reSurv` object will be automatically transformed to the corresponding `Recur` object.
+
+## Reference

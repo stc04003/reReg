@@ -96,7 +96,7 @@ simGSC <- function(n, summary = FALSE, para,
         Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
     } else {
         if (!missing(censoring)) Cen <- censoring
-        if (missing(censoring)) Cen <- runif(n, 0, tau)
+        if (missing(censoring)) Cen <- runif(n, 0, 2 * tau)
         X <- xmat
     }
     
