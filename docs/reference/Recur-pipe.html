@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>The <code>%to%</code> function is imported from <code>reda</code> — Recur-pipe • reReg</title>
+<title>The %to% function is imported from reda — Recur-pipe • reReg</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,7 @@
 
 
 
-<meta property="og:title" content="The <code>%to%</code> function is imported from <code>reda</code> — Recur-pipe" />
+<meta property="og:title" content="The %to% function is imported from reda — Recur-pipe" />
 <meta property="og:description" content="This pipe operator specifies the time segments or recurrent episodes by endpoints.
 See reda for more details." />
 
@@ -73,7 +73,7 @@ See reda for more details." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.0</span>
       </span>
     </div>
 
@@ -81,7 +81,7 @@ See reda for more details." />
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -96,7 +96,10 @@ See reda for more details." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/reReg-plots.html">Visualization of recurrent event data</a>
+      <a href="../articles/reReg-Recur.html">Creating `Recur` objects</a>
+    </li>
+    <li>
+      <a href="../articles/reReg-plot.html">Visualization of recurrent event data</a>
     </li>
     <li>
       <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
@@ -113,7 +116,7 @@ See reda for more details." />
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="http://github.com/stc04003/reReg/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -144,7 +147,10 @@ See <code>reda</code> for more details.</p>
 
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='fl'>2</span>:<span class='fl'>6</span>, <span class='kw'>id</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>2</span>, <span class='fl'>2</span>))</div><div class='output co'>#&gt; [1] 1: (0, 2], (2, 3], (3, 4+] 2: (0, 5], (5, 6+]        </div><div class='input'><span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='fl'>2</span>:<span class='fl'>6</span>, <span class='kw'>id</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>2</span>, <span class='fl'>2</span>))</div><div class='output co'>#&gt; [1] 1: (0, 2], (2, 3], (3, 4+] 2: (0, 5], (5, 6+]        </div><div class='input'><span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='fl'>1</span>:<span class='fl'>5</span> <span class='kw'>%2%</span> <span class='fl'>2</span>:<span class='fl'>6</span>, <span class='kw'>id</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>2</span>, <span class='fl'>2</span>))</div><div class='output co'>#&gt; [1] 1: (1, 2], (2, 3], (3, 4+] 2: (4, 5], (5, 6+]        </div></pre>
+    <pre class="examples"><div class='input'><span class='fu'><a href='Recur.html'>Recur</a></span><span class='op'>(</span><span class='fl'>2</span><span class='op'>:</span><span class='fl'>6</span>, id <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] 1: (0, 2], (2, 3], (3, 4+] 2: (0, 5], (5, 6+]        </div><div class='input'><span class='fu'><a href='Recur.html'>Recur</a></span><span class='op'>(</span><span class='fl'>2</span><span class='op'>:</span><span class='fl'>6</span>, id <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] 1: (0, 2], (2, 3], (3, 4+] 2: (0, 5], (5, 6+]        </div><div class='input'><span class='fu'><a href='Recur.html'>Recur</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>5</span> <span class='op'>%2%</span> <span class='fl'>2</span><span class='op'>:</span><span class='fl'>6</span>, id <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>1</span>, <span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] 1: (1, 2], (2, 3], (3, 4+] 2: (4, 5], (5, 6+]        </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -160,7 +166,7 @@ See <code>reda</code> for more details.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

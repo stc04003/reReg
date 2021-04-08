@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.0</span>
       </span>
     </div>
 
@@ -39,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -54,7 +54,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/reReg-plots.html">Visualization of recurrent event data</a>
+      <a href="../articles/reReg-Recur.html">Creating `Recur` objects</a>
+    </li>
+    <li>
+      <a href="../articles/reReg-plot.html">Visualization of recurrent event data</a>
     </li>
     <li>
       <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
@@ -71,7 +74,7 @@
 <ul class="nav navbar-nav navbar-right">
 <li>
   <a href="http://github.com/stc04003/reReg/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -85,13 +88,13 @@
 
       
 
-      </header><div class="row">
+      </header><script src="reReg-reg_files/header-attrs-2.7/header-attrs.js"></script><script src="reReg-reg_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Fitting semiparametric regression model to recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2020-08-17</h4>
+            <h4 class="date">2021-04-08</h4>
       
       <small class="dont-index">Source: <a href="http://github.com/stc04003/reReg/blob/master/vignettes/reReg-reg.Rmd"><code>vignettes/reReg-reg.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-reg.Rmd</code></div>
@@ -104,344 +107,230 @@
 MathJax.Hub.Config({
   TeX: { equationNumbers: { autoNumber: "AMS" } }
 });
-</script><p>In this vignette, we demonstrate how to use the <code><a href="../reference/reReg.html">reReg()</a></code> function in <strong><code>reReg</code></strong> package to fit semiparametric regression models to recurrent event data.</p>
+</script><p>The regression model implemented in the <strong><code>reReg</code></strong> package accommodate informative censoring via the use of a subject-specific frailty variable. In contrast to existing frailty models, the implemented estimation procedure does not require dis- tributional information on the frailty variable. Using the borrowing-strength approach in the estimating procedure, our model allows users to specify any combination of the sub-models between the recurrent event process and the terminal events when they are fitted jointly.</p>
+<p>In this vignette, we demonstrate how to use the <code><a href="../reference/reReg.html">reReg()</a></code> function in the <strong><code>reReg</code></strong> package to fit semiparametric regression models to recurrent event data.</p>
+<div id="notations" class="section level2">
+<h2 class="hasAnchor">
+<a href="#notations" class="anchor"></a>Notations</h2>
+<p>Let <span class="math inline">\(N(t)\)</span> be the number of recurrent events occurring over the interval <span class="math inline">\([0, t]\)</span> and <span class="math inline">\(D\)</span> be the failure time of interest subjects to right censoring by <span class="math inline">\(C\)</span>. Define the composite censoring time <span class="math inline">\(Y = \min(D, C, \tau)\)</span> and the failure event indicator <span class="math inline">\(\Delta = I\{D\le \min(C, \tau)\}\)</span>, where <span class="math inline">\(\tau\)</span> is the maximum follow-up time. We assume the recurrent event process <span class="math inline">\(N(\cdot)\)</span> is observed up to <span class="math inline">\(Y\)</span>. Let <span class="math inline">\(X\)</span> be a <span class="math inline">\(p\)</span>-dimensional covariate vector. Consider a random sample of <span class="math inline">\(n\)</span> subjects, the observed data are independent and identically distributed (iid) copies of <span class="math inline">\(\{Y_i, \Delta_i, X_i, N_i(t), 0\le t\le Y_i\}\)</span>, where the subscript <span class="math inline">\(i\)</span> denotes the index of a subject for <span class="math inline">\(i= 1, \ldots, n\)</span>. Let <span class="math inline">\(m_i = N_i(Y_i)\)</span> be the number of recurrent events the <span class="math inline">\(i\)</span>th subject experienced before time <span class="math inline">\(Y_i\)</span>, then the jump times of <span class="math inline">\(N_i(t)\)</span> give the observed recurrent event times <span class="math inline">\(t_{i1}, \ldots, t_{im_i}\)</span> when <span class="math inline">\(m_i &gt; 0\)</span>. Thus, the observed data can also be expressed as iid copies of <span class="math inline">\(\{Y_i, \Delta_i, X_i, m_i, (t_{i1}, \ldots, t_{m_i})\}\)</span>. The primary interests in recurrent event data analysis is in making inference about the recurrent event process and the failure event and understanding the corresponding covariate effects.</p>
+</div>
 <div id="model-assumption" class="section level2">
 <h2 class="hasAnchor">
 <a href="#model-assumption" class="anchor"></a>Model assumption</h2>
-A general joint model for the rate function of the recurrent event process and the hazard function of the failure time can be formulated as follow:
-\begin{equation}
-\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\beta};
-h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta},
-\label{eq:joint}
-\end{equation}
-<p>where <span class="math inline">\(Z\)</span> is a latent shared frailty variable to account for association between the two types of outcomes, <span class="math inline">\(\lambda_0(\cdot)\)</span> is the baseline rate function, <span class="math inline">\(h_0(\cdot)\)</span> is the baseline hazard function, and the regression coefficients <span class="math inline">\((\alpha, \eta)\)</span> and <span class="math inline">\((\beta, \theta)\)</span> correspond to the shape and size parameters of the rate function and hazard function, respectively. In contrast to many shared-frailty models that require a parametric assumption, <!--so that the likelihood method can be used to estimate the joint model,--> following the idea of <span class="citation">Wang, Qin, and Chiang (2001)</span>, the <code><a href="../reference/reReg.html">reReg()</a></code> function implements semiparametric estimation procedures that do not require the knowledge about the frailty distribution. As a result, the dependence between recurrent events and failure event is left unspecified and the proposed implementations accommodate informative censoring. The <code><a href="../reference/reReg.html">reReg()</a></code> function fits the recurrent event data under the above joint model setting. The arguments of <code><a href="../reference/reReg.html">reReg()</a></code> are as follows</p>
-</div>
-<div id="arguments-of-rereg" class="section level2">
-<h2 class="hasAnchor">
-<a href="#arguments-of-rereg" class="anchor"></a>Arguments of <code>reReg()</code>
-</h2>
-<div class="sourceCode"><html><body><pre class="r">&gt; library(reReg); args(reReg)</pre></body></html></div>
-<pre><code>function (formula, data, B = 200, method = "cox", se = c("resampling", 
-    "bootstrap", "NULL"), control = list()) 
+<p>We assume a generalized joint frailty scale-change model for the rate function of the recurrent event process and the hazard function of the failure time formulated as follow: <span class="math display">\[\begin{equation}
+  \begin{cases}
+      \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&amp;\\
+      h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &amp;t\in[0, \tau],
+    \end{cases}
+\label{eqn:sc|sc}
+\end{equation}\]</span> where <span class="math inline">\(Z\)</span> is a latent shared frailty variable to account for association between the two types of outcomes, <span class="math inline">\(\lambda_0(\cdot)\)</span> is the baseline rate function, <span class="math inline">\(h_0(\cdot)\)</span> is the baseline hazard function, and the regression coefficients <span class="math inline">\((\alpha, \eta)\)</span> and <span class="math inline">\((\beta, \theta)\)</span> correspond to the shape and size parameters of the rate function and hazard function, respectively. In contrast to many shared-frailty models that require a parametric assumption, <!--so that the likelihood method can be used to estimate the joint model,--> following the idea of <span class="citation">Wang, Qin, and Chiang (2001)</span>, the <code><a href="../reference/reReg.html">reReg()</a></code> function implements semiparametric estimation procedures that do not require the knowledge about the frailty distribution. As a result, the dependence between recurrent events and failure event is left unspecified and the proposed implementations accommodate informative censoring. The <code><a href="../reference/reReg.html">reReg()</a></code> function fits the recurrent event data under the above joint model setting. The arguments of <code><a href="../reference/reReg.html">reReg()</a></code> are as follows</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">library</span>(reReg)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">args</span>(reReg)</span></code></pre></div>
+<pre><code>function (formula, data, subset, model = "cox", B = 0, se = c("boot", 
+    "sand"), control = list()) 
 NULL</code></pre>
 <ul>
 <li>
-<code>formula</code> a formula object, with the response on the left of a "~" operator, and the predictors on the right. The response must be a recurrent event survival object as returned by function <code>Recur</code>. See the vignette on <a href="https://www.sychiou.com/reReg/articles/reReg-plots.html">Visualization of recurrent event data</a> or <a href="https://wenjie-stat.me/reda/articles/reda-recur">Introduction to formula response function <code><a href="../reference/Recur.html">Recur()</a></code></a> for examples in creating <code>Recur</code> objects.</li>
+<code>formula</code> a formula object, with the response on the left of a “~” operator, and the predictors on the right. The response must be a recurrent event survival object as returned by function <code>Recur</code>. See the vignette on <a href="https://www.sychiou.com/reReg/articles/reReg-plots.html">Visualization of recurrent event data</a> or <a href="https://wenjie-stat.me/reda/articles/reda-recur">Introduction to formula response function <code>Recur()</code></a> for examples in creating <code>Recur</code> objects.</li>
 <li>
 <code>data</code> an optional data frame in which to interpret the variables occurring in the <code>formula</code>.</li>
 <li>
-<code>B</code> a numeric value specifies the number of resampling (or bootstrap) for variance estimation. When <code>B = 0</code>, variance estimation will not be performed.</li>
+<code>B</code> a numeric value specifies the number of bootstrap (or resampling) for variance estimation. When <code>B = 0</code>, variance estimation will not be performed.</li>
 <li>
-<code>method</code> a character string specifying the underlying model.</li>
+<code>model</code> a character string specifying the underlying model.</li>
 <li>
 <code>se</code> a character string specifying the method for standard error estimation.</li>
 <li>
 <code>control</code> a list of control parameters.</li>
 </ul>
-<div id="choosing-model-type-with-method" class="section level3">
-<h3 class="hasAnchor">
-<a href="#choosing-model-type-with-method" class="anchor"></a>Choosing model type with <code>method</code>
-</h3>
-<p>Model \eqref{eq:joint} includes several popular semiparametric models as special cases, which can be specified via the <code>method</code> argument with the rate function and hazard function separated by "<code><a href="https://rdrr.io/r/base/Logic.html">|</a></code>". For examples, the joint Cox model of <span class="citation">Huang and Wang (2004)</span> is a special case of \eqref{eq:joint} when <span class="math inline">\(\alpha = \eta = 0\)</span> and can be called by <code>method = "cox|cox"</code>; the joint accelerated mean model of <span class="citation">Xu et al. (2017)</span> is a special case when <span class="math inline">\(\alpha = \beta\)</span> and <span class="math inline">\(\eta = \theta\)</span> and can be called by <code>method = "am|am"</code>. <!--Another option is `ar` for the accerlated rate model ($\beta = \theta = 0$).--> <!--When the primary interest is in the covariate effects on the risk of recurrent events and --> Treating the terminal event as nuisances (<span class="math inline">\(\eta = \theta = 0\)</span>), \eqref{eq:joint} reduces to the generalized scale-change model of <span class="citation">Xu et al. (2019)</span>, called by <code>method = "sc|."</code>. Moreover, users can mix the models depending on the application. For example, <code>method = "cox|ar"</code> postulate a Cox proportional model for the recurrent event rate function and an accelerated rate model for the terminal event hazard function (<span class="math inline">\(\alpha = \theta = 0\)</span> in \eqref{eq:joint}).</p>
+<div id="specifying-model-via-the-model-argument" class="section level4">
+<h4 class="hasAnchor">
+<a href="#specifying-model-via-the-model-argument" class="anchor"></a>Specifying model via the <code>model</code> argument</h4>
+<p>When the interest is the covariate effects on the risk of recurrent events and the terminal event is treated as nuisances, <code>model = "cox"</code> and <code>model = "gsc"</code> give the Cox-type model and the generalized scale-change rate model considered in <span class="citation">Wang, Qin, and Chiang (2001)</span> and <span class="citation">Xu et al. (2020)</span>, respectively. When the recurrent event process and the terminal events are modeled jointly, the types of rate function and hazard function can be specified simultaneously in <code>model</code> separated by ``<code><a href="https://rdrr.io/r/base/Logic.html">|</a></code>’’. The model types for the hazard function are <code>cox</code>, <code>ar</code>, <code>am</code>, and <code>gsc</code>. For examples, the joint frailty Cox-type model of <span class="citation">Huang and Wang (2004)</span> and the joint frailty accelerated mean model of <span class="citation">Xu et al. (2017)</span> can be called by <code>model = "cox|cox"</code> and <code>model = "am|am"</code>, respectively. Depending on the application, users can specify different model types for the rate function and the hazard function. For example, <code>model = "cox|ar"</code> postulate a Cox-type proportional model for the recurrent event rate function and an accelerated rate model for the terminal event hazard function, or <span class="math inline">\(\alpha = \theta = 0\)</span> in \eqref{eqn:sc|sc}.</p>
 </div>
-<div id="choosing-the-variance-estimation-approach-with-se" class="section level3">
-<h3 class="hasAnchor">
-<a href="#choosing-the-variance-estimation-approach-with-se" class="anchor"></a>Choosing the variance estimation approach with <code>se</code>
-</h3>
-<p>For inference, the <code><a href="../reference/reReg.html">reReg()</a></code> function provides several approaches for variance estimation. The default option is <code>se = "resampling"</code>, which refers to the efficient resampling-based sandwich estimator. The general idea is to decompose the limiting covariance matrix in a sandwich form, and its components are estimated via perturbed estimating equations. Details of the resampling approach can be found in <span class="citation">Zeng and Lin (2008)</span>, <span class="citation">Xu et al. (2017)</span>, and <span class="citation">Xu et al. (2019)</span>. The resampling approach is faster than the conventional bootstrap, which can be called with <code>se = "bootstrap"</code>, as it only requires evaluating perturbed estimating equations rather than solving them. When <code>se = "bootstrap"</code>, user has an option to carry out the bootstrap with parallel computing. This can be done by specifying <code>parallel = TRUE</code> in the <code>control</code> list. When <code>parallel = TRUE</code>, the number of CPU cores can be specified with <code>parCl</code>.</p>
+<div id="variance-estimation" class="section level4">
+<h4 class="hasAnchor">
+<a href="#variance-estimation" class="anchor"></a>Variance estimation</h4>
+<p>The nonparametric bootstrap method for clustered data is adopted to estimate the standard errors of the estimators. The bootstrap samples are formed by resampling the subjects with replacement of the same size from the original data. The above estimating procedures are then applied to each bootstrap sample to provide one draw of the bootstrap estimate. With a large number of replicates, the asymptotic variance matrices are estimated by the sample variance of the bootstrap estimates. In an attempt to overcome the computational burden in bootstrap variance estimation, parallel computing techniques based on methods in the <code>parallel</code> package will be applied when <code>boot.parallel = TRUE}</code>. The number of CPU cores used in the parallel computing is controlled by the argument <code>boot.parCl}</code>, whose default value is half of the total number of CPU cores available on the current host identified by <code>parallel::detectCores() \%/\% 2}</code>. When fitting the generalized scale-change rate model of <span class="citation">Xu et al. (2020)</span>, e.g., with <code>model = "sc"</code>, an efficient resampling-based sandwich estimator is also available via <code>se = "sand"</code>. The number of bootstrap or resampling is controlled by the argument <code>B</code>. When <code>B = 0</code> (default), the variance estimation procedure will not be performed and only the point estimates will be returned, which can be useful when the variance estimation is time consuming. Future work will be devoted to generalize the efficient resampling-based sandwich estimator to all the sub-models.</p>
 </div>
-<div id="control-list" class="section level3">
-<h3 class="hasAnchor">
-<a href="#control-list" class="anchor"></a>Control list</h3>
-<p>The complete <code>control</code> list consists of the following parameters: <em><code>tol</code> specifies the absolute error tolerance in solving the estimating equations </em> <code>a0, b0</code> specifies the initial guesses used for root search * <code>solver</code> specifies the equation solver used for root search; the available options are <code>BBsolve</code>, <code>dfsane</code>, <code>BBoptim</code>, and <code>optim</code> (the first three options loads the corresponding equation solver from package <code>BB</code>). * <code>baseSE</code> is an logical value indicating whether the confidence bounds for the baseline functions will be computed. * <code>parallel</code> is an logical value indicating whether parallel computation will be applied when <code>se = "bootstrap"</code> is called. * <code>parCl</code> is an integer value specifying the number of CPU cores to be used when <code>parallel = TRUE</code>. The default value is half the CPU cores on the current host.</p>
+<div id="the-control-list" class="section level4">
+<h4 class="hasAnchor">
+<a href="#the-control-list" class="anchor"></a>The <code>control</code> list</h4>
+<p>The complete <code>control</code> list consists of the following parameters:</p>
+<ul>
+<li>
+<code>eqType</code> is a character string used to specify whether the log-rank-type (<code>"logrank"</code>) or the Gehan-type (<code>"gehan"</code>) estimating equation is used in the estimating procedure.</li>
+<li>
+<code>solver</code> is a character string used to specify the equation solver used for root search; the available options are <code>BBsolve</code>, <code>dfsane</code>, <code>BBoptim</code>, and <code>optim</code> (the first three options loads the corresponding equation solver from package <code>BB</code> <span class="citation">(Varadhan and Gilbert 2009)</span>).</li>
+<li>
+<code>tol</code> is a numerical value used to specify the absolute error tolerance in solving the estimating equations. The default value is <span class="math inline">\(10^{-7}\)</span>.</li>
+<li>
+<code>ini</code> is a list of initial values used in the root-finding algorithms. The list members <code>alpha</code>, <code>beta</code>, <code>eta</code>, and <code>theta</code> correspond to the parameters <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\eta\)</span>, and <span class="math inline">\(\theta\)</span> in Model~, respectively. The default values for these initial values are zeros.</li>
+<li>
+<code>boot.parallel</code> is an logical value indicating whether parallel computation will be applied when <code>se = "boot"</code> is called.</li>
+<li>
+<code>boot.parCl</code> is an integer value specifying the number of CPU cores to be used when <code>parallel = TRUE</code>. The default value is half the CPU cores on the current host.</li>
+</ul>
+<p>The default equation solver (<code>"BB::dfsane"</code>) uses the derivative-free Barzila–Borwein spectral approach for solving nonlinear equations implemented in <code>dfsane()</code> from the package <code>BB</code> <span class="citation">(Varadhan and Gilbert 2009)</span>. Setting <code>solver = "BB::BBsolve"</code> calls the wrapper function <code>BBsolve()</code> in the <code>BB</code> package to locate a root with different Barzilai-Borwein steplengths, non-monotonicity parameters, and initialization approaches. Based on our observation, the <code>"BB::BBsolve"</code> algorithm generally exhibited more reliable convergence but the <code>solver = "BB::dfsane"</code> algorithm provides a better balance between convergence and speed. The alternative options, <code>solver = "BB::BBoptim"</code> and <code>solver = "optim"</code>, attempts to identify roots by minimizing the <span class="math inline">\(\ell_2\)</span>-norm of the estimating functions. The options <code>solver = "BB::BBoptim"</code> and <code>solver = "optim"</code> call the <code>BBoptim()</code> function from the package <code>BB</code> and the base function <code><a href="https://rdrr.io/r/stats/optim.html">optim()</a></code>, respectively.</p>
 </div>
 </div>
 <div id="examples" class="section level2">
 <h2 class="hasAnchor">
 <a href="#examples" class="anchor"></a>Examples</h2>
-<p>We will illustrate the usage of <code>reReg</code> with simulated data generated from <code>simSC</code>. Readers are referred to the vignette on <a href="https://www.sychiou.com/reReg/articles/reReg-sims.html">Simulating recurrent event data</a> for using <code>simSC</code> to generate recurrent event data.</p>
-<div id="joint-cox-model-of-huang2004" class="section level3">
-<h3 class="hasAnchor">
+<p>We will illustrate the usage of <code>reReg</code> with simulated data generated from the <code><a href="../reference/simGSC.html">simGSC()</a></code> function. Readers are referred to the vignette on <a href="https://www.sychiou.com/reReg/articles/reReg-sims.html">Simulating recurrent event data</a> for using <code><a href="../reference/simGSC.html">simGSC()</a></code> to generate recurrent event data.</p>
+<div id="joint-cox-model-of-huang2004" class="section level4">
+<h4 class="hasAnchor">
 <a href="#joint-cox-model-of-huang2004" class="anchor"></a>Joint Cox model of <span class="citation">Huang and Wang (2004)</span>
-</h3>
-<p>A simulated model following the joint Cox model of <span class="citation">Huang and Wang (2004)</span> can be generated by</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; set.seed(1); datCox &lt;- simSC(500, c(1, -1), c(-1, 1), summary = TRUE)</pre></body></html></div>
-<pre><code>
-Summary results for number of recurrent event per subject:
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   0.00    2.00    8.00   18.83   21.00  525.00 
+</h4>
+<p>A simulated data following the joint Cox model can be generated by</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">set.seed</span>(<span class="dv">1</span>); datCox &lt;-<span class="st"> </span><span class="kw">simGSC</span>(<span class="dv">200</span>, <span class="dt">summary =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<pre><code>Call: 
+simGSC(n = 200, summary = TRUE)
 
-Number of failures: 119 (23.8%); Number of censored events: 381 (76.2%)
+Summary:
+Sample size:                                    200 
+Number of recurrent event observed:             726 
+Average number of recurrent event per subject:  3.63 
+Proportion of subjects with a terminal event:   0.645 
+Median time-to-terminal event:                  5.613 </code></pre>
+<p>Since the default parameters in <code><a href="../reference/simGSC.html">simGSC()</a></code> are <span class="math inline">\(\alpha = (0, 0)^\top\)</span>, <span class="math inline">\(\beta = (-1, -1)^\top\)</span>, <span class="math inline">\(\eta = (0, 0)^\top\)</span>, and <span class="math inline">\(\theta = (-1, -1)^\top\)</span>, the underlying true model has the form: <span class="math display">\[\begin{cases}
+\lambda(t) = Z \lambda_0(t)e^{-X_1 - X_2}, &amp;\\
+h(t) = Z h_0(t)e^{-X_1 - X_2}, &amp; t\in[0, 60].
+\end{cases}\]</span> The model fit is</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="op">&gt;</span><span class="st"> </span>fit.cox &lt;-<span class="st"> </span><span class="kw">reReg</span>(<span class="kw">Recur</span>(t.start <span class="op">%to%</span><span class="st"> </span>t.stop, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, </span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="op">+</span><span class="st">                  </span><span class="dt">B =</span> <span class="dv">200</span>, <span class="dt">data =</span> datCox, <span class="dt">model =</span> <span class="st">"cox|cox"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">summary</span>(fit.cox)</span></code></pre></div>
+<pre><code>Call: 
+reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
+    x1 + x2, data = datCox, model = "cox|cox", B = 200)
 
-Number of x1 == 1: 236 (47.2%); Number of x1 == 0: 264 (52.8%)
-Summary results for x2:
-    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
--3.23639 -0.74943 -0.07149 -0.05930  0.67217  2.68406 </code></pre>
-<p>The underlying true model has the form: <span class="math display">\[\lambda(t) = Z \lambda_0(t)e^{X_1 - X_2};
-h(t) = Z h_0(t)e^{-X_1 + X_2}.\]</span> The model fit is</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; fit.cox &lt;- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox)
-&gt; summary(fit.cox)</pre></body></html></div>
-<pre><code>         Length Class      Mode     
-alpha        2  -none-     numeric  
-aconv        1  -none-     numeric  
-log.muZ      1  -none-     numeric  
-zi         500  -none-     numeric  
-Lam0         1  -none-     function 
-beta         2  -none-     numeric  
-bconv        1  -none-     numeric  
-Haz0         1  -none-     function 
-recType      1  -none-     character
-temType      1  -none-     character
-alphaSE      2  -none-     numeric  
-alphaVar     4  -none-     numeric  
-varMat       9  -none-     numeric  
-betaSE       2  -none-     numeric  
-betaVar      4  -none-     numeric  
-method       1  -none-     character
-reTb     59490  -none-     numeric  
-DF           8  data.frame list     
-call         3  -none-     call     
-varNames     2  -none-     character
-se           1  -none-     character</code></pre>
-<p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/base/plot.html">plot()</a></code>:</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; plot(fit.cox)</pre></body></html></div>
+Recurrent event process:
+   Estimate   StdErr  z.value p.value
+x1 -0.88619  0.17444 -5.08027       0
+x2 -0.95260  0.17669 -5.39126       0
+
+Terminal event:
+   Estimate  StdErr z.value p.value
+x1  0.94109 0.26079 3.60861   3e-04
+x2  1.08248 0.31191 3.47042   5e-04</code></pre>
+<p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.cox)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/coxplot-1.png" width="700"></p>
 </div>
-<div id="joint-accelerated-mean-model-of-xu2017joint" class="section level3">
-<h3 class="hasAnchor">
+<div id="joint-accelerated-mean-model-of-xu2017joint" class="section level4">
+<h4 class="hasAnchor">
 <a href="#joint-accelerated-mean-model-of-xu2017joint" class="anchor"></a>Joint accelerated mean model of <span class="citation">Xu et al. (2017)</span>
-</h3>
-<p>A simulated model following the joint accelerated mean model of <span class="citation">Xu et al. (2017)</span> can be generated by</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; set.seed(1); datAM &lt;- simSC(500, c(1, -1), c(-1, 1), type = "am", summary = TRUE)</pre></body></html></div>
-<pre><code>
-Summary results for number of recurrent event per subject:
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   0.00    2.00    5.00    6.34    9.00   52.00 
+</h4>
+<p>A simulated data following the joint accelerated mean model can be generated by</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="op">&gt;</span><span class="st"> </span>par0 &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">alpha =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">beta =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">eta =</span> <span class="op">-</span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">theta =</span> <span class="op">-</span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="op">&gt;</span><span class="st"> </span>datam &lt;-<span class="st"> </span><span class="kw">simGSC</span>(<span class="dv">200</span>, <span class="dt">par =</span> par0, <span class="dt">summary =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<pre><code>Call: 
+simGSC(n = 200, summary = TRUE, para = par0)
 
-Number of failures: 115 (23%); Number of censored events: 385 (77%)
+Summary:
+Sample size:                                    200 
+Number of recurrent event observed:             1083 
+Average number of recurrent event per subject:  5.415 
+Proportion of subjects with a terminal event:   0.46 
+Median time-to-terminal event:                  41.157 </code></pre>
+<p>The underlying true model has the form: <span class="math display">\[\begin{cases}
+\lambda(t) = Z \lambda_0(te^{X_1 + X_2})e^{X_1 + X_2}, &amp;\\
+h(t) = Z h_0(te^{-X_1 - X_2})e^{-X_1 - X_2}, &amp; t\in[0, 60].
+\end{cases}\]</span> The model fit is</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="op">&gt;</span><span class="st"> </span>fit.am &lt;-<span class="st"> </span><span class="kw">reReg</span>(<span class="kw">Recur</span>(t.start <span class="op">%to%</span><span class="st"> </span>t.stop, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2,</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="op">+</span><span class="st">                 </span><span class="dt">B =</span> <span class="dv">200</span>, <span class="dt">data =</span> datam, <span class="dt">model =</span> <span class="st">"am|am"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">summary</span>(fit.am)</span></code></pre></div>
+<pre><code>Call: 
+reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
+    x1 + x2, data = datam, model = "am|am", B = 200)
 
-Number of x1 == 1: 236 (47.2%); Number of x1 == 0: 264 (52.8%)
-Summary results for x2:
-    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
--3.23639 -0.74943 -0.07149 -0.05930  0.67217  2.68406 </code></pre>
-<p>The underlying true model has the form: <span class="math display">\[\lambda(t) = Z \lambda_0(te^{X_1 - X_2})e^{X_1 - X_2};
-h(t) = Z h_0(te^{-X_1 + X_2})e^{-X_1 + X_2}.\]</span> The model fit is</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; fit.am &lt;- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datAM, method = "am")
-&gt; summary(fit.am)</pre></body></html></div>
-<pre><code>         Length Class      Mode     
-alpha        2  -none-     numeric  
-aconv        1  -none-     numeric  
-log.muZ      1  -none-     numeric  
-zi         500  -none-     numeric  
-Lam0         1  -none-     function 
-beta         2  -none-     numeric  
-bconv        1  -none-     numeric  
-Haz0         1  -none-     function 
-recType      1  -none-     character
-temType      1  -none-     character
-alphaSE      2  -none-     numeric  
-alphaVar     4  -none-     numeric  
-varMat       4  -none-     numeric  
-betaSE       2  -none-     numeric  
-betaVar      4  -none-     numeric  
-method       1  -none-     character
-reTb     22020  -none-     numeric  
-DF           8  data.frame list     
-call         4  -none-     call     
-varNames     2  -none-     character
-se           1  -none-     character</code></pre>
-<p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/base/plot.html">plot()</a></code>:</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; plot(fit.am)</pre></body></html></div>
+Recurrent event process:
+   Estimate  StdErr z.value p.value
+x1  1.05061 0.26918 3.90301   1e-04
+x2  1.16509 0.22209 5.24597   0e+00
+
+Terminal event:
+   Estimate   StdErr  z.value p.value
+x1 -0.84462  0.67918 -1.24359  0.2136
+x2 -1.13158  0.54122 -2.09079  0.0366</code></pre>
+<p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.am)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/amplot-1.png" width="700"></p>
 </div>
-<div id="xu2019generalized-sc-xcyh" class="section level3">
-<h3 class="hasAnchor">
-<a href="#xu2019generalized-sc-xcyh" class="anchor"></a><span class="citation">Xu et al. (2019)</span> <code>sc.XCYH</code>
-</h3>
-<p>A simulated model following the generalized scale-change model of <span class="citation">Xu et al. (2019)</span> can be generated by</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; set.seed(1); datSC &lt;- simSC(500, a1 = c(1, -1), a2 = c(-1, 1), b1 = c(1, -1), b2 = c(-1, 1), type = "sc", summary = TRUE)</pre></body></html></div>
-<pre><code>
-Summary results for number of recurrent event per subject:
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   0.00    0.00    2.00    4.27    5.00   55.00 
+<div id="joint-coxaccelerated-rate-model" class="section level4">
+<h4 class="hasAnchor">
+<a href="#joint-coxaccelerated-rate-model" class="anchor"></a>Joint Cox/accelerated rate model</h4>
+<p>A simulated model following a special case of the generalized scale-change model where the rate function has a Cox structure and the hazard function has an accelerated rate model structure can be generated by</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="op">&gt;</span><span class="st"> </span>par0 &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">eta =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">theta =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="op">&gt;</span><span class="st"> </span>datCoxAr &lt;-<span class="st"> </span><span class="kw">simGSC</span>(<span class="dv">200</span>, <span class="dt">par =</span> par0, <span class="dt">summary =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<pre><code>Call: 
+simGSC(n = 200, summary = TRUE, para = par0)
 
-Number of failures: 127 (25.4%); Number of censored events: 373 (74.6%)
+Summary:
+Sample size:                                    200 
+Number of recurrent event observed:             614 
+Average number of recurrent event per subject:  3.07 
+Proportion of subjects with a terminal event:   0.425 </code></pre>
+<p>The underlying true model has the form: <span class="math display">\[\begin{cases}
+\lambda(t) = Z \lambda_0(t)e^{-X_1 - X_2}.&amp;\\
+h(t) = Z h_0(te^{X_1 + X_2})&amp; t\in[0, 60].
+\end{cases}\]</span> The model fit is</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="op">&gt;</span><span class="st"> </span>fit.CoxAr &lt;-<span class="st"> </span><span class="kw">reReg</span>(<span class="kw">Recur</span>(t.start <span class="op">%to%</span><span class="st"> </span>t.stop, id, event, status) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2,</span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="op">+</span><span class="st">                    </span><span class="dt">B =</span> <span class="dv">200</span>, <span class="dt">data =</span> datCoxAr, <span class="dt">model =</span> <span class="st">"cox|ar"</span>)</span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">summary</span>(fit.CoxAr)</span></code></pre></div>
+<pre><code>Call: 
+reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
+    x1 + x2, data = datCoxAr, model = "cox|ar", B = 200)
 
-Number of x1 == 1: 236 (47.2%); Number of x1 == 0: 264 (52.8%)
-Summary results for x2:
-    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
--3.23639 -0.74943 -0.07149 -0.05930  0.67217  2.68406 </code></pre>
-<p>The underlying true model has the form: <span class="math display">\[\lambda(t) = Z \lambda_0(te^{X_1 - X_2})e^{-X_1 + X_2};
-h(t) = Z h_0(te^{X_1 - X_2})e^{-X_1 + X_2}.\]</span> The model fit is</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; fit.sc &lt;- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datSC, method = "sc")
-&gt; summary(fit.sc)</pre></body></html></div>
-<pre><code>         Length Class      Mode     
-alpha        4  -none-     numeric  
-aconv        2  -none-     numeric  
-log.muZ      1  -none-     numeric  
-zi         500  -none-     numeric  
-Lam0         1  -none-     function 
-beta         4  -none-     numeric  
-bconv        1  -none-     numeric  
-Haz0         1  -none-     function 
-recType      1  -none-     character
-temType      1  -none-     character
-alphaSE      4  -none-     numeric  
-alphaVar    16  -none-     numeric  
-varMat      25  -none-     numeric  
-betaSE       4  -none-     numeric  
-betaVar     16  -none-     numeric  
-method       1  -none-     character
-reTb     15810  -none-     numeric  
-DF           8  data.frame list     
-call         4  -none-     call     
-varNames     2  -none-     character
-se           1  -none-     character</code></pre>
-<p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/base/plot.html">plot()</a></code>:</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; plot(fit.sc)</pre></body></html></div>
-<p><img src="reReg-reg_files/figure-html/scplot-1.png" width="700"></p>
-</div>
-<div id="joint-coxaccelerated-rate-model" class="section level3">
-<h3 class="hasAnchor">
-<a href="#joint-coxaccelerated-rate-model" class="anchor"></a>Joint Cox/accelerated rate model</h3>
-<p>A simulated model following the generalized scale-change model of <span class="citation">Xu et al. (2019)</span> can be generated by</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; set.seed(1); datCoxar &lt;- simSC(500, c(1, -1), c(-1, 1), type = "cox|ar", summary = TRUE)</pre></body></html></div>
-<pre><code>
-Summary results for number of recurrent event per subject:
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   0.00    2.00    7.00   13.17   16.25  205.00 
+Recurrent event process:
+   Estimate   StdErr  z.value p.value
+x1 -1.06661  0.13949 -7.64665       0
+x2 -0.83873  0.16773 -5.00042       0
 
-Number of failures: 185 (37%); Number of censored events: 315 (63%)
-
-Number of x1 == 1: 236 (47.2%); Number of x1 == 0: 264 (52.8%)
-Summary results for x2:
-    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
--3.23639 -0.74943 -0.07149 -0.05930  0.67217  2.68406 </code></pre>
-<p>The underlying true model has the form: <span class="math display">\[\lambda(t) = Z \lambda_0(t)e^{X_1 - X_2};
-h(t) = Z h_0(te^{-X_1 + X_2}).\]</span> The model fit is</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; fit.coxar &lt;- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCoxar, method = "cox|ar")
-&gt; summary(fit.coxar)</pre></body></html></div>
-<pre><code>         Length Class      Mode     
-alpha        2  -none-     numeric  
-aconv        1  -none-     numeric  
-log.muZ      1  -none-     numeric  
-zi         500  -none-     numeric  
-Lam0         1  -none-     function 
-beta         2  -none-     numeric  
-bconv        1  -none-     numeric  
-Haz0         1  -none-     function 
-recType      1  -none-     character
-temType      1  -none-     character
-alphaSE      2  -none-     numeric  
-alphaVar     4  -none-     numeric  
-varMat       9  -none-     numeric  
-betaSE       2  -none-     numeric  
-betaVar      4  -none-     numeric  
-method       1  -none-     character
-reTb     42516  -none-     numeric  
-DF           8  data.frame list     
-call         4  -none-     call     
-varNames     2  -none-     character
-se           1  -none-     character</code></pre>
-<p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/base/plot.html">plot()</a></code>:</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; plot(fit.coxar)</pre></body></html></div>
+Terminal event:
+   Estimate  StdErr z.value p.value
+x1  1.29886 0.41290 3.14566  0.0017
+x2  1.26390 0.51867 2.43681  0.0148</code></pre>
+<p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.CoxAr)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/coxarplot-1.png" width="700"></p>
 </div>
-</div>
-<div id="bootstrap" class="section level2">
-<h2 class="hasAnchor">
-<a href="#bootstrap" class="anchor"></a>Bootstrap</h2>
-<p>Parallel computing is possible via specifying the control list.</p>
-<div class="sourceCode"><html><body><pre class="r">&gt; system.time(fitB1 &lt;- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox, 
-+                            method = "cox", se = "bootstrap"))</pre></body></html></div>
-<pre><code>   user  system elapsed 
-149.464   0.008 149.490 </code></pre>
-<div class="sourceCode"><html><body><pre class="r">&gt; summary(fitB1)</pre></body></html></div>
-<pre><code>         Length Class      Mode     
-alpha        2  -none-     numeric  
-aconv        1  -none-     numeric  
-log.muZ      1  -none-     numeric  
-zi         500  -none-     numeric  
-Lam0         1  -none-     function 
-beta         2  -none-     numeric  
-bconv        1  -none-     numeric  
-Haz0         1  -none-     function 
-recType      1  -none-     character
-temType      1  -none-     character
-alphaSE      2  -none-     numeric  
-betaSE       2  -none-     numeric  
-alphaVar     4  -none-     numeric  
-betaVar      4  -none-     numeric  
-SEmat      800  -none-     numeric  
-B            1  -none-     numeric  
-method       1  -none-     character
-reTb     59490  -none-     numeric  
-DF           8  data.frame list     
-call         5  -none-     call     
-varNames     2  -none-     character
-se           1  -none-     character</code></pre>
-<div class="sourceCode"><html><body><pre class="r">&gt; system.time(fitB2 &lt;- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox, 
-+                            method = "cox", se = "bootstrap", 
-+                            control = list(parallel = TRUE, parCl = 8)))</pre></body></html></div>
-<pre><code>   user  system elapsed 
-  0.812   0.008  12.329 </code></pre>
-<div class="sourceCode"><html><body><pre class="r">&gt; summary(fitB2)</pre></body></html></div>
-<pre><code>         Length Class      Mode     
-alpha        2  -none-     numeric  
-aconv        1  -none-     numeric  
-log.muZ      1  -none-     numeric  
-zi         500  -none-     numeric  
-Lam0         1  -none-     function 
-beta         2  -none-     numeric  
-bconv        1  -none-     numeric  
-Haz0         1  -none-     function 
-recType      1  -none-     character
-temType      1  -none-     character
-alphaSE      2  -none-     numeric  
-betaSE       2  -none-     numeric  
-alphaVar     4  -none-     numeric  
-betaVar      4  -none-     numeric  
-SEmat      800  -none-     numeric  
-B            1  -none-     numeric  
-method       1  -none-     character
-reTb     59490  -none-     numeric  
-DF           8  data.frame list     
-call         6  -none-     call     
-varNames     2  -none-     character
-se           1  -none-     character</code></pre>
 </div>
 <div id="other-popular-methods" class="section level2">
 <h2 class="hasAnchor">
 <a href="#other-popular-methods" class="anchor"></a>Other popular methods</h2>
-<p>Some methods that assumes  and requires independent censorings are also implemented in . These includes the methods proposed by <span class="citation">D. Lin et al. (2000)</span>, <span class="citation">Ghosh and Lin (2002)</span>, and <span class="citation">Ghosh and Lin (2003)</span>, that can be called by specifying <code>method = "cox.LWYY"</code>, <code>method = "cox.GL"</code>, and <code>method = "am.GL"</code>, respectively.</p>
+<p>Some methods that assumes <code>Z = 1</code> and requires independent censorings are also implemented in <code>reReg</code>. These includes the methods proposed by <span class="citation">Lin et al. (2000)</span>, <span class="citation">Ghosh and Lin (2002)</span>, and <span class="citation">Ghosh and Lin (2003)</span>, that can be called by specifying <code>method = "cox.LWYY"</code>, <code>method = "cox.GL"</code>, and <code>method = "am.GL"</code>, respectively.</p>
+<p>It is also worth noting that methods in multi-state models could also be applied to analyze recurrent events data. See the vignette on <a href="https://cran.r-project.org/web/packages/survival/vignettes/compete.pdf">Multi-state models and competing risks</a> for more details.</p>
 </div>
 <div id="reference" class="section level2 unnumbered">
 <h2 class="hasAnchor">
 <a href="#reference" class="anchor"></a>Reference</h2>
-<div id="refs" class="references">
-<div id="ref-ghosh2003">
-<p>Ghosh, Debashis, and D Y Lin. 2003. “Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.” <em>Biometrics</em> 59 (4): 877–85.</p>
-</div>
+<div id="refs" class="references hanging-indent">
 <div id="ref-ghosh2002">
-<p>Ghosh, Debashis, and DY Lin. 2002. “Marginal Regression Models for Recurrent and Terminal Events.” <em>Statistica Sinica</em> 12 (3): 663–88.</p>
+<p>Ghosh, Debashis, and D. Y. Lin. 2002. “Marginal Regression Models for Recurrent and Terminal Events.” <em>Statistica Sinica</em> 12 (3): 663–88.</p>
+</div>
+<div id="ref-ghosh2003">
+<p>———. 2003. “Semiparametric Analysis of Recurrent Events Data in the Presence of Dependent Censoring.” <em>Biometrics</em> 59 (4): 877–85.</p>
 </div>
 <div id="ref-Huang2004">
 <p>Huang, Chiung-Yu, and Mei-Cheng Wang. 2004. “Joint Modeling and Estimation for Recurrent Event Processes and Failure Time Data.” <em>Journal of the American Statistical Association</em> 99 (468): 1153–65.</p>
 </div>
 <div id="ref-lin2000semiparametric">
-<p>Lin, DY, LJ Wei, I Yang, and Z Ying. 2000. “Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.” <em>Journal of the Royal Statistical Society: Series B</em> 62 (4). Wiley Online Library: 711–30.</p>
+<p>Lin, D. Y., L. J. Wei, I. Yang, and Z. Ying. 2000. “Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.” <em>Journal of the Royal Statistical Society: Series B</em> 62 (4): 711–30.</p>
+</div>
+<div id="ref-Vara:Gilb:BB:2009">
+<p>Varadhan, Ravi, and Paul Gilbert. 2009. “BB: An R Package for Solving a Large System of Nonlinear Equations and for Optimizing a High-Dimensional Nonlinear Objective Function.” <em>Journal of Statistical Software</em> 32 (4): 1–26. <a href="http://www.jstatsoft.org/v32/i04/">http://www.jstatsoft.org/v32/i04/</a>.</p>
 </div>
 <div id="ref-Wang2001">
 <p>Wang, Mei-Cheng, Jing Qin, and Chin-Tsang Chiang. 2001. “Analyzing Recurrent Event Data with Informative Censoring.” <em>Journal of the American Statistical Association</em> 96 (455): 1057–65.</p>
 </div>
 <div id="ref-xu2017joint">
-<p>Xu, Gongjun, Sy Han Chiou, Chiung-Yu Huang, Mei-Cheng Wang, and Jun Yan. 2017. “Joint Scale-Change Models for Recurrent Events and Failure Time.” <em>Journal of the American Statistical Association</em> 112 (518). Taylor &amp; Francis: 794–805.</p>
+<p>Xu, Gongjun, Sy Han Chiou, Chiung-Yu Huang, Mei-Cheng Wang, and Jun Yan. 2017. “Joint Scale-Change Models for Recurrent Events and Failure Time.” <em>Journal of the American Statistical Association</em> 112 (518): 794–805.</p>
 </div>
 <div id="ref-xu2019generalized">
-<p>Xu, Gongjun, Sy Han Chiou, Jun Yan, Kieren Marr, and Chiung-Yu Huang. 2019. “Generalized Scale-Change Models for Recurrent Event Processes Under Informative Censoring.” <em>Statistica Sinica</em>. doi:<a href="https://doi.org/http://doi:10.5705/ss.202018.0224">http://doi:10.5705/ss.202018.0224</a>.</p>
-</div>
-<div id="ref-zeng2008">
-<p>Zeng, Donglin, and D Y Lin. 2008. “Efficient Resampling Methods for Nonsmooth Estimating Functions.” <em>Biostatistics</em> 9 (2): 355–63.</p>
+<p>Xu, Gongjun, Sy Han Chiou, Jun Yan, Kieren Marr, and Chiung-Yu Huang. 2020. “Generalized Scale-Change Models for Recurrent Event Processes Under Informative Censoring.” <em>Statistica Sinica</em> 30: 1773–95.</p>
 </div>
 </div>
 </div>
@@ -462,7 +351,7 @@ se           1  -none-     character</code></pre>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

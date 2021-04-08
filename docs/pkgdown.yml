@@ -1,9 +1,10 @@
-pandoc: 1.16.0.2
-pkgdown: 1.5.1
+pandoc: 2.9.2.1
+pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
-  reReg-plots: reReg-plots.html
+  reReg-Recur: reReg-Recur.html
+  reReg-plot: reReg-plot.html
   reReg-reg: reReg-reg.html
   reReg-sims: reReg-sims.html
-last_built: 2020-08-17T05:35Z
+last_built: 2021-04-08T05:43Z
 

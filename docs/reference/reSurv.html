@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Create an <code>reSurv</code> Object — reSurv • reReg</title>
+<title>Create an reSurv Object — reSurv • reReg</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,7 @@
 
 
 
-<meta property="og:title" content="Create an <code>reSurv</code> Object — reSurv" />
+<meta property="og:title" content="Create an reSurv Object — reSurv" />
 <meta property="og:description" content="Create a recurrent event survival object, used as a response variable in reReg.
 This function is deprecated in Version 1.1.6.
 A recurrent event object is now being created with Recur().
@@ -75,7 +75,7 @@ See '?Recur()' for details." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.0</span>
       </span>
     </div>
 
@@ -83,7 +83,7 @@ See '?Recur()' for details." />
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -98,7 +98,10 @@ See '?Recur()' for details." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/reReg-plots.html">Visualization of recurrent event data</a>
+      <a href="../articles/reReg-Recur.html">Creating `Recur` objects</a>
+    </li>
+    <li>
+      <a href="../articles/reReg-plot.html">Visualization of recurrent event data</a>
     </li>
     <li>
       <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
@@ -115,7 +118,7 @@ See '?Recur()' for details." />
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="http://github.com/stc04003/reReg/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -144,7 +147,7 @@ A recurrent event object is now being created with <code><a href='Recur.html'>Re
 See '?Recur()' for details.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>reSurv</span>(<span class='no'>time1</span>, <span class='no'>time2</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>, <span class='kw'>origin</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
+    <pre class="usage"><span class='fu'>reSurv</span><span class='op'>(</span><span class='va'>time1</span>, <span class='va'>time2</span>, <span class='va'>id</span>, <span class='va'>event</span>, <span class='va'>status</span>, origin <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -182,13 +185,15 @@ This argument is only needed when "<code>time2</code>" is missing.</p></td>
 
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
-  <span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='no'>simDat</span>)
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+  <span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='va'>simDat</span><span class='op'>)</span>
   <span class='co'>## being deprecated in Verson 1.1.7</span>
-  <span class='fu'><a href='https://rdrr.io/r/base/with.html'>with</a></span>(<span class='no'>dat</span>, <span class='fu'>reSurv</span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>))
+  <span class='fu'><a href='https://rdrr.io/r/base/with.html'>with</a></span><span class='op'>(</span><span class='va'>dat</span>, <span class='fu'>reSurv</span><span class='op'>(</span><span class='va'>Time</span>, <span class='va'>id</span>, <span class='va'>event</span>, <span class='va'>status</span><span class='op'>)</span><span class='op'>)</span>
   <span class='co'>## Use Recur() instead</span>
-  <span class='fu'><a href='https://rdrr.io/r/base/with.html'>with</a></span>(<span class='no'>dat</span>, <span class='fu'><a href='Recur.html'>Recur</a></span>(<span class='no'>Time</span>, <span class='no'>id</span>, <span class='no'>event</span>, <span class='no'>status</span>))
-}</div></pre>
+  <span class='fu'><a href='https://rdrr.io/r/base/with.html'>with</a></span><span class='op'>(</span><span class='va'>dat</span>, <span class='fu'><a href='Recur.html'>Recur</a></span><span class='op'>(</span><span class='va'>Time</span>, <span class='va'>id</span>, <span class='va'>event</span>, <span class='va'>status</span><span class='op'>)</span><span class='op'>)</span>
+<span class='op'>}</span>
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -204,7 +209,7 @@ This argument is only needed when "<code>time2</code>" is missing.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
