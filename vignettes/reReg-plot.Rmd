@@ -63,8 +63,8 @@ readmission <- subset(readmission, !(id %in% c(60, 109, 280)))
 
 An easy way to glance at recurrent event data is by plotting the event plots.
 Event plots can be created by applying the generic function
-'plot()' to 'Recur` objects directly, as shown in Figure 1.
-```{r plot-Recur, fig.cap="Figure 1: Creating an event plot from a `Recur` object."}
+`plot()` to `Recur` objects directly, as shown in Figure 1.
+```{r plot-Recur, fig.cap="Figure 1: Creating an event plot from a `Recur` object.", fig.width = 6, fig.height = 3.5}
 reObj <- with(readmission, Recur(t.stop, id, event, death))
 plot(reObj)
 ```
@@ -73,18 +73,18 @@ the green dots marks the recurrent events, and
 the red triangles marks terminal events.
 With the default setting, the event plot is arranged so that subjects with longer follow-up times
 are presented on the top.
-The 'plot()' method returns a 'ggplot2' object [@R:ggplot] to allow extensive flexibility and customization.
+The `plot()` method returns a `ggplot2` object [@R:ggplot] to allow extensive flexibility and customization.
 Common graphical options like `xlab`, `ylab`, `main`, and more can be directly passed down to `plot()`. 
-```{r plot-Recur2, fig.cap="Figure 2: Creating an event plot from a `Recur` object with custom labels."}
+```{r plot-Recur2, fig.cap="Figure 2: Creating an event plot from a `Recur` object with custom labels.", fig.width = 6, fig.height = 3.5}
 plot(reObj, cex = 1.5, xlab = "Time in days", ylab = "Patients", 
      main = "Event plot for readmission data", 
      terminal.name = "Death", 
      recurrent.name = "Hospital readmission")
 ```
 
-Applying the 'plot()' function to 'Recur' objects internally calls the 'plotEvent()' function, 
+Applying the `plot()` function to `Recur` objects internally calls the `plotEvent()` function, 
 which allows users to configure event plots in a model formula.
-The synopsis of 'plotEvents()} is:
+The synopsis of `plotEvents()` is:
 ```{R}
 args(plotEvents)
 ```
@@ -124,12 +124,13 @@ The `base_size` parameter controls the base font size in pts.
 Stratifying the event plot could provide new insights
 into the different covariate effects.
 For example, an event plot stratified by the binary variable `sex` can be produced with the following code.
-```{r plotEvents-gender, fig.cap="Figure 3: Event plot grouped by `sex`"}
+```{r plotEvents-gender, fig.cap="Figure 3: Event plot grouped by `sex`", fig.width = 6, fig.height = 3.5}
 plotEvents(Recur(t.stop, id, event, death) ~ sex, data = readmission)
 ```
 Similarly, event plot stratified by `sex` and `chemo` can be produced with the following code.
-```{r plotEvents-gender-chemo, fig.cap="Figure 4: Event plot grouped by `sex` and `chemo`."}
-plotEvents(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission)
+The additional argument `base_size = 5` is included to display the full legend labels. 
+```{r plotEvents-gender-chemo, fig.cap="Figure 4: Event plot grouped by `sex` and `chemo`.", fig.width = 6, fig.height = 3.5}
+plotEvents(Recur(t.stop, id, event, death) ~ sex + chemo, data = readmission, base_size = 5)
 ```
 
 The `plotEvents()` can accommodate multiple recurrent types specified
@@ -137,7 +138,7 @@ via the event argument in the `Recur` object.
 To illustrate this feature, we perturb the event indicator so that the value of event 
 indicates the index of the different recurrent event. 
 The following command is used to create the stratified event plot with different recurrent event.
-```{r plotEvents-multiple-events, fig.cap="Figure 5: Event plot with multiple events grouped by `sex`."}
+```{r plotEvents-multiple-events, fig.cap="Figure 5: Event plot with multiple events grouped by `sex`.", fig.width = 6, fig.height = 3.5}
 readmission$event2 <- with(readmission, ifelse(t.stop > 500 & event > 0, 2, event))
 plotEvents(Recur(t.stop, id, event2, death) ~ sex, data = readmission)
 ```
@@ -145,8 +146,8 @@ The different types of recurrent events are marked in different colors in Figure
 The `plotEvents()` function can also create event plots in calendar time by setting `calendarTime = TRUE`. 
 For illustration, we create a new simulated data based on `readmission` with time intervals shift
 proportionally by `chemo`. We further convert the time intervals to a `Date` class. 
-The construction of the new data and the stratified event plot in Figure 2d is included in the following
-```{r plotEvents-calendar, fig.cap="Figure 6: Event plot on calendar time."}
+The construction of the new data and the stratified event plot in Figure 6 is included in the following
+```{r plotEvents-calendar, fig.cap="Figure 6: Event plot on calendar time.", fig.width = 6, fig.height = 3.5}
 readmission2 <- readmission
 readmission2$t.start <- as.Date(readmission2$t.start + as.numeric(readmission2$chemo) * 5, 
   origin = "20-01-01")
@@ -194,29 +195,29 @@ introduced in Chapter 1 of @cook2007statistical.
 The MCF is useful in describing and comparing the average number of events of an individual and between groups.
 Thus, it provides additional insights into the longitudinal patterns of the recurrent process.
 Under the independent censoring assumption,
-the Nelson-Aalen estimate can be created by applying the generic function 'plot()' to the 'Recur' object with an additional
-argument 'mcf = TRUE'.
+the Nelson-Aalen estimate can be created by applying the generic function `plot()` to the `Recur` 
+object with an additional argument `mcf = TRUE`.
 The following command plots the Nelson-Aalen estimate in Figure 7.
 The 95\% confidence interval is enabled by additionally setting
-'mcf.conf.int = TRUE'.
-```{r plotMCF, fig.cap="Figure 7: Creating a MCF plot from a `Recur` object."}
+`mcf.conf.int = TRUE`.
+```{r plotMCF, fig.cap="Figure 7: Creating a MCF plot from a `Recur` object.", fig.width = 6, fig.height = 3.5}
 plot(reObj, mcf = TRUE, mcf.conf.int = TRUE)
 ```
 To create the cumulative sample mean function, one needs to additionally specify
-the argument 'mcf.adjustRiskset = FALSE'.
-Plotting the 'Recur' object with the argument 'mcf = TRUE` internally
-calls the 'mcf()' function from the  `reda` package @[R:reda].
-The 'mcf()' function is imported when the `reReg` package is loaded.
-The usage of the '{mcf()} function is similar to that of the 'plotEvent()',
-where the recurrent event process is specified in a model formula with 'Recur'
+the argument `mcf.adjustRiskset = FALSE`.
+Plotting the `Recur` object with the argument `mcf = TRUE` internally
+calls the `mcf()` function from the  `reda` package [@R:reda].
+The `mcf()` function is imported when the `reReg` package is loaded.
+The usage of the `mcf()` function is similar to that of the `plotEvent()`,
+where the recurrent event process is specified in a model formula with `Recur`
 objects as the formula response and the covariates specified in the model formula
 should be a combination of factor variables.
-The 'mcf()' computes the overall sample MCF when an intercept-only-model is specified.
+The `mcf()` computes the overall sample MCF when an intercept-only-model is specified.
 When covariates are specified in the model formula,
 the sample MCF for each level of the combination of the factor variables will be computed.
 The following code is used to produce Figure 8,
-which displays the Nelson-Aalon estimates for 'sex = "Female"'and 'sex = "Male"'.
-```{r plotMCF-mcf, fig.cap="Figure 8: Creating a MCF plot with `mcf()`"}
+which displays the Nelson-Aalon estimates for `sex = "Female"`and `sex = "Male"`.
+```{r plotMCF-mcf, fig.cap="Figure 8: Creating a MCF plot with `mcf()`", fig.width = 6, fig.height = 3.5}
 mcf0 <- mcf(Recur(t.start %2% t.stop, id, event, death) ~ sex, data = readmission)
 plot(mcf0, conf.int = TRUE)
 ```
@@ -225,7 +226,7 @@ can be plotted by first fitting an intercept-only model with `reReg()`,
 then applying the generic function `plot()`.
 The `Recur` object is used as the formula response.
 The following code illustrate this feature with output displayed in Figure 9.
-```{r plotMCF-reReg, fig.cap="Figure 8: Creating a MCF plot with `reReg()`"}
+```{r plotMCF-reReg, fig.cap="Figure 8: Creating a MCF plot with `reReg()`", fig.width = 6, fig.height = 3.5}
 mcf1 <- reReg(Recur(t.start %2% t.stop, id, event, death) ~ 1, data = readmission)
 plot(mcf1)
 ```
@@ -241,7 +242,7 @@ args(basebind)
 ```
 The arguments are 
 
-  - `...` is a list of \code{ggplot} objects created by plotting 'reReg' objects.
+  - `...` is a list of `ggplot` objects created by plotting `reReg` objects.
   - `legend.title` is an optional character strings to control the legend title in the combined plot.
   - `legend.labels` is an optional character strings to control the legend labels in the combined plot.
   
@@ -249,9 +250,9 @@ When fitting regression models with `reReg()`,
 the `baseline()` function can be applied to combine the estimates of baseline functions
 across groups.
 The following code is used to create Figure~ 9.
-where the NPMLEs for 'sex = "Female"'and 'sex = "Male"' are presented.
+where the NPMLEs for `sex = "Female"` and `sex = "Male"` are presented.
 The corresponding 95\% confidence intervals are computed with 200 bootstrap replicates.
-```{r plotMCF-reReg2, fig.cap="Figure 9: Creating a stratified MCF plot with reReg()"}
+```{r plotMCF-reReg2, fig.cap="Figure 9: Creating a stratified MCF plot with `reReg()`", fig.width = 6, fig.height = 3.5}
 mcf2 <- reReg(Recur(t.start %2% t.stop, id, event, death) ~ 1, subset = sex == "Female", data = readmission, B = 200)
 mcf3 <- update(mcf2, subset = sex == "Male")
 g1 <- plot(mcf2)

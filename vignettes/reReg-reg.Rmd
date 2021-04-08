@@ -24,16 +24,48 @@ MathJax.Hub.Config({
 knitr::opts_chunk$set(prompt = TRUE, comment = "")
 ```	
 
-In this vignette, we demonstrate how to use the `reReg()` function in __`reReg`__ package
+The regression model implemented in the __`reReg`__ package accommodate informative censoring 
+via the use of a subject-specific frailty variable.
+In contrast to existing frailty models, the implemented estimation procedure does not require dis-
+tributional information on the frailty variable. Using the borrowing-strength approach in the
+estimating procedure, our model allows users to specify any combination of the sub-models
+between the recurrent event process and the terminal events when they are fitted jointly.
+
+In this vignette, we demonstrate how to use the `reReg()` function in the __`reReg`__ package
 to fit semiparametric regression models to recurrent event data.
 
+## Notations
+Let $N(t)$ be the number of recurrent events occurring over the interval $[0, t]$ and
+$D$ be the failure time of interest subjects to right censoring by $C$.
+Define the composite censoring time $Y = \min(D, C, \tau)$ and
+the failure event indicator $\Delta = I\{D\le \min(C, \tau)\}$, where
+$\tau$ is the maximum follow-up time.
+We assume the recurrent event process $N(\cdot)$ is observed up to $Y$.
+Let $X$ be a $p$-dimensional covariate vector.
+Consider a random sample of $n$ subjects,
+the observed data are independent and identically distributed (iid) copies of
+$\{Y_i, \Delta_i, X_i, N_i(t), 0\le t\le Y_i\}$,
+where the subscript $i$ denotes the index of a subject for $i= 1, \ldots, n$.
+Let $m_i = N_i(Y_i)$ be the number of recurrent events the $i$th subject experienced
+before time $Y_i$, then the jump times of $N_i(t)$ give the observed recurrent
+event times
+$t_{i1}, \ldots, t_{im_i}$ when $m_i > 0$.
+Thus, the observed data can also be expressed as iid copies
+of $\{Y_i, \Delta_i, X_i, m_i, (t_{i1}, \ldots, t_{m_i})\}$.
+The primary interests in recurrent event data analysis is in
+making inference about the recurrent event process and the failure event
+and understanding the corresponding covariate effects.
+
+
 ## Model assumption
-A general joint model for the rate function of the recurrent event process and
-the hazard function of the failure time can be formulated as follow: 
+We assume a generalized joint frailty scale-change model for the rate function of the recurrent event process and
+the hazard function of the failure time formulated as follow: 
 \begin{equation}
-\lambda(t) = Z \lambda_0(te^{X^\top\alpha})e^{X^\top\beta};
-h(t) = Z h_0(te^{X^\top\eta})e^{X^\top\theta},
-\label{eq:joint}
+  \begin{cases}
+      \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&\\
+      h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &t\in[0, \tau],
+    \end{cases}
+\label{eqn:sc|sc}
 \end{equation}
 where $Z$ is a latent shared frailty variable to account for association between the two types of
 outcomes, $\lambda_0(\cdot)$ is the baseline rate function,
@@ -50,9 +82,9 @@ and the proposed implementations accommodate informative censoring.
 The `reReg()` function fits the recurrent event data under the above joint model setting. 
 The arguments of `reReg()` are as follows
 
-## Arguments of `reReg()`
 ```{r reReg-args}
-library(reReg); args(reReg)
+library(reReg)
+args(reReg)
 ```
 
 * `formula` a formula object, with the response on the left of a "~" operator, and the predictors on the right. 
@@ -60,73 +92,111 @@ The response must be a recurrent event survival object as returned by function `
 See the vignette on [Visualization of recurrent event data](https://www.sychiou.com/reReg/articles/reReg-plots.html) or 
 [Introduction to formula response function `Recur()`](https://wenjie-stat.me/reda/articles/reda-recur) for examples in creating `Recur` objects.
 * `data` an optional data frame in which to interpret the variables occurring in the `formula`.
-* `B` a numeric value specifies the number of resampling (or bootstrap) for variance estimation. 
+* `B` a numeric value specifies the number of bootstrap (or resampling) for variance estimation. 
 When `B = 0`, variance estimation will not be performed.
-* `method` a character string specifying the underlying model.
+* `model` a character string specifying the underlying model.
 * `se` a character string specifying the method for standard error estimation. 
 * `control` a list of control parameters.
 
-### Choosing model type with `method`
-Model \\eqref{eq:joint} includes several popular semiparametric models as special cases,
-which can be specified via the `method` argument with the 
-rate function and hazard function separated by "`|`".
-For examples, the joint Cox model of @Huang2004 is a special case of
-\\eqref{eq:joint} when $\alpha = \eta = 0$ and can be called by `method = "cox|cox"`;
-the joint accelerated mean model of @xu2017joint is a special case when
-$\alpha = \beta$ and $\eta = \theta$ and can be called by `method = "am|am"`.
-<!--Another option is `ar` for the accerlated rate model ($\beta = \theta = 0$).-->
-<!--When the primary interest is in the covariate effects on the risk of recurrent events and -->
-Treating the terminal event as nuisances ($\eta = \theta = 0$),
-\\eqref{eq:joint} reduces to the generalized scale-change model of
-@xu2019generalized, called by `method = "sc|."`.
-Moreover, users can mix the models depending on the application.
-For example, `method = "cox|ar"` postulate a Cox proportional model for the recurrent event rate
-function and an accelerated rate model for the terminal event hazard function
-($\alpha = \theta = 0$ in \\eqref{eq:joint}). 
+#### Specifying model via the `model` argument
+When the interest is the covariate effects on the risk of recurrent events
+and the terminal event is treated as nuisances,
+`model = "cox"` and `model = "gsc"` give the Cox-type model
+and the generalized scale-change rate model considered in
+@Wang2001 and @xu2019generalized, respectively.
+When the recurrent event process and the terminal events are modeled jointly,
+the types of rate function and hazard function can be specified simultaneously
+in `model` separated by ```|`''.
+The model types for the hazard function are `cox`, `ar`, `am`, and `gsc`.
+For examples, the joint frailty Cox-type model of @Huang2004 and the
+joint frailty accelerated mean model of @xu2017joint can be called by
+`model = "cox|cox"` and `model = "am|am"`, respectively.
+Depending on the application, users can specify different model types for the
+rate function and the hazard function.
+For example, `model = "cox|ar"` postulate a Cox-type proportional model for the
+recurrent event rate function and an accelerated rate model for the terminal
+event hazard function, or $\alpha = \theta = 0$ in \\eqref{eqn:sc|sc}.
 
-### Choosing the variance estimation approach with `se`
-For inference, the `reReg()` function provides several approaches for variance estimation.
-The default option is `se = "resampling"`, which refers to the efficient resampling-based 
-sandwich estimator.
-The general idea is to decompose the limiting covariance matrix in a sandwich form, 
-and its components are estimated via perturbed estimating equations.
-Details of the resampling approach can be found in @zeng2008, @xu2017joint, and @xu2019generalized.
-The resampling approach is faster than the conventional bootstrap, 
-which can be called with `se = "bootstrap"`, 
-as it only requires evaluating perturbed estimating equations rather than solving them.
-When `se = "bootstrap"`, user has an option to carry out the bootstrap with parallel computing.
-This can be done by specifying `parallel = TRUE` in the `control` list. 
-When `parallel = TRUE`, the number of CPU cores can be specified with `parCl`.
+#### Variance estimation
+The nonparametric bootstrap method for clustered data is adopted to estimate the
+standard errors of the estimators.
+The bootstrap samples are formed by resampling the subjects with replacement
+of the same size from the original data.
+The above estimating procedures are then applied to each bootstrap sample to
+provide one draw of the bootstrap estimate.
+With a large number of replicates, the asymptotic variance matrices are
+estimated by the sample variance of the bootstrap estimates.
+In an attempt to overcome the computational burden in bootstrap variance estimation,
+parallel computing techniques based on methods in the `parallel` package will be
+applied when `boot.parallel = TRUE}`.
+The number of CPU cores used in the parallel computing is controlled by the argument
+`boot.parCl}`, whose default value is half of the total number of CPU cores available
+on the current host identified by `parallel::detectCores() \%/\% 2}`.
+When fitting the generalized scale-change rate model of @xu2019generalized, 
+e.g., with `model = "sc"`, 
+an efficient resampling-based sandwich estimator is also available via
+`se = "sand"`. 
+The number of bootstrap or resampling is controlled by the argument `B`.
+When `B = 0` (default), the variance estimation procedure will not be performed
+and only the point estimates will be returned, which can be useful when
+the variance estimation is time consuming.
+Future work will be devoted to generalize the efficient resampling-based sandwich estimator to all the sub-models.
 
-### Control list
 
+#### The `control` list
 The complete `control` list consists of the following parameters:
-  *`tol` specifies the absolute error tolerance in solving the estimating equations
-  * `a0, b0` specifies the initial guesses used for root search
-  * `solver` specifies the equation solver used for root search; 
-  the available options are `BBsolve`, `dfsane`, `BBoptim`, and `optim` (the first three options loads the corresponding equation solver from package `BB`).
-  * `baseSE` is an logical value indicating whether the confidence bounds for the baseline functions will be computed.
-  * `parallel` is an logical value indicating whether parallel computation will be applied when `se = "bootstrap"` is called.
-  * `parCl` is an integer value specifying the number of CPU cores to be used when `parallel = TRUE`.
+  
+  * `eqType` is a character string used to specify whether the log-rank-type (`"logrank"`) 
+  or the Gehan-type (`"gehan"`) estimating equation is used in the estimating procedure.
+  * `solver`  is a character string used to specify the equation solver used for root search; 
+  the available options are `BBsolve`, `dfsane`, `BBoptim`, and `optim` 
+  (the first three options loads the corresponding equation solver from package `BB` [@Vara:Gilb:BB:2009]).
+  * `tol` is a numerical value used to specify the absolute error tolerance in solving the estimating equations. The default value is $10^{-7}$.
+  * `ini` is a list of initial values used in the root-finding algorithms.
+The list members `alpha`, `beta`, `eta`, and `theta` correspond to the parameters 
+$\alpha$, $\beta$, $\eta$, and $\theta$ in
+Model~\eqref{eqn:sc|sc}, respectively. The default values for these initial values are zeros.
+  * `boot.parallel` is an logical value indicating whether parallel computation will be applied when `se = "boot"` is called.
+  * `boot.parCl` is an integer value specifying the number of CPU cores to be used when `parallel = TRUE`.
   The default value is half the CPU cores on the current host.
 
 
-## Examples
-We will illustrate the usage of `reReg` with simulated data generated from `simSC`. 
-Readers are referred to the vignette on [Simulating recurrent event data](https://www.sychiou.com/reReg/articles/reReg-sims.html)
-for using `simSC` to generate recurrent event data.
+The default equation solver (`"BB::dfsane"`) uses
+the derivative-free Barzila--Borwein spectral approach for solving nonlinear equations
+implemented in `dfsane()` from the package `BB` [@Vara:Gilb:BB:2009].
+Setting `solver = "BB::BBsolve"` calls the wrapper function
+`BBsolve()` in the `BB` package to locate a root with different
+Barzilai-Borwein steplengths, non-monotonicity parameters, and initialization approaches.
+Based on our observation, the `"BB::BBsolve"` algorithm generally exhibited
+more reliable convergence but the `solver = "BB::dfsane"` algorithm provides a
+better balance between convergence and speed.
+The alternative options, `solver = "BB::BBoptim"` and `solver = "optim"`, 
+attempts to identify roots by minimizing the $\ell_2$-norm of the estimating functions.
+The options `solver = "BB::BBoptim"` and `solver = "optim"` call the `BBoptim()` function from the package `BB`
+and the base function `optim()`, respectively.
 
-### Joint Cox model of @Huang2004
-A simulated model following the joint Cox model of @Huang2004 can be generated by
+
+
+## Examples
+We will illustrate the usage of `reReg` with simulated data generated from the `simGSC()` function. 
+Readers are referred to the vignette on [Simulating recurrent event data](https://www.sychiou.com/reReg/articles/reReg-sims.html)
+for using `simGSC()` to generate recurrent event data.
+
+#### Joint Cox model of @Huang2004
+A simulated data following the joint Cox model can be generated by
 ```{R, cox, cache = TRUE}
-set.seed(1); datCox <- simSC(500, c(1, -1), c(-1, 1), summary = TRUE)
+set.seed(1); datCox <- simGSC(200, summary = TRUE)
 ```
-The underlying true model has the form:
-$$\lambda(t) = Z \lambda_0(t)e^{X_1 - X_2};
-h(t) = Z h_0(t)e^{-X_1 + X_2}.$$
+Since the default parameters in `simGSC()` are $\alpha = (0, 0)^\top$, $\beta = (-1, -1)^\top$, $\eta = (0, 0)^\top$, 
+and $\theta = (-1, -1)^\top$, the underlying true model has the form:
+$$\begin{cases}
+\lambda(t) = Z \lambda_0(t)e^{-X_1 - X_2}, &\\
+h(t) = Z h_0(t)e^{-X_1 - X_2}, & t\in[0, 60].
+\end{cases}$$
 The model fit is
 ```{R, coxfit, cache = TRUE}
-fit.cox <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox)
+fit.cox <- reReg(Recur(t.start %to% t.stop, id, event, status) ~ x1 + x2, 
+                 B = 200, data = datCox, model = "cox|cox")
 summary(fit.cox)
 ```
 The baseline functions can be plotted via `plot()`: 
@@ -134,17 +204,22 @@ The baseline functions can be plotted via `plot()`:
 plot(fit.cox)
 ```
 
-### Joint accelerated mean model of @xu2017joint
-A simulated model following the joint accelerated mean model of @xu2017joint can be generated by
+#### Joint accelerated mean model of @xu2017joint
+A simulated data following the joint accelerated mean model can be generated by
 ```{R, am, cache = TRUE}
-set.seed(1); datAM <- simSC(500, c(1, -1), c(-1, 1), type = "am", summary = TRUE)
+set.seed(1)
+par0 <- list(alpha = c(1, 1), beta = c(1, 1), eta = -c(1, 1), theta = -c(1, 1))
+datam <- simGSC(200, par = par0, summary = TRUE)
 ```
 The underlying true model has the form:
-$$\lambda(t) = Z \lambda_0(te^{X_1 - X_2})e^{X_1 - X_2};
-h(t) = Z h_0(te^{-X_1 + X_2})e^{-X_1 + X_2}.$$
+$$\begin{cases}
+\lambda(t) = Z \lambda_0(te^{X_1 + X_2})e^{X_1 + X_2}, &\\
+h(t) = Z h_0(te^{-X_1 - X_2})e^{-X_1 - X_2}, & t\in[0, 60].
+\end{cases}$$
 The model fit is
 ```{R, amfit, cache = TRUE}
-fit.am <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datAM, method = "am")
+fit.am <- reReg(Recur(t.start %to% t.stop, id, event, status) ~ x1 + x2,
+                B = 200, data = datam, model = "am|am")
 summary(fit.am)
 ```
 The baseline functions can be plotted via `plot()`: 
@@ -152,79 +227,39 @@ The baseline functions can be plotted via `plot()`:
 plot(fit.am)
 ```
 
-### @xu2019generalized `sc.XCYH` 
-A simulated model following the generalized scale-change model of @xu2019generalized can be generated by
-```{R, sc, cache = TRUE}
-set.seed(1); datSC <- simSC(500, par1 = c(1, -1), par2 = c(-1, 1), par3 = c(1, -1), par4 = c(-1, 1), type = "sc", summary = TRUE)
-```
-The underlying true model has the form:
-$$\lambda(t) = Z \lambda_0(te^{X_1 - X_2})e^{-X_1 + X_2};
-h(t) = Z h_0(te^{X_1 - X_2})e^{-X_1 + X_2}.$$
-The model fit is
-```{R, scfit, cache = TRUE}
-fit.sc <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datSC, method = "sc")
-summary(fit.sc)
-```
-The baseline functions can be plotted via `plot()`: 
-```{R, scplot}
-plot(fit.sc)
-```
-
-### Joint Cox/accelerated rate model
-A simulated model following the generalized scale-change model of @xu2019generalized can be generated by
+#### Joint Cox/accelerated rate model
+A simulated model following a special case of the generalized scale-change model 
+where the rate function has a Cox structure and the hazard function has an accelerated rate model structure 
+can be generated by
 ```{R, coxar, cache = TRUE}
-set.seed(1); datCoxar <- simSC(500, c(1, -1), c(-1, 1), type = "cox|ar", summary = TRUE)
+set.seed(1)
+par0 <- list(eta = c(1, 1), theta = c(0, 0))
+datCoxAr <- simGSC(200, par = par0, summary = TRUE)
 ```
 The underlying true model has the form:
-$$\lambda(t) = Z \lambda_0(t)e^{X_1 - X_2};
-h(t) = Z h_0(te^{-X_1 + X_2}).$$
+$$\begin{cases}
+\lambda(t) = Z \lambda_0(t)e^{-X_1 - X_2}.&\\
+h(t) = Z h_0(te^{X_1 + X_2})& t\in[0, 60].
+\end{cases}$$
 The model fit is
 ```{R, coxarfit, cache = TRUE}
-fit.coxar <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCoxar, method = "cox|ar")
-summary(fit.coxar)
+fit.CoxAr <- reReg(Recur(t.start %to% t.stop, id, event, status) ~ x1 + x2,
+                   B = 200, data = datCoxAr, model = "cox|ar")
+summary(fit.CoxAr)
 ```
 The baseline functions can be plotted via `plot()`: 
 ```{R, coxarplot}
-plot(fit.coxar)
-```
-
-## Bootstrap
-Parallel computing is possible via specifying the control list.
-```{r bootstrap, cache = TRUE}
-system.time(fitB1 <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox, 
-                           method = "cox", se = "bootstrap"))
-summary(fitB1)
-system.time(fitB2 <- reReg(Recur(t.stop, id, event, status) ~ x1 + x2, data = datCox, 
-                           method = "cox", se = "bootstrap", 
-                           control = list(parallel = TRUE, parCl = 8)))
-summary(fitB2)
+plot(fit.CoxAr)
 ```
 
 ## Other popular methods
-Some methods that assumes \code{Z = 1} and requires independent
-censorings are also implemented in \code{reReg}. 
+Some methods that assumes `Z = 1` and requires independent
+censorings are also implemented in `reReg`. 
 These includes the methods proposed by 
 @lin2000semiparametric, @ghosh2002, and @ghosh2003, that can be called by specifying 
 `method = "cox.LWYY"`, `method = "cox.GL"`, and `method = "am.GL"`, respectively.
 
-
 It is also worth noting that methods in multi-state models could also be applied to analyze recurrent events data.
-For example, suppose all subjects start from the initial state and can transit from it to either an recurrent event
-or a terminal event.
-The state space figure for the process can be plotted by the following
-```{R}    
-library(survival)
-lmat <- cbind(c(.1, .3, .5, .5, .7), c(.5, .75, .75, .25, .75))
-statefig(lmat, cmat)
-```
-Assuming Cox models on the transition probabilities, the common coefficient estimates are
-```{R}
-datCox$state <- with(datCox, factor(event + 2*status, 0:2, c("censor", "recurrent", "terminal")))
-coxph(list(Surv(t.start, t.stop, state) ~ 1,
-           1:2 + 2:2 ~ x1 + x2 / common,
-           1:3 + 2:3 ~ x1 + x2 / common),
-      data=datCox, id=id)
-```
 See the vignette on [Multi-state models and competing risks](https://cran.r-project.org/web/packages/survival/vignettes/compete.pdf)
 for more details.
 		

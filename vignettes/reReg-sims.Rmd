@@ -23,122 +23,144 @@ MathJax.Hub.Config({
 ```{r default, include = FALSE}
 knitr::opts_chunk$set(prompt = TRUE, comment = "")
 ```
-In this vignette, we demonstrate how to use the `simSC()` function in __`reReg`__ package
-to simulate recurrent event data from a scale-change model.
+In this vignette, we demonstrate how to use the `simGSC()` function in __`reReg`__ package
+to simulate recurrent event data from a general scale-change model.
 Since the scale-change model includes the Cox-type model and the
-accelerated mean model as special cases, `simSC()` can also be used to generate data from these submodels.
-The `simSC()` function allows the censoring time to be non-informative (independent given covariate)
+accelerated mean model as special cases, `simGSC()` can also be used to generate data from these submodels.
+The `simGSC()` function allows the censoring time to be non-informative (independent given covariate)
 or informative about the recurrent event process. 
 
 ## Notations
-Suppose recurrent events can potentially be observed in the time period $[0, \tau]$.
-For a subject, let $N_i(t)$ be the number of events in interval $[0, t]$,
-and $X_i$ is a $p\times 1$ covariate vector.
-Let $C_i$ be a non-informative censoring time, which is independent of $N_i(\cdot)$ given $X_i$.
-On the contrary, let $D_i$ be a failure time (informative censoring time),
-which is associated with $N_i(\cdot)$
-even after conditioning on $X$.
-Then the follow-up time is defined as $Y = \min(C, D, \tau)$.
-The observed data are independent and identically distributed copies of
-$\{N_i(t), Y_i, X_i: t\le Y_i, i = 1, \ldots, n\}$.
-In the following, we suppress the index for the ease of discussion.
-   
-## The `simSC` function {-}
-The function `simSC` generates the recurrent times from a recurrent event process, $N(t)$,
-from a pre-specified rate function, $\lambda(t)$, and the failure time, $D$,
-from a pre-specified hazard function, $h(t)$.
-A general joint model for the rate function and the hazard function can be formulated in the following:
-\begin{equation}
-\begin{matrix}
-\lambda(t) &= Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta};\\ 
-h(t) &= Zh_0(te^{X^\top\eta})e^{X^\top\theta},
-\end{matrix}
-\label{eq:joint}
-\end{equation}
-where $Z$ is a latent shared frailty variable,
-$(\alpha, \eta)$ and $(\beta, \theta)$ correspond to the shape and size parameters of the 
-rate function and the hazard function, respectively.
-The frailty variable $Z$ is used to capture the association between 
-the rate function and the hazard function, thus, accommodating informative censoring.
-The `simSC()` currently only allows two covariates, i.e., $X = (X_{1}, X_{2})^\top$,
-where $X_1$ is a Bernoulli random variable with probability 0.5 and
-$X_2$ is a standard normal random variable.
-The frailty variable $Z$ is generated from a gamma distribution with mean 1.
-The non-informative censoring time, $C$, 
-is generated separately from an exponential distribution with mean 80.
-The observed follow-up time is then taken to be $Y = \min(D, C, \tau)$.
-We further assume the baseline functions
-$$\lambda_0(t) = \frac{2}{1 + t}, h_0(t) = \frac{1}{8(1 + t)}.$$
-
-The arguments in `simSC` are as follow
-```{r simSC, message = FALSE}
+Let $N(t)$ be the number of recurrent events occurring over the interval $[0, t]$ and
+$D$ be the failure time of interest subjects to right censoring by $C$.
+Define the composite censoring time $Y = \min(D, C, \tau)$ and
+the failure event indicator $\Delta = I\{D\le \min(C, \tau)\}$, where
+$\tau$ is the maximum follow-up time.
+We assume the recurrent event process $N(\cdot)$ is observed up to $Y$.
+Let $X$ be a $p$-dimensional covariate vector.
+Consider a random sample of $n$ subjects,
+the observed data are independent and identically distributed (iid) copies of
+$\{Y_i, \Delta_i, X_i, N_i(t), 0\le t\le Y_i\}$,
+where the subscript $i$ denotes the index of a subject for $i= 1, \ldots, n$.
+Let $m_i = N_i(Y_i)$ be the number of recurrent events the $i$th subject experienced
+before time $Y_i$, then the jump times of $N_i(t)$ give the observed recurrent
+event times
+$t_{i1}, \ldots, t_{im_i}$ when $m_i > 0$.
+Thus, the observed data can also be expressed as iid copies
+of $\{Y_i, \Delta_i, X_i, m_i, (t_{i1}, \ldots, t_{m_i})\}$.
+The primary interests in recurrent event data analysis often lie in
+making inference about the recurrent event process and the failure event
+and understanding the corresponding covariate effects.
+The built-in dataset, `simDat`, is a simulated example of a recurrent event data that is generated from the
+`simGSC()` function:
+```{R}
 library(reReg)
-args(simSC)
+packageVersion("reReg")
+data(simDat)
+```
+
+   
+## The `simGSC` function {-}
+The function `simGSC` generates the recurrent times from the joint model
+\begin{equation}
+  \begin{cases}
+    \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&\\
+    h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &t\in[0, \tau],
+  \end{cases}
+  \label{eq:sc|sc}
+\end{equation}
+where $\lambda_0(t)$ is the baseline rate function for the recurrent event process,
+$h_0(t)$ is the baseline hazard function for the failure time, 
+$Z$ is a non-negative subject-specific latent frailty variable.
+The $p$-dimensional regression coefficients
+$(\alpha, \eta)$ and $(\beta, \theta)$
+correspond to the shape and the size parameters, respectively.
+The arguments in `simGSC` are as follow
+```{r simGSC, message = FALSE}
+args(simGSC)
 ```
 The arguments are as follows
 
 * `n` is the number of individual
-* `a1, a2, b1, b2` are numeric vectors of length two, 
-these arguments corresponding to $\alpha$, $\beta$, $\eta$, and $\theta$ from \\eqref{eq:joint}, respectively.
-* `type` is a character string specifying the underlying model. 
-The rate function type and the hazard function type are separated by a vertical bar `|`, with the rate function on the left. For example, `type = "cox|am"` generates the recurrent process from a Cox model and the terminal event from an accelerated mean model. Setting `type = "cox"` gives `type = "cox|cox"`.
-* `zVar` is a numeric value specifying the variance of the frailty variable, $Z$. 
-* `tau` is a numeric value specifying the maximum observation time, or $\tau$ in the above notation.
 * `summary` is a logical value indicating whether a brief data summary will be printed.
+* `para` is a list of regression parameters. 
+The list members `alpha`, `beta`, `eta`, and `theta` 
+correspond to $\alpha$, $\beta$, $\eta$, and $\theta$ in \\eqref{eq:sc|sc}, respectively.
+* `xmat` is the $n\times p$ design matrix. 
+* `censoring` is a $n$-dimensional numerical vector to specify the independent censoring time, $C$.
+* `frailty` is a $n$-dimensional numerical vector to specify the frailty variable, $Z$.
+* `tau` is the maximum follow-up time, $\tau$.
+* `origin` is the time origin for each subject.
+* `Lam0` is a single argument function used to specify the baseline cumulative rate function, $\Lambda_0(t)$.
+* `Haz0` is a single argument function used to specify the baseline cumulative hazard function, $H_0(t)$.
+
+At the default setting, the `simGSC()` function assumes $p = 2$ and the regression
+parameters to be $\alpha = \eta=(0, 0)^\top$, $\beta = (-1, -1)^\top$, and $\theta = (1, 1)^\top$.
+When the `xmat` and the `censoring` arguments are not specified,
+the `simGSC()` function assumes $X_i$ is a two-dimensional vector $X_i = (X_{i1}, X_{i2}), i = 1, \ldots, n$,
+where $X_{i1}$ is a Bernoulli variable with rate 0.5 and $X_{i2}$ is a standard normal variable.
+With the default `xmat`, the censoring time $C$ is generated from
+an independent uniform distribution in $[0, 2\tau X_{i1} + 2Z^2\tau(1 - X_{i1})]$.
+Thus, the censoring distribution is covariate dependent and
+is informative when $Z$ is not a constant.
+On the other hand, when `xmat` is specified by the users,
+the censoring time $C$ is generated from an independent uniform distribution $[0, 2 \tau]$.
+When the `frailty` argument is not specified, the frailty variable $Z$ is generated
+from a gamma distribution with a unit mean and a variance of 0.25.
+The default values for `tau` and `origin` are 60 and 0, respectively.
+When arguments `Lam0` and `Haz0` are left unspecified,
+the `simGSC()` function uses $\Lambda_0(t) = 2\log(1 + t)$
+and $H_0(t) = \log(1 + t) / 5$, respectively.
+This is equivalent to setting
+`Lam0 = function(x) 2 * log(1 + x)` and `Haz0 = function(x) log(1 + x) / 5`.
+In summary, the default specifications generate the recurrent events and the terminal events
+from the model:
+$$\begin{cases}
+     \lambda(t) = \displaystyle \frac{2Z}{1 + te^{-X_{i1} - X_{i2}}}, &\\
+     h(t) = \displaystyle \frac{Z}{5(1 + te^{X_{i1} + X_{i2}})}, & t\in[0, 60].
+   \end{cases}$$
+
 
 ## Examples
-In the following examples, we simulate recurrent event data when both the rate function and the hazard function
-are Cox-type models and use `summary = TRUE` to display some descriptive statistics about the simulated data.
-```{R set-seed}
-set.seed(273)
-dat.cox <- simSC(200, c(-1, 1), c(-1, 1), summary = TRUE)
+
+### `simDat`
+The `simGSC()` function generates simulated data from the above specification and returns a
+`data.frame` in the same format as the built-in data set, `simDat`.
+Specifically, `simDat` was generated using the default settings of `simGSC()`.
+```{R}
+data(simDat)
+set.seed(0); dat <- simGSC(200, summary = TRUE)
+identical(dat, simDat)
 ```
 
-The output of `simSC()` is a data frame. 
-The following table shows that subject \#1 experienced `r sum(subset(dat.cox, id == 1)$event)` recurrent events 
-(at times `r round(subset(dat.cox, id == 1)$t.stop[1:sum(subset(dat.cox, id == 1)$event)], 3)`)
-and died at time `r round(tail(subset(dat.cox, id == 1)$t.stop, 1), 3)`.
-Similarly, subject \#2 experienced `r sum(subset(dat.cox, id == 2)$event)` 
-recurrent events (at times `r round(subset(dat.cox, id == 2)$t.stop[1:sum(subset(dat.cox, id == 2)$event)], 3)`)
-and is alive when censored at time `r round(tail(subset(dat.cox, id == 2)$t.stop, 1), 3)`.
-```{R cox-DT}
-library(DT)
-datatable(dat.cox, options = list(pageLength = 10, scrollX = TRUE)) %>% 
-  formatRound(c("t.stop", "x2"), 3)
+### Simulating from general scale-change models
+The `simDat` is an example that simulates recurrent event data when both the rate function and the hazard function 
+are Cox-type model. 
+```{R}
+set.seed(0); datCox <- simGSC(200, summary = TRUE)
 ```
-The event plot for the above simulated data is
-```{R cox-event}
-plotEvents(Recur(t.stop, id, event, status) ~ 1, data = dat.cox)
+The hypothesis test proposed by @xu2019generalized shows a strong evidence that the rate function 
+has a Cox structure.
+```{R, cache = TRUE}
+fit <- reReg(Recur(t.start %to% t.stop, id, event, status) ~ x1 + x2, 
+             model = "gsc", B = 200, se = "sand", data = datCox)
+summary(fit, test = TRUE)
 ```
 
+Similarly, the hypothesis test shows a strong evidence that the rate function has
+an accelerated mean or accelerated rate structure when the data is simulated under
+these.
 
-With the same random seed, the following example generates recurrent event data
-when the rate function is an accelerated mean model while the hazard function is a Cox model. 
-Compare to the previous example, the difference is in the model structure of the rate function. 
-```{R set-seed2}
-set.seed(273)
-dat.amcox <- simSC(200, c(-1, 1), c(-1, 1), type = "am|cox")
-datatable(dat.amcox, options = list(pageLength = 10, scrollX = TRUE)) %>% 
-  formatRound(c("t.stop", "x2"), 3)
+When rate has an accelerated mean structure:
+```{R, cache = TRUE}
+set.seed(0); datAM <- simGSC(200, para = list(alpha = c(-1, -1), beta = c(-1, -1)))
+summary(update(fit, data = datAM), test = TRUE)
 ```
-Here, subject \#1 experienced `r sum(subset(dat.amcox, id == 1)$event)` recurrent events 
-(at times `r round(subset(dat.amcox, id == 1)$t.stop[1:sum(subset(dat.amcox, id == 1)$event)], 3)`)
-and died at time `r round(tail(subset(dat.amcox, id == 1)$t.stop, 1), 3)`.
-Similarly, subject \#2 experienced `r sum(subset(dat.amcox, id == 2)$event)` 
-recurrent events (at times `r round(subset(dat.amcox, id == 2)$t.stop[1:sum(subset(dat.amcox, id == 2)$event)], 3)`)
-and is alive when censored at time `r round(tail(subset(dat.amcox, id == 2)$t.stop, 1), 3)`.
 
-A side-by-side event plot shows the difference in the recurrent process.
-```{R comp, message = FALSE}
-library(ggplot2)
-library(gridExtra)
-grid.arrange(plotEvents(Recur(t.stop, id, event, status) ~ 1, 
-                        data = dat.cox,
-                        main = "type = cox") + 
-             theme(legend.position = "none"),
-             plotEvents(Recur(t.stop, id, event, status) ~ 1, 
-                        data = dat.amcox,
-                        main = "type = am|cox") + 
-             theme(legend.position = "none"),
-             ncol = 2)
+When rate has an accelerated rate structure:
+```{R, cache = TRUE}
+set.seed(0); datAR <- simGSC(200, para = list(alpha = c(-1, -1), beta = c(0, 0)))
+summary(update(fit, data = datAR), test = TRUE)
 ```
+ 
+## Reference

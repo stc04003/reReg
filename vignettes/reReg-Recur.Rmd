@@ -75,52 +75,52 @@ where the right end points are the time of recurrent events and censoring.
 * `event` is a numeric vector that represents the types of the recurrent events. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.
 * `terminal` is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector.  Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified `terminal` should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of `terminal` at the last recurrent episode.
 * `origin` a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value.  The length of the specified `origin` should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins.  However, one subject must have the same origin. In addition to numeric values, `Date` and `difftime` are also supported and converted to numeric values.
-* `check` is a character value specifying how to perform the checks for recurrent event data.  Errors or warnings will be thrown, respectively, if the `check` is specified to be `"hard""’"` (default) or `"soft""’"`.  If `check = "none"` is specified, no data checking procedure will be run.
+* `check` is a character value specifying how to perform the checks for recurrent event data.  Errors or warnings will be thrown, respectively, if the `check` is specified to be `"hard"` (default) or `"soft"`.  If `check = "none"` is specified, no data checking procedure will be run.
 
 When the time origin is zero for all subjects as in the `readmission` data set, 
 the `time` argument can be specified with `time = t.stop` or with `time = t.start %to% t.stop`, 
 where the infix operator `%to%` is used to create a list of two elements containing the endpoints of the time intervals.
 When `check = "hard"` or `check = "soft"`,
-the \code{Recur()} function performs an internal check for possible issues on the data structure.
-The \code{Recur()} function terminates and issues an error message once the check failed if
-\code{check = "hard"} (default).
-On the contrary, \code{Recur()} would proceed with a warning message when \code{check = "soft"}
-or without a warning message when \code{check = "none"}.
+the `Recur()` function performs an internal check for possible issues on the data structure.
+The `Recur()` function terminates and issues an error message once the check failed if
+`check = "hard"` (default).
+On the contrary, `Recur()` would proceed with a warning message when `check = "soft"`
+or without a warning message when `check = "none"`.
 The checking criterion includes the following:
 \begin{enumerate}
 \item Every subject must have one censoring time.
 \item Each subject's censoring time must be greater than all recurrent event times.
 \item Recurrent event and censoring times cannot be missing.
 \item Recurrent event and censoring times cannot be earlier than the orgin time.
-\item When the \code{time} argument is a list, the time intervals cannot overlap.
+\item When the `time` argument is a list, the time intervals cannot overlap.
 \end{enumerate} 
 
-The `Recur()` function matches the arguments by position when the arguments''' names are not specified.
+The `Recur()` function matches the arguments by position when the arguments' names are not specified.
 Among all the arguments,
-only the argument 'time' does not have default values and has to be specified by users.
-The default value for the argument 'id' is 'seq_along(time)', thus,
-'Recur()' assumes each row specifies the time point for each subject when 'id' is not specified.
-However, using the default value 'id' defeats the purpose using recurrent event methods.
-The default value for the argument 'event' is a numerical vector,
+only the argument `time` does not have default values and has to be specified by users.
+The default value for the argument `id` is `seq_along(time)`, thus,
+`Recur()` assumes each row specifies the time point for each subject when `id` is not specified.
+However, using the default value `id` defeats the purpose using recurrent event methods.
+The default value for the argument `event` is a numerical vector,
 where the values 0 and 1 are used to indicate whether the endpoint
-of the time intervals in 'time' is a
+of the time intervals in `time` is a
 non-recurrent event or a recurrent event, respectively.
-The 'event' argument can accommodate more than one types of recurrent events;
+The `event` argument can accommodate more than one types of recurrent events;
 in this case the reference level (value 0) is used to indicate non-recurrent event.
 On the other hand, a zero vector is used as the default value for arguments
-'terminal' and 'orgin'.
+`terminal` and `orgin`.
 
 
-The default values in 'Recur()' are chosen so that 'Recur()' can be conveniently adopted
+The default values in `Recur()` are chosen so that `Recur()` can be conveniently adopted
 in common situations.
 For example, in situations where the recurrent events are observed continuously and
 in the absence of terminal events,
-the 'event' and 'terminal' arguments can be left unspecified.
+the `event` and `terminal` arguments can be left unspecified.
 In this case, the last entry within each subject will be treated as a censoring time. 
-One example is the 'cgd' data from the __*survival*__ package, 
+One example is the `cgd` data from the __*survival*__ package, 
 where the recurrent event is the serious infection observed from
 a placebo controlled trial of gamma interferon in chronic granulotamous disease.
-A terminal event was not defined in the 'cgd' data and
+A terminal event was not defined in the `cgd` data and
 the patients were observed through the end of study.
 For this dataset, the `Recur` object can be constructed as below:
 ```{R, output.lines = 1:10}

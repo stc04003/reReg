@@ -13,7 +13,7 @@
 
 <meta name="date" content="2021-04-08" />
 
-<title>Creating Recur objects</title>
+<title>Simulating recurrent event data</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1509,92 +1509,171 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Creating <code>Recur</code> objects</h1>
+<h1 class="title toc-ignore">Simulating recurrent event data</h1>
 <h4 class="author">Sy Han (Steven) Chiou</h4>
 <h4 class="date">2021-04-08</h4>
 
 </div>
 
 
-<p>In this vignette, we demonstrate how to create a recurrent event object with the <code>Recur()</code> function from the <strong><code>reda</code></strong> package <span class="citation">(Wang et al. 2021)</span>. The <code>Recur()</code> function is imported when the <strong><code>reReg</code></strong> package is loaded. The <code>Recur</code> objectbundles together a set of recurrent times, failure time, and censoring status, with the convenience that it can be used as the response in model formula in the <strong><code>reReg</code></strong> package. We will illustrate the usage of <code>Recur()</code> with the <code>cgd</code> data set from the <strong><code>survival</code></strong> <span class="citation">(Therneau 2021)</span> and the <code>readmission</code> data set from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and González 2012, @gonzalez2005sex)</span>.</p>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script>
+<p>In this vignette, we demonstrate how to use the <code>simGSC()</code> function in <strong><code>reReg</code></strong> package to simulate recurrent event data from a general scale-change model. Since the scale-change model includes the Cox-type model and the accelerated mean model as special cases, <code>simGSC()</code> can also be used to generate data from these submodels. The <code>simGSC()</code> function allows the censoring time to be non-informative (independent given covariate) or informative about the recurrent event process.</p>
+<div id="notations" class="section level2">
+<h2>Notations</h2>
+<p>Let <span class="math inline">\(N(t)\)</span> be the number of recurrent events occurring over the interval <span class="math inline">\([0, t]\)</span> and <span class="math inline">\(D\)</span> be the failure time of interest subjects to right censoring by <span class="math inline">\(C\)</span>. Define the composite censoring time <span class="math inline">\(Y = \min(D, C, \tau)\)</span> and the failure event indicator <span class="math inline">\(\Delta = I\{D\le \min(C, \tau)\}\)</span>, where <span class="math inline">\(\tau\)</span> is the maximum follow-up time. We assume the recurrent event process <span class="math inline">\(N(\cdot)\)</span> is observed up to <span class="math inline">\(Y\)</span>. Let <span class="math inline">\(X\)</span> be a <span class="math inline">\(p\)</span>-dimensional covariate vector. Consider a random sample of <span class="math inline">\(n\)</span> subjects, the observed data are independent and identically distributed (iid) copies of <span class="math inline">\(\{Y_i, \Delta_i, X_i, N_i(t), 0\le t\le Y_i\}\)</span>, where the subscript <span class="math inline">\(i\)</span> denotes the index of a subject for <span class="math inline">\(i= 1, \ldots, n\)</span>. Let <span class="math inline">\(m_i = N_i(Y_i)\)</span> be the number of recurrent events the <span class="math inline">\(i\)</span>th subject experienced before time <span class="math inline">\(Y_i\)</span>, then the jump times of <span class="math inline">\(N_i(t)\)</span> give the observed recurrent event times <span class="math inline">\(t_{i1}, \ldots, t_{im_i}\)</span> when <span class="math inline">\(m_i &gt; 0\)</span>. Thus, the observed data can also be expressed as iid copies of <span class="math inline">\(\{Y_i, \Delta_i, X_i, m_i, (t_{i1}, \ldots, t_{m_i})\}\)</span>. The primary interests in recurrent event data analysis often lie in making inference about the recurrent event process and the failure event and understanding the corresponding covariate effects. The built-in dataset, <code>simDat</code>, is a simulated example of a recurrent event data that is generated from the <code>simGSC()</code> function:</p>
 <pre class="r"><code>&gt; library(reReg)
 &gt; packageVersion(&quot;reReg&quot;)</code></pre>
 <pre><code>[1] &#39;1.4.0&#39;</code></pre>
-<pre class="r"><code>&gt; data(readmission, package = &quot;frailtypack&quot;)
-&gt; head(readmission)</code></pre>
-<pre><code>  id enum t.start t.stop time event      chemo    sex dukes charlson death
-1  1    1       0     24   24     1    Treated Female     D        3     0
-2  1    2      24    457  433     1    Treated Female     D        0     0
-3  1    3     457   1037  580     0    Treated Female     D        0     0
-4  2    1       0    489  489     1 NonTreated   Male     C        0     0
-5  2    2     489   1182  693     0 NonTreated   Male     C        0     0
-6  3    1       0     15   15     1 NonTreated   Male     C        3     0</code></pre>
-<pre class="r"><code>&gt; readmission &lt;- subset(readmission, !(id %in% c(60, 109, 280)))
-&gt; attach(readmission)</code></pre>
-<div id="therecur-object" class="section level2">
-<h2>The<code>Recur</code> object</h2>
-<p>The <code>Recur()</code> function is modeled after the <code>Surv()</code> function in the <strong><code>survival</code></strong> package <span class="citation">(Therneau 2021)</span>. The function interface of <code>Recur()</code> is</p>
-<pre class="r"><code>&gt; args(Recur)</code></pre>
-<pre><code>function (time, id, event, terminal, origin, check = c(&quot;hard&quot;, 
-    &quot;soft&quot;, &quot;none&quot;), ...) 
+<pre class="r"><code>&gt; data(simDat)</code></pre>
+</div>
+<div id="the-simgsc-function" class="section level2 unnumbered">
+<h2 class="unnumbered">The <code>simGSC</code> function</h2>
+<p>The function <code>simGSC</code> generates the recurrent times from the joint model <span class="math display">\[\begin{equation}
+  \begin{cases}
+    \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&amp;\\
+    h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &amp;t\in[0, \tau],
+  \end{cases}
+  \label{eq:sc|sc}
+\end{equation}\]</span> where <span class="math inline">\(\lambda_0(t)\)</span> is the baseline rate function for the recurrent event process, <span class="math inline">\(h_0(t)\)</span> is the baseline hazard function for the failure time, <span class="math inline">\(Z\)</span> is a non-negative subject-specific latent frailty variable. The <span class="math inline">\(p\)</span>-dimensional regression coefficients <span class="math inline">\((\alpha, \eta)\)</span> and <span class="math inline">\((\beta, \theta)\)</span> correspond to the shape and the size parameters, respectively. The arguments in <code>simGSC</code> are as follow</p>
+<pre class="r"><code>&gt; args(simGSC)</code></pre>
+<pre><code>function (n, summary = FALSE, para, xmat, censoring, frailty, 
+    tau, origin, Lam0, Haz0) 
 NULL</code></pre>
-<p>The six arguments are</p>
+<p>The arguments are as follows</p>
 <ul>
-<li><code>time</code> a vector that represents the time of recurrent events and censoring, or as a list of time intervals that contains the starting time and the ending time of the interval. In the latter, the intervals are assumed to be open on the left and closed on the right, where the right end points are the time of recurrent events and censoring.</li>
-<li><code>id</code> specifies the subject identity. It can be numeric vector, character vector, or a factor vector. If it is left unspecified, <code>Recur()</code> will assume that each row represents a subject.</li>
-<li><code>event</code> is a numeric vector that represents the types of the recurrent events. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.</li>
-<li><code>terminal</code> is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified <code>terminal</code> should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of <code>terminal</code> at the last recurrent episode.</li>
-<li><code>origin</code> a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value. The length of the specified <code>origin</code> should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins. However, one subject must have the same origin. In addition to numeric values, <code>Date</code> and <code>difftime</code> are also supported and converted to numeric values.</li>
-<li><code>check</code> is a character value specifying how to perform the checks for recurrent event data. Errors or warnings will be thrown, respectively, if the <code>check</code> is specified to be <code>&quot;hard&quot;</code> (default) or <code>&quot;soft&quot;</code>. If <code>check = &quot;none&quot;</code> is specified, no data checking procedure will be run.</li>
+<li><code>n</code> is the number of individual</li>
+<li><code>summary</code> is a logical value indicating whether a brief data summary will be printed.</li>
+<li><code>para</code> is a list of regression parameters. The list members <code>alpha</code>, <code>beta</code>, <code>eta</code>, and <code>theta</code> correspond to <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\eta\)</span>, and <span class="math inline">\(\theta\)</span> in \eqref{eq:sc|sc}, respectively.</li>
+<li><code>xmat</code> is the <span class="math inline">\(n\times p\)</span> design matrix.</li>
+<li><code>censoring</code> is a <span class="math inline">\(n\)</span>-dimensional numerical vector to specify the independent censoring time, <span class="math inline">\(C\)</span>.</li>
+<li><code>frailty</code> is a <span class="math inline">\(n\)</span>-dimensional numerical vector to specify the frailty variable, <span class="math inline">\(Z\)</span>.</li>
+<li><code>tau</code> is the maximum follow-up time, <span class="math inline">\(\tau\)</span>.</li>
+<li><code>origin</code> is the time origin for each subject.</li>
+<li><code>Lam0</code> is a single argument function used to specify the baseline cumulative rate function, <span class="math inline">\(\Lambda_0(t)\)</span>.</li>
+<li><code>Haz0</code> is a single argument function used to specify the baseline cumulative hazard function, <span class="math inline">\(H_0(t)\)</span>.</li>
 </ul>
-When the time origin is zero for all subjects as in the <code>readmission</code> data set, the <code>time</code> argument can be specified with <code>time = t.stop</code> or with <code>time = t.start %to% t.stop</code>, where the infix operator <code>%to%</code> is used to create a list of two elements containing the endpoints of the time intervals. When <code>check = &quot;hard&quot;</code> or <code>check = &quot;soft&quot;</code>, the <code>Recur()</code> function performs an internal check for possible issues on the data structure. The <code>Recur()</code> function terminates and issues an error message once the check failed if <code>check = &quot;hard&quot;</code> (default). On the contrary, <code>Recur()</code> would proceed with a warning message when <code>check = &quot;soft&quot;</code> or without a warning message when <code>check = &quot;none&quot;</code>. The checking criterion includes the following:
-<p>The <code>Recur()</code> function matches the arguments by position when the arguments’ names are not specified. Among all the arguments, only the argument <code>time</code> does not have default values and has to be specified by users. The default value for the argument <code>id</code> is <code>seq_along(time)</code>, thus, <code>Recur()</code> assumes each row specifies the time point for each subject when <code>id</code> is not specified. However, using the default value <code>id</code> defeats the purpose using recurrent event methods. The default value for the argument <code>event</code> is a numerical vector, where the values 0 and 1 are used to indicate whether the endpoint of the time intervals in <code>time</code> is a non-recurrent event or a recurrent event, respectively. The <code>event</code> argument can accommodate more than one types of recurrent events; in this case the reference level (value 0) is used to indicate non-recurrent event. On the other hand, a zero vector is used as the default value for arguments <code>terminal</code> and <code>orgin</code>.</p>
-<p>The default values in <code>Recur()</code> are chosen so that <code>Recur()</code> can be conveniently adopted in common situations. For example, in situations where the recurrent events are observed continuously and in the absence of terminal events, the <code>event</code> and <code>terminal</code> arguments can be left unspecified. In this case, the last entry within each subject will be treated as a censoring time. One example is the <code>cgd</code> data from the <strong><em>survival</em></strong> package, where the recurrent event is the serious infection observed from a placebo controlled trial of gamma interferon in chronic granulotamous disease. A terminal event was not defined in the <code>cgd</code> data and the patients were observed through the end of study. For this dataset, the <code>Recur</code> object can be constructed as below:</p>
-<pre class="r"><code>&gt; data(cgd, package = &quot;survival&quot;)
-&gt; with(cgd, Recur(tstart %2% tstop, id))</code></pre>
-<pre><code>...
-  [1] 1: (0, 219], (219, 373], (373, 414+]      
-  [2] 2: (0, 8], (8, 26], ..., (350, 439+]      
-  [3] 3: (0, 382+]                              
-  [4] 4: (0, 388+]                              
-  [5] 5: (0, 246], (246, 253], (253, 383+]      
-  [6] 6: (0, 364+]                              
-  [7] 7: (0, 292], (292, 364+]                  
-  [8] 8: (0, 363+]                              
-  [9] 9: (0, 294], (294, 349+]                  
- [10] 10: (0, 371+]                             
-...</code></pre>
-<p>For each subject, the function <code>Recur()</code> prints intervals to represent the duration until the next event (a recurrent event or a terminal event). The <code>Recur</code> object for the <code>readmission</code> dataset can be constructed as below:</p>
-<pre class="r"><code>&gt; Recur(t.stop, id, event, death)</code></pre>
-<pre><code>...
-  [1] 1: (0, 24], (24, 457], (457, 1037+]           
-  [2] 2: (0, 489], (489, 1182+]                     
-  [3] 3: (0, 15], (15, 783*]                        
-  [4] 4: (0, 163], (163, 288], ..., (686, 2048+]    
-  [5] 5: (0, 1134], (1134, 1144+]                   
-  [6] 6: (0, 627], (627, 1190], ..., (1406, 1407+]  
-  [7] 7: (0, 38], (38, 42], ..., (63, 1049+]        
-  [8] 8: (0, 1466*]                                 
-  [9] 9: (0, 148], (148, 1474+]                     
- [10] 10: (0, 1113+]                                
-...</code></pre>
-<p>The <code>readmission</code> example above shows patient id #1 experienced 2 hostpital readmissions with a terminal event at <code>t = 1037</code> (days). The <code>+</code> at <code>t = 1037</code> indicates the terminal time was censored, e.g., this patient did not experience the event of interest (death) at <code>t = 1037</code>. Similarly, patient id #3 has one readmission and died at <code>t = 783</code> (days) as indicated by <code>*</code> at <code>783</code>. On the other hand patient id # 4 has more than 3 readmissions and was censored at <code>t = 2048</code> (days). The readmission intervals was suppressed to prevent printing results wider than the screen allowance. The number of intervals to be printed can be tuned using the <code>options</code> and argument <code>reda.Recur.maxPrint</code>.</p>
-<p>Readers are referred to a separate <a href="https://wenjie-stat.me/reda/articles/reda-recur">vignette on <code>Recur()</code></a> for a detailed introduction of <code>Recur()</code>. <strong><span style="color:red">The <code>reSurv()</code> function is being deprecated in Version 1.2.0.</span></strong> In the current version, the <code>reSurv()</code> function can still be used, but the <code>reSurv</code> object will be automatically transformed to the corresponding <code>Recur</code> object.</p>
+<p>At the default setting, the <code>simGSC()</code> function assumes <span class="math inline">\(p = 2\)</span> and the regression parameters to be <span class="math inline">\(\alpha = \eta=(0, 0)^\top\)</span>, <span class="math inline">\(\beta = (-1, -1)^\top\)</span>, and <span class="math inline">\(\theta = (1, 1)^\top\)</span>. When the <code>xmat</code> and the <code>censoring</code> arguments are not specified, the <code>simGSC()</code> function assumes <span class="math inline">\(X_i\)</span> is a two-dimensional vector <span class="math inline">\(X_i = (X_{i1}, X_{i2}), i = 1, \ldots, n\)</span>, where <span class="math inline">\(X_{i1}\)</span> is a Bernoulli variable with rate 0.5 and <span class="math inline">\(X_{i2}\)</span> is a standard normal variable. With the default <code>xmat</code>, the censoring time <span class="math inline">\(C\)</span> is generated from an independent uniform distribution in <span class="math inline">\([0, 2\tau X_{i1} + 2Z^2\tau(1 - X_{i1})]\)</span>. Thus, the censoring distribution is covariate dependent and is informative when <span class="math inline">\(Z\)</span> is not a constant. On the other hand, when <code>xmat</code> is specified by the users, the censoring time <span class="math inline">\(C\)</span> is generated from an independent uniform distribution <span class="math inline">\([0, 2 \tau]\)</span>. When the <code>frailty</code> argument is not specified, the frailty variable <span class="math inline">\(Z\)</span> is generated from a gamma distribution with a unit mean and a variance of 0.25. The default values for <code>tau</code> and <code>origin</code> are 60 and 0, respectively. When arguments <code>Lam0</code> and <code>Haz0</code> are left unspecified, the <code>simGSC()</code> function uses <span class="math inline">\(\Lambda_0(t) = 2\log(1 + t)\)</span> and <span class="math inline">\(H_0(t) = \log(1 + t) / 5\)</span>, respectively. This is equivalent to setting <code>Lam0 = function(x) 2 * log(1 + x)</code> and <code>Haz0 = function(x) log(1 + x) / 5</code>. In summary, the default specifications generate the recurrent events and the terminal events from the model: <span class="math display">\[\begin{cases}
+     \lambda(t) = \displaystyle \frac{2Z}{1 + te^{-X_{i1} - X_{i2}}}, &amp;\\
+     h(t) = \displaystyle \frac{Z}{5(1 + te^{X_{i1} + X_{i2}})}, &amp; t\in[0, 60].
+   \end{cases}\]</span></p>
+</div>
+<div id="examples" class="section level2">
+<h2>Examples</h2>
+<div id="simdat" class="section level3">
+<h3><code>simDat</code></h3>
+<p>The <code>simGSC()</code> function generates simulated data from the above specification and returns a <code>data.frame</code> in the same format as the built-in data set, <code>simDat</code>. Specifically, <code>simDat</code> was generated using the default settings of <code>simGSC()</code>.</p>
+<pre class="r"><code>&gt; data(simDat)
+&gt; set.seed(0); dat &lt;- simGSC(200, summary = TRUE)</code></pre>
+<pre><code>Call: 
+simGSC(n = 200, summary = TRUE)
+
+Summary:
+Sample size:                                    200 
+Number of recurrent event observed:             674 
+Average number of recurrent event per subject:  3.37 
+Proportion of subjects with a terminal event:   0.59 
+Median time-to-terminal event:                  6.975 </code></pre>
+<pre class="r"><code>&gt; identical(dat, simDat)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+</div>
+<div id="simulating-from-general-scale-change-models" class="section level3">
+<h3>Simulating from general scale-change models</h3>
+<p>The <code>simDat</code> is an example that simulates recurrent event data when both the rate function and the hazard function are Cox-type model.</p>
+<pre class="r"><code>&gt; set.seed(0); datCox &lt;- simGSC(200, summary = TRUE)</code></pre>
+<pre><code>Call: 
+simGSC(n = 200, summary = TRUE)
+
+Summary:
+Sample size:                                    200 
+Number of recurrent event observed:             674 
+Average number of recurrent event per subject:  3.37 
+Proportion of subjects with a terminal event:   0.59 
+Median time-to-terminal event:                  6.975 </code></pre>
+<p>The hypothesis test proposed by <span class="citation">Xu et al. (2020)</span> shows a strong evidence that the rate function has a Cox structure.</p>
+<pre class="r"><code>&gt; fit &lt;- reReg(Recur(t.start %to% t.stop, id, event, status) ~ x1 + x2, 
++              model = &quot;gsc&quot;, B = 200, se = &quot;sand&quot;, data = datCox)
+&gt; summary(fit, test = TRUE)</code></pre>
+<pre><code>Call: 
+reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
+    x1 + x2, data = datCox, model = &quot;gsc&quot;, B = 200, se = &quot;sand&quot;)
+
+Recurrent event process (shape):
+   Estimate   StdErr z.value p.value
+x1 -0.02252  0.33667 -0.0669  0.9467
+x2 -0.11480  0.29737 -0.3860  0.6995
+
+Recurrent event process (size):
+   Estimate   StdErr z.value p.value    
+x1 -1.02816  0.21131 -4.8656  &lt;2e-16 ***
+x2 -1.04991  0.26264 -3.9976   6e-05 ***
+
+Hypothesis tests:
+Ho: shape = 0 (Cox-type model):
+     X-squared = 0.1536, df = 2, p-value = 0.9261
+Ho: shape = size (Accelerated rate model):
+     X-squared = 13.2948, df = 2, p-value = 0.0013
+Ho: size = 0 (Accelerated mean model):
+     X-squared = 35.0216, df = 2, p-value = 0</code></pre>
+<p>Similarly, the hypothesis test shows a strong evidence that the rate function has an accelerated mean or accelerated rate structure when the data is simulated under these.</p>
+<p>When rate has an accelerated mean structure:</p>
+<pre class="r"><code>&gt; set.seed(0); datAM &lt;- simGSC(200, para = list(alpha = c(-1, -1), beta = c(-1, -1)))
+&gt; summary(update(fit, data = datAM), test = TRUE)</code></pre>
+<pre><code>Call: 
+reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
+    x1 + x2, data = datAM, model = &quot;gsc&quot;, B = 200, se = &quot;sand&quot;)
+
+Recurrent event process (shape):
+   Estimate   StdErr z.value p.value    
+x1 -0.60383  0.33534 -1.8007 0.07176 .  
+x2 -1.41781  0.43013 -3.2963 0.00098 ***
+
+Recurrent event process (size):
+   Estimate   StdErr z.value p.value    
+x1 -0.89737  0.25466 -3.5238 0.00043 ***
+x2 -1.30967  0.22058 -5.9374 &lt; 2e-16 ***
+
+Hypothesis tests:
+Ho: shape = 0 (Cox-type model):
+     X-squared = 13.4112, df = 2, p-value = 0.0012
+Ho: shape = size (Accelerated rate model):
+     X-squared = 7.625, df = 2, p-value = 0.0221
+Ho: size = 0 (Accelerated mean model):
+     X-squared = 1.9932, df = 2, p-value = 0.3691</code></pre>
+<p>When rate has an accelerated rate structure:</p>
+<pre class="r"><code>&gt; set.seed(0); datAR &lt;- simGSC(200, para = list(alpha = c(-1, -1), beta = c(0, 0)))
+&gt; summary(update(fit, data = datAR), test = TRUE)</code></pre>
+<pre><code>Call: 
+reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
+    x1 + x2, data = datAR, model = &quot;gsc&quot;, B = 200, se = &quot;sand&quot;)
+
+Recurrent event process (shape):
+   Estimate   StdErr z.value p.value    
+x1 -1.56561  0.41150 -3.8047 0.00014 ***
+x2 -2.08450  0.42915 -4.8572 &lt; 2e-16 ***
+
+Recurrent event process (size):
+   Estimate   StdErr z.value p.value  
+x1 -0.31200  0.27209 -1.1467 0.25150  
+x2 -0.69067  0.27136 -2.5452 0.01092 *
+
+Hypothesis tests:
+Ho: shape = 0 (Cox-type model):
+     X-squared = 28.1646, df = 2, p-value = 0
+Ho: shape = size (Accelerated rate model):
+     X-squared = 1.9188, df = 2, p-value = 0.3831
+Ho: size = 0 (Accelerated mean model):
+     X-squared = 59.8902, df = 2, p-value = 0</code></pre>
+</div>
 </div>
 <div id="reference" class="section level2 unnumbered">
 <h2 class="unnumbered">Reference</h2>
 <div id="refs" class="references hanging-indent">
-<div id="ref-gonzalez2005sex">
-<p>González, Juan Ramón, Esteve Fernandez, Víctor Moreno, Josepa Ribes, Mercè Peris, Matilde Navarro, Maria Cambray, and Josep Maria Borrás. 2005. “Sex Differences in Hospital Readmission Among Colorectal Cancer Patients.” <em>Journal of Epidemiology &amp; Community Health</em> 59 (6): 506–11.</p>
-</div>
-<div id="ref-rondeau2012frailtypack">
-<p>Rondeau, Virginie, Yassin Mazroui, and Juan Ramń González. 2012. “frailtypack: An R Package for the Analysis of Correlated Survival Data with Frailty Models Using Penalized Likelihood Estimation or Parametrical Estimation.” <em>Journal of Statistical Software</em> 47 (4): 1–28.</p>
-</div>
-<div id="ref-R:survival">
-<p>Therneau, Terry M. 2021. <em>A Package for Survival Analysis in R</em>. <a href="https://CRAN.R-project.org/package=survival">https://CRAN.R-project.org/package=survival</a>.</p>
-</div>
-<div id="ref-R:reda">
-<p>Wang, Wenjie, Haoda Fu, Sy Han Chiou, and Jun Yan. 2021. <em>reda: Recurrent Event Data Analysis</em>. <a href="https://github.com/wenjie2wang/reda">https://github.com/wenjie2wang/reda</a>.</p>
+<div id="ref-xu2019generalized">
+<p>Xu, Gongjun, Sy Han Chiou, Jun Yan, Kieren Marr, and Chiung-Yu Huang. 2020. “Generalized Scale-Change Models for Recurrent Event Processes Under Informative Censoring.” <em>Statistica Sinica</em> 30: 1773–95.</p>
 </div>
 </div>
 </div>
