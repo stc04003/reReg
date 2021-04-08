@@ -15,7 +15,7 @@ under the recurrent event model or the failure time model.}
 \item{...}{additional parameters for future development.}
 }
 \description{
-Calculates residuals for a joint frailty scale-change model fiited by `reReg`.
+Calculates residuals for a joint frailty scale-change model fitted by `reReg`.
 Under the recurrent event model, at each observation time, \eqn{t},
 the residual is calculated as
 \deqn{\mbox{observed number of recurrent events at } t- 

@@ -41,7 +41,7 @@ knit_hooks$set(output = function(x, options) {
 In this vignette, we demonstrate how to create a recurrent event object with the
 `Recur()` function from the __`reda`__ package [@R:reda].
 The `Recur()` function is imported when the __`reReg`__ package is loaded.
-The `Recur` objectbundles together a set of recurrent times, failure time, and censoring status, 
+The `Recur` object bundles together a set of recurrent times, failure time, and censoring status, 
 with the convenience that it can be used as the response in model formula in the __`reReg`__ package.
 We will illustrate the usage of `Recur()` with the `cgd` data set from the __`survival`__ [@R:survival]
 and the `readmission` data set from the __`frailtypack`__ 
@@ -91,7 +91,7 @@ The checking criterion includes the following:
 \item Every subject must have one censoring time.
 \item Each subject's censoring time must be greater than all recurrent event times.
 \item Recurrent event and censoring times cannot be missing.
-\item Recurrent event and censoring times cannot be earlier than the orgin time.
+\item Recurrent event and censoring times cannot be earlier than the origin time.
 \item When the `time` argument is a list, the time intervals cannot overlap.
 \end{enumerate} 
 

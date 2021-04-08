@@ -93,7 +93,7 @@ The arguments are as follows
   -  `formula` is a formula object, which contains an `Recur` object and categorical covariates separated by `~`, 
   where the categorical covariates are used to stratify the event plot.
   - `data` is an optional data frame in which to interpret the variables occurring in the `formula`.
-  - `result` is an optional character string specifying whether the evernt plot is sorted by the subjects' terminal time.
+  - `result` is an optional character string specifying whether the event plot is sorted by the subjects' terminal time.
   The available options are 
       - `increasing` sort the terminal time from in ascending order (default). This places longer terminal times on top.
       - `decreasing` sort the terminal time from in descending order. This places shorter terminal times on top.

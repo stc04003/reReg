@@ -1,6 +1,6 @@
 #' Calculate Residuals for a `reReg' Fit
 #'
-#' Calculates residuals for a joint frailty scale-change model fiited by `reReg`.
+#' Calculates residuals for a joint frailty scale-change model fitted by `reReg`.
 #' Under the recurrent event model, at each observation time, \eqn{t},
 #' the residual is calculated as
 #' \deqn{\mbox{observed number of recurrent events at } t- 
