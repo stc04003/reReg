@@ -11,8 +11,8 @@ Depends: R (>= 3.5.0)
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-URL: http://github.com/stc04003/reReg
-BugReports: http://github.com/stc04003/reReg/issues
+URL: https://github.com/stc04003/reReg
+BugReports: https://github.com/stc04003/reReg/issues
 Imports: 
     BB,
     nleqslv,
