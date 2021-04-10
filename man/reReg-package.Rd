@@ -44,8 +44,8 @@ Processes under Informative Censoring. \emph{Statistica Sinica}: pre-print.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{http://github.com/stc04003/reReg}
-  \item Report bugs at \url{http://github.com/stc04003/reReg/issues}
+  \item \url{https://github.com/stc04003/reReg}
+  \item Report bugs at \url{https://github.com/stc04003/reReg/issues}
 }
 
 }
