@@ -459,7 +459,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-change Models for Recurrent Events and Failure Time.
 #' \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
 #' @references Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
-#' Processes under Informative Censoring. \emph{Statistica Sinica}: pre-print.
+#' Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
 #'
 #' @importFrom stats approxfun optim model.response
 #' 

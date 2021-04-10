@@ -12,7 +12,7 @@ version](https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg)](https://cran.r-
 Status](https://ci.appveyor.com/api/projects/status/github/stc04003/reReg?branch=master&svg=true)](https://ci.appveyor.com/project/stc04003/reReg)
 [![Travis-CI Build
 Status](https://travis-ci.org/stc04003/reReg.svg?branch=master)](https://travis-ci.org/stc04003/reReg)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2021--04--09-yellowgreen.svg)](/commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2021--04--10-yellowgreen.svg)](/commits/master)
 <!-- [![Build Status](https://travis-ci.org/user/pkg.svg?branch=master)](https://travis-ci.org/user/pkg) -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -77,6 +77,6 @@ Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint
 Scale-change Models for Recurrent Events and Failure Time. *Journal of
 the American Statistical Association* **112**(518): 796-805.
 
-Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2019)
+Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2020)
 Generalized Scale-Change Models for Recurrent Event Processes under
-Informative Censoring. *Statistica Sinica*, to appear.
+Informative Censoring. *Statistica Sinica* **30**, 1773–1795.

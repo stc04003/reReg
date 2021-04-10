@@ -77,6 +77,6 @@ devtools::install_github("stc04003/reReg", ref = "main")
    *Journal of the American Statistical Association* **112**(518):
    796-805.
 
-  Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2019)
+  Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2020)
   Generalized Scale-Change Models for Recurrent Event Processes under Informative Censoring. 
-  *Statistica Sinica*, to appear.
+  *Statistica Sinica* **30**, 1773--1795.

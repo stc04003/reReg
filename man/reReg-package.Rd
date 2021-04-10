@@ -39,7 +39,7 @@ Joint Scale-change Models for Recurrent Events and Failure Time.
 \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
 
 Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
-Processes under Informative Censoring. \emph{Statistica Sinica}: pre-print.
+Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
 }
 \seealso{
 Useful links:
