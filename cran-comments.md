@@ -1,6 +1,6 @@
 ## Resubmission
 This is a resubmission. In this version I have:
-* Changed http to https in DESCRIPTION     
+* Changed http to https in DESCRIPTION and man
    
 ## Test environments
 * local OS X install, R 4.0.4
