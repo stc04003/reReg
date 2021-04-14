@@ -1,7 +1,7 @@
 #' reReg: Recurrent Event Regression
 #'
 #' The package offers a comprehensive collection of practical and easy-to-use tools for analyzing
-#' recurrent event data, with or withoutthe presence of a (possibly) correlated terminal event.
+#' recurrent event data, with or without the presence of a (possibly) correlated terminal event.
 #' The modeling framework is basedon a joint frailty scale-change model,
 #' that encompasses many existing models, including the popular Cox-type models,
 #' as special cases and accommodates informative censoring through a subject-specific frailty.

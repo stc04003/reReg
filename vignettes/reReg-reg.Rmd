@@ -162,7 +162,7 @@ Model~\eqref{eqn:sc|sc}, respectively. The default values for these initial valu
 
 
 The default equation solver (`"BB::dfsane"`) uses
-the derivative-free Barzila--Borwein spectral approach for solving nonlinear equations
+the derivative-free Barzilai-Borwein spectral approach for solving nonlinear equations
 implemented in `dfsane()` from the package `BB` [@Vara:Gilb:BB:2009].
 Setting `solver = "BB::BBsolve"` calls the wrapper function
 `BBsolve()` in the `BB` package to locate a root with different
