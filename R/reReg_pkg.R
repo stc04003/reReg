@@ -2,14 +2,14 @@
 #'
 #' The package offers a comprehensive collection of practical and easy-to-use tools for analyzing
 #' recurrent event data, with or without the presence of a (possibly) correlated terminal event.
-#' The modeling framework is basedon a joint frailty scale-change model,
+#' The modeling framework is based on a joint frailty scale-change model,
 #' that encompasses many existing models, including the popular Cox-type models,
 #' as special cases and accommodates informative censoring through a subject-specific frailty.
 #' The implemented estimating procedure does not require any parametric assumption on the frailty
 #' distribution.
 #' The package allows the users to specify different model forms for both the recurrent event process
 #' and the terminal event.
-#' The package also included are visualization of recurrent events and
+#' The package also includes tools for visualization of recurrent events and
 #' simulation from the regression models.
 #'
 #' @aliases reReg-packages
