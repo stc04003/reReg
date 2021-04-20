@@ -4,7 +4,7 @@
 \alias{mcf}
 \title{The \code{mcf} function is imported from \code{reda}.}
 \description{
-An S4 class generic function that returns the mean cumulative function (mcf) estiamtes.
+An S4 class generic function that returns the mean cumulative function (mcf) estimates.
 The function is imported from the \code{reda} package; see \code{?reda::mcf} for more details.
 }
 \examples{
