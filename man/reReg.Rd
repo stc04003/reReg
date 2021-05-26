@@ -20,7 +20,7 @@ The response must be a recurrent event survival object as returned by function \
 
 \item{data}{an optional data frame in which to interpret the variables occurring in the \code{"formula"}.}
 
-\item{subset}{n optional logical vector specifying a subset of observations to be used
+\item{subset}{an optional logical vector specifying a subset of observations to be used
 in the fitting process.}
 
 \item{model}{a character string specifying the underlying model. See \bold{Details}.}
