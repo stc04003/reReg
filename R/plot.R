@@ -174,8 +174,8 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
         isDate <- "Date" %in% obj@time_class
         if (formula[[3]] == 1) DF <- as.data.frame(obj@.Data)
         if (formula[[3]] != 1 && nX == 1) {
-            if (missing(data)) DF <- cbind(obj@.Data, eval(formula[[3]], parent.frame()))
-            if (!missing(data)) DF <- cbind(obj@.Data, eval(formula[[3]], data))
+            if (missing(data)) DF <- data.frame(obj@.Data, eval(formula[[3]], parent.frame()))
+            if (!missing(data)) DF <- data.frame(obj@.Data, eval(formula[[3]], data))
             colnames(DF) <- c(colnames(obj@.Data), paste0(formula[[3]], collapse = ""))
             DF <- as.data.frame(DF)
         }
