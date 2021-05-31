@@ -60,6 +60,7 @@ globalVariables(c("time1", "time2", "group", "Y", "Y.upper", "Y.lower", "id", "e
 #' or Number of Product Repairs. \emph{Technometrics}, \bold{37}(2): 147--157.
 #' 
 #' @keywords Plots
+#' @importFrom("stats", ".getXlevels")
 #' @export
 #'
 #' @return A \code{ggplot} object.
@@ -760,10 +761,15 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
         }        
     }
     if (!is.null(newdata)) {
-        X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata))]))
+        if (!is.null(x$xlevels)) {
+            for(i in which(names(newdata) %in% names(x$xlevels)))
+                newdata[,i] <- factor(newdata[,i], levels = x$xlevels[[i]])
+            newdata <- model.matrix(~., newdata)
+        }
+        X <- as.matrix(unique(newdata[,match(x$varNames, colnames(newdata))]))
         if (ncol(X) != length(x$varNames))
             stop(paste0("Variables ",
-                        paste(setdiff(x$varNames, names(newdata)), collapse = ", "),
+                        paste(setdiff(x$varNames, colnames(newdata)), collapse = ", "),
                         " are missing"))
         p <- ncol(X)
         exa1 <- exa2 <- 1

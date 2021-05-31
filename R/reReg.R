@@ -493,9 +493,11 @@ reReg <- function(formula, data, subset,
     mf$drop.unused.levels <- TRUE
     mf[[1L]] <- quote(stats::model.frame)
     mf <- eval(mf, parent.frame())
-    DF <- do.call(cbind, mf)
+    mm <- stats::model.matrix(formula, data = mf)
+    obj <- stats::model.extract(mf, "response")
+    DF <- cbind(obj, mm)
     DF <- as.data.frame(DF)
-    obj <- model.response(mf)
+    DF <- DF[,colnames(DF) != "(Intercept)"]
     if (!is.Recur(obj)) stop("Response must be a `Recur` object")
     formula[[2]] <- NULL
     if (formula == ~ 1) DF$zero = 0 
@@ -610,6 +612,7 @@ reReg <- function(formula, data, subset,
     fit$call <- Call
     fit$varNames <- names(DF)[-(1:6)]
     fit$se <- se
+    fit$xlevels <- .getXlevels(attr(mf, "terms"), mf)
     if (engine@typeRec == "cox") fit$par1 <- fit$par1[-1]
     if (engine@typeRec == "gsc" & se != "boot") fit$par2 <- fit$par1 + fit$par2[-1]
     if (engine@typeRec == "gsc" & se == "boot") fit$par2 <- fit$par2[-1]
