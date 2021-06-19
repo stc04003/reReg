@@ -60,7 +60,6 @@ globalVariables(c("time1", "time2", "group", "Y", "Y.upper", "Y.lower", "id", "e
 #' or Number of Product Repairs. \emph{Technometrics}, \bold{37}(2): 147--157.
 #' 
 #' @keywords Plots
-#' @importFrom("stats", ".getXlevels")
 #' @export
 #'
 #' @return A \code{ggplot} object.

@@ -461,8 +461,8 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' @references Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
 #' Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
 #'
-#' @importFrom stats approxfun optim model.response
-#' 
+#' @importFrom stats approxfun optim model.response 
+#' @importFrom stats .getXlevels 
 #' @seealso \code{\link{Recur}}, \code{\link{simGSC}}
 #'
 #' @example inst/examples/ex_reReg.R

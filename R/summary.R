@@ -129,7 +129,7 @@ print.summary.reReg <- function(x, ...) {
             }
         } else {
             cat("\nRecurrent event process:\n")
-            printCoefmat(x$tabA)
+            printCoefmat2(x$tabA)
         }
         ## Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)
         if (x$typeTem != ".") {
@@ -141,7 +141,7 @@ print.summary.reReg <- function(x, ...) {
                 printCoefmat2(x$tabB[[2]])
             } else {
                   cat("\nTerminal event:\n")
-                  printCoefmat(x$tabB)
+                  printCoefmat2(x$tabB)
             }
         }
     }    
