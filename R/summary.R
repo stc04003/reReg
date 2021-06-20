@@ -59,9 +59,11 @@ summary.reReg <- function(object, test = FALSE, ...) {
     if (object$typeRec == "nonparametric") {
         t0 <- sort(unique(c(object$DF$time1, object$DF$time2)))
         t0 <- t0[t0 > 0]
-        out <- list(call = object$call, typeRec = object$typeRec, 
-                    coefficients.rec =
-                        data.frame(time = t0, rate = object$Lam0(t0), hazard = object$Haz0(t0)))
+        out <- list(call = object$call, typeRec = object$typeRec,
+                    coefficients.rec = data.frame(time = t0, rate = object$Lam0(t0)))
+        if (!is.null(object$Haz0))
+            out$coefficients.rec$hazard <- object$Haz0(t0)
+        out$typeRec <- object$typeRec
         out
     }
     if (object$typeRec != "nonparametric") {
@@ -104,9 +106,9 @@ printCoefmat2 <- function(tab)
 
 #' @exportS3Method print summary.reReg
 print.summary.reReg <- function(x, ...) {
-    cat("Call: \n")
-    dput(x$call)
     if (x$typeRec != "nonparametric" & !is.na(x$coefficients.rec)[1]) {
+        cat("Call: \n")
+        dput(x$call)
         if(x$typeRec == "cox.LWYY")
             cat("\nFitted with the Cox model of Lin et al. (2000):")
         if(x$typeRec == "cox.GL")
@@ -144,14 +146,14 @@ print.summary.reReg <- function(x, ...) {
                 cat("\nTerminal event (size):\n")
                 printCoefmat2(x$coefficients.haz$coefficients.size)
             } else {
-                  cat("\nTerminal event:\n")
-                  printCoefmat2(x$coefficients.haz)
+                cat("\nTerminal event:\n")
+                printCoefmat2(x$coefficients.haz)
             }
         }
     }    
     if (x$typeRec == "nonparametric") {
-        cat("\n")
-        print(round(unique(x$coefficient.rec), 4), row.names = FALSE)
+        cat("\nNonparametric estimation:\n")
+        print(head(x$coefficients.rec))
     }
     cat("\n")
 }
