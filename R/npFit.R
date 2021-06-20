@@ -1,5 +1,4 @@
 #' Functions used for nonparametric estiamtion
-
 #' This function gives a point estimates assuming one type of event
 #' @noRd
 npFit0 <- function(DF, typeTem = ".") {

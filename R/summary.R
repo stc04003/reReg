@@ -81,13 +81,16 @@ summary.reReg <- function(object, test = FALSE, ...) {
                      coefficients.size = pvalTab(object$par4, object$par4.se, object$varNames))
         if (object$typeRec == "gsc" & !is.null(object$par1.vcov) & !is.null(object$par2.vcov)) {
             p <- length(object$par1)
-            out$HA.chi <- object$par1 %*% solve(object$par1.vcov) %*% object$par1
-            out$HB.chi <- object$par2 %*%
-                solve(object$par1.vcov + object$par2.vcov[-1, -1] + 2 * object$vcovRec12) %*%
-            ## 2 * object$vcovRec[1:p, (p+2):(2*p+1), drop = FALSE]) %*%
-                object$par2
+            ## out$HA.chi <- object$par1 %*% solve(object$par1.vcov) %*% object$par1
+            ## out$HB.chi <- object$par2 %*%
+            ##     solve(object$par1.vcov + object$par2.vcov[-1, -1] + 2 * object$vcovRec12) %*%
+            ##     object$par2
+            out$HA.chi <- bAib(object$par1.vcov, object$par1)
+            out$HB.chi <- bAib(object$par1.vcov + object$par2.vcov + 2 * object$vcovRec12,
+                               object$par2)
             g <- object$par2 - object$par1
-            out$HG.chi <- g %*% solve(object$par2.vcov[-1,-1]) %*% g
+            ## out$HG.chi <- g %*% solve(object$par2.vcov[-1,-1]) %*% g
+            out$HG.chi <- bAib(object$par2.vcov, g)
             out$HA.pval <- 1 - pchisq(out$HA.chi, p)
             out$HB.pval <- 1 - pchisq(out$HB.chi, p)
             out$HG.pval <- 1 - pchisq(out$HG.chi, p)
@@ -100,9 +103,6 @@ summary.reReg <- function(object, test = FALSE, ...) {
     class(out) <- "summary.reReg"
     return(out)
 }
-
-printCoefmat2 <- function(tab) 
-    printCoefmat(as.data.frame(tab), P.values = TRUE, has.Pvalue = TRUE, signif.legend = FALSE)
 
 #' @exportS3Method print summary.reReg
 print.summary.reReg <- function(x, ...) {

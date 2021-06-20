@@ -88,10 +88,12 @@ regFit.am.GL.sand <- function(DF, engine, stdErr) {
         J1 <- coef(lm(sqrt(n) * lmfit1 ~ t(Z)))[-1,]
         J2 <- coef(lm(sqrt(n) * lmfit2 ~ t(Z)))[-1,]
     }
-    if (qr(J1)$rank == p) aVar <- solve(J1) %*% V1 %*% t(solve(J1))
+    if (qr(J1)$rank == p) aVar <- AiBAi(J1, V1)
+    ## aVar <- solve(J1) %*% V1 %*% t(solve(J1))
     else aVar <- ginv(J1) %*% V1 %*% t(ginv(J1))
-    if (qr(J2)$rank == p) bVar <- solve(J2) %*% V2 %*% t(solve(J2))
-    else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2))    
+    if (qr(J2)$rank == p) bVar <- AiBAi(J2, V2)
+    ## bVar <- solve(J2) %*% V2 %*% t(solve(J2))
+    else bVar <- ginv(J2) %*% V2 %*% t(ginv(J2)) 
     aSE <- sqrt(diag(aVar))
     bSE <- sqrt(diag(bVar))
     out <- c(res, list(par1.se = aSE, par3.se = bSE, par1.vcov = aVar, par3.vcov = bVar))
@@ -208,8 +210,10 @@ regFit.general.sand <- function(DF, engine, stdErr) {
          res$par3 + zz[1:len3 + len1 + len2] / sqrt(n),
          res$par4 + zz[1:len4 + len1 + len2 + len3] / sqrt(n), res$zi))})
     L <- t(L)
-    J <- solve(t(Z) %*% Z) %*% t(Z) %*% (sqrt(n) * L)
-    recVar <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
+    ## J <- solve(t(Z) %*% Z) %*% t(Z) %*% (sqrt(n) * L)
+    ## recVar <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
+    J <- Axb(Z, sqrt(n) * L)
+    recVar <- AiBAi(J[1:na, 1:na], V[1:na, 1:na])
     par1.vcov <- recVar[1:len1, 1:len1]
     par1.se <- sqrt(diag(par1.vcov))
     res <- c(res, list(par1.vcov = par1.vcov, par1.se = par1.se))
@@ -220,8 +224,10 @@ regFit.general.sand <- function(DF, engine, stdErr) {
     }
     if (nb > 0) {
         ind2 <- tail(1:nrow(J), nb)
-        J2 <- solve(t(Z[,ind2]) %*% Z[,ind2]) %*% t(Z[,ind2]) %*% (sqrt(n) * L[,ind2])
-        temVar <- solve(J2) %*% V[ind2, ind2] %*% t(solve(J2))
+        ## J2 <- solve(t(Z[,ind2]) %*% Z[,ind2]) %*% t(Z[,ind2]) %*% (sqrt(n) * L[,ind2])
+        ## temVar <- solve(J2) %*% V[ind2, ind2] %*% t(solve(J2))
+        J2 <- Axb(Z[,ind2], sqrt(n) * L[,ind2])
+        temVar <- AiBAi(J2, V[ind2, ind2])
         par3.vcov <- temVar[1:len3, 1:len3]
         par3.se <- sqrt(diag(par3.vcov))
         res <- c(res, list(par3.vcov = par3.vcov, par3.se = par3.se))
