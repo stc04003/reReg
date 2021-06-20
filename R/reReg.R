@@ -230,9 +230,10 @@ regFit.general.sand <- function(DF, engine, stdErr) {
             par4.se <- sqrt(diag(par4.vcov))
             res <- c(res, list(par4.vcov = par4.vcov, par4.se = par4.se))
         }
-        res$vcovTem <- temVar
+        ## res$vcovTem <- temVar
+        res$vcovTem12 <- temVar[1:len3, 2:len4 + len3]
     }
-    res$vcovRec <- recVar
+    res$vcovRec12 <- recVar[1:len1, 2:len2 + len1]
     return(res)
 }
 
@@ -310,8 +311,10 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
         res <- c(res, list(par4.vcov = bVar[1:len4 + len1 + len2 + len3, 1:len4 + len1 + len2 + len3],
                            par4.se = bSE[1:len4 + len1 + len2 + len3]))
     if (engine@typeRec == "gsc") {
-        res$par2.vcov <- bVar[1:len1, 1:len1] + bVar[2:len2 + len1, 2:len2 + len1] + 2 * bVar[1:len1, 2:len2 + len1]
+        res$par2.vcov <- bVar[1:len1, 1:len1] + bVar[2:len2 + len1, 2:len2 + len1] +
+            2 * bVar[1:len1, 2:len2 + len1]
         res$par2.se <- sqrt(diag(res$par2.vcov))
+        res$vcovRec12 <- bVar[1:len1, 2:len2 + len1]
     }
     return(res)
 }
@@ -616,7 +619,10 @@ reReg <- function(formula, data, subset,
     if (engine@typeRec == "cox") fit$par1 <- fit$par1[-1]
     if (engine@typeRec == "gsc" & se != "boot") fit$par2 <- fit$par1 + fit$par2[-1]
     if (engine@typeRec == "gsc" & se == "boot") fit$par2 <- fit$par2[-1]
-    if (se != "NULL" & se != "boot" & engine@typeRec == "gsc") fit$par2.se <- fit$par2.se[-1]   
+    if (se != "NULL" & se != "boot" & engine@typeRec == "gsc") {
+        fit$par2.se <- fit$par2.se[-1]
+        fit$par2.vcov <- fit$par2.vcov[-1, -1]
+    }
     if (se != "NULL" & engine@typeRec == "cox") fit$par1.se <- fit$par1.se[-1]
     fit <- fit[order(names(fit))]
     class(fit) <- "reReg"

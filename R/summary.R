@@ -60,26 +60,29 @@ summary.reReg <- function(object, test = FALSE, ...) {
         t0 <- sort(unique(c(object$DF$time1, object$DF$time2)))
         t0 <- t0[t0 > 0]
         out <- list(call = object$call, typeRec = object$typeRec, 
-                    tabA = data.frame(time = t0, rate = object$Lam0(t0), hazard = object$Haz0(t0)))
+                    coefficients.rec =
+                        data.frame(time = t0, rate = object$Lam0(t0), hazard = object$Haz0(t0)))
         out
     }
     if (object$typeRec != "nonparametric") {
-        tabA <- pvalTab(object$par1, object$par1.se, object$varNames)
+        coefficients.rec <- pvalTab(object$par1, object$par1.se, object$varNames)
         if (object$typeRec == "gsc") 
-            tabA <- list(tabA1 = tabA,
-                         tabA2 = pvalTab(object$par2, object$par2.se, object$varNames))
-        out <- list(call = object$call, typeRec = object$typeRec, tabA = tabA)
+            coefficients.rec <-
+                list(coefficients.shape = coefficients.rec,
+                     coefficients.size = pvalTab(object$par2, object$par2.se, object$varNames))
+        out <- list(call = object$call, typeRec = object$typeRec, coefficients.rec = coefficients.rec)
         if (!is.null(object$par3))
-            out$tabB <- pvalTab(object$par3, object$par3.se, object$varNames)
+            out$coefficients.haz <- pvalTab(object$par3, object$par3.se, object$varNames)
         if (object$typeTem == "gsc")
-            out$tabB <- list(tabB1 = out$tabB,
-                             tabB2 = pvalTab(object$par4, object$par4.se, object$varNames))
+            out$coefficients.haz <-
+                list(coefficients.shape = out$coefficients.haz,
+                     coefficients.size = pvalTab(object$par4, object$par4.se, object$varNames))
         if (object$typeRec == "gsc" & !is.null(object$par1.vcov) & !is.null(object$par2.vcov)) {
             p <- length(object$par1)
             out$HA.chi <- object$par1 %*% solve(object$par1.vcov) %*% object$par1
             out$HB.chi <- object$par2 %*%
-                solve(object$par1.vcov + object$par2.vcov[-1, -1] +
-                      2 * object$vcovRec[1:p, (p+2):(2*p+1), drop = FALSE]) %*%
+                solve(object$par1.vcov + object$par2.vcov[-1, -1] + 2 * object$vcovRec12) %*%
+            ## 2 * object$vcovRec[1:p, (p+2):(2*p+1), drop = FALSE]) %*%
                 object$par2
             g <- object$par2 - object$par1
             out$HG.chi <- g %*% solve(object$par2.vcov[-1,-1]) %*% g
@@ -91,6 +94,7 @@ summary.reReg <- function(object, test = FALSE, ...) {
         out$typeTem <- object$typeTem
         out$test <- test
     }
+    out$vcov <- vcov(object)
     class(out) <- "summary.reReg"
     return(out)
 }
@@ -102,7 +106,7 @@ printCoefmat2 <- function(tab)
 print.summary.reReg <- function(x, ...) {
     cat("Call: \n")
     dput(x$call)
-    if (x$typeRec != "nonparametric" & !is.na(x$tabA)[1]) {
+    if (x$typeRec != "nonparametric" & !is.na(x$coefficients.rec)[1]) {
         if(x$typeRec == "cox.LWYY")
             cat("\nFitted with the Cox model of Lin et al. (2000):")
         if(x$typeRec == "cox.GL")
@@ -110,11 +114,11 @@ print.summary.reReg <- function(x, ...) {
         if(x$typeRec == "am.GL")
             cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
         if (x$typeRec == "gsc") {
-            p <- nrow(x$tabA$tabA1)
+            p <- nrow(x$coefficients.rec$coefficients.scale)
             cat("\nRecurrent event process (shape):\n")
-            printCoefmat2(x$tabA[[1]])
+            printCoefmat2(x$coefficients.rec$coefficients.shape)
             cat("\nRecurrent event process (size):\n")
-            printCoefmat2(x$tabA[[2]])
+            printCoefmat2(x$coefficients.rec$coefficients.size)
             if (x$test) {
                 cat("\nHypothesis tests:")
                 cat("\nHo: shape = 0 (Cox-type model):")
@@ -129,25 +133,25 @@ print.summary.reReg <- function(x, ...) {
             }
         } else {
             cat("\nRecurrent event process:\n")
-            printCoefmat2(x$tabA)
+            printCoefmat2(x$coefficients.rec)
         }
         ## Lin-Wei-Yang-Ying method (fitted with coxph with robust variance)
         if (x$typeTem != ".") {
             if (x$typeTem == "gsc") {
-                p <- nrow(x$tabB$tabB1)
+                p <- nrow(x$coefficients.haz$coefficients.shape)
                 cat("\n\nTerminal event (shape):\n")
-                printCoefmat2(x$tabB[[1]])
+                printCoefmat2(x$coefficients.haz$coefficients.shape)
                 cat("\nTerminal event (size):\n")
-                printCoefmat2(x$tabB[[2]])
+                printCoefmat2(x$coefficients.haz$coefficients.size)
             } else {
                   cat("\nTerminal event:\n")
-                  printCoefmat2(x$tabB)
+                  printCoefmat2(x$coefficients.haz)
             }
         }
     }    
     if (x$typeRec == "nonparametric") {
         cat("\n")
-        print(round(unique(x$tabA), 4), row.names = FALSE)
+        print(round(unique(x$coefficient.rec), 4), row.names = FALSE)
     }
     cat("\n")
 }
@@ -159,5 +163,48 @@ coef.reReg <- function(object, ...) {
 
 #' @exportS3Method vcov reReg
 vcov.reReg <- function(object, ...) {
-    list(vcovRec = object$vcovRec, vcovTem = object$vcovTem)
+    vcovRec <- vcovTem <- NULL
+    if (object$typeRec == "cox") {
+        vcovRec <- object$par1.vcov[-1, -1]
+        attr(vcovRec, "dimnames") <- list(object$varNames, object$varNames)
+    }        
+    if (object$typeRec %in% c("am", "ar")) {
+        vcovRec <- object$par1.vcov
+        attr(vcovRec, "dimnames") <- list(object$varNames, object$varNames)
+    }
+    if (object$typeRec == "gsc") {
+        vcovRec.shape <- object$par1.vcov
+        vcovRec.size <- object$par2.vcov
+        attr(vcovRec.shape, "dimnames") <- list(object$varNames, object$varNames)
+        attr(vcovRec.size, "dimnames") <- list(object$varNames, object$varNames)
+        vcovRec <- list(vcovRec.shape = vcovRec.shape, vcovRec.size = vcovRec.size)
+    }
+    if (object$typeTem == ".") return(vcovRec)    
+    if (object$typeTem != "gsc") {
+        vcovTem <- object$par3.vcov
+        attr(vcovTem, "dimnames") <- list(object$varNames, object$varNames)
+    }
+    if (object$typeTem == "gsc") {
+        vcovTem.shape <- object$par3.vcov
+        vcovTem.size <- object$par4.vcov
+        attr(vcovTem.shape, "dimnames") <- list(object$varNames, object$varNames)
+        attr(vcovTem.size, "dimnames") <- list(object$varNames, object$varNames)
+        vcovTem <- list(vcovTem.shape = vcovTem.shape, vcovTem.size = vcovTem.size)        
+    }
+    list(vcovRec = vcovRec, vcovTem = vcovTem)
+}
+
+#' @exportS3Method coef summary.reReg
+coef.summary.reReg <- function(object, ...) {
+    if (is.null(object$coefficients.haz))
+        return(object$coefficients.rec)
+    else
+        return(list(coefficients.rec = object$coefficients.rec,
+                    coefficients.haz = object$coefficients.haz))
+}
+
+
+#' @exportS3Method vcov summary.reReg
+vcov.summary.reReg <- function(object, ...) {
+    object$vcov
 }
