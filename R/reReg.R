@@ -153,7 +153,7 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
 ## #' @importFrom rlang is_empty
 regFit.general <- function(DF, engine, stdErr) {
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
-        print("Warning: Unidentified solver; BB::dfsane is used.")
+        warning("Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
     out <- s1(engine@typeRec, DF, engine@eqType, engine@solver, engine@par1, engine@par2)
@@ -183,7 +183,7 @@ s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL) {
 
 regFit.general.sand <- function(DF, engine, stdErr) {
     if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
-        print("Warning: Unidentified solver; BB::dfsane is used.")
+        warning("Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
     res <- regFit(DF, engine, NULL)
@@ -292,12 +292,12 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     }
     converged <- which(convergence == 0)
     if (sum(convergence != 0) > 0) {
-        print("Warning: Some bootstrap samples failed to converge")
+        warning("Some bootstrap samples failed to converge")
         tmp <- apply(bCoef, 1, function(x) x %*% x)
         converged <- (1:B)[- which(tmp %in% boxplot(tmp, plot = FALSE)$out)]        
     }
     if (all(convergence != 0) || sum(convergence == 0) == 1) {
-        print("Warning: some bootstrap samples failed to converge")
+        warning("Some bootstrap samples failed to converge")
         converged <- 1:B
     }
     bVar <- var(bCoef[converged, ], na.rm = TRUE)
@@ -553,7 +553,7 @@ reReg <- function(formula, data, subset,
     if (model == "am.GL") typeRec <- typeTem <- "am.GL"
     if (length(unique(DF$time2[DF$event == 0])) == 1 & typeTem != ".") {
         typeTem <- "."
-        cat("Only one unique censoring time is detected, terminal event model is not fitted.\n\n")
+        message("Only one unique censoring time is detected, terminal event model is not fitted.")
     }
     ## Temporary fix 
     if (typeRec != "gsc")  se <- "boot"

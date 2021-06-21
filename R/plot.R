@@ -239,7 +239,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
         if (length(ctrl$recurrent.type) == k) {
             shp.lab <- c(ctrl$terminal.name, ctrl$recurrent.type)
         } else {
-            cat('The length of "recurrent.type" mismatched, default names are used.\n')
+            message('The length of "recurrent.type" mismatched, default names are used.')
             shp.lab <- c(ctrl$terminal.name, paste(ctrl$recurrent.name, 1:k))            
         }
     }
@@ -482,7 +482,7 @@ plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE,
             if (length(ctrl$recurrent.type) == k) {
                 dat0$event <- factor(dat0$event, labels = ctrl$recurrent.type)
             } else {
-                cat('The length of "recurrent.type" mismatched, default names are used.\n')
+                message('The length of "recurrent.type" mismatched, default names are used.')
                 dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
             }
         }
@@ -524,7 +524,7 @@ plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE,
         ## geom_smooth(method = "scam", formula = y ~ s(x, k = 10, bs = "mpi"), size = ctrl$lwd, se = FALSE)
     }
     ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
-    if (smooth & k > 1) cat('Smoothing only works for data with one recurrent event type.\n')
+    if (smooth & k > 1) message('Smoothing only works for data with one recurrent event type.')
     if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
     gg + theme(axis.line = element_line(color = "black"),
                legend.position = ctrl$legend.position,
@@ -1055,7 +1055,7 @@ basebind <- function(..., legend.title, legend.labels) {
     nargs <- length(gglst)
     if (missing(legend.labels)) legend.labels <- 1:nargs
     if (length(legend.labels) != nargs) {
-        cat('The length of "name" mismatched, default names are used.\n')
+        message('The length of "name" mismatched, default names are used.')
         legend.labels <- 1:nargs
     }
     d <- do.call(rbind, lapply(gglst, function(x) x$data))

@@ -24,4 +24,5 @@ Axb <- function(A, b) {
 #' Generalized printCoefmat for printing in summary.reReg
 #' @noRd
 printCoefmat2 <- function(tab) 
-    printCoefmat(as.data.frame(tab), P.values = TRUE, has.Pvalue = TRUE, signif.legend = FALSE)
+    printCoefmat(as.data.frame(tab), P.values = TRUE,
+                 has.Pvalue = TRUE, signif.legend = FALSE)
