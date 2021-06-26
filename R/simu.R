@@ -4,11 +4,17 @@
 
 #' Function to find inverse of a given Lam
 #' @noRd
-inv <- function (t, z, exa, exb, fn) {
+inv <- function (t, z, exa, exb, fun) {
     mapply(t, FUN = function(u) {
-        uf <- function(x) u - fn(x, z, exa, exb) ## / Lam.f(10, r, b, model)
-        exp(optim(par = 1, fn = function(y) uf(exp(y))^2, 
-                  control = list(warn.1d.NelderMead = FALSE))$par)
+        uf <- function(x) u - fun(x, z, exa, exb) ## / Lam.f(10, r, b, model)
+        r1 <- dfsane(par = 1, function(y) uf(y), quiet = TRUE)
+        if (!r1$convergence) {
+            r2 <- exp(spg(par = 1, fn = function(y) uf(exp(y))^2, quiet = TRUE)$par)
+            if (uf(r1$par) <= uf(r2)) return(r1$par)
+            if (uf(r1$par) > uf(r2)) return(r2)
+        } else return(r1$par)
+        ## exp(optim(par = 1, fn = function(y) uf(exp(y))^2, 
+        ##           control = list(warn.1d.NelderMead = FALSE))$par)
     })
 }
 
