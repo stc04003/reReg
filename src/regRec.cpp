@@ -96,14 +96,14 @@ arma::rowvec re2(const arma::vec& b,
 
 //' @noRd
 // [[Rcpp::export]]
-arma::vec reGehan(const arma::vec& a,
+arma::rowvec reGehan(const arma::vec& a,
 		  const arma::mat& X,
 		  const arma::vec& T,
 		  const arma::vec& Y,
 		  const arma::vec& W) {
   int n = Y.n_elem;
   int p = a.n_elem;
-  arma::vec out(p, arma::fill::zeros);
+  arma::rowvec out(p, arma::fill::zeros);
   arma::vec texa = log(T) + X * a;
   arma::vec yexa = log(Y) + X * a;
   for (int i = 0; i < n; i++) {

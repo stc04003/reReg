@@ -166,6 +166,8 @@ coef.reReg <- function(object, ...) {
 #' @exportS3Method vcov reReg
 vcov.reReg <- function(object, ...) {
     vcovRec <- vcovTem <- NULL
+    if (is.null(object$par1.vcov))
+        return(list(vcovRec = vcovRec, vcovTem = vcovTem))
     if (object$typeRec == "cox") {
         vcovRec <- object$par1.vcov[-1, -1]
         attr(vcovRec, "dimnames") <- list(object$varNames, object$varNames)

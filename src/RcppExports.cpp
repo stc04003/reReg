@@ -50,7 +50,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // reGehan
-arma::vec reGehan(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
+arma::rowvec reGehan(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
 RcppExport SEXP _reReg_reGehan(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

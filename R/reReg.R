@@ -261,44 +261,47 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     B <- stdErr@B
     uID <- unique(DF$id) # unique(DF$ID)
     bound <- c(res$par1, res$par2, res$par3, res$par4)
+    engine2 <- engine
+    engine2@par1 <- res$par1
+    engine2@par2 <- res$par2
     if (stdErr@parallel) {
         cl <- makeCluster(stdErr@parCl)
         clusterExport(cl = cl,
-                      varlist = c("DF", "engine"),
+                      varlist = c("DF", "engine2"),
                       envir = environment())
         out <- parSapply(cl, 1:B, function(x) {
             sampled.id <- sample(unique(id), n, TRUE)
             ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
-            tmp <- regFit(DF2, engine, NULL)
+            tmp <- regFit(DF2, engine2, NULL)
             return(c(tmp$par1, tmp$par2, tmp$par3, tmp$par4))
         })
         stopCluster(cl)
         bCoef <- t(out)
-        convergence <- apply(bCoef, 1, function(x) 1 * (x %*% x > 1e3 * bound %*% bound))
     } else {
         bCoef <- matrix(0, B, length(bound))
         convergence <- rep(0, B)
-            for (i in 1:B) {
+        for (i in 1:B) {
             sampled.id <- sample(unique(id), n, TRUE)
             ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
             DF2 <- DF[ind,]
             DF2$id <- rep(1:n, clsz[sampled.id])
-            tmp <- regFit(DF2, engine, NULL)
+            tmp <- regFit(DF2, engine2, NULL)
             bCoef[i,] <- c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)
-            convergence[i] <- 1 * (bCoef[i,] %*% bCoef[i,] > 1e3 * bound %*% bound)
         }
     }
+    convergence <- 1 * (apply(bCoef, 1, crossprod) > 1e3 * drop(crossprod(bound)))
     converged <- which(convergence == 0)
     if (sum(convergence != 0) > 0) {
         warning("Some bootstrap samples failed to converge")
         tmp <- apply(bCoef, 1, function(x) x %*% x)
-        converged <- (1:B)[- which(tmp %in% boxplot(tmp, plot = FALSE)$out)]        
+        converged <- (1:B)[- which(tmp %in% boxplot(tmp, plot = FALSE)$out)]
     }
     if (all(convergence != 0) || sum(convergence == 0) == 1) {
         warning("Some bootstrap samples failed to converge")
-        converged <- 1:B
+        converged <- (1:B)[- which(tmp %in% boxplot(tmp, plot = FALSE)$out)]
+        ## converged <- 1:B
     }
     bVar <- var(bCoef[converged, ], na.rm = TRUE)
     bSE <- sqrt(diag(as.matrix(bVar)))
@@ -639,6 +642,8 @@ reReg <- function(formula, data, subset,
 #'
 #' @noRd
 #' @importFrom BB spg
+#' @importFrom optimx optimr
+#' @importFrom dfoptim hjk mads nmk
 #' @importFrom rootSolve uniroot.all
 #' @keywords internal
 eqSolve <- function(par, fn, solver, ...) {
@@ -662,11 +667,21 @@ eqSolve <- function(par, fn, solver, ...) {
     if (solver == "optim")
         out <- optim(par = par, fn = function(z) sum(fn(z, ...)^2),
                      control = list(trace = FALSE))
+    if (solver == "optimr")
+        out <- optimr(par = par, fn = function(z) sum(fn(z, ...)^2))
+    if (solver == "hjk")
+        out <- hjk(par = par, fn = function(z) sum(fn(z, ...)^2))
+    if (solver == "mads")
+        out <- mads(par = par, fn = function(z) sum(fn(z, ...)^2),
+                    control = list(trace = FALSE))
+    if (solver == "nmk")
+        out <- nmk(par = par, fn = function(z) sum(fn(z, ...)^2))    
     return(out)
 }
 
 reReg.control <- function(eqType = c("logrank", "gehan"),
-                          solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optim"),
+                          solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optimx::optimr",
+                                     "dfoptim::hjk", "dfoptim::mads", "optim"),
                           tol = 1e-7,
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
                           boot.parallel = FALSE, boot.parCl = NULL) {
@@ -675,6 +690,9 @@ reReg.control <- function(eqType = c("logrank", "gehan"),
     if (solver == "BB::dfsane") solver <- "dfsane"
     if (solver == "BB::BBsolve") solver <- "BBsolve"
     if (solver == "BB::BBoptim") solver <- "BBoptim"
+    if (solver == "optimx::optimr") solver <- "optimr"
+    if (solver == "dfoptim::hjk") solver <- "hjk"
+    if (solver == "dfoptim::mads") solver <- "mads"
     eqType <- match.arg(eqType)
     list(tol = tol, eqType = eqType, solver = solver,
          par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
