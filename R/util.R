@@ -6,7 +6,8 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) 
 #' Calculate b %*% solve(A) %*% b
 #' @noRd
 bAib <- function(A, b) {
-    crossprod(solve(t(chol(A)), b))
+    tryCatch(crossprod(solve(t(chol(A)), b)),
+             error = function(e) solve(b %*% solve(A) %*% b))
 }
 
 #' Calculate solve(A) %*% B %*% t(solve(A))

@@ -3,6 +3,7 @@
 	* Improved print methods for summary.reReg
 	* Improved matrix algebra in calculation
 	* Replace exceeded cat() and print() with message() and warning()
+	* Export reReg.control
 # `reReg` 1.4.0
   	* `simGSC()` now allows users to specifies design matrix and censoring distribution.
 	* Some name changes (mostly arguments) to match with the JSS submission.

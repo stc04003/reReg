@@ -15,10 +15,12 @@ reReg(
 )
 }
 \arguments{
-\item{formula}{a formula object, with the response on the left of a "~" operator, and the predictors on the right.
+\item{formula}{a formula object, with the response on the left of a "~" operator,
+and the predictors on the right.
 The response must be a recurrent event survival object as returned by function \code{Recur}.}
 
-\item{data}{an optional data frame in which to interpret the variables occurring in the \code{"formula"}.}
+\item{data}{an optional data frame in which to interpret the variables occurring
+in the \code{"formula"}.}
 
 \item{subset}{an optional logical vector specifying a subset of observations to be used
 in the fitting process.}
@@ -34,7 +36,7 @@ When \code{B = 0}, variance estimation will not be performed.}
    \item{\code{sand}}{ resampling-based sandwich estimator}
 }}
 
-\item{control}{a list of control parameters.}
+\item{control}{a list of control parameters. See \code{\link{reReg.control}} for default values.}
 }
 \description{
 Fits a general (joint) semiparametric regression model for the recurrent event data,
@@ -90,11 +92,17 @@ The available methods for variance estimation are:
 The \code{control} list consists of the following parameters:
 \describe{
   \item{tol}{absolute error tolerance.}
-  \item{alpha, beta, eta, theta}{initial guesses used for root search.}
-  \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-  \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
-  \item{boot.parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "boot"} is called.}
-  \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+  \item{init}{a list contains initial guesses used for root search.}
+  \item{solver}{the equation solver used for root search.
+The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB::BBoptim}, 
+\code{optimx::optimr}, \code{dfoptim::hjk}, \code{dfoptim::mads}, \code{optim},
+and \code{nleqslv::nleqslv}.}
+  \item{eqType}{a character string indicating whether the log-rank type estimating equation or
+the Gehan-type estimating equation (when available) will be used. }
+  \item{boot.parallel}{an logical value indicating whether parallel computation
+will be applied when \code{se = "boot"} is called.}
+  \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when
+\code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 }
 }
 \examples{

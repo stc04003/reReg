@@ -43,6 +43,8 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
     if (is.null(w2)) w2 <- rep(1, length(m))
     if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, rep(w1, m)))
     if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, rep(w1, m)))
+    if (eqType == "gehan_s") U1 <- function(a)
+        as.numeric(reGehan_s(a, xi, ti, yii, rep(w1, m), length(m)))
     Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
     U2 <- function(b) as.numeric(re2(b, R, Xi, w1))
     if (is.null(solver)) {
@@ -59,6 +61,14 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
         zi <- R / exp(Xi[,-1, drop = FALSE] %*% par2[-1])
         return(list(value = c(U1(par1), re2(par2, R, Xi, rep(1, length(m)))), zi = zi))
     } else {
+        ## non-smooth version could be unstable when there are only a few binary covaraites
+        ## a grid search to help in root search in this scenario
+        ## if (sum(sapply(1:ncol(Xi), function(d) length(unique(Xi[,d])))) < 6) {
+        ##     dtry <- expand.grid(lapply(par1, function(e) seq(e - 5, e + 5, length.out = 100)))
+        ##     ## dtry <- expand.grid(rep(list(seq(-5, 5, length.out = 100)), length(par1)))
+        ##     dtrysol <- t(apply(dtry, 1, U1))
+        ##     par1 <- as.numeric(dtry[which.min(apply(dtrysol, 1, crossprod)),])
+        ## }
         fit.a <- eqSolve(par1, U1, solver)
         ahat <- fit.a$par
         texa <- log(ti) + xi %*% ahat

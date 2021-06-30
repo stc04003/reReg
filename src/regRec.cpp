@@ -116,6 +116,36 @@ arma::rowvec reGehan(const arma::vec& a,
   return out;
 }
 
+
+//' @noRd
+// [[Rcpp::export]]
+arma::rowvec reGehan_s(const arma::vec& a,
+		       const arma::mat& X,
+		       const arma::vec& T,
+		       const arma::vec& Y,
+		       const arma::vec& W,
+		       double nc) {
+  int n = Y.n_elem;
+  int p = a.n_elem;
+  arma::vec texa = log(T) + X * a;
+  arma::vec yexa = log(Y) + X * a;
+  arma::rowvec out(p, arma::fill::zeros);
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      arma::rowvec xdif = (X.row(i) - X.row(j));
+      arma::vec rij = xdif * xdif.t();
+      rij[0] = sqrt(rij[0] / nc);
+      double H = 0;
+      if (rij[0] != 0) {
+	H = arma::normcdf((yexa[j] - texa[i]) / rij(0)) -
+	  arma::normcdf((texa[j] - texa[i]) / rij(0));
+      }
+      out += W(i) * W(j) * xdif * H; 
+    }
+  }
+  return out;
+}
+
 //' @noRd
 // [[Rcpp::export]]
 arma::rowvec am1(const arma::vec& a,

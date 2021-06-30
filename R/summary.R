@@ -116,7 +116,7 @@ print.summary.reReg <- function(x, ...) {
         if(x$typeRec == "am.GL")
             cat("\nFitted with the accelerated mean model of Ghosh and Lin (2003):")
         if (x$typeRec == "gsc") {
-            p <- nrow(x$coefficients.rec$coefficients.scale)
+            p <- nrow(x$coefficients.rec$coefficients.shape)
             cat("\nRecurrent event process (shape):\n")
             printCoefmat2(x$coefficients.rec$coefficients.shape)
             cat("\nRecurrent event process (size):\n")
@@ -126,10 +126,10 @@ print.summary.reReg <- function(x, ...) {
                 cat("\nHo: shape = 0 (Cox-type model):")
                 cat(paste("\n     X-squared = ", round(x$HA.chi, 4), ", df = ", p,
                           ", p-value = ", round(x$HA.pval, 4), sep = ""))
-                cat("\nHo: shape = size (Accelerated rate model):")
+                cat("\nHo: shape = size (Accelerated mean model):")
                 cat(paste("\n     X-squared = ", round(x$HB.chi, 4), ", df = ", p,
                           ", p-value = ", round(x$HB.pval, 4), sep = ""))
-                cat("\nHo: size = 0 (Accelerated mean model):")
+                cat("\nHo: size = 0 (Accelerated rate model):")
                 cat(paste("\n     X-squared = ", round(x$HG.chi, 4), ", df = ", p,
                           ", p-value = ", round(x$HG.pval, 4), sep = ""))
             }

@@ -152,7 +152,8 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
 
 ## #' @importFrom rlang is_empty
 regFit.general <- function(DF, engine, stdErr) {
-    if (is.na(match(engine@solver, c("dfsane", "BBsolve", "optim", "BBoptim")))) {
+    eqList <- c("dfsane", "BBsolve", "optim", "BBoptim", "optimr", "hjk", "mads", "nleqslv")
+    if (is.na(match(engine@solver, eqList))) {
         warning("Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
@@ -263,7 +264,7 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     bound <- c(res$par1, res$par2, res$par3, res$par4)
     engine2 <- engine
     engine2@par1 <- res$par1
-    engine2@par2 <- res$par2
+    if (!is.null(res$par2)) engine2@par2 <- res$par2
     if (stdErr@parallel) {
         cl <- makeCluster(stdErr@parCl)
         clusterExport(cl = cl,
@@ -291,7 +292,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
             bCoef[i,] <- c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)
         }
     }
-    convergence <- 1 * (apply(bCoef, 1, crossprod) > 1e3 * drop(crossprod(bound)))
+    res$bCoef <- bCoef
+    convergence <- 1 * (apply(bCoef, 1, crossprod) > 100 * drop(crossprod(bound)))
     converged <- which(convergence == 0)
     if (sum(convergence != 0) > 0) {
         warning("Some bootstrap samples failed to converge")
@@ -436,16 +438,24 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' The \code{control} list consists of the following parameters:
 #' \describe{
 #'   \item{tol}{absolute error tolerance.}
-#'   \item{alpha, beta, eta, theta}{initial guesses used for root search.}
-#'   \item{solver}{the equation solver used for root search. The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB:BBoptim}, and \code{optim}.}
-#'   \item{eqType}{a character string indicating whether the log-rank type estimating equation or the Gehan-type estimating equation (when available) will be used. }
-#'   \item{boot.parallel}{an logical value indicating whether parallel computation will be applied when \code{se = "boot"} is called.}
-#'   \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+#'   \item{init}{a list contains initial guesses used for root search.}
+#'   \item{solver}{the equation solver used for root search.
+#' The available options are \code{BB::BBsolve}, \code{BB::dfsane}, \code{BB::BBoptim}, 
+#' \code{optimx::optimr}, \code{dfoptim::hjk}, \code{dfoptim::mads}, \code{optim},
+#' and \code{nleqslv::nleqslv}.}
+#'   \item{eqType}{a character string indicating whether the log-rank type estimating equation or
+#' the Gehan-type estimating equation (when available) will be used. }
+#'   \item{boot.parallel}{an logical value indicating whether parallel computation
+#' will be applied when \code{se = "boot"} is called.}
+#'   \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when
+#' \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
 #' }
 #' 
-#' @param formula a formula object, with the response on the left of a "~" operator, and the predictors on the right.
+#' @param formula a formula object, with the response on the left of a "~" operator,
+#' and the predictors on the right.
 #' The response must be a recurrent event survival object as returned by function \code{Recur}.
-#' @param data  an optional data frame in which to interpret the variables occurring in the \code{"formula"}.
+#' @param data  an optional data frame in which to interpret the variables occurring
+#' in the \code{"formula"}.
 #' @param subset an optional logical vector specifying a subset of observations to be used
 #' in the fitting process.
 #' @param B a numeric value specifies the number of bootstraps for variance estimation.
@@ -456,7 +466,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #'    \item{\code{boot}}{ nonparametric bootstrap approach}
 #'    \item{\code{sand}}{ resampling-based sandwich estimator}
 #' }
-#' @param control a list of control parameters.
+#' @param control a list of control parameters. See \code{\link{reReg.control}} for default values.
 #'
 #' @export
 #' @references Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
@@ -514,6 +524,17 @@ reReg <- function(formula, data, subset,
     formula[[2]] <- NULL
     if (formula == ~ 1) DF$zero = 0 
     ctrl <- reReg.control()
+    if (!is.null(control$init)) {
+        if(is.null(control$init$alpha)) control$par1 <- 0
+        else control$par1 <- control$init$alpha
+        if(is.null(control$init$beta)) control$par2 <- 0
+        else control$par1 <- control$init$beta
+        if(is.null(control$init$eta)) control$par3 <- 0
+        else control$par1 <- control$init$eta
+        if(is.null(control$init$theta)) control$par4 <- 0
+        else control$par1 <- control$init$theta
+        control$init <- NULL
+    }
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -626,8 +647,7 @@ reReg <- function(formula, data, subset,
     fit$se <- se
     fit$xlevels <- .getXlevels(attr(mf, "terms"), mf)
     if (engine@typeRec == "cox") fit$par1 <- fit$par1[-1]
-    if (engine@typeRec == "gsc" & se != "boot") fit$par2 <- fit$par1 + fit$par2[-1]
-    if (engine@typeRec == "gsc" & se == "boot") fit$par2 <- fit$par2[-1]
+    if (engine@typeRec == "gsc") fit$par2 <- fit$par1 + fit$par2[-1]
     if (se != "NULL" & se != "boot" & engine@typeRec == "gsc") {
         fit$par2.se <- fit$par2.se[-1]
         fit$par2.vcov <- fit$par2.vcov[-1, -1]
@@ -661,6 +681,10 @@ eqSolve <- function(par, fn, solver, ...) {
     }
     if (solver == "BBsolve")
         out <- BBsolve(par = par, fn = fn, ..., quiet = TRUE)
+    if (solver == "nleqslv") {
+        out <- nleqslv(x = par, fn = fn, ...)
+        out$par <- out$x
+    }
     if (solver == "BBoptim")
         out <- BBoptim(par = par, fn = function(z) sum(fn(z, ...)^2),
                        quiet = TRUE, control = list(trace = FALSE))
@@ -679,14 +703,31 @@ eqSolve <- function(par, fn, solver, ...) {
     return(out)
 }
 
-reReg.control <- function(eqType = c("logrank", "gehan"),
+#' Package options for reReg
+#'
+#' This function provides the fitting options for the \code{reReg()} function. 
+#'
+#' @param eqType a character string indicating whether the log-rank type estimating equation
+#' or the Gehan-type estimating equation (when available) will be used.
+#' @param solver a character string specifying the equation solver to be used for root search.
+#' @param tol a numerical value specifying the absolute error tolerance in root search.
+#' @param init a list contains the initial guesses used for root search.
+#' @param boot.parallel an logical value indicating whether parallel computation will be
+#' applied when \code{se = "boot"} is specified in \code{reReg()}.
+#' @param boot.parCl an integer value specifying the number of CPU cores to be used when
+#' \code{parallel = TRUE}. The default value is half the CPU cores on the current host.
+#'
+#' @seealso \code{\link{reReg}}
+#' @export
+reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
                           solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optimx::optimr",
-                                     "dfoptim::hjk", "dfoptim::mads", "optim"),
+                                     "dfoptim::hjk", "dfoptim::mads", "optim", "nleqslv::nleqslv"),
                           tol = 1e-7,
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
                           boot.parallel = FALSE, boot.parCl = NULL) {
     if (is.null(boot.parCl)) boot.parCl <- parallel::detectCores() / 2L
     solver <- match.arg(solver)
+    if (solver == "nleqslv::nleqslv") solve <- "nleqslv"
     if (solver == "BB::dfsane") solver <- "dfsane"
     if (solver == "BB::BBsolve") solver <- "BBsolve"
     if (solver == "BB::BBoptim") solver <- "BBoptim"

@@ -22,6 +22,7 @@ extern void log_ns_est(void *, void *, void *, void *, void *, void *, void *, v
 extern SEXP _reReg_am1(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _reReg_re2(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _reReg_reGehan(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _reReg_reGehan_s(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _reReg_reLog(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _reReg_reRate(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _reReg_temGehan(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -44,6 +45,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_reReg_am1",        (DL_FUNC) &_reReg_am1,        6},
     {"_reReg_re2",        (DL_FUNC) &_reReg_re2,        4},
     {"_reReg_reGehan",    (DL_FUNC) &_reReg_reGehan,    5},
+    {"_reReg_reGehan_s",    (DL_FUNC) &_reReg_reGehan_s,    6},
     {"_reReg_reLog",      (DL_FUNC) &_reReg_reLog,      5},
     {"_reReg_reRate",     (DL_FUNC) &_reReg_reRate,     4},
     {"_reReg_temGehan",   (DL_FUNC) &_reReg_temGehan,   7},

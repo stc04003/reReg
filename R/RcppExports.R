@@ -22,6 +22,11 @@ reGehan <- function(a, X, T, Y, W) {
 }
 
 #' @noRd
+reGehan_s <- function(a, X, T, Y, W, nc) {
+    .Call('_reReg_reGehan_s', PACKAGE = 'reReg', a, X, T, Y, W, nc)
+}
+
+#' @noRd
 am1 <- function(a, T, Y, W, X, m) {
     .Call('_reReg_am1', PACKAGE = 'reReg', a, T, Y, W, X, m)
 }
