@@ -215,11 +215,11 @@ regFit.general.sand <- function(DF, engine, stdErr) {
     ## recVar <- solve(J[1:na, 1:na]) %*% V[1:na, 1:na] %*% t(solve(J[1:na, 1:na]))
     J <- Axb(Z, sqrt(n) * L)
     recVar <- AiBAi(J[1:na, 1:na], V[1:na, 1:na])
-    par1.vcov <- recVar[1:len1, 1:len1]
+    par1.vcov <- recVar[1:len1, 1:len1, drop = FALSE]
     par1.se <- sqrt(diag(par1.vcov))
     res <- c(res, list(par1.vcov = par1.vcov, par1.se = par1.se))
     if (len2 > 0) {
-        par2.vcov <- recVar[1:len2 + len1, 1:len2 + len1]
+        par2.vcov <- recVar[1:len2 + len1, 1:len2 + len1, drop = FALSE]
         par2.se <- sqrt(diag(par2.vcov))
         res <- c(res, list(par2.vcov = par2.vcov, par2.se = par2.se))
     }
@@ -229,11 +229,11 @@ regFit.general.sand <- function(DF, engine, stdErr) {
         ## temVar <- solve(J2) %*% V[ind2, ind2] %*% t(solve(J2))
         J2 <- Axb(Z[,ind2], sqrt(n) * L[,ind2])
         temVar <- AiBAi(J2, V[ind2, ind2])
-        par3.vcov <- temVar[1:len3, 1:len3]
+        par3.vcov <- temVar[1:len3, 1:len3, drop = FALSE]
         par3.se <- sqrt(diag(par3.vcov))
         res <- c(res, list(par3.vcov = par3.vcov, par3.se = par3.se))
         if (!is.null(res$par4)) {
-            par4.vcov <- temVar[1:len4 + len3, 1:len4 + len3]
+            par4.vcov <- temVar[1:len4 + len3, 1:len4 + len3, drop = FALSE]
             par4.se <- sqrt(diag(par4.vcov))
             res <- c(res, list(par4.vcov = par4.vcov, par4.se = par4.se))
         }
@@ -263,8 +263,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     uID <- unique(DF$id) # unique(DF$ID)
     bound <- c(res$par1, res$par2, res$par3, res$par4)
     engine2 <- engine
-    engine2@par1 <- res$par1
-    if (!is.null(res$par2)) engine2@par2 <- res$par2
+    ## engine2@par1 <- res$par1
+    ## if (!is.null(res$par2)) engine2@par2 <- res$par2
     if (stdErr@parallel) {
         cl <- makeCluster(stdErr@parCl)
         clusterExport(cl = cl,
@@ -296,12 +296,12 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     convergence <- 1 * (apply(bCoef, 1, crossprod) > 100 * drop(crossprod(bound)))
     converged <- which(convergence == 0)
     if (sum(convergence != 0) > 0) {
-        warning("Some bootstrap samples failed to converge")
+        message("Some bootstrap samples failed to converge")
         tmp <- apply(bCoef, 1, function(x) x %*% x)
         converged <- (1:B)[- which(tmp %in% boxplot(tmp, plot = FALSE)$out)]
     }
     if (all(convergence != 0) || sum(convergence == 0) == 1) {
-        warning("Some bootstrap samples failed to converge")
+        message("Some bootstrap samples failed to converge")
         converged <- (1:B)[- which(tmp %in% boxplot(tmp, plot = FALSE)$out)]
         ## converged <- 1:B
     }
@@ -311,7 +311,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     len2 <- length(res$par2)
     len3 <- length(res$par3)
     len4 <- length(res$par4)
-    res <- c(res, list(par1.vcov = bVar[1:len1, 1:len1], par1.se = bSE[1:len1], B = length(converged)))
+    res <- c(res, list(par1.vcov = bVar[1:len1, 1:len1, drop = FALSE],
+                       par1.se = bSE[1:len1], B = length(converged)))
     if (len2 > 0)
         res <- c(res, list(par2.vcov = bVar[1:len2 + len1, 1:len2 + len1],
                            par2.se = bSE[1:len2 + len1]))
@@ -322,10 +323,11 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
         res <- c(res, list(par4.vcov = bVar[1:len4 + len1 + len2 + len3, 1:len4 + len1 + len2 + len3],
                            par4.se = bSE[1:len4 + len1 + len2 + len3]))
     if (engine@typeRec == "gsc") {
-        res$par2.vcov <- bVar[1:len1, 1:len1] + bVar[2:len2 + len1, 2:len2 + len1] +
-            2 * bVar[1:len1, 2:len2 + len1]
+        res$par2.vcov <- bVar[1:len1, 1:len1, drop = FALSE] +
+            bVar[2:len2 + len1, 2:len2 + len1, drop = FALSE] +
+            2 * bVar[1:len1, 2:len2 + len1, drop = FALSE]
         res$par2.se <- sqrt(diag(res$par2.vcov))
-        res$vcovRec12 <- bVar[1:len1, 2:len2 + len1]
+        res$vcovRec12 <- bVar[1:len1, 2:len2 + len1, drop = FALSE]
     }
     return(res)
 }
@@ -650,7 +652,7 @@ reReg <- function(formula, data, subset,
     if (engine@typeRec == "gsc") fit$par2 <- fit$par1 + fit$par2[-1]
     if (se != "NULL" & se != "boot" & engine@typeRec == "gsc") {
         fit$par2.se <- fit$par2.se[-1]
-        fit$par2.vcov <- fit$par2.vcov[-1, -1]
+        fit$par2.vcov <- fit$par2.vcov[-1, -1, drop = FALSE]
     }
     if (se != "NULL" & engine@typeRec == "cox") fit$par1.se <- fit$par1.se[-1]
     fit <- fit[order(names(fit))]
