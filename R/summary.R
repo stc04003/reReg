@@ -86,11 +86,10 @@ summary.reReg <- function(object, test = FALSE, ...) {
             ##     solve(object$par1.vcov + object$par2.vcov[-1, -1] + 2 * object$vcovRec12) %*%
             ##     object$par2
             out$HA.chi <- bAib(object$par1.vcov, object$par1)
-            out$HB.chi <- bAib(object$par1.vcov + object$par2.vcov + 2 * object$vcovRec12,
-                               object$par2)
+            out$HB.chi <- bAib(object$par2.vcov, object$par2)
             g <- object$par2 - object$par1
             ## out$HG.chi <- g %*% solve(object$par2.vcov[-1,-1]) %*% g
-            out$HG.chi <- bAib(object$par2.vcov, g)
+            out$HG.chi <- bAib(object$par2.vcov - object$par1.vcov - 2 * object$vcovRec12, g)
             out$HA.pval <- 1 - pchisq(out$HA.chi, p)
             out$HB.pval <- 1 - pchisq(out$HB.chi, p)
             out$HG.pval <- 1 - pchisq(out$HG.chi, p)
@@ -126,10 +125,10 @@ print.summary.reReg <- function(x, ...) {
                 cat("\nHo: shape = 0 (Cox-type model):")
                 cat(paste("\n     X-squared = ", round(x$HA.chi, 4), ", df = ", p,
                           ", p-value = ", round(x$HA.pval, 4), sep = ""))
-                cat("\nHo: shape = size (Accelerated mean model):")
+                cat("\nHo: size = 0 (Accelerated rate model):")
                 cat(paste("\n     X-squared = ", round(x$HB.chi, 4), ", df = ", p,
                           ", p-value = ", round(x$HB.pval, 4), sep = ""))
-                cat("\nHo: size = 0 (Accelerated rate model):")
+                cat("\nHo: shape = size (Accelerated mean model):")
                 cat(paste("\n     X-squared = ", round(x$HG.chi, 4), ", df = ", p,
                           ", p-value = ", round(x$HG.pval, 4), sep = ""))
             }

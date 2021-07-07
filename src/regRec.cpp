@@ -51,6 +51,8 @@ arma::rowvec reLog(const arma::vec& a,
   int p = a.n_elem;
   arma::vec texa = log(T) + X * a;
   arma::vec yexa = log(Y) + X * a;
+  texa.replace(-arma::datum::inf, 0);
+  yexa.replace(-arma::datum::inf, 0);  
   arma::rowvec out(p, arma::fill::zeros);
   arma::mat XW = matvec(X, W);
   for (int i = 0; i < n; i++) {

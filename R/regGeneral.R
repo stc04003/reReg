@@ -19,7 +19,7 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
     df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
-    xi <- as.matrix(df1[,-c(1:6)])
+    xi <- as.matrix(df1[,-(1:6)])
     p <- ncol(xi)
     yi <- df0$time2
     yii <- rep(yi, m)
@@ -28,7 +28,7 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
         ## Used for variance estimation; wgt assume to be a n by p matrix
         texa <- log(ti) + xi %*% par1
         yexa <- log(yii) + xi %*% par1
-        yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
+        yexa2 <- c(log(yi) + as.matrix(df0[,-(1:6)]) %*% par1)
         rate <- apply(w1, 2, function(e) reRate(texa, yexa, rep(e, m), yexa2))
         rate <- apply(rate, 1, quantile, c(.025, .975))
         Lam <- exp(-rate)
@@ -42,24 +42,33 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
     if (is.null(w1)) w1 <- rep(1, length(m))
     if (is.null(w2)) w2 <- rep(1, length(m))
     if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, rep(w1, m)))
+    ## if (eqType == "logrank")
+    ##     U1 <- function(a) {
+    ##         ## b <- 10^length(a)
+    ##         b <- (drop(crossprod(a)) + 1) * 10
+    ##         if (crossprod(a) > b) return(rep(Inf, length(a)))
+    ##         return(as.numeric(reLog(a, xi, ti, yii, rep(w1, m))))
+    ##     }
     if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, rep(w1, m)))
     if (eqType == "gehan_s") U1 <- function(a)
         as.numeric(reGehan_s(a, xi, ti, yii, rep(w1, m), length(m)))
-    Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
+    Xi <- as.matrix(cbind(1, df0[,-(1:6)]))
     U2 <- function(b) as.numeric(re2(b, R, Xi, w1))
     if (is.null(solver)) {
         texa <- log(ti) + xi %*% par1
         yexa <- log(yii) + xi %*% par1
-        yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
+        yexa2 <- c(log(yi) + as.matrix(df0[,-(1:6)]) %*% par1)
         if (is.null(Lam0)) {
             rate <- c(reRate(texa, yexa, rep(w1, m), yexa2))
             Lam <- exp(-rate)
         } else {
             Lam <- Lam0(exp(yexa2))
         }
-        R <- w2 * (m + 0.01) / (Lam + 0.01)
+        ## R <- w2 * (m + 0.01) / (Lam + 0.01)
+        R <- (m + 0.01) / (Lam + 0.01)
         zi <- R / exp(Xi[,-1, drop = FALSE] %*% par2[-1])
-        return(list(value = c(U1(par1), re2(par2, R, Xi, rep(1, length(m)))), zi = zi))
+        ## return(list(value = c(U1(par1), re2(par2, R, Xi, rep(1, length(m)))), zi = zi))
+        return(list(value = c(U1(par1), re2(par2, R, Xi, w1)), zi = zi))
     } else {
         ## non-smooth version could be unstable when there are only a few binary covaraites
         ## a grid search to help in root search in this scenario
@@ -73,7 +82,7 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
         ahat <- fit.a$par
         texa <- log(ti) + xi %*% ahat
         yexa <- log(yii) + xi %*% ahat
-        yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% ahat)
+        yexa2 <- c(log(yi) + as.matrix(df0[,-(1:6)]) %*% ahat)
         rate <- c(reRate(texa, yexa, rep(w1, m), yexa2))
         Lam <- exp(-rate)
         R <- (m + 0.01) / (Lam + 0.01)
@@ -102,14 +111,14 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
-    xi <- as.matrix(df1[,-c(1:6)])
+    xi <- as.matrix(df1[,-(1:6)])
     yi <- df0$time2
     yii <- rep(yi, m)
     ti <- df1$time2
     if (is.null(eqType)) {
         texa <- log(ti) + xi %*% par1
         yexa <- log(yii) + xi %*% par1
-        yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
+        yexa2 <- c(log(yi) + as.matrix(df0[,-(1:6)]) %*% par1)
         rate <- apply(w1, 2, function(e) reRate(texa, yexa, rep(e, m), yexa2))
         rate <- apply(rate, 1, quantile, c(.025, .975))
         Lam <- exp(-rate)
@@ -125,7 +134,7 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, rep(w1, m)))
     if (is.null(solver)) {
         texa <- log(ti) + xi %*% par1
-        yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% par1)
+        yexa2 <- c(log(yi) + as.matrix(df0[,-(1:6)]) %*% par1)
         if (is.null(Lam0)) {
             yexa <- log(yii) + xi %*% par1
             rate <- c(reRate(texa, yexa, rep(w1, m), yexa2))
@@ -134,20 +143,20 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
             Lam <- Lam0(exp(yexa2))
         }
         R <- (m + 0.01) / (Lam + 0.01)
-        zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% par1)
+        zi <- R * exp(as.matrix(df0[,-(1:6)]) %*% par1)
         return(list(value = U1(par1) / length(m), zi = zi))
     } else {
         fit.a <- eqSolve(par1, U1, solver)
         ahat <- fit.a$par
         texa <- log(ti) + xi %*% ahat
         yexa <- log(yii) + xi %*% ahat
-        yexa2 <- c(log(yi) + as.matrix(df0[,-c(1:6)]) %*% ahat)
+        yexa2 <- c(log(yi) + as.matrix(df0[,-(1:6)]) %*% ahat)
         rate <- c(reRate(texa, yexa, rep(w1, m), yexa2))
         Lam <- exp(-rate)
         R <- (m + 0.01) / (Lam + 0.01)
         ## R <- m / Lam
         ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-        zi <- R * exp(as.matrix(df0[,-c(1:6)]) %*% fit.a$par)
+        zi <- R * exp(as.matrix(df0[,-(1:6)]) %*% fit.a$par)
         return(list(par1 = fit.a$par,
                     par1.conv = fit.a$convergence,
                     log.muZ = log(mean(zi)), zi = zi,
@@ -193,7 +202,7 @@ reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     }
     ## R <- (m + 0.01) / (Lam + 0.01)
     R <- m / Lam
-    Xi <- as.matrix(cbind(1, df0[,-c(1:6)]))
+    Xi <- as.matrix(cbind(1, df0[,-(1:6)]))
     U1 <- function(b) as.numeric(re2(b, R, Xi, w1))
     if (is.null(solver)) { 
         return(list(value = U1(par1),
@@ -213,11 +222,11 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
     m <- aggregate(event > 0 ~ id, data = DF, sum)[,2]
-    xi <- as.matrix(df0[,-c(1:6)])
+    xi <- as.matrix(df0[,-(1:6)])
     yi <- df0$time2
     ti <- df1$time2
     if (is.null(eqType)) {
-        texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% par1
+        texa <- log(ti) + as.matrix(df1[,-(1:6)]) %*% par1
         yexa <- log(yi) + xi %*% par1
         rate <- apply(w1, 2, function(e) reRate(texa, rep(yexa, m), rep(e, m), yexa))
         rate <- apply(rate, 1, quantile, c(.025, .975))
@@ -232,7 +241,7 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     if (is.null(w1)) w1 <- rep(1, length(m))
     U1 <- function(a) as.numeric(am1(a, ti, yi, w1, xi, m))
     if (is.null(solver)) {
-        texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% par1
+        texa <- log(ti) + as.matrix(df1[,-(1:6)]) %*% par1
         yexa <- log(yi) + xi %*% par1
         if (is.null(Lam0)) {
             rate <- c(reRate(texa, rep(yexa, m), rep(w1, m), yexa))
@@ -245,7 +254,7 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     } else {
         fit.a <- eqSolve(par1, U1, solver)
         ahat <- fit.a$par
-        texa <- log(ti) + as.matrix(df1[,-c(1:6)]) %*% ahat
+        texa <- log(ti) + as.matrix(df1[,-(1:6)]) %*% ahat
         yexa <- log(yi) + xi %*% ahat
         rate <- c(reRate(texa, rep(yexa, m), rep(w1, m), yexa))
         Lam <- exp(-rate)
@@ -276,7 +285,7 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
 temSC <- function(DF, eqType, solver, par3, par4, zi, wgt = NULL) {
     df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
-    xi <- as.matrix(df0[,-c(1:6)])    
+    xi <- as.matrix(df0[,-(1:6)])    
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
@@ -319,7 +328,7 @@ temSC <- function(DF, eqType, solver, par3, par4, zi, wgt = NULL) {
 temAM <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
     df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
-    xi <- as.matrix(df0[,-c(1:6)])    
+    xi <- as.matrix(df0[,-(1:6)])    
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
@@ -358,7 +367,7 @@ temAM <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
 temCox <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
     df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
-    xi <- as.matrix(df0[,-c(1:6)])    
+    xi <- as.matrix(df0[,-(1:6)])    
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
@@ -395,7 +404,7 @@ temCox <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
 temAR <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
     df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
-    xi <- as.matrix(df0[,-c(1:6)])    
+    xi <- as.matrix(df0[,-(1:6)])    
     di <- df0$terminal
     yi <- df0$time2
     p <- ncol(xi)
