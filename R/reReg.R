@@ -228,21 +228,58 @@ regFit.general.sand <- function(DF, engine, stdErr) {
         res$vcovRec12 <- recVar[1:len1, 2:len2 + len1]
     }
     if (nb > 0) {
-        ind2 <- tail(1:nrow(J), nb)
-        ## J2 <- solve(t(Z[,ind2]) %*% Z[,ind2]) %*% t(Z[,ind2]) %*% (sqrt(n) * L[,ind2])
-        ## temVar <- solve(J2) %*% V[ind2, ind2] %*% t(solve(J2))
-        J2 <- Axb(Z[,ind2], sqrt(n) * L[,ind2])
-        temVar <- AiBAi(J2, V[ind2, ind2])
-        par3.vcov <- temVar[1:len3, 1:len3, drop = FALSE]
-        par3.se <- sqrt(diag(par3.vcov))
-        res <- c(res, list(par3.vcov = par3.vcov, par3.se = par3.se))
-        if (!is.null(res$par4)) {
-            par4.vcov <- temVar[1:len4 + len3, 1:len4 + len3, drop = FALSE]
-            par4.se <- sqrt(diag(par4.vcov))
-            res <- c(res, list(par4.vcov = par4.vcov, par4.se = par4.se))
+        if (engine@typeTem == "gsc") {
+            bCoef <- matrix(0, B, nb)
+            convergence <- rep(0, B)
+            id <- DF$id
+            uID <- unique(id)
+            mt <- aggregate(event ~ id, data = DF, sum)$event
+            clsz <- mt + 1
+            for (i in 1:B) {
+                sampled.id <- unlist(lapply(split(sort(uID), mt > 0), function(x) {
+                    if (length(x) == 1) return(x)
+                    else return(sample(x, replace = TRUE))
+                }))
+                names(sampled.id) <- NULL
+                ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
+                DF2 <- DF[ind,]
+                DF2$id <- rep(1:n, clsz[sampled.id])
+                tmp <- temSC(DF2, engine@eqType, engine@solver, res$par3, res$par4, res$zi)
+                bCoef[i,] <- c(tmp$par3, tmp$par4)
+            }
+            tmp <- apply(bCoef, 1, crossprod)
+            ps <- c(length(res$par3), length(res$par4))
+            ps <- ps[ps > 0]
+            bound <- c(res$par3, res$par4)
+            convergence <- rowSums(sapply(1:length(ps), function(x) {
+                p <- rev(seq(sum(ps[1:x])))[1:ps[x]]
+                apply(bCoef[,p], 1, crossprod) > 10 * drop(crossprod(bound[p]))
+            }))
+            converged <- which(convergence == 0)
+            if (sum(convergence) > 0) {
+                message("Some bootstrap samples failed to converge")
+                rm <- unique(c(which(convergence > 0),
+                               which(tmp %in% boxplot(tmp, plot = FALSE)$out)))
+                converged <- (1:B)[-rm]
+            }
+            temVar <- var(bCoef[converged, ], na.rm = TRUE)
+            res$par3.vcov <- temVar[1:len3, 1:len3, drop = FALSE]
+            res$par3.se <- sqrt(diag(res$par3.vcov))            
+            res$par4.vcov <- temVar[1:len4 + len3, 1:len4 + len3, drop = FALSE]
+            res$par4.se <- sqrt(diag(res$par4.vcov))
+            res$vcovTem12 <- temVar[1:len3, 2:len4 + len3]
+        } else { 
+            ind2 <- tail(1:nrow(J), nb)
+            J2 <- Axb(Z[,ind2], sqrt(n) * L[,ind2])
+            temVar <- AiBAi(J2, V[ind2, ind2])
+            res$par3.vcov <- temVar[1:len3, 1:len3, drop = FALSE]
+            res$par3.se <- sqrt(diag(res$par3.vcov))
+            if (!is.null(res$par4)) {
+                res$par4.vcov <- temVar[1:len4 + len3, 1:len4 + len3, drop = FALSE]
+                res$par4.se <- sqrt(diag(res$par4.vcov))
+            }
+            res$vcovTem12 <- temVar[1:len3, 2:len4 + len3]
         }
-        ## res$vcovTem <- temVar
-        res$vcovTem12 <- temVar[1:len3, 2:len4 + len3]
     }
     return(res)
 }
@@ -253,6 +290,7 @@ regFit.general.sand <- function(DF, engine, stdErr) {
 regFit.Engine.boot <- function(DF, engine, stdErr) {
     res <- regFit(DF, engine, NULL)
     id <- DF$id
+    uID <- unique(id)
     event <- DF$event
     status <- DF$terminal
     X <- as.matrix(DF[,-c(1:6)])    
@@ -263,7 +301,6 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     Y <- rep(DF$time2[event == 0], mt + 1)
     cluster <- unlist(sapply(mt + 1, function(x) 1:x))
     B <- stdErr@B
-    uID <- unique(DF$id) # unique(DF$ID)
     bound <- c(res$par1, res$par2, res$par3, res$par4)
     engine2 <- engine
     engine2@par1 <- res$par1
@@ -306,7 +343,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     convergence <- rowSums(sapply(1:length(ps), function(x) {
         p <- rev(seq(sum(ps[1:x])))[1:ps[x]]
         apply(bCoef[,p], 1, crossprod) > 10 * drop(crossprod(bound[p]))
-    }))    
+    }))
+    converged <- which(convergence == 0)
     ## res$bCoef <- bCoef[converged,]
     if (sum(convergence) > 0) {
         message("Some bootstrap samples failed to converge")
