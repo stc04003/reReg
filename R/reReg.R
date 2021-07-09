@@ -646,6 +646,11 @@ reReg <- function(formula, data, subset,
     }
     ## initial values
     p <- ncol(DF) - ncol(mf[[1]])
+    if (model %in% c("cox.GL", "am.GL")) {
+        if (length(engine@par1) == 1) engine@par1 <- rep(engine@par1, p)
+        if (length(engine@par1) != p)
+            stop("The length of initial value does not match with the number of covariates.")
+    }
     if (model == "general") {
         if (typeRec == "cox") {
             if (length(engine@par1) == 1) engine@par1 <- rep(engine@par1, p + 1)
