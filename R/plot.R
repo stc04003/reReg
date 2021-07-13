@@ -73,8 +73,8 @@ plot.Recur <- function(x, mcf = FALSE,
                        control = list(), ...) {
     event.result <- match.arg(event.result)
     if (!is.Recur(x)) stop("Response must be a `Recur` object.")
-    if (!mcf) ctrl <- plotEvents.control()
-    if (mcf) ctrl <- plotMCF.control()
+    ctrl <- plotEvents.control()
+    if (mcf & is.null(ctrl$ylab)) ctrl <- ctrl$ylab <- "Cumulative mean"
     call <- match.call()
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
@@ -357,7 +357,8 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
 plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE, 
                      smooth = FALSE, control = list(), ...) {
     call <- match.call()
-    ctrl <- plotMCF.control()
+    ctrl <- plotEvents.control()
+    if (is.null(ctrl$ylab)) ctrl$ylab <- "Cumulative mean"
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -601,9 +602,9 @@ plot.reReg <- function(x,
     if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
         stop("Baseline functions not available for this method.")
     if (baseline == "both" & x$typeRec == "cox.LWYY")
-        ctrl <- plot.reReg.control(ylab = "Rate")
-    if (baseline %in% c("both", "rate")) ctrl <- plot.reReg.control(ylab = "Rate")
-    if (baseline == "hazard") ctrl <- plot.reReg.control(ylab = "Hazard")
+        ctrl <- plotEvents.control(ylab = "Rate")
+    if (baseline %in% c("both", "rate")) ctrl <- plotEvents.control(ylab = "Rate")
+    if (baseline == "hazard") ctrl <- plotEvents.control(ylab = "Hazard")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -705,7 +706,7 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
     if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
         stop("newdata and frailty are different lengths")
     ## ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
-    ctrl <- plot.reReg.control(ylab = "Rate")
+    ctrl <- plotEvents.control(ylab = "Rate")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -878,7 +879,7 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
     if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
         stop("newdata and frailty are different lengths")
     ## ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
-    ctrl <- plot.reReg.control(ylab = "Hazard")
+    ctrl <- plotEvents.control(ylab = "Hazard")
     namc <- names(control)
     if (!all(namc %in% names(ctrl))) 
         stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
@@ -993,6 +994,34 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
     return(gg)
 }
 
+#' Plot options for plotEvents
+#'
+#' This function provides the plotting options for the \code{plotEvents()} function.
+#'
+#' @param xlab a character string indicating the label for the x axis.
+#' The default value is "Time".
+#' @param ylab a character string indicating the label for the y axis.
+#' The default value is "Subject".
+#' @param terminal.name a character string indicating the label for the terminal event
+#' displayed in the legend. The default value is "Terminal event".
+#' @param recurrent.name a character string indicating the label for the recurrent event
+#' displayed in the legend. The default value is "Recurrent events".
+#' @param recurrent.type a factor indicating the labels for the different recurrent event types.
+#' This option is only available when there are more than one types of recurrent events.
+#' The default value is "Recurrent events 1", "Recurrent events 2", ....
+#' @param legend.position a character string specifies the position of the legend.
+#' The available options are "none", "left", "right", "bottom", "top",
+#' or a two-element numeric vector specifies the coordinate of the legend.
+#' This argument is passed to the \code{ggplot} theme environment.
+#' The default value is "top".
+#' @param base_size a numerical value to specify the base font size, given in pts.
+#' This argument is passed to the \code{ggplot} theme environment.
+#' The default value is 12.
+#' @param cex a numerical value specifies the size of the points. 
+#' @param alpha a numerical value specifies the transparency of the points. 
+#' 
+#' @seealso \code{\link{plotEvents}}
+#' @export
 plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                main = NULL, 
                                terminal.name = NULL,
@@ -1012,28 +1041,6 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
          legend.position = legend.position, base_size = base_size)
 }
 
-plotMCF.control <- function(xlab = NULL, ylab = NULL, 
-                            main = NULL, 
-                            lwd = 1, base_size = 12,
-                            terminal.name = NULL, 
-                            recurrent.name = NULL, 
-                            recurrent.type = NULL,
-                            legend.position = "top") {
-    if (is.null(main)) main <- ""
-        ## main <- "Sample cumulative mean function plot"
-    if (is.null(ylab)) ylab <- "Cumulative mean"
-    if (is.null(xlab)) xlab <- "Time"
-    if (is.null(terminal.name)) terminal.name <-  "Terminal event"
-    if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
-    list(xlab = xlab, ylab = ylab, main = main, lwd = lwd, 
-         terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type, legend.position = legend.position, base_size = base_size)
-}
-
-plot.reReg.control <- function(xlab = "Time", ylab = "", main = "", base_size = 12) {
-    list(xlab = xlab, ylab = ylab, main = main, base_size = base_size)
-}
-
 #' Function used to combine baseline functions in one plot
 #'
 #' Combine different plots into one.
@@ -1051,7 +1058,8 @@ basebind <- function(..., legend.title, legend.labels) {
     if (any(sapply(gglst, function(x) attr(x, "from")) != "reReg"))
         stop("Plots must be created from reReg objects")
     if (missing(legend.title)) legend.title <- ""
-    ctrl <- plot.reReg.control()
+    ctrl <- plotEvents.control()
+    if (is.null(ctrl$ylab)) ctrl$ylab <- ""
     nargs <- length(gglst)
     if (missing(legend.labels)) legend.labels <- 1:nargs
     if (length(legend.labels) != nargs) {
