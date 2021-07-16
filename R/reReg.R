@@ -665,6 +665,10 @@ reReg <- function(formula, data, subset,
                 if (length(engine@par3) == 1) engine@par3 <- rep(engine@par3, p)
                 if (length(engine@par3) != p)
                     stop("The length of initial value does not match with the number of covariates.")
+                engine@par4 <- engine@par2
+                if (length(engine@par4) == 1) engine@par4 <- rep(engine@par4, p)
+                if (length(engine@par4) != p)
+                    stop("The length of initial value does not match with the number of covariates.")
             }
         }
         if (typeRec == "gsc") {
