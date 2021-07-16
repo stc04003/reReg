@@ -81,19 +81,24 @@ summary.reReg <- function(object, test = FALSE, ...) {
                      coefficients.size = pvalTab(object$par4, object$par4.se, object$varNames))
         if (object$typeRec == "gsc" & !is.null(object$par1.vcov) & !is.null(object$par2.vcov)) {
             p <- length(object$par1)
-            ## out$HA.chi <- object$par1 %*% solve(object$par1.vcov) %*% object$par1
-            ## out$HB.chi <- object$par2 %*%
-            ##     solve(object$par1.vcov + object$par2.vcov[-1, -1] + 2 * object$vcovRec12) %*%
-            ##     object$par2
             out$HA.chi <- bAib(object$par1.vcov, object$par1)
             out$HB.chi <- bAib(object$par2.vcov, object$par2)
             g <- object$par2 - object$par1
-            ## out$HG.chi <- g %*% solve(object$par2.vcov[-1,-1]) %*% g
             out$HG.chi <- bAib(object$par2.vcov - object$par1.vcov - 2 * object$vcovRec12, g)
             out$HA.pval <- 1 - pchisq(out$HA.chi, p)
             out$HB.pval <- 1 - pchisq(out$HB.chi, p)
             out$HG.pval <- 1 - pchisq(out$HG.chi, p)
         }
+        if (object$typeTem == "gsc" & !is.null(object$par3.vcov) & !is.null(object$par4.vcov)) {
+            p <- length(object$par3)
+            out$tem.HA.chi <- bAib(object$par3.vcov, object$par3)
+            out$tem.HB.chi <- bAib(object$par4.vcov, object$par4)
+            g <- object$par4 - object$par3
+            out$tem.HG.chi <- bAib(object$par4.vcov - object$par3.vcov - 2 * object$vcovTem12, g)
+            out$tem.HA.pval <- 1 - pchisq(out$tem.HA.chi, p)
+            out$tem.HB.pval <- 1 - pchisq(out$tem.HB.chi, p)
+            out$tem.HG.pval <- 1 - pchisq(out$tem.HG.chi, p)
+        }        
         out$typeRec <- object$typeRec
         out$typeTem <- object$typeTem
         out$test <- test
@@ -144,6 +149,18 @@ print.summary.reReg <- function(x, ...) {
                 printCoefmat2(x$coefficients.haz$coefficients.shape)
                 cat("\nTerminal event (size):\n")
                 printCoefmat2(x$coefficients.haz$coefficients.size)
+                if (x$test) {
+                    cat("\nHypothesis tests:")
+                    cat("\nHo: shape = 0 (Cox-type model):")
+                    cat(paste("\n     X-squared = ", round(x$tem.HA.chi, 4), ", df = ", p,
+                              ", p-value = ", round(x$tem.HA.pval, 4), sep = ""))
+                    cat("\nHo: size = 0 (Accelerated rate model):")
+                    cat(paste("\n     X-squared = ", round(x$tem.HB.chi, 4), ", df = ", p,
+                              ", p-value = ", round(x$tem.HB.pval, 4), sep = ""))
+                    cat("\nHo: shape = size (Accelerated mean model):")
+                    cat(paste("\n     X-squared = ", round(x$tem.HG.chi, 4), ", df = ", p,
+                              ", p-value = ", round(x$tem.HG.pval, 4), sep = ""))
+                }
             } else {
                 cat("\nTerminal event:\n")
                 printCoefmat2(x$coefficients.haz)
@@ -168,7 +185,7 @@ vcov.reReg <- function(object, ...) {
     if (is.null(object$par1.vcov))
         return(list(vcovRec = vcovRec, vcovTem = vcovTem))
     if (object$typeRec == "cox") {
-        vcovRec <- object$par1.vcov[-1, -1]
+        vcovRec <- object$par1.vcov[-1, -1, drop = FALSE]
         attr(vcovRec, "dimnames") <- list(object$varNames, object$varNames)
     }        
     if (object$typeRec %in% c("am", "ar")) {

@@ -157,12 +157,12 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
         ## R <- m / Lam
         ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
         zi <- R * exp(as.matrix(df0[,-(1:6)]) %*% fit.a$par)
+        ind <- !duplicated(yexa2)
         return(list(par1 = fit.a$par,
                     par1.conv = fit.a$convergence,
                     log.muZ = log(mean(zi)), zi = zi,
                     Lam0 = function(x)
-                        approx(x = yexa2[!duplicated(yexa2)], y = Lam[!duplicated(yexa2)],
-                               xout = log(x),
+                        approx(x = yexa2[ind], y = Lam[ind], xout = log(x),
                                yleft = min(Lam), yright = max(Lam))$y))
     ## approxfun(exp(yexa2)[!duplicated(yexa2)], Lam[!duplicated(yexa2)],
     ##                                  yleft = min(Lam), yright = max(Lam))))

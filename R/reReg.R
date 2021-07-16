@@ -253,7 +253,7 @@ regFit.general.sand <- function(DF, engine, stdErr) {
             bound <- c(res$par3, res$par4)
             convergence <- rowSums(sapply(1:length(ps), function(x) {
                 p <- rev(seq(sum(ps[1:x])))[1:ps[x]]
-                apply(bCoef[,p], 1, crossprod) > 10 * drop(crossprod(bound[p]))
+                apply(bCoef[,p, drop = FALSE], 1, crossprod) > 10 * drop(crossprod(bound[p]))
             }))
             converged <- which(convergence == 0)
             if (sum(convergence) > 0) {
@@ -267,7 +267,7 @@ regFit.general.sand <- function(DF, engine, stdErr) {
             res$par3.se <- sqrt(diag(res$par3.vcov))            
             res$par4.vcov <- temVar[1:len4 + len3, 1:len4 + len3, drop = FALSE]
             res$par4.se <- sqrt(diag(res$par4.vcov))
-            res$vcovTem12 <- temVar[1:len3, 2:len4 + len3]
+            res$vcovTem12 <- temVar[1:len3, 1:len4 + len3, drop = FALSE]
         } else { 
             ind2 <- tail(1:nrow(J), nb)
             J2 <- Axb(Z[,ind2], sqrt(n) * L[,ind2])
@@ -278,7 +278,7 @@ regFit.general.sand <- function(DF, engine, stdErr) {
                 res$par4.vcov <- temVar[1:len4 + len3, 1:len4 + len3, drop = FALSE]
                 res$par4.se <- sqrt(diag(res$par4.vcov))
             }
-            res$vcovTem12 <- temVar[1:len3, 2:len4 + len3]
+            res$vcovTem12 <- temVar[1:len3, 2:len4 + len3, drop = FALSE]
         }
     }
     return(res)
@@ -342,7 +342,7 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     ps <- ps[ps > 0]
     convergence <- rowSums(sapply(1:length(ps), function(x) {
         p <- rev(seq(sum(ps[1:x])))[1:ps[x]]
-        apply(bCoef[,p], 1, crossprod) > 10 * drop(crossprod(bound[p]))
+        apply(bCoef[,p,drop = FALSE], 1, crossprod) > 10 * drop(crossprod(bound[p]))
     }))
     converged <- which(convergence == 0)
     ## res$bCoef <- bCoef[converged,]
@@ -365,13 +365,14 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
     res <- c(res, list(par1.vcov = bVar[1:len1, 1:len1, drop = FALSE],
                        par1.se = bSE[1:len1], B = length(converged)))
     if (len2 > 0)
-        res <- c(res, list(par2.vcov = bVar[1:len2 + len1, 1:len2 + len1],
+        res <- c(res, list(par2.vcov = bVar[1:len2 + len1, 1:len2 + len1, drop = FALSE],
                            par2.se = bSE[1:len2 + len1]))
     if (len3 > 0)
-        res <- c(res, list(par3.vcov = bVar[1:len3 + len1 + len2, 1:len3 + len1 + len2],
+        res <- c(res, list(par3.vcov = bVar[1:len3 + len1 + len2, 1:len3 + len1 + len2, drop = FALSE],
                            par3.se = bSE[1:len3 + len1 + len2]))
     if (len4 > 0)
-        res <- c(res, list(par4.vcov = bVar[1:len4 + len1 + len2 + len3, 1:len4 + len1 + len2 + len3],
+        res <- c(res, list(par4.vcov = bVar[1:len4 + len1 + len2 + len3,
+                                            1:len4 + len1 + len2 + len3, drop = FALSE],
                            par4.se = bSE[1:len4 + len1 + len2 + len3]))
     if (engine@typeRec == "gsc") {        
         res$par2.vcov <- var(bCoef[converged, 1:len1, drop = FALSE] +
@@ -379,6 +380,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
         res$par2.se <- sqrt(diag(res$par2.vcov))  
         res$vcovRec12 <- bVar[1:len1, 2:len2 + len1, drop = FALSE]
     }
+    if (engine@typeTem == "gsc")
+        res$vcovTem12 <- bVar[1:len3 + len1 + len2, 1:len4 + len1 + len2 + len3, drop = FALSE]
     return(res)
 }
 
@@ -580,11 +583,11 @@ reReg <- function(formula, data, subset,
         if(is.null(control$init$alpha)) control$par1 <- 0
         else control$par1 <- control$init$alpha
         if(is.null(control$init$beta)) control$par2 <- 0
-        else control$par1 <- control$init$beta
+        else control$par2 <- control$init$beta
         if(is.null(control$init$eta)) control$par3 <- 0
-        else control$par1 <- control$init$eta
+        else control$par3 <- control$init$eta
         if(is.null(control$init$theta)) control$par4 <- 0
-        else control$par1 <- control$init$theta
+        else control$par4 <- control$init$theta
         control$init <- NULL
     }
     namc <- names(control)
@@ -685,6 +688,9 @@ reReg <- function(formula, data, subset,
                 engine@par3 <- engine@par2
                 if (length(engine@par3) == 1) engine@par3 <- rep(engine@par3, p)
                 if (length(engine@par3) != p)
+                    stop("The length of initial value does not match with the number of covariates.")
+                if (length(engine@par4) == 1) engine@par4 <- rep(engine@par4, p)
+                if (length(engine@par4) != p)
                     stop("The length of initial value does not match with the number of covariates.")
             }
         }
