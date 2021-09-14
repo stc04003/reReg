@@ -16,6 +16,8 @@ BugReports: https://github.com/stc04003/reReg/issues
 Imports: 
     BB,
     nleqslv,
+    dfoptim,
+    optimx,
     SQUAREM,
     survival,
     directlabels,
