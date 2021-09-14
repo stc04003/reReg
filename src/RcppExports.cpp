@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // reRate
 arma::vec reRate(const arma::vec& T, const arma::vec& Y, const arma::vec& W, const arma::vec& T0);
 RcppExport SEXP _reReg_reRate(SEXP TSEXP, SEXP YSEXP, SEXP WSEXP, SEXP T0SEXP) {

@@ -24,6 +24,8 @@ The default value is "Time".}
 \item{ylab}{a character string indicating the label for the y axis.
 The default value is "Subject".}
 
+\item{main}{a character string indicating the title of the plot.}
+
 \item{terminal.name}{a character string indicating the label for the terminal event
 displayed in the legend. The default value is "Terminal event".}
 

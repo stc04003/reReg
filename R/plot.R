@@ -1002,6 +1002,7 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #' The default value is "Time".
 #' @param ylab a character string indicating the label for the y axis.
 #' The default value is "Subject".
+#' @param main a character string indicating the title of the plot.
 #' @param terminal.name a character string indicating the label for the terminal event
 #' displayed in the legend. The default value is "Terminal event".
 #' @param recurrent.name a character string indicating the label for the recurrent event
