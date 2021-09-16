@@ -136,7 +136,7 @@ The `Recur` object for the `readmission` dataset can be constructed as below:
 ```{r Recur-obj-short2, eval = TRUE, output.lines = 1:10}
 Recur(t.stop, id, event, death)
 ```
-The `readmission` example above shows patient id \#1 experienced 2 hosipital readmissions 
+The `readmission` example above shows patient id \#1 experienced 2 hospital readmissions 
 with a terminal event at `t = 1037` (days).
 The `+` at `t = 1037` indicates the terminal time was censored, e.g., this patient did not experience the event of interest (death) at `t = 1037`.
 Similarly, patient id \#3 has one readmission and died at `t = 783` (days) as indicated by `*` at `783`.
