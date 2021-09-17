@@ -141,9 +141,9 @@ simGSC <- function(n, summary = FALSE, para,
         D <- invHaz(rexp(1), z, c(exp(x %*% eta)), c(exp(x %*% theta)))
         y <- min(cen, tau, D)
         status <- 1 * (y == D)
-        m <- -1
         tij <- NULL
         up <- Lam(y, z, c(exp(x %*% alpha)), c(exp(x %*% beta)))
+        m <- -1
         while(sum(tij) < up) {
             tij <- c(tij, rexp(1))
             m <- m + 1
