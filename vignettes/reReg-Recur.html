@@ -11,7 +11,7 @@
 
 <meta name="author" content="Sy Han (Steven) Chiou" />
 
-<meta name="date" content="2021-04-08" />
+<meta name="date" content="2021-09-29" />
 
 <title>Creating Recur objects</title>
 
@@ -1495,12 +1495,12 @@ div.tocify {
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row">
-<div class="col-sm-12 col-md-4 col-lg-3">
+<div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
 </div>
 
-<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -1511,15 +1511,15 @@ div.tocify {
 
 <h1 class="title toc-ignore">Creating <code>Recur</code> objects</h1>
 <h4 class="author">Sy Han (Steven) Chiou</h4>
-<h4 class="date">2021-04-08</h4>
+<h4 class="date">2021-09-29</h4>
 
 </div>
 
 
-<p>In this vignette, we demonstrate how to create a recurrent event object with the <code>Recur()</code> function from the <strong><code>reda</code></strong> package <span class="citation">(Wang et al. 2021)</span>. The <code>Recur()</code> function is imported when the <strong><code>reReg</code></strong> package is loaded. The <code>Recur</code> objectbundles together a set of recurrent times, failure time, and censoring status, with the convenience that it can be used as the response in model formula in the <strong><code>reReg</code></strong> package. We will illustrate the usage of <code>Recur()</code> with the <code>cgd</code> data set from the <strong><code>survival</code></strong> <span class="citation">(Therneau 2021)</span> and the <code>readmission</code> data set from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and González 2012, @gonzalez2005sex)</span>.</p>
+<p>In this vignette, we demonstrate how to create a recurrent event object with the <code>Recur()</code> function from the <strong><code>reda</code></strong> package <span class="citation">(Wang et al. 2021)</span>. The <code>Recur()</code> function is imported when the <strong><code>reReg</code></strong> package is loaded. The <code>Recur</code> object bundles together a set of recurrent times, failure time, and censoring status, with the convenience that it can be used as the response in model formula in the <strong><code>reReg</code></strong> package. We will illustrate the usage of <code>Recur()</code> with the <code>cgd</code> data set from the <strong><code>survival</code></strong> <span class="citation">(Therneau 2021)</span> and the <code>readmission</code> data set from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and González 2012)</span><span class="citation">(González et al. 2005)</span>.</p>
 <pre class="r"><code>&gt; library(reReg)
 &gt; packageVersion(&quot;reReg&quot;)</code></pre>
-<pre><code>[1] &#39;1.4.0&#39;</code></pre>
+<pre><code>[1] &#39;1.4.1&#39;</code></pre>
 <pre class="r"><code>&gt; data(readmission, package = &quot;frailtypack&quot;)
 &gt; head(readmission)</code></pre>
 <pre><code>  id enum t.start t.stop time event      chemo    sex dukes charlson death
@@ -1578,7 +1578,7 @@ When the time origin is zero for all subjects as in the <code>readmission</code>
   [9] 9: (0, 148], (148, 1474+]                     
  [10] 10: (0, 1113+]                                
 ...</code></pre>
-<p>The <code>readmission</code> example above shows patient id #1 experienced 2 hostpital readmissions with a terminal event at <code>t = 1037</code> (days). The <code>+</code> at <code>t = 1037</code> indicates the terminal time was censored, e.g., this patient did not experience the event of interest (death) at <code>t = 1037</code>. Similarly, patient id #3 has one readmission and died at <code>t = 783</code> (days) as indicated by <code>*</code> at <code>783</code>. On the other hand patient id # 4 has more than 3 readmissions and was censored at <code>t = 2048</code> (days). The readmission intervals was suppressed to prevent printing results wider than the screen allowance. The number of intervals to be printed can be tuned using the <code>options</code> and argument <code>reda.Recur.maxPrint</code>.</p>
+<p>The <code>readmission</code> example above shows patient id #1 experienced 2 hospital readmissions with a terminal event at <code>t = 1037</code> (days). The <code>+</code> at <code>t = 1037</code> indicates the terminal time was censored, e.g., this patient did not experience the event of interest (death) at <code>t = 1037</code>. Similarly, patient id #3 has one readmission and died at <code>t = 783</code> (days) as indicated by <code>*</code> at <code>783</code>. On the other hand patient id # 4 has more than 3 readmissions and was censored at <code>t = 2048</code> (days). The readmission intervals was suppressed to prevent printing results wider than the screen allowance. The number of intervals to be printed can be tuned using the <code>options</code> and argument <code>reda.Recur.maxPrint</code>.</p>
 <p>Readers are referred to a separate <a href="https://wenjie-stat.me/reda/articles/reda-recur">vignette on <code>Recur()</code></a> for a detailed introduction of <code>Recur()</code>. <strong><span style="color:red">The <code>reSurv()</code> function is being deprecated in Version 1.2.0.</span></strong> In the current version, the <code>reSurv()</code> function can still be used, but the <code>reSurv</code> object will be automatically transformed to the corresponding <code>Recur</code> object.</p>
 </div>
 <div id="reference" class="section level2 unnumbered">
@@ -1637,6 +1637,9 @@ $(document).ready(function () {
 
 <script>
 $(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
 
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')

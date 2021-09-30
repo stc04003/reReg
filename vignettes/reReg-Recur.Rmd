@@ -45,7 +45,7 @@ The `Recur` object bundles together a set of recurrent times, failure time, and 
 with the convenience that it can be used as the response in model formula in the __`reReg`__ package.
 We will illustrate the usage of `Recur()` with the `cgd` data set from the __`survival`__ [@R:survival]
 and the `readmission` data set from the __`frailtypack`__ 
-package [@rondeau2012frailtypack, @gonzalez2005sex]. 
+package [@rondeau2012frailtypack], [@gonzalez2005sex]. 
 
 ```{r load-pkg, message = FALSE}
 library(reReg)
