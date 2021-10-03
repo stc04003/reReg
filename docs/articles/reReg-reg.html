@@ -205,14 +205,14 @@ reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~
     x1 + x2, data = datCox, model = "cox|cox", B = 200)
 
 Recurrent event process:
-   Estimate   StdErr  z.value p.value
-x1 -0.88619  0.17444 -5.08027       0
-x2 -0.95260  0.17669 -5.39126       0
+   Estimate   StdErr z.value   p.value    
+x1 -0.88619  0.16844 -5.2612 &lt; 2.2e-16 ***
+x2 -0.95260  0.18884 -5.0446 &lt; 2.2e-16 ***
 
 Terminal event:
-   Estimate  StdErr z.value p.value
-x1  0.94109 0.26079 3.60861   3e-04
-x2  1.08248 0.31191 3.47042   5e-04</code></pre>
+   Estimate  StdErr z.value p.value    
+x1  0.94109 0.26215  3.5899 0.00033 ***
+x2  1.08248 0.29121  3.7171 0.00020 ***</code></pre>
 <p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.cox)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/coxplot-1.png" width="700"></p>
@@ -246,14 +246,14 @@ reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~
     x1 + x2, data = datam, model = "am|am", B = 200)
 
 Recurrent event process:
-   Estimate  StdErr z.value p.value
-x1  1.05061 0.26918 3.90301   1e-04
-x2  1.16509 0.22209 5.24597   0e+00
+   Estimate  StdErr z.value p.value    
+x1  1.05061 0.26117  4.0227   6e-05 ***
+x2  1.16509 0.23593  4.9382  &lt;2e-16 ***
 
 Terminal event:
-   Estimate   StdErr  z.value p.value
-x1 -0.84462  0.67918 -1.24359  0.2136
-x2 -1.13158  0.54122 -2.09079  0.0366</code></pre>
+   Estimate   StdErr z.value p.value  
+x1 -0.84462  0.69838 -1.2094 0.22651  
+x2 -1.13158  0.54213 -2.0873 0.03686 *</code></pre>
 <p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.am)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/amplot-1.png" width="700"></p>
@@ -285,14 +285,14 @@ reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~
     x1 + x2, data = datCoxAr, model = "cox|ar", B = 200)
 
 Recurrent event process:
-   Estimate   StdErr  z.value p.value
-x1 -1.06661  0.13949 -7.64665       0
-x2 -0.83873  0.16773 -5.00042       0
+   Estimate   StdErr z.value p.value    
+x1 -1.06661  0.13424 -7.9455  &lt;2e-16 ***
+x2 -0.83873  0.18863 -4.4465   1e-05 ***
 
 Terminal event:
-   Estimate  StdErr z.value p.value
-x1  1.29886 0.41290 3.14566  0.0017
-x2  1.26390 0.51867 2.43681  0.0148</code></pre>
+   Estimate  StdErr z.value p.value   
+x1  1.29886 0.44246  2.9356 0.00333 **
+x2  1.26390 0.53054  2.3823 0.01721 * </code></pre>
 <p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.CoxAr)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/coxarplot-1.png" width="700"></p>
