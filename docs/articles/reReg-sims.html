@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.1</span>
       </span>
     </div>
 
@@ -57,7 +57,7 @@
       <a href="../articles/reReg-Recur.html">Creating `Recur` objects</a>
     </li>
     <li>
-      <a href="../articles/reReg-plot.html">Visualization of recurrent event data</a>
+      <a href="../articles/reReg-plot.html">Visualization of recurrent event data with `reReg`</a>
     </li>
     <li>
       <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
@@ -73,7 +73,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="http://github.com/stc04003/reReg/">
+  <a href="https://github.com/stc04003/reReg/">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -88,15 +88,15 @@
 
       
 
-      </header><script src="reReg-sims_files/header-attrs-2.7/header-attrs.js"></script><script src="reReg-sims_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><script src="reReg-sims_files/header-attrs-2.9/header-attrs.js"></script><script src="reReg-sims_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Simulating recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2021-04-08</h4>
+            <h4 class="date">2021-10-02</h4>
       
-      <small class="dont-index">Source: <a href="http://github.com/stc04003/reReg/blob/master/vignettes/reReg-sims.Rmd"><code>vignettes/reReg-sims.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/stc04003/reReg/blob/master/vignettes/reReg-sims.Rmd"><code>vignettes/reReg-sims.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-sims.Rmd</code></div>
 
     </div>
@@ -114,7 +114,7 @@ MathJax.Hub.Config({
 <p>Let <span class="math inline">\(N(t)\)</span> be the number of recurrent events occurring over the interval <span class="math inline">\([0, t]\)</span> and <span class="math inline">\(D\)</span> be the failure time of interest subjects to right censoring by <span class="math inline">\(C\)</span>. Define the composite censoring time <span class="math inline">\(Y = \min(D, C, \tau)\)</span> and the failure event indicator <span class="math inline">\(\Delta = I\{D\le \min(C, \tau)\}\)</span>, where <span class="math inline">\(\tau\)</span> is the maximum follow-up time. We assume the recurrent event process <span class="math inline">\(N(\cdot)\)</span> is observed up to <span class="math inline">\(Y\)</span>. Let <span class="math inline">\(X\)</span> be a <span class="math inline">\(p\)</span>-dimensional covariate vector. Consider a random sample of <span class="math inline">\(n\)</span> subjects, the observed data are independent and identically distributed (iid) copies of <span class="math inline">\(\{Y_i, \Delta_i, X_i, N_i(t), 0\le t\le Y_i\}\)</span>, where the subscript <span class="math inline">\(i\)</span> denotes the index of a subject for <span class="math inline">\(i= 1, \ldots, n\)</span>. Let <span class="math inline">\(m_i = N_i(Y_i)\)</span> be the number of recurrent events the <span class="math inline">\(i\)</span>th subject experienced before time <span class="math inline">\(Y_i\)</span>, then the jump times of <span class="math inline">\(N_i(t)\)</span> give the observed recurrent event times <span class="math inline">\(t_{i1}, \ldots, t_{im_i}\)</span> when <span class="math inline">\(m_i &gt; 0\)</span>. Thus, the observed data can also be expressed as iid copies of <span class="math inline">\(\{Y_i, \Delta_i, X_i, m_i, (t_{i1}, \ldots, t_{m_i})\}\)</span>. The primary interests in recurrent event data analysis often lie in making inference about the recurrent event process and the failure event and understanding the corresponding covariate effects. The built-in dataset, <code>simDat</code>, is a simulated example of a recurrent event data that is generated from the <code><a href="../reference/simGSC.html">simGSC()</a></code> function:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">library</span>(reReg)</span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">packageVersion</span>(<span class="st">"reReg"</span>)</span></code></pre></div>
-<pre><code>[1] '1.4.0'</code></pre>
+<pre><code>[1] '1.4.1'</code></pre>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">data</span>(simDat)</span></code></pre></div>
 </div>
 <div id="the-simgsc-function" class="section level2 unnumbered">

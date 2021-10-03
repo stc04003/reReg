@@ -1054,12 +1054,16 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
 #' @keywords Plots
 #' 
 #' @example inst/examples/ex_basebind.R
-basebind <- function(..., legend.title, legend.labels) {
+basebind <- function(..., legend.title, legend.labels, control = list()) {
     gglst <- list(...)
     if (any(sapply(gglst, function(x) attr(x, "from")) != "reReg"))
         stop("Plots must be created from reReg objects")
     if (missing(legend.title)) legend.title <- ""
     ctrl <- plotEvents.control()
+    namc <- names(control)
+    if (!all(namc %in% names(ctrl))) 
+        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+    ctrl[namc] <- control
     if (is.null(ctrl$ylab)) ctrl$ylab <- ""
     nargs <- length(gglst)
     if (missing(legend.labels)) legend.labels <- 1:nargs

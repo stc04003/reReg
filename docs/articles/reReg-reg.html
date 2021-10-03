@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.1</span>
       </span>
     </div>
 
@@ -57,7 +57,7 @@
       <a href="../articles/reReg-Recur.html">Creating `Recur` objects</a>
     </li>
     <li>
-      <a href="../articles/reReg-plot.html">Visualization of recurrent event data</a>
+      <a href="../articles/reReg-plot.html">Visualization of recurrent event data with `reReg`</a>
     </li>
     <li>
       <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
@@ -73,7 +73,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="http://github.com/stc04003/reReg/">
+  <a href="https://github.com/stc04003/reReg/">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -88,15 +88,15 @@
 
       
 
-      </header><script src="reReg-reg_files/header-attrs-2.7/header-attrs.js"></script><script src="reReg-reg_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><script src="reReg-reg_files/header-attrs-2.9/header-attrs.js"></script><script src="reReg-reg_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Fitting semiparametric regression model to recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2021-04-08</h4>
+            <h4 class="date">2021-10-02</h4>
       
-      <small class="dont-index">Source: <a href="http://github.com/stc04003/reReg/blob/master/vignettes/reReg-reg.Rmd"><code>vignettes/reReg-reg.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/stc04003/reReg/blob/master/vignettes/reReg-reg.Rmd"><code>vignettes/reReg-reg.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-reg.Rmd</code></div>
 
     </div>
@@ -171,7 +171,7 @@ NULL</code></pre>
 <li>
 <code>boot.parCl</code> is an integer value specifying the number of CPU cores to be used when <code>parallel = TRUE</code>. The default value is half the CPU cores on the current host.</li>
 </ul>
-<p>The default equation solver (<code>"BB::dfsane"</code>) uses the derivative-free Barzila–Borwein spectral approach for solving nonlinear equations implemented in <code>dfsane()</code> from the package <code>BB</code> <span class="citation">(Varadhan and Gilbert 2009)</span>. Setting <code>solver = "BB::BBsolve"</code> calls the wrapper function <code>BBsolve()</code> in the <code>BB</code> package to locate a root with different Barzilai-Borwein steplengths, non-monotonicity parameters, and initialization approaches. Based on our observation, the <code>"BB::BBsolve"</code> algorithm generally exhibited more reliable convergence but the <code>solver = "BB::dfsane"</code> algorithm provides a better balance between convergence and speed. The alternative options, <code>solver = "BB::BBoptim"</code> and <code>solver = "optim"</code>, attempts to identify roots by minimizing the <span class="math inline">\(\ell_2\)</span>-norm of the estimating functions. The options <code>solver = "BB::BBoptim"</code> and <code>solver = "optim"</code> call the <code>BBoptim()</code> function from the package <code>BB</code> and the base function <code><a href="https://rdrr.io/r/stats/optim.html">optim()</a></code>, respectively.</p>
+<p>The default equation solver (<code>"BB::dfsane"</code>) uses the derivative-free Barzilai-Borwein spectral approach for solving nonlinear equations implemented in <code>dfsane()</code> from the package <code>BB</code> <span class="citation">(Varadhan and Gilbert 2009)</span>. Setting <code>solver = "BB::BBsolve"</code> calls the wrapper function <code>BBsolve()</code> in the <code>BB</code> package to locate a root with different Barzilai-Borwein steplengths, non-monotonicity parameters, and initialization approaches. Based on our observation, the <code>"BB::BBsolve"</code> algorithm generally exhibited more reliable convergence but the <code>solver = "BB::dfsane"</code> algorithm provides a better balance between convergence and speed. The alternative options, <code>solver = "BB::BBoptim"</code> and <code>solver = "optim"</code>, attempts to identify roots by minimizing the <span class="math inline">\(\ell_2\)</span>-norm of the estimating functions. The options <code>solver = "BB::BBoptim"</code> and <code>solver = "optim"</code> call the <code>BBoptim()</code> function from the package <code>BB</code> and the base function <code><a href="https://rdrr.io/r/stats/optim.html">optim()</a></code>, respectively.</p>
 </div>
 </div>
 <div id="examples" class="section level2">

@@ -7,12 +7,12 @@ developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.re
 [![minimal R
 version](https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg)](https://cran.r-project.org/)
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/reReg)](https://cran.r-project.org/package=reReg)
-[![packageversion](https://img.shields.io/badge/Package%20version-1.4.0-orange.svg?style=flat-square)](commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-1.4.1-orange.svg?style=flat-square)](commits/master)
 [![AppVeyor Build
 Status](https://ci.appveyor.com/api/projects/status/github/stc04003/reReg?branch=master&svg=true)](https://ci.appveyor.com/project/stc04003/reReg)
 [![Travis-CI Build
 Status](https://travis-ci.org/stc04003/reReg.svg?branch=master)](https://travis-ci.org/stc04003/reReg)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2021--04--10-yellowgreen.svg)](/commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2021--10--02-yellowgreen.svg)](/commits/master)
 <!-- [![Build Status](https://travis-ci.org/user/pkg.svg?branch=master)](https://travis-ci.org/user/pkg) -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -45,7 +45,7 @@ devtools::install_github("stc04003/reReg", ref = "main")
   - Package vignette on [Creating `Recur`
     objects](https://www.sychiou.com/reReg/articles/reReg-Recur.html).
   - Package vignette on [visualization of recurrent event
-    data](https://www.sychiou.com/reReg/articles/reReg-plots.html).
+    data](https://www.sychiou.com/reReg/articles/reReg-plot.html).
   - Package vignette on [simulating recurrent event
     data](https://www.sychiou.com/reReg/articles/reReg-sims.html).
   - Package vignette on [regression analysis for recurrent event
