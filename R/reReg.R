@@ -148,7 +148,72 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
                 par3.se = sqrt(diag(vcov(fit.coxph))))
     out$typeRec <- engine@typeRec
     out$typeTem <- engine@typeTem
-    return(out)}
+    return(out)
+}
+
+#' This implements the CPPL from M-Y
+#'
+#' Need to clean this function
+#' 1. Xid is an array; need to convert this to a list.
+#' 2. bootstrap weight is set at rep(1 / n, n) for now.
+#' 3. Can it handle more than 2 weights?
+#' 4. Have weights in a list, and re-organize the weights. 
+#' 
+#' @noRd
+regFit.cox.HH <- function(DF, engine, stdErr) {
+    DF0 <- subset(DF, event == 0)
+    DF1 <- subset(DF, event == 1)
+    tk <- sort(unique(DF1$time2))
+    uid <- sort(unique(DF$id))
+    n <- length(uid)
+    dNit <- do.call(rbind, lapply(split(DF, DF$id), function(d) {
+        tmp <- match(d$time2[d$event > 0], tk)
+        out <- rep(0, length(tk))
+        out[unique(tmp)] <- table(tmp)
+        return(out)
+    }))
+    Yit <- do.call(rbind, lapply(split(DF, DF$id), function(d) {  
+        out <- rep(0, length(tk))
+        out[1:findInterval(max(d$time2), tk)] <- 1
+        return(out)
+    }))
+    Xit.ind <- do.call(rbind, lapply(split(DF, DF$id), function(d) 
+        pmax(1, cut(tk, c(unique(d$time2), Inf), labels = FALSE), na.rm = TRUE)))
+    xMat <- as.matrix(DF[,-(1:6)])
+    ## list version
+    Xit.l <- apply(xMat, 2, function(xx)
+        t(sapply(uid, function(i) (xx[DF$id == i])[Xit.ind[i,]])), simplify = FALSE)
+    ## array version
+    Xit <- array(NA, list(nrow(Xit.ind), ncol(xMat), ncol(Xit.ind)))
+    for (i in 1:ncol(xMat)) Xit[,i,] <- Xit.l[[i]]
+    attr(Xit, "dimnames") <- list(NULL, names(Xit.l), NULL)
+    wfun1 <- engine@wfun[[1]]
+    wfun2 <- engine@wfun[[2]]
+    bootstrap.weights <- rep(1 / n, n)
+    ## Default EL
+    ini <- CPPL.EL(dNit, Yit, Xit, NULL, NULL)$coefficient   
+    S0t <- colSums(exp(apply(aperm(Xit, c(2, 1, 3)) * ini, c(2, 3), sum)) * 
+                   as.vector(Yit) * bootstrap.weights)
+    dLhat <- colSums(dNit * bootstrap.weights) * (S0t != 0) / (S0t + (S0t == 0))
+    Lhat <- cumsum(dLhat)
+    ## Define w1 and w2
+    w1t <- w2t <- NULL
+    if (is.function(wfun1)) {
+        w1t <- wfun1(tk)
+    } else {if (wfun1 == "cumbase") w1t <- Lhat
+            else if (wfun1 == "Gehan") w1t <- S0t
+    }
+    if (is.function(wfun2)) {
+        w2t <- wfun2(tk)
+    } else {if (wfun2 == "cumbase") w2t <- Lhat
+            else if (wfun2 == "Gehan") w2t <- S0t
+    }
+    if (engine@cppl == "EL")
+        out <- CPPL.EL(dNit, Yit, Xit, w1t, w2t)
+    if (engine@cppl == "GMM")
+        out <- CPPL.GMM(dNit, Yit, Xit, w1t, w2t)
+    return(out)
+}
 
 ## #' @importFrom rlang is_empty
 regFit.general <- function(DF, engine, stdErr) {
@@ -402,11 +467,12 @@ setClass("Engine",
          contains = "VIRTUAL")
 setClass("general", contains = "Engine")
 setClass("cox.LWYY", contains = "Engine")
-setClass("cox.HW", contains = "Engine")
-setClass("am.XCHWY", contains = "Engine")
+setClass("cox.HH",
+         representation(wfun = "list", cppl = "character"),
+         prototype(list(NULL, NULL), cppl = "EL"),
+         contains = "Engine")
 setClass("am.GL", contains = "Engine")
-setClass("gsc.XCYH", representation(muZ = "numeric"),
-         prototype(muZ = 0), contains = "Engine")
+## setClass("gsc.XCYH", representation(muZ = "numeric"), prototype(muZ = 0), contains = "Engine")
 setClass("cox.GL",
          representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
 
@@ -429,6 +495,9 @@ setMethod("regFit", signature(engine = "general", stdErr = "sand"), regFit.gener
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "NULL"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "boot"), regFit.cox.LWYY)
 setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "sand"), regFit.cox.LWYY)
+setMethod("regFit", signature(engine = "cox.HH", stdErr = "NULL"), regFit.cox.HH)
+setMethod("regFit", signature(engine = "cox.HH", stdErr = "boot"), regFit.cox.HH)
+setMethod("regFit", signature(engine = "cox.HH", stdErr = "sand"), regFit.cox.HH)
 setMethod("regFit", signature(engine = "cox.GL", stdErr = "NULL"), regFit.cox.GL)
 setMethod("regFit", signature(engine = "cox.GL", stdErr = "sand"), regFit.cox.GL)
 setMethod("regFit", signature(engine = "am.GL", stdErr = "NULL"), regFit.am.GL)
