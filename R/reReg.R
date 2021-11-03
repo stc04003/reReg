@@ -200,13 +200,14 @@ regFit.cox.HH <- function(DF, engine, stdErr) {
     w1t <- w2t <- NULL
     if (is.function(wfun1)) {
         w1t <- wfun1(tk)
-    } else {if (wfun1 == "cumbase") w1t <- Lhat
-            else if (wfun1 == "Gehan") w1t <- S0t
+    } else {
+      if (is.character(wfun1) && wfun1 == "cumbase") w1t <- Lhat
+      else if (is.character(wfun1) && wfun1 == "Gehan") w1t <- S0t
     }
     if (is.function(wfun2)) {
         w2t <- wfun2(tk)
-    } else {if (wfun2 == "cumbase") w2t <- Lhat
-            else if (wfun2 == "Gehan") w2t <- S0t
+    } else {if (is.character(wfun2) && wfun2 == "cumbase") w2t <- Lhat
+            else if (is.character(wfun2) && wfun2 == "Gehan") w2t <- S0t
     }
     if (engine@cppl == "EL")
         out <- CPPL.EL(dNit, Yit, Xit, w1t, w2t)
@@ -469,7 +470,7 @@ setClass("general", contains = "Engine")
 setClass("cox.LWYY", contains = "Engine")
 setClass("cox.HH",
          representation(wfun = "list", cppl = "character"),
-         prototype(list(NULL, NULL), cppl = "EL"),
+         prototype(wfun =  list(NULL, NULL), cppl = "EL"),
          contains = "Engine")
 setClass("am.GL", contains = "Engine")
 ## setClass("gsc.XCYH", representation(muZ = "numeric"), prototype(muZ = 0), contains = "Engine")
@@ -666,7 +667,7 @@ reReg <- function(formula, data, subset,
     DF <- DF[order(DF$id, DF$time2), ]
     allModel <- apply(expand.grid(c("cox", "am", "gsc", "ar"),
                                    c("cox", "am", "gsc", "ar", ".")), 1, paste, collapse = "|")
-    allModel <- c(allModel, "cox.LWYY", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "gsc.XCYH")
+    allModel <- c(allModel, "cox.LWYY", "cox.HH", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "gsc.XCYH")
     model <- match.arg(model, c("cox", "am", "gsc", "ar", allModel))
     typeRec <- typeTem <- NULL
     if (grepl("|", model, fixed = TRUE)) {
@@ -695,6 +696,10 @@ reReg <- function(formula, data, subset,
     }
     if (model == "cox.LWYY") {
         typeRec <- "cox.LWYY"
+        typeTem <- "."
+    }
+    if (model == "cox.HH") {
+        typeRec <- "cox.HH"
         typeTem <- "."
     }
     if (model == "cox.GL") typeRec <- typeTem <- "cox.GL"

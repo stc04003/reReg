@@ -14,7 +14,7 @@ CPPL.EL <- function(dNit, Yit, Xit, w1t, w2t,
                         w1_t = w1t, w2_t = w2t, rw = weights))
     } else if (!is.null(w1t)) {
       return(PPLCscore1(dNit = dNit, Yit = Yit, Xit = Xit, beta = b,
-                        w1_t = w1t, rw = weights))
+                        w_t = w1t, rw = weights))
     } else {
       return(PPLscore(dNit, Yit, Xit, beta = b, rw = weights))
     }
@@ -55,7 +55,7 @@ CPPL.GMM <- function(dNit, Yit, Xit, w1t, w2t,
                         w1_t = w1t, w2_t = w2t, rw = weights))
     } else if (!is.null(w1t)) {
       return(PPLCscore1(dNit = dNit, Yit = Yit, Xit = Xit, beta = b,
-                        w1_t = w1t, rw = weights))
+                        w_t = w1t, rw = weights))
     } else {
       return(PPLscore(dNit, Yit, Xit, beta = b, rw = weights))
     }
