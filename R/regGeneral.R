@@ -12,9 +12,11 @@
 #' sandwich estimator
 #' @param par1 is \alpha from Xu et al. (2019)
 #' @param par2 is \theta from Xu et al. (2019)
+#' @param trace trace or no? 
 #' @importFrom utils tail
 #' @noRd
-reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NULL) {
+reSC <- function(DF, eqType, solver, par1, par2,
+                 Lam0 = NULL, w1 = NULL, w2 = NULL, trace = FALSE) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -78,7 +80,7 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
         ##     dtrysol <- t(apply(dtry, 1, U1))
         ##     par1 <- as.numeric(dtry[which.min(apply(dtrysol, 1, crossprod)),])
         ## }
-        fit.a <- eqSolve(par1, U1, solver)
+        fit.a <- eqSolve(par1, U1, solver, trace)
         ahat <- fit.a$par
         texa <- log(ti) + xi %*% ahat
         yexa <- log(yii) + xi %*% ahat
@@ -88,7 +90,7 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
         R <- (m + 0.01) / (Lam + 0.01)
         ## R <- m / Lam
         ## R <- ifelse(R > 1e5, (m + .01) / (Lam + .01), R)
-        fit.b <- eqSolve(par2, U2, solver)
+        fit.b <- eqSolve(par2, U2, solver, trace)
         ind <- !duplicated(yexa2)
         return(list(par1 = fit.a$par,
                     par2 = fit.b$par,
@@ -106,7 +108,7 @@ reSC <- function(DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NU
     }
 }
 
-reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
+reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALSE) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -146,7 +148,7 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
         zi <- R * exp(as.matrix(df0[,-(1:6)]) %*% par1)
         return(list(value = U1(par1) / length(m), zi = zi))
     } else {
-        fit.a <- eqSolve(par1, U1, solver)
+        fit.a <- eqSolve(par1, U1, solver, trace)
         ahat <- fit.a$par
         texa <- log(ti) + xi %*% ahat
         yexa <- log(yii) + xi %*% ahat
@@ -175,7 +177,7 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
 #' @param Lam0 is the estiamted cumulative baseline rate function; if NULL calculate here
 #' 
 #' @noRd
-reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
+reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALSE) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -208,7 +210,7 @@ reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
         return(list(value = U1(par1),
                     zi = R / exp(Xi[,-1, drop = FALSE] %*% par1[-1])))
     } else {
-        fit.a <- eqSolve(par1, U1, solver)
+        fit.a <- eqSolve(par1, U1, solver, trace)
         return(list(par1 = fit.a$par, ## alpha = fit.a$par[-1],
                     par1.conv = fit.a$convergence,
                     log.muZ = fit.a$par[1],
@@ -217,7 +219,7 @@ reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
     }
 }
 
-reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
+reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALSE) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -252,7 +254,7 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
         R <- (m + 0.01) / (Lam + 0.01)
         return(list(value = as.numeric(U1(par1)), zi = R))
     } else {
-        fit.a <- eqSolve(par1, U1, solver)
+        fit.a <- eqSolve(par1, U1, solver, trace)
         ahat <- fit.a$par
         texa <- log(ti) + as.matrix(df1[,-(1:6)]) %*% ahat
         yexa <- log(yi) + xi %*% ahat
@@ -282,7 +284,7 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL) {
 
 #' @param par3 is \eta
 #' @param par4 is \theta
-temSC <- function(DF, eqType, solver, par3, par4, zi, wgt = NULL) {
+temSC <- function(DF, eqType, solver, par3, par4, zi, wgt = NULL, trace = FALSE) {
     df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-(1:6)])    
@@ -312,7 +314,7 @@ temSC <- function(DF, eqType, solver, par3, par4, zi, wgt = NULL) {
         U1 <- function(x) as.numeric(temScGehan(x[1:p], x[1:p + p], xi, yi, zi, di, wi))
     if (is.null(solver)) return(U1(c(par3, par4)))
     else {
-        fit.a <- eqSolve(c(par3, par4), U1, solver)
+        fit.a <- eqSolve(c(par3, par4), U1, solver, trace)
         yi <- log(yi) + xi %*% fit.a$par[1:p + p]
         yi2 <- sort(unique(yi))
         ind <- !duplicated(exp(yi2))
@@ -325,7 +327,7 @@ temSC <- function(DF, eqType, solver, par3, par4, zi, wgt = NULL) {
     }
 }
 
-temAM <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
+temAM <- function(DF, eqType, solver, par3, zi, wgt = NULL, trace = FALSE) {
     df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-(1:6)])    
@@ -353,7 +355,7 @@ temAM <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
         U1 <- function(x) as.numeric(temGehan(x, x, xi, yi, zi, di, wi))
     if (is.null(solver)) return(U1(par3))
     else {
-        fit.a <- eqSolve(par3, U1, solver)
+        fit.a <- eqSolve(par3, U1, solver, trace)
         yi <- log(yi) + xi %*% fit.a$par
         yi2 <- sort(unique(yi))
         Haz <- c(temHaz(fit.a$par, fit.a$par, xi, yi, zi / mean(zi), di, wi, yi2))
@@ -364,7 +366,7 @@ temAM <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
     }
 }
 
-temCox <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
+temCox <- function(DF, eqType, solver, par3, zi, wgt = NULL, trace = FALSE) {
     df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-(1:6)])    
@@ -392,7 +394,7 @@ temCox <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
         U1 <- function(x) as.numeric(temGehan(rep(0, p), x, xi, yi, zi, di, wi))
     if (is.null(solver)) return(U1(par3))
     else {
-        fit.a <- eqSolve(par3, U1, solver)
+        fit.a <- eqSolve(par3, U1, solver, trace)
         yi2 <- sort(unique(yi))
         Haz <- c(temHaz(rep(0, p), fit.a$par, xi, yi, zi / mean(zi), di, wi, yi2))
         return(list(par3 = fit.a$par,
@@ -401,7 +403,7 @@ temCox <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
     }
 }
 
-temAR <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
+temAR <- function(DF, eqType, solver, par3, zi, wgt = NULL, trace = FALSE) {
     df0 <- DF[DF$event == 0,]
     rownames(df0) <- NULL
     xi <- as.matrix(df0[,-(1:6)])    
@@ -429,7 +431,7 @@ temAR <- function(DF, eqType, solver, par3, zi, wgt = NULL) {
         U1 <- function(x) as.numeric(temGehan(x, rep(0, p), xi, yi, zi, di, wi))
     if (is.null(solver)) return(U1(par3))
     else {
-        fit.a <- eqSolve(par3, U1, solver)
+        fit.a <- eqSolve(par3, U1, solver, trace)
         yi <- log(yi) + xi %*% fit.a$par
         yi2 <- sort(unique(yi))
         Haz <- c(temHaz(fit.a$par, rep(0, p), xi, yi, zi / mean(zi), di, wi, yi2))

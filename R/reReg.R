@@ -194,7 +194,7 @@ regFit.cox.HH <- function(DF, engine, stdErr) {
     ## Default EL
     ini <- CPPL.EL(dNit, Yit, Xit, NULL, NULL,
                    initial = engine@par2,
-                   maxit1 = engine@maxit, maxit2 = engine@maxit,
+                   maxit1 = engine@maxit1, maxit2 = engine@maxit2,
                    tol = engine@tol, trace = engine@trace)$coefficient   
     S0t <- colSums(exp(apply(aperm(Xit, c(2, 1, 3)) * ini, c(2, 3), sum)) * 
                    as.vector(Yit) * bootstrap.weights)
@@ -216,13 +216,22 @@ regFit.cox.HH <- function(DF, engine, stdErr) {
     if (engine@cppl == "EL")
       out <- CPPL.EL(dNit, Yit, Xit, w1t, w2t,
                      initial = engine@par2,
-                     maxit1 = engine@maxit, maxit2 = engine@maxit,
+                     maxit1 = engine@maxit1, maxit2 = engine@maxit2,
                      tol = engine@tol, trace = engine@trace)
     if (engine@cppl == "GMM")
       out <- CPPL.GMM(dNit, Yit, Xit, w1t, w2t,
                       initial = engine@par2,
-                      maxit1 = engine@maxit, maxit2 = engine@maxit,
+                      maxit1 = engine@maxit1, maxit2 = engine@maxit2,
                       tol = engine@tol, trace = engine@trace)
+    out$Lam0 <- function(x)
+      approx(x = tk, y = cumsum(out$diff.baseline), xout = x, 
+             yleft = min(f0$diff.baseline), yright = sum(out$diff.baseline))$y
+    out$par1 <- as.numeric(out$coefficient)
+    out$par1.vcov <- out$covariance
+    out$par1.se <- sqrt(diag(out$par1.vcov))
+    dimnames(out$par1.vcov) <- out$coefficient <- out$covariance <- NULL
+    out$typeRec <- engine@typeRec
+    out$typeTem <- engine@typeTem
     return(out)
 }
 
@@ -233,28 +242,30 @@ regFit.general <- function(DF, engine, stdErr) {
         warning("Unidentified solver; BB::dfsane is used.")
         engine@solver <- "dfsane"
     }
-    out <- s1(engine@typeRec, DF, engine@eqType, engine@solver, engine@par1, engine@par2)
+    out <- s1(engine@typeRec, DF, engine@eqType, engine@solver, engine@par1, engine@par2,
+              trace = engine@trace)
     if (engine@typeTem != ".") 
         out <- c(out, s2(engine@typeTem, DF, engine@eqType, engine@solver,
-                         engine@par3, engine@par4, out$zi))
+                         engine@par3, engine@par4, out$zi, trace = engine@trace))
     out$typeRec <- engine@typeRec
     out$typeTem <- engine@typeTem
     return(out)
 }
 
-s1 <- function(type, DF, eqType, solver, par1, par2, Lam0 = NULL, w1 = NULL, w2 = NULL) {
-    if (type == "gsc") return(reSC(DF, eqType, solver, par1, par2, Lam0, w1, w2))
-    if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, w1))
-    if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, w1))
-    if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, w1))
+s1 <- function(type, DF, eqType, solver, par1, par2,
+               Lam0 = NULL, w1 = NULL, w2 = NULL, trace = FALSE) {
+    if (type == "gsc") return(reSC(DF, eqType, solver, par1, par2, Lam0, w1, w2, trace))
+    if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, w1, trace))
+    if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, w1, trace))
+    if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, w1, trace))
     return(NULL)
 }
 
-s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL) {
-    if (type == "gsc") return(temSC(DF, eqType, solver, par3, par4, zi, wgt))
-    if (type == "cox") return(temCox(DF, eqType, solver, par3, zi, wgt))
-    if (type == "am") return(temAM(DF, eqType, solver, par3, zi, wgt))
-    if (type == "ar") return(temAR(DF, eqType, solver, par3, zi, wgt))
+s2 <- function(type, DF, eqType, solver, par3, par4, zi, wgt = NULL, trace = FALSE) {
+    if (type == "gsc") return(temSC(DF, eqType, solver, par3, par4, zi, wgt, trace))
+    if (type == "cox") return(temCox(DF, eqType, solver, par3, zi, wgt, trace))
+    if (type == "am") return(temAM(DF, eqType, solver, par3, zi, wgt, trace))
+    if (type == "ar") return(temAR(DF, eqType, solver, par3, zi, wgt, trace))
     return(NULL)
 }
 
@@ -472,11 +483,12 @@ setClass("Engine",
                         baseSE = "logical", 
                         solver = "character", eqType = "character", 
                         typeRec = "character", typeTem = "character",
-                        maxit = "numeric", trace = "logical"),
+                        maxit1 = "numeric", maxit2 = "numeric",
+                        trace = "logical"),
          prototype(eqType = "logrank", tol = 1e-7,
                    par1 = 0, par2 = 0, par3 = 0, par4 = 0, 
                    baseSE = FALSE, solver = "dfsane",
-                   maxit = 100, trace = FALSE),
+                   maxit1 = 100, maxit2 = 10, trace = FALSE),
          contains = "VIRTUAL")
 setClass("general", contains = "Engine")
 setClass("cox.LWYY", contains = "Engine")
@@ -879,7 +891,7 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
                           tol = 1e-7, cppl = "EL", wfun = list(NULL, NULL),
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
                           boot.parallel = FALSE, boot.parCl = NULL,
-                          maxit = 100, trace = FALSE) {
+                          maxit1 = 100, maxit2 = 10, trace = FALSE) {
     if (is.null(boot.parCl)) boot.parCl <- parallel::detectCores() / 2L
     solver <- match.arg(solver)
     if (solver == "nleqslv::nleqslv") solve <- "nleqslv"
@@ -892,7 +904,7 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
     eqType <- match.arg(eqType)
     list(tol = tol, eqType = eqType, solver = solver, cppl = cppl, wfun = wfun,
          par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
-         parallel = boot.parallel, parCl = boot.parCl, maxit = maxit, trace = trace)
+         parallel = boot.parallel, parCl = boot.parCl, maxit1 = maxit1, maxit2 = maxit2, trace = trace)
 }
 
 ##############################################################################
