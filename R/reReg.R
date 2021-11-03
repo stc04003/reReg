@@ -19,7 +19,7 @@ regFit.am.GL <- function(DF, engine, stdErr) {
            as.double(rep(1, n)), as.double(rep(1, n)), 
            result = double(p), PACKAGE = "reReg")$result
     }
-    fit.b <- eqSolve(engine@par2, log.est, engine@solver)
+    fit.b <- eqSolve(engine@par2, log.est, engine@solver, engine@trace)
     bhat <- fit.b$par
     m <- aggregate(event ~ id, data = DF, sum)[,2]
     index <- c(1, cumsum(m)[-n] + 1)
@@ -142,7 +142,8 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
     out <- dfsane(par = engine@par1, fn = coxGLeq, wgt = wgt, 
                   X = as.matrix(X[!event, ]),
                   Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
-                  alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
+                  alertConvergence = FALSE, quiet = TRUE,
+                  control = list(trace = engine@trace))
     out <- list(par1 = out$par,
                 par3 = coef(fit.coxph),
                 par3.se = sqrt(diag(vcov(fit.coxph))))
@@ -191,7 +192,10 @@ regFit.cox.HH <- function(DF, engine, stdErr) {
     wfun2 <- engine@wfun[[2]]
     bootstrap.weights <- rep(1 / n, n)
     ## Default EL
-    ini <- CPPL.EL(dNit, Yit, Xit, NULL, NULL)$coefficient   
+    ini <- CPPL.EL(dNit, Yit, Xit, NULL, NULL,
+                   initial = engine@par2,
+                   maxit1 = engine@maxit, maxit2 = engine@maxit,
+                   tol = engine@tol, trace = engine@trace)$coefficient   
     S0t <- colSums(exp(apply(aperm(Xit, c(2, 1, 3)) * ini, c(2, 3), sum)) * 
                    as.vector(Yit) * bootstrap.weights)
     dLhat <- colSums(dNit * bootstrap.weights) * (S0t != 0) / (S0t + (S0t == 0))
@@ -210,9 +214,15 @@ regFit.cox.HH <- function(DF, engine, stdErr) {
             else if (is.character(wfun2) && wfun2 == "Gehan") w2t <- S0t
     }
     if (engine@cppl == "EL")
-        out <- CPPL.EL(dNit, Yit, Xit, w1t, w2t)
+      out <- CPPL.EL(dNit, Yit, Xit, w1t, w2t,
+                     initial = engine@par2,
+                     maxit1 = engine@maxit, maxit2 = engine@maxit,
+                     tol = engine@tol, trace = engine@trace)
     if (engine@cppl == "GMM")
-        out <- CPPL.GMM(dNit, Yit, Xit, w1t, w2t)
+      out <- CPPL.GMM(dNit, Yit, Xit, w1t, w2t,
+                      initial = engine@par2,
+                      maxit1 = engine@maxit, maxit2 = engine@maxit,
+                      tol = engine@tol, trace = engine@trace)
     return(out)
 }
 
@@ -461,10 +471,12 @@ setClass("Engine",
                         par3 = "numeric", par4 = "numeric",
                         baseSE = "logical", 
                         solver = "character", eqType = "character", 
-                        typeRec = "character", typeTem = "character"),
+                        typeRec = "character", typeTem = "character",
+                        maxit = "numeric", trace = "logical"),
          prototype(eqType = "logrank", tol = 1e-7,
                    par1 = 0, par2 = 0, par3 = 0, par4 = 0, 
-                   baseSE = FALSE, solver = "dfsane"),
+                   baseSE = FALSE, solver = "dfsane",
+                   maxit = 100, trace = FALSE),
          contains = "VIRTUAL")
 setClass("general", contains = "Engine")
 setClass("cox.LWYY", contains = "Engine")
@@ -807,7 +819,7 @@ reReg <- function(formula, data, subset,
 #' @importFrom dfoptim hjk mads nmk
 #' @importFrom rootSolve uniroot.all
 #' @keywords internal
-eqSolve <- function(par, fn, solver, ...) {
+eqSolve <- function(par, fn, solver, trace, ...) {
     if (length(fn(par, ...)) == 1) {
         tmp <- uniroot.all(Vectorize(fn), interval = c(par - 10, par + 10))
         out <- NULL
@@ -817,7 +829,8 @@ eqSolve <- function(par, fn, solver, ...) {
     }
     if (solver == "dfsane") {
         out <- dfsane(par = par, fn = function(z) fn(z, ...), 
-                      alertConvergence = FALSE, quiet = TRUE, control = list(trace = FALSE))
+                      alertConvergence = FALSE, quiet = TRUE,
+                      control = list(trace = trace))
         if (max(abs(out$par)) > 10) solver <- "BBsolve"
     }
     if (solver == "BBsolve")
@@ -828,17 +841,17 @@ eqSolve <- function(par, fn, solver, ...) {
     }
     if (solver == "BBoptim")
         out <- BBoptim(par = par, fn = function(z) sum(fn(z, ...)^2),
-                       quiet = TRUE, control = list(trace = FALSE))
+                       quiet = TRUE, control = list(trace = trace))
     if (solver == "optim")
         out <- optim(par = par, fn = function(z) sum(fn(z, ...)^2),
-                     control = list(trace = FALSE))
+                     control = list(trace = trace))
     if (solver == "optimr")
         out <- optimr(par = par, fn = function(z) sum(fn(z, ...)^2))
     if (solver == "hjk")
         out <- hjk(par = par, fn = function(z) sum(fn(z, ...)^2))
     if (solver == "mads")
         out <- mads(par = par, fn = function(z) sum(fn(z, ...)^2),
-                    control = list(trace = FALSE))
+                    control = list(trace = trace))
     if (solver == "nmk")
         out <- nmk(par = par, fn = function(z) sum(fn(z, ...)^2))    
     return(out)
@@ -863,9 +876,10 @@ eqSolve <- function(par, fn, solver, ...) {
 reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
                           solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optimx::optimr",
                                      "dfoptim::hjk", "dfoptim::mads", "optim", "nleqslv::nleqslv"),
-                          tol = 1e-7,
+                          tol = 1e-7, cppl = "EL", wfun = list(NULL, NULL),
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
-                          boot.parallel = FALSE, boot.parCl = NULL) {
+                          boot.parallel = FALSE, boot.parCl = NULL,
+                          maxit = 100, trace = FALSE) {
     if (is.null(boot.parCl)) boot.parCl <- parallel::detectCores() / 2L
     solver <- match.arg(solver)
     if (solver == "nleqslv::nleqslv") solve <- "nleqslv"
@@ -876,9 +890,9 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
     if (solver == "dfoptim::hjk") solver <- "hjk"
     if (solver == "dfoptim::mads") solver <- "mads"
     eqType <- match.arg(eqType)
-    list(tol = tol, eqType = eqType, solver = solver,
+    list(tol = tol, eqType = eqType, solver = solver, cppl = cppl, wfun = wfun,
          par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
-         parallel = boot.parallel, parCl = boot.parCl)
+         parallel = boot.parallel, parCl = boot.parCl, maxit = maxit, trace = trace)
 }
 
 ##############################################################################
