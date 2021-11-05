@@ -115,6 +115,7 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
     out <- list(par1 = coef(fit.coxph), par1.se = sqrt(diag(vcov(fit.coxph))))
     out$typeRec <- engine@typeRec
     out$typeTem <- engine@typeTem
+    out$log.muZ <- 0
     return(out)
 }
 
@@ -225,13 +226,14 @@ regFit.cox.HH <- function(DF, engine, stdErr) {
                       tol = engine@tol, trace = engine@trace)
     out$Lam0 <- function(x)
       approx(x = tk, y = cumsum(out$diff.baseline), xout = x, 
-             yleft = min(f0$diff.baseline), yright = sum(out$diff.baseline))$y
+             yleft = min(out$diff.baseline), yright = sum(out$diff.baseline))$y
     out$par1 <- as.numeric(out$coefficient)
     out$par1.vcov <- out$covariance
     out$par1.se <- sqrt(diag(out$par1.vcov))
     dimnames(out$par1.vcov) <- out$coefficient <- out$covariance <- NULL
     out$typeRec <- engine@typeRec
     out$typeTem <- engine@typeTem
+    out$log.muZ <- 0
     return(out)
 }
 
