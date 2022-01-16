@@ -49,6 +49,7 @@ devtools::install_github("stc04003/reReg", ref = "main")
 * Package vignette on [visualization of recurrent event data](https://www.sychiou.com/reReg/articles/reReg-plot.html).
 * Package vignette on [simulating recurrent event data](https://www.sychiou.com/reReg/articles/reReg-sims.html).
 * Package vignette on [regression analysis for recurrent event data](https://www.sychiou.com/reReg/articles/reReg-reg.html).
+* Package vignette on [improving semiparametric estimation of the Cox-type proportional rate model](https://www.sychiou.com/reReg/articles/reReg-cppl.html).
 
 
 ### References:
@@ -62,10 +63,10 @@ devtools::install_github("stc04003/reReg", ref = "main")
    Event Data with Informative Censoring. *Journal of the American
    Statistical Association* **96**(455): 1057-1065.
 
-  Ghosh, D. and D.Y. Lin (2002). Marginal Regression Models for Recurrent and Terminal Events. 
+   Ghosh, D. and D.Y. Lin (2002). Marginal Regression Models for Recurrent and Terminal Events. 
   *Statistica Sinica*, 663-688.
   
-  Ghosh, D. and D.Y. Lin (2003). Semiparametric Analysis of
+   Ghosh, D. and D.Y. Lin (2003). Semiparametric Analysis of
    Recurrent Events Data in the Presence of Dependent Censoring.
    *Biometrics*, **59**: 877-885.
 
@@ -78,6 +79,10 @@ devtools::install_github("stc04003/reReg", ref = "main")
    *Journal of the American Statistical Association* **112**(518):
    796-805.
 
-  Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2020)
-  Generalized Scale-Change Models for Recurrent Event Processes under Informative Censoring. 
-  *Statistica Sinica* **30**, 1773--1795.
+   Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2020)
+   Generalized Scale-Change Models for Recurrent Event Processes under Informative Censoring. 
+   *Statistica Sinica* **30**, 1773--1795.
+  
+   Huang, M.-Y. and Huang, C.Y. (2022)
+   Improved semiparametric estimation of the proportional rate model with recurrent event data. 
+   **Under revision**.

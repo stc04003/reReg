@@ -542,7 +542,10 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' an accelerated mean model, an accelerated rate model, or a generalized scale-change model.
 #' See details for model specifications.
 #'
+#' @details
 #'
+#' \bold{Model specification:}
+#' 
 #' Suppose the recurrent event process and the failure events are
 #' observed in the time interval \eqn{t\in[0,\tau]},
 #' for some constant \eqn{\tau}.
@@ -558,7 +561,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' respectively.
 #' The model includes several popular semiparametric models as special cases,
 #' which can be specified via the \code{model} argument with the rate function
-#' and hazard function separated by "\code{|}".
+#' and the hazard function separated by "\code{|}".
 #' For examples,
 #' Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
 #' can be called with \code{model = "cox"};
@@ -579,13 +582,36 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' these includes \code{model = "cox.LWYY"} for Lin et al. (2000),
 #' \code{model = "cox.GL"} for Ghosh and Lin (2002),
 #' and \code{model = "am.GL"} for Ghosh and Lin (2003).
-#'
+#' Additionally, an improved estimation of the proportional rate model
+#' (Huang and Huang 2022) can be called by \code{model = "cox.HH"} with
+#' additional \code{control} options to specify the underlying procedure.
+#' See \href{www.sychiou.com/reReg/articles/reReg-reg.html}{online vignette}
+#' for a detailed discussion of the implemented regression models.
+#' 
+#' \bold{Variance estimation:}
+#' 
 #' The available methods for variance estimation are:
 #' \describe{
 #'   \item{boot}{performs nonparametric bootstrap.}
 #'   \item{sand}{performs the efficient resampling-based variance estimation.}
 #' }
 #'
+#' \bold{Improving proportional rate model:}
+#' A common semiparametric regression model for recurrent event process
+#' under the noninformative censoring assumption is the Cox-type proportional rate model
+#' (available in \code{reReg()} via \code{model = "cox.LWYY"}).
+#' However, the construction of the pseudo-partial score function ignores the
+#' dependency among recurrent events and thus could be inefficient. 
+#' To improve upon this popular method, Huang and Huang (2022) proposed to combine
+#' a system of weighted pseudo-partial score equations via the generalized method of moments (GMM)
+#' and empirical likelihood (EL) estimation.
+#' The proposed GMM and EL procedures are available in \code{reReg} via \code{model = "cox.HH"}
+#' with additional control specifications.
+#' See \href{www.sychiou.com/reReg/articles/reReg-cppl.html}{online vignette}
+#' for an illustration of this feature.
+#' 
+#' \bold{Control options:}
+#' 
 #' The \code{control} list consists of the following parameters:
 #' \describe{
 #'   \item{tol}{absolute error tolerance.}
@@ -600,6 +626,16 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' will be applied when \code{se = "boot"} is called.}
 #'   \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when
 #' \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+#' \item{cppl}{A character string indicating either to improve the proportional rate model via
+#' the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood estimation (\code{cppl = "EL"}).
+#' This option is only used when \code{model = "cox.HH"}.}
+#' \item{cppl.fun}{A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
+#' Avaialble options are \code{"Gehan"} and \code{"cumbase"},
+#' which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
+#' Alternatively, the weight functions can be specified with function formulas.
+#' This option is only used when \code{model = "cox.HH"}.}
+#' \item{trace}{A logical variable denoting whether some of the
+#' intermediate results of iterations should be displayed to the user.  Default is \code{FALSE}.}
 #' }
 #' 
 #' @param formula a formula object, with the response on the left of a "~" operator,
@@ -611,7 +647,12 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' in the fitting process.
 #' @param B a numeric value specifies the number of bootstraps for variance estimation.
 #' When \code{B = 0}, variance estimation will not be performed.
-#' @param model a character string specifying the underlying model. See \bold{Details}.
+#' @param model a character string specifying the underlying model.
+#' The available functional form for the rate function and the hazard function include a Cox-type model,
+#' an accelerated mean model, an accelerated rate model, or a generalized scale-change model,
+#' and can be specified via "cox", "am", "ar", or "gsc", respectively.
+#' The rate function and hazard function separated by "\code{|}".
+#' See \bold{Details}.
 #' @param se a character string specifying the method for the variance estimation. See \bold{Details}.
 #' \describe{
 #'    \item{\code{boot}}{ nonparametric bootstrap approach}
@@ -633,6 +674,8 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
 #' @references Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
 #' Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
+#' @references Huang, M.-Y. and Huang, C.-Y. (2022). Improved semiparametric estimation of the proportional rate model with recurrent event data.
+#' \emph{In revision}.
 #'
 #' @importFrom stats approxfun optim model.response 
 #' @importFrom stats .getXlevels 
@@ -884,13 +927,24 @@ eqSolve <- function(par, fn, solver, trace, ...) {
 #' applied when \code{se = "boot"} is specified in \code{reReg()}.
 #' @param boot.parCl an integer value specifying the number of CPU cores to be used when
 #' \code{parallel = TRUE}. The default value is half the CPU cores on the current host.
-#'
+#' @param cppl a character string indicating either to improve the proportional rate model via
+#' the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood estimation (\code{cppl = "EL"}).
+#' This option is only used when \code{model = "cox.HH"}.
+#' @param cppl.fun A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
+#' Avaialble options are \code{"Gehan"} and \code{"cumbase"},
+#' which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
+#' Alternatively, the weight functions can be specified with function formulas.
+#' This option is only used when \code{model = "cox.HH"}.
+#' @param maxit1,maxit2 max number of iteration used when \code{model = "cox.HH"}.
+#' @param trace A logical variable denoting whether some of the
+#' intermediate results of iterations should be displayed to the user.  Default is \code{FALSE}.
+#' 
 #' @seealso \code{\link{reReg}}
 #' @export
 reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
                           solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optimx::optimr",
                                      "dfoptim::hjk", "dfoptim::mads", "optim", "nleqslv::nleqslv"),
-                          tol = 1e-7, cppl = "EL", wfun = list(NULL, NULL),
+                          tol = 1e-7, cppl = "EL", cppl.fun = list(NULL, NULL),
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
                           boot.parallel = FALSE, boot.parCl = NULL,
                           maxit1 = 100, maxit2 = 10, trace = FALSE) {
@@ -904,7 +958,7 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
     if (solver == "dfoptim::hjk") solver <- "hjk"
     if (solver == "dfoptim::mads") solver <- "mads"
     eqType <- match.arg(eqType)
-    list(tol = tol, eqType = eqType, solver = solver, cppl = cppl, wfun = wfun,
+    list(tol = tol, eqType = eqType, solver = solver, cppl = cppl, wfun = cppl.fun,
          par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
          parallel = boot.parallel, parCl = boot.parCl, maxit1 = maxit1, maxit2 = maxit2, trace = trace)
 }

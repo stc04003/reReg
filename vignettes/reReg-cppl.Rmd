@@ -1,0 +1,60 @@
+---
+title: "Improving semiparametric estimation of the Cox-type proportional rate model with `reReg`"
+author: Sy Han (Steven) Chiou
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+bibliography: ../inst/bib/reReg.bib
+vignette: >
+  %\VignetteIndexEntry{Visualization of recurrent event data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}{inputenc}
+---
+
+```{r default, include = FALSE, collapse = TRUE}
+library(knitr)
+opts_chunk$set(prompt = TRUE, comment = "")
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+knitr::opts_chunk$set(fig.width = 6, fig.height = 3.5) 
+```
+
+The Cox-type proportional rate model (available in `reReg()` via `model = "cox.LWYY"`)
+is a common semiparametric regression model for 
+recurrent event processes under the noninformative censoring assumption.
+Since the construction of the pseudo-partial score function ignores the
+dependency among recurrent events, 
+the efficiency of the Cox-type proportional rate model can be improved by combining 
+a system of weighted pseudo-partial score equations via the generalized method of moments (GMM)
+and empirical likelihood (EL) estimation [@huang2022improved].
+In this vignette, we demonstrate the proposed GMM and EL procedures in the `reReg` package.
+We will illustrate the idea with simulated data generated from the `simGSC()` function.
+
+
+```{r load-pkg, message = FALSE}
+library(reReg)
+packageVersion("reReg")
+```
+
+## Reference

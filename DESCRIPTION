@@ -29,6 +29,6 @@ Imports:
     Rcpp,
     rootSolve
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 NeedsCompilation: yes
 Packaged: 2018-06-03 00:41:51 UTC; schiou
