@@ -57,4 +57,8 @@ library(reReg)
 packageVersion("reReg")
 ```
 
+We first generate a simulated data where the recurrent event process is generated from a Cox-type proportional rate model.
+This can be achieved with the default settings of `simGSC()`; 
+see the vignette on [simulating recurrent event data](https://www.sychiou.com/reReg/articles/reReg-sims.html) for illustrations of `simGSC()`.
+
 ## Reference
