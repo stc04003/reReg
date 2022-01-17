@@ -733,7 +733,7 @@ reReg <- function(formula, data, subset,
   if (!all(namc %in% names(ctrl))) 
     stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
   ctrl[namc] <- control
-  if (ctrl$cppl %in% c("GMM", "EL")) model <- "cox.HH"
+  if (!is.null(ctrl$cppl)) model <- "cox.HH"
   DF <- DF[order(DF$id, DF$time2), ]
   allModel <- apply(expand.grid(c("cox", "am", "gsc", "ar"),
                                 c("cox", "am", "gsc", "ar", ".")), 1, paste, collapse = "|")
@@ -945,7 +945,7 @@ eqSolve <- function(par, fn, solver, trace, ...) {
 reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
                           solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optimx::optimr",
                                      "dfoptim::hjk", "dfoptim::mads", "optim", "nleqslv::nleqslv"),
-                          tol = 1e-7, cppl = "EL", cppl.wfun = list(NULL, NULL),
+                          tol = 1e-7, cppl = NULL, cppl.wfun = list(NULL, NULL),
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
                           boot.parallel = FALSE, boot.parCl = NULL,
                           maxit1 = 100, maxit2 = 10, trace = FALSE) {
@@ -959,6 +959,7 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
   if (solver == "dfoptim::hjk") solver <- "hjk"
   if (solver == "dfoptim::mads") solver <- "mads"
   eqType <- match.arg(eqType)
+  if (!is.null(cppl) && !(cppl %in% c("GMM", "EL"))) stop("Invalid 'cppl' method.")
   list(tol = tol, eqType = eqType, solver = solver, cppl = cppl, cppl.wfun = cppl.wfun,
        par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
        parallel = boot.parallel, parCl = boot.parCl, maxit1 = maxit1, maxit2 = maxit2, trace = trace)

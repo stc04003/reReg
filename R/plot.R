@@ -1051,6 +1051,7 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
 #' @param ... \code{ggplot} objects created by plotting \code{reReg} objects.
 #' @param legend.title an optional character string to specify the legend title.
 #' @param legend.labels an optional character string to specify the legend labels.
+#' @param control a list of control parameters. 
 #' 
 #' @export
 #' @keywords Plots

@@ -9,7 +9,7 @@ reReg.control(
   solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optimx::optimr",
     "dfoptim::hjk", "dfoptim::mads", "optim", "nleqslv::nleqslv"),
   tol = 1e-07,
-  cppl = "EL",
+  cppl = NULL,
   cppl.wfun = list(NULL, NULL),
   init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
   boot.parallel = FALSE,

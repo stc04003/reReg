@@ -9,7 +9,7 @@ output:
     toc_float: true
 bibliography: ../inst/bib/reReg.bib
 vignette: >
-  %\VignetteIndexEntry{Visualization of recurrent event data}
+  %\VignetteIndexEntry{Improving proportional rate model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}{inputenc}
 ---
@@ -135,7 +135,7 @@ For this data set, the standard errors changed from `r fit$par1.se[1]` and `r fi
 to `r fit3$par1.se[1]` and `r fit3$par1.se[2]`, respectively.
 This acheives a `r 100 * round(1 - fit3$par1.se / fit$par1.se, 4)[1]`\% and
 `r 100 * round(1 - fit3$par1.se / fit$par1.se, 4)[2]`\% efficiency gain, respectively.
-Althought the above example assumes the covariates are time-independent, 
+Although the above example assumes the covariates are time-independent, 
 the proposed approach and the implementation allow time-dependent covariates.
 
 

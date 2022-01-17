@@ -46,7 +46,7 @@ CPPL.GMM <- function(dNit, Yit, Xit, w1t, w2t,
   p <- dim(Xit)[2]
   if (is.null(initial) | initial == 0) initial <- rep(0, p)
   if (is.null(bootstrap.weights)) bootstrap.weights <- rep(1 / n, n)
-  sfun0 <- function(b) PPLscore(dNit, Yit, Xit, beta = b, rw = weights)
+  sfun0 <- function(b) PPLscore(dNit, Yit, Xit, beta = b, rw = bootstrap.weights)
   est0 <- GMM_NRline(sfun0, initial, diag(p), maxit1, tol, trace)
   GMM_initial <- drop(est0$beta)
   sfun <- function(b, weights = bootstrap.weights) {
@@ -393,6 +393,7 @@ GMM_NRline <- function(score.function, initial, weight.matrix,
   return(results)
 }
 
+#' @importFrom stats nlminb
 NRline <- function(f.diff2, f.diff0 = NULL, initial,
                    iteration.max = 100, tolerance = 1e-7,
                    trace = FALSE) {
