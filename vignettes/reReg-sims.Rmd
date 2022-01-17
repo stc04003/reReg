@@ -67,7 +67,7 @@ The function `simGSC` generates the recurrent times from the joint model
     \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&\\
     h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &t\in[0, \tau],
   \end{cases}
-  \label{eq:sc|sc}
+  (\#eqn:sc|sc)
 \end{equation}
 where $\lambda_0(t)$ is the baseline rate function for the recurrent event process,
 $h_0(t)$ is the baseline hazard function for the failure time, 
@@ -85,7 +85,7 @@ The arguments are as follows
 * `summary` is a logical value indicating whether a brief data summary will be printed.
 * `para` is a list of regression parameters. 
 The list members `alpha`, `beta`, `eta`, and `theta` 
-correspond to $\alpha$, $\beta$, $\eta$, and $\theta$ in \\eqref{eq:sc|sc}, respectively.
+correspond to $\alpha$, $\beta$, $\eta$, and $\theta$ in \@ref(eqn:sc|sc), respectively.
 * `xmat` is the $n\times p$ design matrix. 
 * `censoring` is a $n$-dimensional numerical vector to specify the independent censoring time, $C$.
 * `frailty` is a $n$-dimensional numerical vector to specify the frailty variable, $Z$.

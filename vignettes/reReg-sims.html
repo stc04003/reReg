@@ -11,7 +11,7 @@
 
 <meta name="author" content="Sy Han (Steven) Chiou" />
 
-<meta name="date" content="2021-04-08" />
+<meta name="date" content="2022-01-17" />
 
 <title>Simulating recurrent event data</title>
 
@@ -1495,12 +1495,12 @@ div.tocify {
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row">
-<div class="col-sm-12 col-md-4 col-lg-3">
+<div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
 </div>
 
-<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -1511,7 +1511,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Simulating recurrent event data</h1>
 <h4 class="author">Sy Han (Steven) Chiou</h4>
-<h4 class="date">2021-04-08</h4>
+<h4 class="date">2022-01-17</h4>
 
 </div>
 
@@ -1527,7 +1527,7 @@ MathJax.Hub.Config({
 <p>Let <span class="math inline">\(N(t)\)</span> be the number of recurrent events occurring over the interval <span class="math inline">\([0, t]\)</span> and <span class="math inline">\(D\)</span> be the failure time of interest subjects to right censoring by <span class="math inline">\(C\)</span>. Define the composite censoring time <span class="math inline">\(Y = \min(D, C, \tau)\)</span> and the failure event indicator <span class="math inline">\(\Delta = I\{D\le \min(C, \tau)\}\)</span>, where <span class="math inline">\(\tau\)</span> is the maximum follow-up time. We assume the recurrent event process <span class="math inline">\(N(\cdot)\)</span> is observed up to <span class="math inline">\(Y\)</span>. Let <span class="math inline">\(X\)</span> be a <span class="math inline">\(p\)</span>-dimensional covariate vector. Consider a random sample of <span class="math inline">\(n\)</span> subjects, the observed data are independent and identically distributed (iid) copies of <span class="math inline">\(\{Y_i, \Delta_i, X_i, N_i(t), 0\le t\le Y_i\}\)</span>, where the subscript <span class="math inline">\(i\)</span> denotes the index of a subject for <span class="math inline">\(i= 1, \ldots, n\)</span>. Let <span class="math inline">\(m_i = N_i(Y_i)\)</span> be the number of recurrent events the <span class="math inline">\(i\)</span>th subject experienced before time <span class="math inline">\(Y_i\)</span>, then the jump times of <span class="math inline">\(N_i(t)\)</span> give the observed recurrent event times <span class="math inline">\(t_{i1}, \ldots, t_{im_i}\)</span> when <span class="math inline">\(m_i &gt; 0\)</span>. Thus, the observed data can also be expressed as iid copies of <span class="math inline">\(\{Y_i, \Delta_i, X_i, m_i, (t_{i1}, \ldots, t_{m_i})\}\)</span>. The primary interests in recurrent event data analysis often lie in making inference about the recurrent event process and the failure event and understanding the corresponding covariate effects. The built-in dataset, <code>simDat</code>, is a simulated example of a recurrent event data that is generated from the <code>simGSC()</code> function:</p>
 <pre class="r"><code>&gt; library(reReg)
 &gt; packageVersion(&quot;reReg&quot;)</code></pre>
-<pre><code>[1] &#39;1.4.0&#39;</code></pre>
+<pre><code>[1] &#39;1.4.2&#39;</code></pre>
 <pre class="r"><code>&gt; data(simDat)</code></pre>
 </div>
 <div id="the-simgsc-function" class="section level2 unnumbered">
@@ -1537,7 +1537,7 @@ MathJax.Hub.Config({
     \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&amp;\\
     h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &amp;t\in[0, \tau],
   \end{cases}
-  \label{eq:sc|sc}
+  (\#eqn:sc|sc)
 \end{equation}\]</span> where <span class="math inline">\(\lambda_0(t)\)</span> is the baseline rate function for the recurrent event process, <span class="math inline">\(h_0(t)\)</span> is the baseline hazard function for the failure time, <span class="math inline">\(Z\)</span> is a non-negative subject-specific latent frailty variable. The <span class="math inline">\(p\)</span>-dimensional regression coefficients <span class="math inline">\((\alpha, \eta)\)</span> and <span class="math inline">\((\beta, \theta)\)</span> correspond to the shape and the size parameters, respectively. The arguments in <code>simGSC</code> are as follow</p>
 <pre class="r"><code>&gt; args(simGSC)</code></pre>
 <pre><code>function (n, summary = FALSE, para, xmat, censoring, frailty, 
@@ -1547,7 +1547,7 @@ NULL</code></pre>
 <ul>
 <li><code>n</code> is the number of individual</li>
 <li><code>summary</code> is a logical value indicating whether a brief data summary will be printed.</li>
-<li><code>para</code> is a list of regression parameters. The list members <code>alpha</code>, <code>beta</code>, <code>eta</code>, and <code>theta</code> correspond to <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\eta\)</span>, and <span class="math inline">\(\theta\)</span> in \eqref{eq:sc|sc}, respectively.</li>
+<li><code>para</code> is a list of regression parameters. The list members <code>alpha</code>, <code>beta</code>, <code>eta</code>, and <code>theta</code> correspond to <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\eta\)</span>, and <span class="math inline">\(\theta\)</span> in @ref(eqn:sc|sc), respectively.</li>
 <li><code>xmat</code> is the <span class="math inline">\(n\times p\)</span> design matrix.</li>
 <li><code>censoring</code> is a <span class="math inline">\(n\)</span>-dimensional numerical vector to specify the independent censoring time, <span class="math inline">\(C\)</span>.</li>
 <li><code>frailty</code> is a <span class="math inline">\(n\)</span>-dimensional numerical vector to specify the frailty variable, <span class="math inline">\(Z\)</span>.</li>
@@ -1601,23 +1601,10 @@ Median time-to-terminal event:                  6.975 </code></pre>
 reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
     x1 + x2, data = datCox, model = &quot;gsc&quot;, B = 200, se = &quot;sand&quot;)
 
-Recurrent event process (shape):
-   Estimate   StdErr z.value p.value
-x1 -0.02252  0.33667 -0.0669  0.9467
-x2 -0.11480  0.29737 -0.3860  0.6995
-
-Recurrent event process (size):
-   Estimate   StdErr z.value p.value    
-x1 -1.02816  0.21131 -4.8656  &lt;2e-16 ***
-x2 -1.04991  0.26264 -3.9976   6e-05 ***
-
-Hypothesis tests:
-Ho: shape = 0 (Cox-type model):
-     X-squared = 0.1536, df = 2, p-value = 0.9261
-Ho: shape = size (Accelerated rate model):
-     X-squared = 13.2948, df = 2, p-value = 0.0013
-Ho: size = 0 (Accelerated mean model):
-     X-squared = 35.0216, df = 2, p-value = 0</code></pre>
+Recurrent event process:
+   Estimate   StdErr z.value   p.value    
+x1 -1.13602  0.13704 -8.2900 &lt; 2.2e-16 ***
+x2 -1.07493  0.14264 -7.5361 &lt; 2.2e-16 ***</code></pre>
 <p>Similarly, the hypothesis test shows a strong evidence that the rate function has an accelerated mean or accelerated rate structure when the data is simulated under these.</p>
 <p>When rate has an accelerated mean structure:</p>
 <pre class="r"><code>&gt; set.seed(0); datAM &lt;- simGSC(200, para = list(alpha = c(-1, -1), beta = c(-1, -1)))
@@ -1626,23 +1613,10 @@ Ho: size = 0 (Accelerated mean model):
 reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
     x1 + x2, data = datAM, model = &quot;gsc&quot;, B = 200, se = &quot;sand&quot;)
 
-Recurrent event process (shape):
+Recurrent event process:
    Estimate   StdErr z.value p.value    
-x1 -0.60383  0.33534 -1.8007 0.07176 .  
-x2 -1.41781  0.43013 -3.2963 0.00098 ***
-
-Recurrent event process (size):
-   Estimate   StdErr z.value p.value    
-x1 -0.89737  0.25466 -3.5238 0.00043 ***
-x2 -1.30967  0.22058 -5.9374 &lt; 2e-16 ***
-
-Hypothesis tests:
-Ho: shape = 0 (Cox-type model):
-     X-squared = 13.4112, df = 2, p-value = 0.0012
-Ho: shape = size (Accelerated rate model):
-     X-squared = 7.625, df = 2, p-value = 0.0221
-Ho: size = 0 (Accelerated mean model):
-     X-squared = 1.9932, df = 2, p-value = 0.3691</code></pre>
+x1 -0.57478  0.12960 -4.4351   1e-05 ***
+x2 -0.45066  0.18189 -2.4777 0.01322 *  </code></pre>
 <p>When rate has an accelerated rate structure:</p>
 <pre class="r"><code>&gt; set.seed(0); datAR &lt;- simGSC(200, para = list(alpha = c(-1, -1), beta = c(0, 0)))
 &gt; summary(update(fit, data = datAR), test = TRUE)</code></pre>
@@ -1650,23 +1624,10 @@ Ho: size = 0 (Accelerated mean model):
 reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~ 
     x1 + x2, data = datAR, model = &quot;gsc&quot;, B = 200, se = &quot;sand&quot;)
 
-Recurrent event process (shape):
-   Estimate   StdErr z.value p.value    
-x1 -1.56561  0.41150 -3.8047 0.00014 ***
-x2 -2.08450  0.42915 -4.8572 &lt; 2e-16 ***
-
-Recurrent event process (size):
-   Estimate   StdErr z.value p.value  
-x1 -0.31200  0.27209 -1.1467 0.25150  
-x2 -0.69067  0.27136 -2.5452 0.01092 *
-
-Hypothesis tests:
-Ho: shape = 0 (Cox-type model):
-     X-squared = 28.1646, df = 2, p-value = 0
-Ho: shape = size (Accelerated rate model):
-     X-squared = 1.9188, df = 2, p-value = 0.3831
-Ho: size = 0 (Accelerated mean model):
-     X-squared = 59.8902, df = 2, p-value = 0</code></pre>
+Recurrent event process:
+   Estimate  StdErr z.value p.value    
+x1  0.48918 0.10080  4.8530  &lt;2e-16 ***
+x2  0.41743 0.09635  4.3326   1e-05 ***</code></pre>
 </div>
 </div>
 <div id="reference" class="section level2 unnumbered">
@@ -1716,6 +1677,9 @@ $(document).ready(function () {
 
 <script>
 $(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
 
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')

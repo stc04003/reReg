@@ -65,7 +65,7 @@ the hazard function of the failure time formulated as follow:
       \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&\\
       h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &t\in[0, \tau],
     \end{cases}
-\label{eqn:sc|sc}
+  (\#eqn:sc|sc)
 \end{equation}
 where $Z$ is a latent shared frailty variable to account for association between the two types of
 outcomes, $\lambda_0(\cdot)$ is the baseline rate function,
@@ -115,7 +115,7 @@ Depending on the application, users can specify different model types for the
 rate function and the hazard function.
 For example, `model = "cox|ar"` postulate a Cox-type proportional model for the
 recurrent event rate function and an accelerated rate model for the terminal
-event hazard function, or $\alpha = \theta = 0$ in \\eqref{eqn:sc|sc}.
+event hazard function, or $\alpha = \theta = 0$ in \@ref(eqn:sc|sc).
 
 #### Variance estimation
 The nonparametric bootstrap method for clustered data is adopted to estimate the
