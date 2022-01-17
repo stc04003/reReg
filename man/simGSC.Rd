@@ -91,7 +91,7 @@ Overall, the default specifications generate the recurrent events and the termin
 from the model:
 \deqn{\lambda(t) = \displaystyle \frac{2Z}{1 + te^{-X_{i1} - X_{i2}}},
 h(t) = \displaystyle \frac{Z}{5(1 + te^{X_{i1} + X_{i2}})},  t\in[0, 60].}
-See \href{www.sychiou.com/reReg/articles/reReg-sims.html}{online vignette}
+See \href{https://www.sychiou.com/reReg/articles/reReg-sims.html}{online vignette}
 for more examples.
 }
 \examples{

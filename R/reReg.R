@@ -585,7 +585,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' Additionally, an improved estimation of the proportional rate model
 #' (Huang and Huang 2022) can be called by \code{model = "cox.HH"} with
 #' additional \code{control} options to specify the underlying procedure.
-#' See \href{www.sychiou.com/reReg/articles/reReg-reg.html}{online vignette}
+#' See \href{https://www.sychiou.com/reReg/articles/reReg-reg.html}{online vignette}
 #' for a detailed discussion of the implemented regression models.
 #' 
 #' \bold{Variance estimation:}
@@ -607,7 +607,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' and empirical likelihood (EL) estimation.
 #' The proposed GMM and EL procedures are available in \code{reReg} via \code{model = "cox.HH"}
 #' with additional control specifications.
-#' See \href{www.sychiou.com/reReg/articles/reReg-cppl.html}{online vignette}
+#' See \href{https://www.sychiou.com/reReg/articles/reReg-cppl.html}{online vignette}
 #' for an illustration of this feature.
 #' 
 #' \bold{Control options:}
