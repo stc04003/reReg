@@ -73,7 +73,7 @@ The 95% confidence interval on the baseline cumulative rate function" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
       </span>
     </div>
 
@@ -99,10 +99,13 @@ The 95% confidence interval on the baseline cumulative rate function" />
       <a href="../articles/reReg-Recur.html">Creating `Recur` objects</a>
     </li>
     <li>
+      <a href="../articles/reReg-cppl.html">Improving Cox-type proportional rate model with `reReg`</a>
+    </li>
+    <li>
       <a href="../articles/reReg-plot.html">Visualization of recurrent event data with `reReg`</a>
     </li>
     <li>
-      <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
+      <a href="../articles/reReg-reg.html">Regression model for recurrent event data</a>
     </li>
     <li>
       <a href="../articles/reReg-sims.html">Simulating recurrent event data</a>
@@ -223,8 +226,8 @@ defaults to a list with the following values:</p><dl>
 <span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>fit</span><span class='op'>)</span>
 </div><div class='img'><img src='plotHaz-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='co'>## Plot baseline cumulative hazard function</span>
 <span class='fu'>plotHaz</span><span class='op'>(</span><span class='va'>fit</span><span class='op'>)</span>
-</div><div class='img'><img src='plotHaz-2.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'>plotHaz</span><span class='op'>(</span><span class='va'>fit</span>, smooth <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
-</div><div class='img'><img src='plotHaz-3.png' alt='' width='700' height='433' /></div></pre>
+</div><div class='output co'>#&gt; <span class='error'>Error in plotHaz(fit): Baseline cumulative hazard function is not available.</span></div><div class='input'><span class='fu'>plotHaz</span><span class='op'>(</span><span class='va'>fit</span>, smooth <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='error'>Error in plotHaz(fit, smooth = TRUE): Baseline cumulative hazard function is not available.</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

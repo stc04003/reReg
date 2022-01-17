@@ -25,7 +25,12 @@ in the \code{"formula"}.}
 \item{subset}{an optional logical vector specifying a subset of observations to be used
 in the fitting process.}
 
-\item{model}{a character string specifying the underlying model. See \bold{Details}.}
+\item{model}{a character string specifying the underlying model.
+The available functional form for the rate function and the hazard function include a Cox-type model,
+an accelerated mean model, an accelerated rate model, or a generalized scale-change model,
+and can be specified via "cox", "am", "ar", or "gsc", respectively.
+The rate function and hazard function separated by "\code{|}".
+See \bold{Details}.}
 
 \item{B}{a numeric value specifies the number of bootstraps for variance estimation.
 When \code{B = 0}, variance estimation will not be performed.}
@@ -46,6 +51,8 @@ an accelerated mean model, an accelerated rate model, or a generalized scale-cha
 See details for model specifications.
 }
 \details{
+\bold{Model specification:}
+
 Suppose the recurrent event process and the failure events are
 observed in the time interval \eqn{t\in[0,\tau]},
 for some constant \eqn{\tau}.
@@ -61,7 +68,7 @@ where \eqn{\lambda_0(t)} is the baseline rate function,
 respectively.
 The model includes several popular semiparametric models as special cases,
 which can be specified via the \code{model} argument with the rate function
-and hazard function separated by "\code{|}".
+and the hazard function separated by "\code{|}".
 For examples,
 Wang, Qin and Chiang (2001) (\eqn{\alpha = \eta = \theta = 0})
 can be called with \code{model = "cox"};
@@ -82,12 +89,35 @@ censoring are also implemented in \code{reReg};
 these includes \code{model = "cox.LWYY"} for Lin et al. (2000),
 \code{model = "cox.GL"} for Ghosh and Lin (2002),
 and \code{model = "am.GL"} for Ghosh and Lin (2003).
+Additionally, an improved estimation of the proportional rate model
+(Huang and Huang 2022) can be called by \code{model = "cox.HH"} with
+additional \code{control} options to specify the underlying procedure.
+See \href{www.sychiou.com/reReg/articles/reReg-reg.html}{online vignette}
+for a detailed discussion of the implemented regression models.
+
+\bold{Variance estimation:}
 
 The available methods for variance estimation are:
 \describe{
   \item{boot}{performs nonparametric bootstrap.}
   \item{sand}{performs the efficient resampling-based variance estimation.}
 }
+
+\bold{Improving proportional rate model:}
+A common semiparametric regression model for recurrent event process
+under the noninformative censoring assumption is the Cox-type proportional rate model
+(available in \code{reReg()} via \code{model = "cox.LWYY"}).
+However, the construction of the pseudo-partial score function ignores the
+dependency among recurrent events and thus could be inefficient. 
+To improve upon this popular method, Huang and Huang (2022) proposed to combine
+a system of weighted pseudo-partial score equations via the generalized method of moments (GMM)
+and empirical likelihood (EL) estimation.
+The proposed GMM and EL procedures are available in \code{reReg} via \code{model = "cox.HH"}
+with additional control specifications.
+See \href{www.sychiou.com/reReg/articles/reReg-cppl.html}{online vignette}
+for an illustration of this feature.
+
+\bold{Control options:}
 
 The \code{control} list consists of the following parameters:
 \describe{
@@ -103,6 +133,16 @@ the Gehan-type estimating equation (when available) will be used. }
 will be applied when \code{se = "boot"} is called.}
   \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when
 \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+\item{cppl}{A character string indicating either to improve the proportional rate model via
+the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood estimation (\code{cppl = "EL"}).
+This option is only used when \code{model = "cox.HH"}.}
+\item{cppl.wfun}{A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
+Avaialble options are \code{"Gehan"} and \code{"cumbase"},
+which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
+Alternatively, the weight functions can be specified with function formulas.
+This option is only used when \code{model = "cox.HH"}.}
+\item{trace}{A logical variable denoting whether some of the
+intermediate results of iterations should be displayed to the user.  Default is \code{FALSE}.}
 }
 }
 \examples{
@@ -139,6 +179,9 @@ Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017). Joint Scale-c
 
 Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
 Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
+
+Huang, M.-Y. and Huang, C.-Y. (2022). Improved semiparametric estimation of the proportional rate model with recurrent event data.
+\emph{In revision}.
 }
 \seealso{
 \code{\link{Recur}}, \code{\link{simGSC}}

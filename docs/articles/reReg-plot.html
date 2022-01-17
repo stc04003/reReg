@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
       </span>
     </div>
 
@@ -57,10 +57,13 @@
       <a href="../articles/reReg-Recur.html">Creating `Recur` objects</a>
     </li>
     <li>
+      <a href="../articles/reReg-cppl.html">Improving Cox-type proportional rate model with `reReg`</a>
+    </li>
+    <li>
       <a href="../articles/reReg-plot.html">Visualization of recurrent event data with `reReg`</a>
     </li>
     <li>
-      <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
+      <a href="../articles/reReg-reg.html">Regression model for recurrent event data</a>
     </li>
     <li>
       <a href="../articles/reReg-sims.html">Simulating recurrent event data</a>
@@ -95,7 +98,7 @@
 </h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2021-10-02</h4>
+            <h4 class="date">2022-01-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stc04003/reReg/blob/master/vignettes/reReg-plot.Rmd"><code>vignettes/reReg-plot.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-plot.Rmd</code></div>
@@ -107,7 +110,7 @@
 <p>In this vignette, we demonstrate how to create event plots and mean cumulative function in <strong><code>reReg</code></strong> package. We will illustrate the usage of our functions with the <code>readmission</code> data from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and González 2012)</span>, <span class="citation">(González et al. 2005)</span>. The data contains re-hospitalization times after surgery in patients diagnosed with colorectal cancer. In this data set, the recurrent event is the readmission and the terminal event is either death or end of study. See <code>?readmission</code> for data details.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">library</span>(reReg)</span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">packageVersion</span>(<span class="st">"reReg"</span>)</span></code></pre></div>
-<pre><code>[1] '1.4.1'</code></pre>
+<pre><code>[1] '1.4.2'</code></pre>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">data</span>(readmission, <span class="dt">package =</span> <span class="st">"frailtypack"</span>)</span>
 <span id="cb3-2"><a href="#cb3-2"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">head</span>(readmission)</span></code></pre></div>
 <pre><code>  id enum t.start t.stop time event      chemo    sex dukes charlson death

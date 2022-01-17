@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fitting semiparametric regression model to recurrent event data • reReg</title>
+<title>Regression model for recurrent event data • reReg</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Fitting semiparametric regression model to recurrent event data">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Regression model for recurrent event data">
 <meta property="og:description" content="reReg">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">reReg</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.4.2</span>
       </span>
     </div>
 
@@ -57,10 +57,13 @@
       <a href="../articles/reReg-Recur.html">Creating `Recur` objects</a>
     </li>
     <li>
+      <a href="../articles/reReg-cppl.html">Improving Cox-type proportional rate model with `reReg`</a>
+    </li>
+    <li>
       <a href="../articles/reReg-plot.html">Visualization of recurrent event data with `reReg`</a>
     </li>
     <li>
-      <a href="../articles/reReg-reg.html">Fitting semiparametric regression model to recurrent event data</a>
+      <a href="../articles/reReg-reg.html">Regression model for recurrent event data</a>
     </li>
     <li>
       <a href="../articles/reReg-sims.html">Simulating recurrent event data</a>
@@ -91,10 +94,10 @@
       </header><script src="reReg-reg_files/header-attrs-2.9/header-attrs.js"></script><script src="reReg-reg_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Fitting semiparametric regression model to recurrent event data</h1>
+      <h1 data-toc-skip>Regression model for recurrent event data</h1>
                         <h4 class="author">Sy Han (Steven) Chiou</h4>
             
-            <h4 class="date">2021-10-02</h4>
+            <h4 class="date">2022-01-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stc04003/reReg/blob/master/vignettes/reReg-reg.Rmd"><code>vignettes/reReg-reg.Rmd</code></a></small>
       <div class="hidden name"><code>reReg-reg.Rmd</code></div>
@@ -206,13 +209,8 @@ reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~
 
 Recurrent event process:
    Estimate   StdErr z.value   p.value    
-x1 -0.88619  0.16844 -5.2612 &lt; 2.2e-16 ***
-x2 -0.95260  0.18884 -5.0446 &lt; 2.2e-16 ***
-
-Terminal event:
-   Estimate  StdErr z.value p.value    
-x1  0.94109 0.26215  3.5899 0.00033 ***
-x2  1.08248 0.29121  3.7171 0.00020 ***</code></pre>
+x1 -1.23639  0.12667 -9.7608 &lt; 2.2e-16 ***
+x2 -1.11847  0.15744 -7.1039 &lt; 2.2e-16 ***</code></pre>
 <p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.cox)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/coxplot-1.png" width="700"></p>
@@ -247,13 +245,8 @@ reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~
 
 Recurrent event process:
    Estimate  StdErr z.value p.value    
-x1  1.05061 0.26117  4.0227   6e-05 ***
-x2  1.16509 0.23593  4.9382  &lt;2e-16 ***
-
-Terminal event:
-   Estimate   StdErr z.value p.value  
-x1 -0.84462  0.69838 -1.2094 0.22651  
-x2 -1.13158  0.54213 -2.0873 0.03686 *</code></pre>
+x1  0.18795 0.10528  1.7852 0.07424 .  
+x2  0.38384 0.08524  4.5033   1e-05 ***</code></pre>
 <p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.am)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/amplot-1.png" width="700"></p>
@@ -285,14 +278,9 @@ reReg(formula = Recur(t.start %to% t.stop, id, event, status) ~
     x1 + x2, data = datCoxAr, model = "cox|ar", B = 200)
 
 Recurrent event process:
-   Estimate   StdErr z.value p.value    
-x1 -1.06661  0.13424 -7.9455  &lt;2e-16 ***
-x2 -0.83873  0.18863 -4.4465   1e-05 ***
-
-Terminal event:
-   Estimate  StdErr z.value p.value   
-x1  1.29886 0.44246  2.9356 0.00333 **
-x2  1.26390 0.53054  2.3823 0.01721 * </code></pre>
+   Estimate   StdErr z.value   p.value    
+x1 -1.09738  0.13874 -7.9096 &lt; 2.2e-16 ***
+x2 -0.93090  0.14066 -6.6183 &lt; 2.2e-16 ***</code></pre>
 <p>The baseline functions can be plotted via <code><a href="https://rdrr.io/r/graphics/plot.default.html">plot()</a></code>:</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="op">&gt;</span><span class="st"> </span><span class="kw">plot</span>(fit.CoxAr)</span></code></pre></div>
 <p><img src="reReg-reg_files/figure-html/coxarplot-1.png" width="700"></p>

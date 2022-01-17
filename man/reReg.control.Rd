@@ -9,9 +9,14 @@ reReg.control(
   solver = c("BB::dfsane", "BB::BBsolve", "BB::BBoptim", "optimx::optimr",
     "dfoptim::hjk", "dfoptim::mads", "optim", "nleqslv::nleqslv"),
   tol = 1e-07,
+  cppl = "EL",
+  cppl.wfun = list(NULL, NULL),
   init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
   boot.parallel = FALSE,
-  boot.parCl = NULL
+  boot.parCl = NULL,
+  maxit1 = 100,
+  maxit2 = 10,
+  trace = FALSE
 )
 }
 \arguments{
@@ -22,6 +27,16 @@ or the Gehan-type estimating equation (when available) will be used.}
 
 \item{tol}{a numerical value specifying the absolute error tolerance in root search.}
 
+\item{cppl}{a character string indicating either to improve the proportional rate model via
+the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood estimation (\code{cppl = "EL"}).
+This option is only used when \code{model = "cox.HH"}.}
+
+\item{cppl.wfun}{A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
+Avaialble options are \code{"Gehan"} and \code{"cumbase"},
+which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
+Alternatively, the weight functions can be specified with function formulas.
+This option is only used when \code{model = "cox.HH"}.}
+
 \item{init}{a list contains the initial guesses used for root search.}
 
 \item{boot.parallel}{an logical value indicating whether parallel computation will be
@@ -29,6 +44,11 @@ applied when \code{se = "boot"} is specified in \code{reReg()}.}
 
 \item{boot.parCl}{an integer value specifying the number of CPU cores to be used when
 \code{parallel = TRUE}. The default value is half the CPU cores on the current host.}
+
+\item{maxit1, maxit2}{max number of iteration used when \code{model = "cox.HH"}.}
+
+\item{trace}{A logical variable denoting whether some of the
+intermediate results of iterations should be displayed to the user.  Default is \code{FALSE}.}
 }
 \description{
 This function provides the fitting options for the \code{reReg()} function.

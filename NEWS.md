@@ -1,3 +1,6 @@
+# `reReg` 1.4.2
+  	* Added an option to perform GMM or EL procedure to improve cox.LWYY.
+	* Added a vignette on CPPL.
 # `reReg` 1.4.1
   	* printCoefmat now all has the argument `has.Pvalue = TRUE`
 	* Improved print methods for summary.reReg
