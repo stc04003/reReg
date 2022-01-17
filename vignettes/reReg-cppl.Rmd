@@ -1,5 +1,5 @@
 ---
-title: "Improving semiparametric estimation of the Cox-type proportional rate model with `reReg`"
+title: "Improving Cox-type proportional rate model with `reReg`"
 author: Sy Han (Steven) Chiou
 date: "`r Sys.Date()`"
 output:
@@ -57,8 +57,94 @@ library(reReg)
 packageVersion("reReg")
 ```
 
+## Loading data set
+
 We first generate a simulated data where the recurrent event process is generated from a Cox-type proportional rate model.
 This can be achieved with the default settings of `simGSC()`; 
 see the vignette on [simulating recurrent event data](https://www.sychiou.com/reReg/articles/reReg-sims.html) for illustrations of `simGSC()`.
+
+```{r simDat}
+set.seed(1); head(dat <- simGSC(50))
+```
+
+## Fitting Cox-type model
+
+We can fit the Cox-type proportional rate model [@lin2000semiparametric] with `reReg()` via the following specification. 
+```{r cox, cache = TRUE}
+fit <- reReg(Recur(t.stop, id, event) ~ x1 + x2, model = "cox.LWYY", data = dat)
+summary(fit)
+```
+@huang2022improved proposed improved semiparametric estimation methods of the above proportional rate model.
+By combining different weighted pseudo-partial score functions through
+generalized methods of moments or empirical likelihood methods, 
+@huang2022improved showed that substantial efficiency gain can be achieved without imposing additional 
+model assumptions than those assumed in @lin2000semiparametric. 
+Specifically, the efficiency gain is a result of combining a set of asymptotically 
+independently and identically distributed estimating equations derived from the weighted pseudo-partial 
+score equations of @lin2000semiparametric.
+
+## Improved estimation
+
+Two available approaches to combine estimating equations are the generalized method of moments (GMM)
+and the empirical likelihood (EL) estimations, both of which can be specified with the `cppl` argument 
+within the `control` list.
+In addition to the combination approach, weight functions to be combined with 
+the weighted pseudo-partial score functions can also be specified with the `cppl.wfun` argument within the `control` list.
+In theory, combining more weight functions leads to better asymptotic efficiency, 
+especially when the sample size is large.
+However, as observed in simulation studies of @huang2022improved, 
+combining one or two weighted functions can achieve substantial efficiency gain under scenarios 
+with small to moderate sample sizes.
+When the sample size is small, @huang2022improved suggests using a combination of the
+unit weight and a decreasing function, since the decreasing function can downweight the
+later time period, in which the events are more effectively censored.
+For those reason, the `reReg()` currently only allows user to specify up to two weight functions with 
+`cppl.wfun`.
+The `reReg()` allows users choose either the cumulative baseline rate function or the Gehan's weight 
+as two possible options for the weight functions.
+Additionally, the `reReg()` also allows users 
+to specify arbitrary function in `cppl.wfun` via function formulas.
+
+
+The following gives an example of the improved estimation by combining estimating equations 
+via GMM with the cumulative baseline rate function and the Gehan's weight.
+```{R cox2, cache = TRUE}
+fit2 <- reReg(Recur(t.stop, id, event) ~ x1 + x2, model = "cox.LWYY", data = dat, 
+              control = list(cppl = "GMM", cppl.wfun = list("Gehan", "cumbase"))) 
+summary(fit2) 
+```
+For this data set, the standard errors changed from `r fit$par1.se[1]` and `r fit$par1.se[2]` 
+to `r fit2$par1.se[1]` and `r fit2$par1.se[2]`, respectively.
+This acheives a `r 100 * round(1 - fit2$par1.se / fit$par1.se, 4)[1]`\% and
+`r 100 * round(1 - fit2$par1.se / fit$par1.se, 4)[2]`\% efficiency gain, respectively.
+The above result can be called by updating the original fit, `fit`, with the `update()` function, 
+as illustrated in the following.
+```{R, eval = FALSE}
+fit2 <- update(fit, control = list(cppl = "GMM", cppl.wfun = list("Gehan", "cumbase")))
+```
+
+
+The following gives an example of the improved estimation by combining estimating equations 
+via EL with the user-specified function $1 / (x + 1)$ and the Gehan's weight.
+```{R cox3, cache = TRUE}
+fit3 <- reReg(Recur(t.stop, id, event) ~ x1 + x2, model = "cox.LWYY", data = dat, 
+              control = list(cppl = "EL", cppl.wfun = list(function(x) 1 / (x + 1), "Gehan"))) 
+summary(fit3) 
+```
+For this data set, the standard errors changed from `r fit$par1.se[1]` and `r fit$par1.se[2]` 
+to `r fit3$par1.se[1]` and `r fit3$par1.se[2]`, respectively.
+This acheives a `r 100 * round(1 - fit3$par1.se / fit$par1.se, 4)[1]`\% and
+`r 100 * round(1 - fit3$par1.se / fit$par1.se, 4)[2]`\% efficiency gain, respectively.
+Althought the above example assumes the covariates are time-independent, 
+the proposed approach and the implementation allow time-dependent covariates.
+
+
+## Conclusion
+
+Although this vignette is focus on improving the proportional rate model, 
+the proposed approaches by @huang2022improved can be extended to handle other types of rate function.
+Such an extension will be investigated and the `reReg` package will be expanded accordingly.
+
+
 
 ## Reference

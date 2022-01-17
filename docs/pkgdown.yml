@@ -3,8 +3,9 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   reReg-Recur: reReg-Recur.html
+  reReg-cppl: reReg-cppl.html
   reReg-plot: reReg-plot.html
   reReg-reg: reReg-reg.html
   reReg-sims: reReg-sims.html
-last_built: 2021-10-03T04:38Z
+last_built: 2022-01-17T05:51Z
 

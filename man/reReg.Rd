@@ -136,7 +136,7 @@ will be applied when \code{se = "boot"} is called.}
 \item{cppl}{A character string indicating either to improve the proportional rate model via
 the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood estimation (\code{cppl = "EL"}).
 This option is only used when \code{model = "cox.HH"}.}
-\item{cppl.fun}{A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
+\item{cppl.wfun}{A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
 Avaialble options are \code{"Gehan"} and \code{"cumbase"},
 which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
 Alternatively, the weight functions can be specified with function formulas.

@@ -1,5 +1,5 @@
 ---
-title: "Fitting semiparametric regression model to recurrent event data"
+title: "Regression model for recurrent event data"
 author: Sy Han (Steven) Chiou
 date: "`r Sys.Date()`"
 output:

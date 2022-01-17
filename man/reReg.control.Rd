@@ -10,7 +10,7 @@ reReg.control(
     "dfoptim::hjk", "dfoptim::mads", "optim", "nleqslv::nleqslv"),
   tol = 1e-07,
   cppl = "EL",
-  cppl.fun = list(NULL, NULL),
+  cppl.wfun = list(NULL, NULL),
   init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
   boot.parallel = FALSE,
   boot.parCl = NULL,
@@ -31,7 +31,7 @@ or the Gehan-type estimating equation (when available) will be used.}
 the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood estimation (\code{cppl = "EL"}).
 This option is only used when \code{model = "cox.HH"}.}
 
-\item{cppl.fun}{A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
+\item{cppl.wfun}{A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
 Avaialble options are \code{"Gehan"} and \code{"cumbase"},
 which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
 Alternatively, the weight functions can be specified with function formulas.
