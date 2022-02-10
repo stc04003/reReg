@@ -56,10 +56,9 @@ packageVersion("reReg")
 data(readmission, package = "frailtypack")
 head(readmission)
 readmission <- subset(readmission, !(id %in% c(60, 109, 280)))
-attach(readmission)
 ```
 
-##  The`Recur` object
+##  The `Recur` interface
 The `Recur()` function is modeled after the `Surv()` function in the __`survival`__ package [@R:survival]. 
 The function interface of `Recur()` is
 ```{R}
@@ -67,15 +66,37 @@ args(Recur)
 ```
 The six arguments are 
 
-* `time` a vector that represents the time of recurrent events and censoring, 
+* `time`: event and censoring times. 
+
+    It can be a vector that represents the time of recurrent events and censoring, 
 or as a list of time intervals that contains the starting time and the ending time of the interval. 
 In the latter, the intervals are assumed to be open on the left and closed on the right, 
 where the right end points are the time of recurrent events and censoring.
-* `id` specifies the subject identity. It can be numeric vector, character vector, or a factor vector.  If it is left unspecified, `Recur()` will assume that each row represents a subject.
-* `event` is a numeric vector that represents the types of the recurrent events. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.
-* `terminal` is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector.  Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified `terminal` should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of `terminal` at the last recurrent episode.
-* `origin` a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value.  The length of the specified `origin` should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins.  However, one subject must have the same origin. In addition to numeric values, `Date` and `difftime` are also supported and converted to numeric values.
-* `check` is a character value specifying how to perform the checks for recurrent event data.  Errors or warnings will be thrown, respectively, if the `check` is specified to be `"hard"` (default) or `"soft"`.  If `check = "none"` is specified, no data checking procedure will be run.
+
+
+* `id`: subject's id.
+
+    It can be numeric vector, character vector, or a factor vector.  
+    If it is left unspecified, `Recur()` will assume that each row represents a subject.
+
+* `event`: event indicator of recurrent events. 
+
+    This is a numeric vector that represents the types of the recurrent events. 
+    Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.
+    
+* `terminal`: event indicator of terminal events. 
+
+    This is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector.  Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified `terminal` should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of `terminal` at the last recurrent episode.
+    
+* `origin`: time origin of subjects. 
+
+    This is a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value.  The length of the specified `origin` should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins.  However, one subject must have the same origin. In addition to numeric values, `Date` and `difftime` are also supported and converted to numeric values.
+    
+* `check`: indicates how to run the data checking procedure. 
+
+    This is a character value specifying how to perform the checks for recurrent event data.  Errors or warnings will be thrown, respectively, if the `check` is specified to be `"hard"` (default) or `"soft"`.  If `check = "none"` is specified, no data checking procedure will be run.
+
+##  The `Recur` object
 
 When the time origin is zero for all subjects as in the `readmission` data set, 
 the `time` argument can be specified with `time = t.stop` or with `time = t.start %to% t.stop`, 
@@ -125,7 +146,7 @@ the patients were observed through the end of study.
 For this dataset, the `Recur` object can be constructed as below:
 ```{R, output.lines = 1:10}
 data(cgd, package = "survival")
-with(cgd, Recur(tstart %2% tstop, id))
+(recur1 <- with(cgd, Recur(tstart %2% tstop, id)))
 ```
 
 
@@ -134,7 +155,7 @@ For each subject, the function `Recur()` prints intervals to represent the durat
 (a recurrent event or a terminal event).
 The `Recur` object for the `readmission` dataset can be constructed as below:
 ```{r Recur-obj-short2, eval = TRUE, output.lines = 1:10}
-Recur(t.stop, id, event, death)
+(recur2 <- with(readmission, Recur(t.stop, id, event, death)))
 ```
 The `readmission` example above shows patient id \#1 experienced 2 hospital readmissions 
 with a terminal event at `t = 1037` (days).
@@ -144,6 +165,33 @@ On the other hand patient id \# 4 has more than 3 readmissions and was censored 
 The readmission intervals was suppressed to prevent printing results wider than the screen allowance.
 The number of intervals to be printed can be tuned using the `options` and argument `reda.Recur.maxPrint`. 
 
+## The `Recur` output
+
+The `Recur()` returns an S4-class representing model response for recurrent event data. 
+The following shows the structure of the `Recur` object created for `cgd` data.
+```{R}
+str(recur1)
+```
+The slots of the `Recur` S4-class are 
+
+  - `.Data`: a numerical matrix with columns `time1`, `time2`, `id`, `event`, `terminal`, and `origin`. 
+  - `call`: a function call producing the `Recur` object.
+  - `ID`: a character string storing the original subject ID.
+  - `ord`: indices that sort the response matrix by rows. Soring is in an increasing order by `id`, `time2`, and `-event`.
+  - `rev_ord`: indices that revert the increasingly sorted response matrix by `ord` to its original ordering.
+  - `first_idx`: indices that indicates the first record of each subject in the sorted matrix.
+  - `last_idx`: indices that indicates the last record of each subject in the sorted matrix. 
+  - `check`: a character string that records the specified `check` argument in `Recur()`.
+  - `time_class`: a character string the original times if specified in calendar dates.
+
+The summary for `Recur` object can be printed with `summary()`.
+
+```{R}
+summary(recur1)
+summary(recur2)
+```
+
+## Addendum
 
 Readers are referred to a separate [vignette on `Recur()`](https://wenjie-stat.me/reda/articles/reda-recur) for a detailed introduction of `Recur()`.
 **<span style="color:red">The `reSurv()` function is being deprecated in Version 1.2.0.</span>**

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Sy Han (Steven) Chiou" />
 
-<meta name="date" content="2021-09-29" />
+<meta name="date" content="2022-02-10" />
 
 <title>Creating Recur objects</title>
 
@@ -1511,15 +1511,15 @@ div.tocify {
 
 <h1 class="title toc-ignore">Creating <code>Recur</code> objects</h1>
 <h4 class="author">Sy Han (Steven) Chiou</h4>
-<h4 class="date">2021-09-29</h4>
+<h4 class="date">2022-02-10</h4>
 
 </div>
 
 
-<p>In this vignette, we demonstrate how to create a recurrent event object with the <code>Recur()</code> function from the <strong><code>reda</code></strong> package <span class="citation">(Wang et al. 2021)</span>. The <code>Recur()</code> function is imported when the <strong><code>reReg</code></strong> package is loaded. The <code>Recur</code> object bundles together a set of recurrent times, failure time, and censoring status, with the convenience that it can be used as the response in model formula in the <strong><code>reReg</code></strong> package. We will illustrate the usage of <code>Recur()</code> with the <code>cgd</code> data set from the <strong><code>survival</code></strong> <span class="citation">(Therneau 2021)</span> and the <code>readmission</code> data set from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and González 2012)</span><span class="citation">(González et al. 2005)</span>.</p>
+<p>In this vignette, we demonstrate how to create a recurrent event object with the <code>Recur()</code> function from the <strong><code>reda</code></strong> package <span class="citation">(Wang et al. 2021)</span>. The <code>Recur()</code> function is imported when the <strong><code>reReg</code></strong> package is loaded. The <code>Recur</code> object bundles together a set of recurrent times, failure time, and censoring status, with the convenience that it can be used as the response in model formula in the <strong><code>reReg</code></strong> package. We will illustrate the usage of <code>Recur()</code> with the <code>cgd</code> data set from the <strong><code>survival</code></strong> <span class="citation">(Therneau 2021)</span> and the <code>readmission</code> data set from the <strong><code>frailtypack</code></strong> package <span class="citation">(Rondeau, Mazroui, and González 2012)</span>, <span class="citation">(González et al. 2005)</span>.</p>
 <pre class="r"><code>&gt; library(reReg)
 &gt; packageVersion(&quot;reReg&quot;)</code></pre>
-<pre><code>[1] &#39;1.4.1&#39;</code></pre>
+<pre><code>[1] &#39;1.4.2&#39;</code></pre>
 <pre class="r"><code>&gt; data(readmission, package = &quot;frailtypack&quot;)
 &gt; head(readmission)</code></pre>
 <pre><code>  id enum t.start t.stop time event      chemo    sex dukes charlson death
@@ -1529,10 +1529,9 @@ div.tocify {
 4  2    1       0    489  489     1 NonTreated   Male     C        0     0
 5  2    2     489   1182  693     0 NonTreated   Male     C        0     0
 6  3    1       0     15   15     1 NonTreated   Male     C        3     0</code></pre>
-<pre class="r"><code>&gt; readmission &lt;- subset(readmission, !(id %in% c(60, 109, 280)))
-&gt; attach(readmission)</code></pre>
-<div id="therecur-object" class="section level2">
-<h2>The<code>Recur</code> object</h2>
+<pre class="r"><code>&gt; readmission &lt;- subset(readmission, !(id %in% c(60, 109, 280)))</code></pre>
+<div id="the-recur-interface" class="section level2">
+<h2>The <code>Recur</code> interface</h2>
 <p>The <code>Recur()</code> function is modeled after the <code>Surv()</code> function in the <strong><code>survival</code></strong> package <span class="citation">(Therneau 2021)</span>. The function interface of <code>Recur()</code> is</p>
 <pre class="r"><code>&gt; args(Recur)</code></pre>
 <pre><code>function (time, id, event, terminal, origin, check = c(&quot;hard&quot;, 
@@ -1540,18 +1539,28 @@ div.tocify {
 NULL</code></pre>
 <p>The six arguments are</p>
 <ul>
-<li><code>time</code> a vector that represents the time of recurrent events and censoring, or as a list of time intervals that contains the starting time and the ending time of the interval. In the latter, the intervals are assumed to be open on the left and closed on the right, where the right end points are the time of recurrent events and censoring.</li>
-<li><code>id</code> specifies the subject identity. It can be numeric vector, character vector, or a factor vector. If it is left unspecified, <code>Recur()</code> will assume that each row represents a subject.</li>
-<li><code>event</code> is a numeric vector that represents the types of the recurrent events. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.</li>
-<li><code>terminal</code> is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified <code>terminal</code> should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of <code>terminal</code> at the last recurrent episode.</li>
-<li><code>origin</code> a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value. The length of the specified <code>origin</code> should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins. However, one subject must have the same origin. In addition to numeric values, <code>Date</code> and <code>difftime</code> are also supported and converted to numeric values.</li>
-<li><code>check</code> is a character value specifying how to perform the checks for recurrent event data. Errors or warnings will be thrown, respectively, if the <code>check</code> is specified to be <code>&quot;hard&quot;</code> (default) or <code>&quot;soft&quot;</code>. If <code>check = &quot;none&quot;</code> is specified, no data checking procedure will be run.</li>
+<li><p><code>time</code>: event and censoring times.</p>
+<p>It can be a vector that represents the time of recurrent events and censoring, or as a list of time intervals that contains the starting time and the ending time of the interval. In the latter, the intervals are assumed to be open on the left and closed on the right, where the right end points are the time of recurrent events and censoring.</p></li>
+<li><p><code>id</code>: subject’s id.</p>
+<p>It can be numeric vector, character vector, or a factor vector.<br />
+If it is left unspecified, <code>Recur()</code> will assume that each row represents a subject.</p></li>
+<li><p><code>event</code>: event indicator of recurrent events.</p>
+<p>This is a numeric vector that represents the types of the recurrent events. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status.</p></li>
+<li><p><code>terminal</code>: event indicator of terminal events.</p>
+<p>This is a numeric vector that represents the status of the terminal event. Logical vector is allowed and converted to numeric vector. Non-positive values are internally converted to zero indicating censoring status. If a scalar value is specified, all subjects will have the same status of terminal events at their last recurrent episodes. The length of the specified <code>terminal</code> should be equal to the number of subjects, or number of data rows. In the latter case, each subject may have at most one positive entry of <code>terminal</code> at the last recurrent episode.</p></li>
+<li><p><code>origin</code>: time origin of subjects.</p>
+<p>This is a numerical vector indicating the time origin of each subject. If a scalar value is specified, all subjects will have the same origin at the specified value. The length of the specified <code>origin</code> should be equal to the number of subjects, or number of data rows. In the latter case, different subjects may have different origins. However, one subject must have the same origin. In addition to numeric values, <code>Date</code> and <code>difftime</code> are also supported and converted to numeric values.</p></li>
+<li><p><code>check</code>: indicates how to run the data checking procedure.</p>
+<p>This is a character value specifying how to perform the checks for recurrent event data. Errors or warnings will be thrown, respectively, if the <code>check</code> is specified to be <code>&quot;hard&quot;</code> (default) or <code>&quot;soft&quot;</code>. If <code>check = &quot;none&quot;</code> is specified, no data checking procedure will be run.</p></li>
 </ul>
+</div>
+<div id="the-recur-object" class="section level2">
+<h2>The <code>Recur</code> object</h2>
 When the time origin is zero for all subjects as in the <code>readmission</code> data set, the <code>time</code> argument can be specified with <code>time = t.stop</code> or with <code>time = t.start %to% t.stop</code>, where the infix operator <code>%to%</code> is used to create a list of two elements containing the endpoints of the time intervals. When <code>check = &quot;hard&quot;</code> or <code>check = &quot;soft&quot;</code>, the <code>Recur()</code> function performs an internal check for possible issues on the data structure. The <code>Recur()</code> function terminates and issues an error message once the check failed if <code>check = &quot;hard&quot;</code> (default). On the contrary, <code>Recur()</code> would proceed with a warning message when <code>check = &quot;soft&quot;</code> or without a warning message when <code>check = &quot;none&quot;</code>. The checking criterion includes the following:
 <p>The <code>Recur()</code> function matches the arguments by position when the arguments’ names are not specified. Among all the arguments, only the argument <code>time</code> does not have default values and has to be specified by users. The default value for the argument <code>id</code> is <code>seq_along(time)</code>, thus, <code>Recur()</code> assumes each row specifies the time point for each subject when <code>id</code> is not specified. However, using the default value <code>id</code> defeats the purpose using recurrent event methods. The default value for the argument <code>event</code> is a numerical vector, where the values 0 and 1 are used to indicate whether the endpoint of the time intervals in <code>time</code> is a non-recurrent event or a recurrent event, respectively. The <code>event</code> argument can accommodate more than one types of recurrent events; in this case the reference level (value 0) is used to indicate non-recurrent event. On the other hand, a zero vector is used as the default value for arguments <code>terminal</code> and <code>orgin</code>.</p>
 <p>The default values in <code>Recur()</code> are chosen so that <code>Recur()</code> can be conveniently adopted in common situations. For example, in situations where the recurrent events are observed continuously and in the absence of terminal events, the <code>event</code> and <code>terminal</code> arguments can be left unspecified. In this case, the last entry within each subject will be treated as a censoring time. One example is the <code>cgd</code> data from the <strong><em>survival</em></strong> package, where the recurrent event is the serious infection observed from a placebo controlled trial of gamma interferon in chronic granulotamous disease. A terminal event was not defined in the <code>cgd</code> data and the patients were observed through the end of study. For this dataset, the <code>Recur</code> object can be constructed as below:</p>
 <pre class="r"><code>&gt; data(cgd, package = &quot;survival&quot;)
-&gt; with(cgd, Recur(tstart %2% tstop, id))</code></pre>
+&gt; (recur1 &lt;- with(cgd, Recur(tstart %2% tstop, id)))</code></pre>
 <pre><code>...
   [1] 1: (0, 219], (219, 373], (373, 414+]      
   [2] 2: (0, 8], (8, 26], ..., (350, 439+]      
@@ -1565,7 +1574,7 @@ When the time origin is zero for all subjects as in the <code>readmission</code>
  [10] 10: (0, 371+]                             
 ...</code></pre>
 <p>For each subject, the function <code>Recur()</code> prints intervals to represent the duration until the next event (a recurrent event or a terminal event). The <code>Recur</code> object for the <code>readmission</code> dataset can be constructed as below:</p>
-<pre class="r"><code>&gt; Recur(t.stop, id, event, death)</code></pre>
+<pre class="r"><code>&gt; (recur2 &lt;- with(readmission, Recur(t.stop, id, event, death)))</code></pre>
 <pre><code>...
   [1] 1: (0, 24], (24, 457], (457, 1037+]           
   [2] 2: (0, 489], (489, 1182+]                     
@@ -1579,6 +1588,62 @@ When the time origin is zero for all subjects as in the <code>readmission</code>
  [10] 10: (0, 1113+]                                
 ...</code></pre>
 <p>The <code>readmission</code> example above shows patient id #1 experienced 2 hospital readmissions with a terminal event at <code>t = 1037</code> (days). The <code>+</code> at <code>t = 1037</code> indicates the terminal time was censored, e.g., this patient did not experience the event of interest (death) at <code>t = 1037</code>. Similarly, patient id #3 has one readmission and died at <code>t = 783</code> (days) as indicated by <code>*</code> at <code>783</code>. On the other hand patient id # 4 has more than 3 readmissions and was censored at <code>t = 2048</code> (days). The readmission intervals was suppressed to prevent printing results wider than the screen allowance. The number of intervals to be printed can be tuned using the <code>options</code> and argument <code>reda.Recur.maxPrint</code>.</p>
+</div>
+<div id="the-recur-output" class="section level2">
+<h2>The <code>Recur</code> output</h2>
+<p>The <code>Recur()</code> returns an S4-class representing model response for recurrent event data. The following shows the structure of the <code>Recur</code> object created for <code>cgd</code> data.</p>
+<pre class="r"><code>&gt; str(recur1)</code></pre>
+<pre><code>Formal class &#39;Recur&#39; [package &quot;reda&quot;] with 9 slots
+  ..@ .Data     : num [1:203, 1:6] 0 219 373 0 8 26 152 241 249 322 ...
+  .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+  .. .. ..$ : NULL
+  .. .. ..$ : chr [1:6] &quot;time1&quot; &quot;time2&quot; &quot;id&quot; &quot;event&quot; ...
+  ..@ call      : language Recur(time = tstart %2% tstop, id = id)
+  ..@ ID        : chr [1:128] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+  ..@ ord       : int [1:203] 1 2 3 4 5 6 7 8 9 10 ...
+  ..@ rev_ord   : int [1:203] 1 2 3 4 5 6 7 8 9 10 ...
+  ..@ first_idx : int [1:128] 1 4 12 13 14 17 18 20 21 23 ...
+  ..@ last_idx  : int [1:128] 3 11 12 13 16 17 19 20 22 23 ...
+  ..@ check     : chr &quot;hard&quot;
+  ..@ time_class: chr &quot;integer&quot;
+  ..$ dim     : int [1:2] 203 6
+  ..$ dimnames:List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:6] &quot;time1&quot; &quot;time2&quot; &quot;id&quot; &quot;event&quot; ...</code></pre>
+<p>The slots of the <code>Recur</code> S4-class are</p>
+<ul>
+<li><code>.Data</code>: a numerical matrix with columns <code>time1</code>, <code>time2</code>, <code>id</code>, <code>event</code>, <code>terminal</code>, and <code>origin</code>.</li>
+<li><code>call</code>: a function call producing the <code>Recur</code> object.</li>
+<li><code>ID</code>: a character string storing the original subject ID.</li>
+<li><code>ord</code>: indices that sort the response matrix by rows. Soring is in an increasing order by <code>id</code>, <code>time2</code>, and <code>-event</code>.</li>
+<li><code>rev_ord</code>: indices that revert the increasingly sorted response matrix by <code>ord</code> to its original ordering.</li>
+<li><code>first_idx</code>: indices that indicates the first record of each subject in the sorted matrix.</li>
+<li><code>last_idx</code>: indices that indicates the last record of each subject in the sorted matrix.</li>
+<li><code>check</code>: a character string that records the specified <code>check</code> argument in <code>Recur()</code>.</li>
+<li><code>time_class</code>: a character string the original times if specified in calendar dates.</li>
+</ul>
+<p>The summary for <code>Recur</code> object can be printed with <code>summary()</code>.</p>
+<pre class="r"><code>&gt; summary(recur1)</code></pre>
+<pre><code>Call: 
+Recur(time = tstart %2% tstop, id = id)
+
+Sample size:                                    128 
+Number of recurrent event observed:             75 
+Average number of recurrent event per subject:  0.586 
+Proportion of subjects with a terminal event:   0 
+Median follow-up time:                          293 </code></pre>
+<pre class="r"><code>&gt; summary(recur2)</code></pre>
+<pre><code>Call: 
+Recur(time = t.stop, id = id, event = event, terminal = death)
+
+Sample size:                                    400 
+Number of recurrent event observed:             452 
+Average number of recurrent event per subject:  1.13 
+Proportion of subjects with a terminal event:   0.265 
+Median follow-up time:                          1143 </code></pre>
+</div>
+<div id="addendum" class="section level2">
+<h2>Addendum</h2>
 <p>Readers are referred to a separate <a href="https://wenjie-stat.me/reda/articles/reda-recur">vignette on <code>Recur()</code></a> for a detailed introduction of <code>Recur()</code>. <strong><span style="color:red">The <code>reSurv()</code> function is being deprecated in Version 1.2.0.</span></strong> In the current version, the <code>reSurv()</code> function can still be used, but the <code>reSurv</code> object will be automatically transformed to the corresponding <code>Recur</code> object.</p>
 </div>
 <div id="reference" class="section level2 unnumbered">
