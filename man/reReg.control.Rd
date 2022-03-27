@@ -16,7 +16,8 @@ reReg.control(
   boot.parCl = NULL,
   maxit1 = 100,
   maxit2 = 10,
-  trace = FALSE
+  trace = FALSE,
+  numAdj = 0.001
 )
 }
 \arguments{
@@ -25,13 +26,13 @@ or the Gehan-type estimating equation (when available) will be used.}
 
 \item{solver}{a character string specifying the equation solver to be used for root search.}
 
-\item{tol}{a numerical value specifying the absolute error tolerance in root search.}
+\item{tol}{a positive numerical value specifying the absolute error tolerance in root search.}
 
 \item{cppl}{a character string indicating either to improve the proportional rate model via
 the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood estimation (\code{cppl = "EL"}).
 This option is only used when \code{model = "cox.HH"}.}
 
-\item{cppl.wfun}{A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
+\item{cppl.wfun}{a list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
 Avaialble options are \code{"Gehan"} and \code{"cumbase"},
 which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
 Alternatively, the weight functions can be specified with function formulas.
@@ -47,8 +48,10 @@ applied when \code{se = "boot"} is specified in \code{reReg()}.}
 
 \item{maxit1, maxit2}{max number of iteration used when \code{model = "cox.HH"}.}
 
-\item{trace}{A logical variable denoting whether some of the
+\item{trace}{a logical variable denoting whether some of the
 intermediate results of iterations should be displayed to the user.  Default is \code{FALSE}.}
+
+\item{numAdj}{a positive numerical value specifying the small constant used in heuristic adjustment of the borrow strength method.}
 }
 \description{
 This function provides the fitting options for the \code{reReg()} function.

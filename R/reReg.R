@@ -245,7 +245,7 @@ regFit.general <- function(DF, engine, stdErr) {
     engine@solver <- "dfsane"
   }
   out <- s1(engine@typeRec, DF, engine@eqType, engine@solver, engine@par1, engine@par2,
-            trace = engine@trace)
+            trace = engine@trace, numAdj = engine@numAdj)
   if (engine@typeTem != ".") 
     out <- c(out, s2(engine@typeTem, DF, engine@eqType, engine@solver,
                      engine@par3, engine@par4, out$zi, trace = engine@trace))
@@ -255,11 +255,11 @@ regFit.general <- function(DF, engine, stdErr) {
 }
 
 s1 <- function(type, DF, eqType, solver, par1, par2,
-               Lam0 = NULL, w1 = NULL, w2 = NULL, trace = FALSE) {
-  if (type == "gsc") return(reSC(DF, eqType, solver, par1, par2, Lam0, w1, w2, trace))
-  if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, w1, trace))
-  if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, w1, trace))
-  if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, w1, trace))
+               Lam0 = NULL, w1 = NULL, w2 = NULL, trace = FALSE, numAdj = 1e-3) {
+  if (type == "gsc") return(reSC(DF, eqType, solver, par1, par2, Lam0, w1, w2, trace, numAdj))
+  if (type == "cox") return(reCox(DF, eqType, solver, par1, Lam0, w1, trace, numAdj))
+  if (type == "am") return(reAM(DF, eqType, solver, par1, Lam0, w1, trace, numAdj))
+  if (type == "ar") return(reAR(DF, eqType, solver, par1, Lam0, w1, trace, numAdj))
   return(NULL)
 }
 
@@ -486,11 +486,11 @@ setClass("Engine",
                         solver = "character", eqType = "character", 
                         typeRec = "character", typeTem = "character",
                         maxit1 = "numeric", maxit2 = "numeric",
-                        trace = "logical"),
+                        trace = "logical", numAdj = "numeric"),
          prototype(eqType = "logrank", tol = 1e-7,
                    par1 = 0, par2 = 0, par3 = 0, par4 = 0, 
                    baseSE = FALSE, solver = "dfsane",
-                   maxit1 = 100, maxit2 = 10, trace = FALSE),
+                   maxit1 = 100, maxit2 = 10, trace = FALSE, numAdj = 1e-3),
          contains = "VIRTUAL")
 setClass("general", contains = "Engine")
 setClass("cox.LWYY", contains = "Engine")
@@ -922,7 +922,7 @@ eqSolve <- function(par, fn, solver, trace, ...) {
 #' @param eqType a character string indicating whether the log-rank type estimating equation
 #' or the Gehan-type estimating equation (when available) will be used.
 #' @param solver a character string specifying the equation solver to be used for root search.
-#' @param tol a numerical value specifying the absolute error tolerance in root search.
+#' @param tol a positive numerical value specifying the absolute error tolerance in root search.
 #' @param init a list contains the initial guesses used for root search.
 #' @param boot.parallel an logical value indicating whether parallel computation will be
 #' applied when \code{se = "boot"} is specified in \code{reReg()}.
@@ -931,14 +931,15 @@ eqSolve <- function(par, fn, solver, trace, ...) {
 #' @param cppl a character string indicating either to improve the proportional rate model via
 #' the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood estimation (\code{cppl = "EL"}).
 #' This option is only used when \code{model = "cox.HH"}.
-#' @param cppl.wfun A list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
+#' @param cppl.wfun a list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
 #' Avaialble options are \code{"Gehan"} and \code{"cumbase"},
 #' which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
 #' Alternatively, the weight functions can be specified with function formulas.
 #' This option is only used when \code{model = "cox.HH"}.
 #' @param maxit1,maxit2 max number of iteration used when \code{model = "cox.HH"}.
-#' @param trace A logical variable denoting whether some of the
+#' @param trace a logical variable denoting whether some of the
 #' intermediate results of iterations should be displayed to the user.  Default is \code{FALSE}.
+#' @param numAdj a positive numerical value specifying the small constant used in heuristic adjustment of the borrow strength method.
 #' 
 #' @seealso \code{\link{reReg}}
 #' @export
@@ -948,7 +949,7 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
                           tol = 1e-7, cppl = NULL, cppl.wfun = list(NULL, NULL),
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
                           boot.parallel = FALSE, boot.parCl = NULL,
-                          maxit1 = 100, maxit2 = 10, trace = FALSE) {
+                          maxit1 = 100, maxit2 = 10, trace = FALSE, numAdj = 1e-3) {
   if (is.null(boot.parCl)) boot.parCl <- parallel::detectCores() / 2L
   solver <- match.arg(solver)
   if (solver == "nleqslv::nleqslv") solve <- "nleqslv"
@@ -960,9 +961,10 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
   if (solver == "dfoptim::mads") solver <- "mads"
   eqType <- match.arg(eqType)
   if (!is.null(cppl) && !(cppl %in% c("GMM", "EL"))) stop("Invalid 'cppl' method.")
-  list(tol = tol, eqType = eqType, solver = solver, cppl = cppl, cppl.wfun = cppl.wfun,
+  list(tol = tol, eqType = eqType, solver = solver, cppl = cppl, cppl.wfun = cppl.wfun, numAdj = numAdj, 
        par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
-       parallel = boot.parallel, parCl = boot.parCl, maxit1 = maxit1, maxit2 = maxit2, trace = trace)
+       parallel = boot.parallel, parCl = boot.parCl,
+       maxit1 = maxit1, maxit2 = maxit2, trace = trace)
 }
 
 ##############################################################################
