@@ -11,6 +11,7 @@
 #' @seealso \code{\link{\%2\%}}
 #' @importMethodsFrom reda show summary
 #' @exportMethod show summary
+#' @noRd
 #' @export Recur is.Recur
 #' @example inst/examples/ex_Recur.R
 NULL
@@ -20,6 +21,7 @@ NULL
 #' The class \code{Recur} is an S4 that represents a formula response for
 #' recurrent event data model. See \code{reda} for details.
 #'
+#' @noRd
 #' @rdname Recur-class
 #' @name Recur-class
 #' @importClassesFrom reda Recur 
@@ -31,6 +33,7 @@ NULL
 #' The class \code{summary.Recur} is an S4 that represents the summary of a \code{Recur} object.
 #' See \code{reda} for details.
 #'
+#' @noRd
 #' @rdname summary.Recur-class
 #' @name summary.Recur-class
 #' @importClassesFrom reda summary.Recur 
@@ -42,6 +45,7 @@ NULL
 #' This pipe operator specifies the time segments or recurrent episodes by endpoints.
 #' See \code{reda} for more details.
 #'
+#' @noRd
 #' @name Recur-pipe
 #' @rdname Recur-pipe
 #' @aliases %to% %2%
