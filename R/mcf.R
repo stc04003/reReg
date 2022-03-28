@@ -9,7 +9,8 @@
 #' @export mcf
 #' @importMethodsFrom reda plot
 #' @exportMethod plot
-#'
+#' @noRd
+#' 
 #' @example inst/examples/ex_mcf.R
 NULL
 
@@ -19,6 +20,7 @@ NULL
 #' The class \code{mcf.formula} represents a mcf formula.
 #' See \code{reda} for details.
 #'
+#' @noRd
 #' @rdname mcf.formula-class
 #' @name mcf.formula-class
 #' @importClassesFrom reda mcf.formula
