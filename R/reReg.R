@@ -347,8 +347,8 @@ regFit.general.sand <- function(DF, engine, stdErr) {
       converged <- which(convergence == 0)
       if (sum(convergence) > 0) {
         message("Some bootstrap samples failed to converge")
-        rm <- unique(c(which(convergence > 0),
-                       which(tmp %in% boxplot(tmp, plot = FALSE)$out)))
+        rm <- unique(which(convergence > 0))
+        ## which(tmp %in% boxplot(tmp, plot = FALSE)$out)))
         converged <- (1:B)[-rm]
       }
       temVar <- var(bCoef[converged, ], na.rm = TRUE)
