@@ -106,6 +106,10 @@ plot(reObj, mcf = TRUE, mcf.adjustRiskset = FALSE)
 
 
 
+library(reReg)
+data(simDat)
+reObj <- with(simDat, Recur(t.start \%to\% t.stop, id, event, status))
+summary(reObj)
 }
 \references{
 Nelson, W. B. (1995) Confidence Limits for Recurrence Data-Applied to Cost
