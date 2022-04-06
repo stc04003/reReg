@@ -18,5 +18,7 @@ reda::`%to%`
 #' @export
 reda::`%2%`
 
-#' @importMethodsFrom reda summary
+
+#' @importMethodsFrom reda summary 
+#' @exportMethod summary 
 NULL

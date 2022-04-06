@@ -21,3 +21,9 @@ plot(reObj3, event.calendarTime = TRUE)
 plot(reObj, mcf = TRUE)
 plot(reObj, mcf = TRUE, mcf.adjustRiskset = FALSE)
 
+
+
+library(reReg)
+data(simDat)
+reObj <- with(simDat, Recur(t.start %to% t.stop, id, event, status))
+summary(reObj)
