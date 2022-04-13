@@ -65,7 +65,6 @@ the hazard function of the failure time formulated as follow:
       \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&\\
       h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &t\in[0, \tau],
     \end{cases}
-  (\#eqn:sc|sc)
 \end{equation}
 where $Z$ is a latent shared frailty variable to account for association between the two types of
 outcomes, $\lambda_0(\cdot)$ is the baseline rate function,
@@ -115,7 +114,7 @@ Depending on the application, users can specify different model types for the
 rate function and the hazard function.
 For example, `model = "cox|ar"` postulate a Cox-type proportional model for the
 recurrent event rate function and an accelerated rate model for the terminal
-event hazard function, or $\alpha = \theta = 0$ in \@ref(eqn:sc|sc).
+event hazard function, or $\alpha = \theta = 0$ in (1).
 
 #### Variance estimation
 The nonparametric bootstrap method for clustered data is adopted to estimate the
@@ -257,7 +256,7 @@ Some methods that assumes `Z = 1` and requires independent
 censorings are also implemented in `reReg`. 
 These includes the methods proposed by 
 @lin2000semiparametric, @ghosh2002, and @ghosh2003, that can be called by specifying 
-`method = "cox.LWYY"`, `method = "cox.GL"`, and `method = "am.GL"`, respectively.
+`model = "cox.LWYY"`, `model = "cox.GL"`, and `model = "am.GL"`, respectively.
 
 It is also worth noting that methods in multi-state models could also be applied to analyze recurrent events data.
 See the vignette on [Multi-state models and competing risks](https://cran.r-project.org/web/packages/survival/vignettes/compete.pdf)
