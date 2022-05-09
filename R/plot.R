@@ -265,11 +265,13 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "no
     gg <- gg + geom_point(data = DF[DF$event > 0,],
                           aes(id, time2,
                               shape = factor(event, labels = rec.lab),
-                              color = factor(event, labels = rec.lab)),
-                          size = sz)    
+                              color = factor(event, labels = rec.lab),
+                              stroke = ctrl$recurrent.stroke),
+                          size = sz)
   if (sum(DF$terminal, na.rm = TRUE) > 0)
     gg <- gg + geom_point(data = DF[DF$terminal > 0,], 
-                          aes(id, time2, shape = "terminal", color = "terminal"),
+                          aes(id, time2, shape = "terminal", color = "terminal",
+                              stroke = ctrl$terminal.stroke),
                           size = sz)
   if (nX > 0 && formula[[3]] != 1)        
     gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
@@ -1028,15 +1030,20 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #' @param alpha a numerical value specifies the transparency of the points.
 #' @param width a numerical value specifies the width of the event plot.
 #' By \code{ggplot} default, set to 90% of the resolution of the data.
-#' @param bar.color a numerical value or a character string specifies color for lines. Default to gray.
-#' @param recurrent.color a numerical value or a character string specifies color for recurrent events.
-#' Default to green.
-#' @param terminal.color a numerical value or a character string specifies color for terminal events.
-#' Default to red.
-#' @param recurrent.shape a numerical value or a character string specifies shape for recurrent events.
-#' Default to circle.
-#' @param terminal.shape a numerical value or a character string specifies shape for terminal events.
-#' Default to triangle.
+#' @param bar.color a numerical value or a character string specifies
+#' color for lines. Default to gray.
+#' @param recurrent.color a numerical value or a character string
+#' specifies color for recurrent events. Default to green.
+#' @param terminal.color a numerical value or a character string
+#' specifies color for terminal events. Default to red.
+#' @param recurrent.shape a numerical value or a character string
+#' specifies shape for recurrent events. Default to circle.
+#' @param terminal.shape a numerical value or a character string
+#' specifies shape for terminal events. Default to triangle.
+#' @param recurrent.stroke a numerical value or a character string
+#' specifies stroke for recurrent events. Default to circle.
+#' @param terminal.stroke a numerical value or a character string
+#' specifies stroke for terminal events. Default to triangle.
 #' 
 #' @seealso \code{\link{plotEvents}}
 #' @export
@@ -1054,6 +1061,8 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                terminal.color = NULL,
                                recurrent.shape = NULL,
                                terminal.shape = NULL,
+                               recurrent.stroke = NULL,
+                               terminal.stroke = NULL,
                                alpha = .7) {
     if (is.null(ylab)) ylab <- "Subject"
     if (is.null(xlab)) xlab <- "Time"
@@ -1070,8 +1079,12 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
          recurrent.type = recurrent.type, alpha = alpha,
          legend.position = legend.position, base_size = base_size,
          bar.color = bar.color,
-         recurrent.color = recurrent.color, recurrent.shape = recurrent.shape,
-         terminal.color = terminal.color, terminal.shape = terminal.shape)
+         recurrent.color = recurrent.color,
+         recurrent.shape = recurrent.shape,
+         recurrent.stroke = recurrent.stroke,
+         terminal.color = terminal.color,
+         terminal.shape = terminal.shape,
+         terminal.stroke = terminal.stroke)
 }
 
 #' Function used to combine baseline functions in one plot
