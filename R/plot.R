@@ -199,7 +199,7 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
   ## dat$status <- ifelse(is.na(dat$status), 0, dat$status)
   ## dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
   newIDtime2 <- function(dat, result = "increasing") {
-    if (result == "none") {
+    if (result == "asis") {
       tmp <- table(dat$id)
       dat$id <- rep(1:length(tmp), tmp[match(unique(dat$id), names(tmp))])
       return(dat)
@@ -225,12 +225,12 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
   if (is.null(ctrl$cex)) sz <- 1 + 8 / (1 + exp(length(unique(DF$id)) / 30)) / max(1, nX)
   else sz <- ctrl$cex
   k <- length(unique(DF$event)) - 1 ## exclude event = 0
-  shp.val <- c(ctrl$terminal.shape, rep(ctrl$recurrent.shape, k)) ## shapes; first element is terminal
+  shp.val <- c(ctrl$terminal.shape, rep(ctrl$recurrent.shape, k)) 
   if (is.null(ctrl$recurrent.color)) 
     ctrl$recurrent.color <- hcl(h = seq(120, 360, length.out = k), l = 60, alpha = ctrl$alpha)
   if (length(ctrl$recurrent.color) < k)
     ctrl$recurrent.color <- alpha(rep(ctrl$recurrent.color, length.out = k), ctrl$alpha)
-  clr.val <- c(alpha(ctrl$terminal.color, ctrl$alpha), ctrl$recurrent.color) ## shapes; first element is recurrent
+  clr.val <- c(alpha(ctrl$terminal.color, ctrl$alpha), ctrl$recurrent.color) 
   if (k == 0) rec.lab <- NULL
   else rec.lab <- paste("r", 1:k, sep = "")
   if (k == 0) shp.lab <- ctrl$terminal.name
@@ -253,7 +253,8 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
   names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
   ## Bars
   if (calendarTime)
-    gg <- ggplot(DF, aes(xmin = id - .45 - ctrl$width, xmax = id + .45 + ctrl$width, ymin = time1, ymax = time2)) +
+    gg <- ggplot(DF, aes(xmin = id - .45 - ctrl$width, xmax = id + .45 + ctrl$width,
+                         ymin = time1, ymax = time2)) +
       geom_rect(fill = ctrl$bar.color) +
       coord_flip()
   else gg <- ggplot(DF[DF$event == 0,], aes(id, time2 - origin)) +
@@ -272,6 +273,12 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     gg <- gg + geom_point(data = DF[DF$terminal > 0,], 
                           aes(id, time2, shape = "terminal", color = "terminal",
                               stroke = ctrl$terminal.stroke),
+                          size = sz)
+  if (!is.null(ctrl$not.terminal.shape))
+    gg <- gg + geom_point(data = DF[DF$terminal == 0,], aes(id, time2),
+                          shape = ctrl$not.terminal.shape,
+                          color = ctrl$not.terminal.color,
+                          stroke = ctrl$terminal.stroke,
                           size = sz)
   if (nX > 0 && formula[[3]] != 1)        
     gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
@@ -1058,11 +1065,13 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                width = NULL,
                                bar.color = NULL,
                                recurrent.color = NULL,
-                               terminal.color = NULL,
                                recurrent.shape = NULL,
-                               terminal.shape = NULL,
                                recurrent.stroke = NULL,
+                               terminal.color = NULL,
+                               terminal.shape = NULL,
                                terminal.stroke = NULL,
+                               not.terminal.color = NULL,
+                               not.terminal.shape = NULL,
                                alpha = .7) {
     if (is.null(ylab)) ylab <- "Subject"
     if (is.null(xlab)) xlab <- "Time"
@@ -1082,6 +1091,8 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
          recurrent.color = recurrent.color,
          recurrent.shape = recurrent.shape,
          recurrent.stroke = recurrent.stroke,
+         not.terminal.color = not.terminal.color,
+         not.terminal.shape = not.terminal.shape,
          terminal.color = terminal.color,
          terminal.shape = terminal.shape,
          terminal.stroke = terminal.stroke)
