@@ -147,7 +147,7 @@ plot.Recur <- function(x, mcf = FALSE,
 #' @return A \code{ggplot} object.
 #' @importFrom ggplot2 geom_rect ggplot_build scale_y_continuous unit
 #' @example inst/examples/ex_plot_event.R
-plotEvents <- function(formula, data, result = c("increasing", "decreasing", "none"),
+plotEvents <- function(formula, data, result = c("increasing", "decreasing", "asis"),
                        calendarTime = FALSE, control = list(), ...) {
   result <- match.arg(result)
   ctrl <- plotEvents.control()

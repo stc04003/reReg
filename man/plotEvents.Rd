@@ -7,7 +7,7 @@
 plotEvents(
   formula,
   data,
-  result = c("increasing", "decreasing", "none"),
+  result = c("increasing", "decreasing", "asis"),
   calendarTime = FALSE,
   control = list(),
   ...
