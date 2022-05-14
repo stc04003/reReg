@@ -147,158 +147,171 @@ plot.Recur <- function(x, mcf = FALSE,
 #' @return A \code{ggplot} object.
 #' @importFrom ggplot2 geom_rect ggplot_build scale_y_continuous unit
 #' @example inst/examples/ex_plot_event.R
-plotEvents <- function(formula, data, result = c("increasing", "decreasing", "none"),
+plotEvents <- function(formula, data, result = c("increasing", "decreasing", "asis"),
                        calendarTime = FALSE, control = list(), ...) {
-    result <- match.arg(result)
-    ctrl <- plotEvents.control()
-    namc <- names(control)
-    if (!all(namc %in% names(ctrl))) 
-        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control
-    call <- match.call()
-    namp <- names(match.call())
-    if (any(namp %in% names(ctrl))) {
-        namp <- namp[namp %in% names(ctrl)]
-        ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
+  result <- match.arg(result)
+  ctrl <- plotEvents.control()
+  namc <- names(control)
+  if (!all(namc %in% names(ctrl))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+  ctrl[namc] <- control
+  call <- match.call()
+  namp <- names(match.call())
+  if (any(namp %in% names(ctrl))) {
+    namp <- namp[namp %in% names(ctrl)]
+    ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
+  }
+  nX <- 0
+  if (is.Recur(formula)) {
+    DF <- as.data.frame(formula@.Data)
+    isDate <- "Date" %in% formula@time_class
+    vNames <- NULL
+  } else {
+    if (missing(data)) obj <- eval(formula[[2]], parent.frame())
+    else obj <- eval(formula[[2]], data)
+    if (!is.Recur(obj)) stop("Response must be a `Recur` object.")
+    nX <- length(formula[[3]])
+    isDate <- "Date" %in% obj@time_class
+    if (formula[[3]] == 1) DF <- as.data.frame(obj@.Data)
+    if (formula[[3]] != 1 && nX == 1) {
+      if (missing(data)) DF <- data.frame(obj@.Data, eval(formula[[3]], parent.frame()))
+      if (!missing(data)) DF <- data.frame(obj@.Data, eval(formula[[3]], data))
+      colnames(DF) <- c(colnames(obj@.Data), paste0(formula[[3]], collapse = ""))
+      DF <- as.data.frame(DF)
     }
-    nX <- 0
-    if (is.Recur(formula)) {
-        DF <- as.data.frame(formula@.Data)
-        isDate <- "Date" %in% formula@time_class
-        vNames <- NULL
+    if (formula[[3]] != 1 && nX > 1) {
+      DF <- as.data.frame(obj@.Data)
+      if (missing(data)) {
+        for (i in 2:nX) {
+          DF <- cbind(DF, eval(formula[[3]][[i]], parent.frame()))
+        }
+      } else {
+        for (i in 2:nX) {
+          DF <- cbind(DF, eval(formula[[3]][[i]], data))
+        }
+      }
+      vNames <- attr(terms(formula), "term.labels")
+      colnames(DF) <- c(colnames(obj@.Data), vNames)
+    }
+    vNames <- attr(terms(formula), "term.labels")
+    if (length(vNames) == 0) vNames <- NULL
+  }    
+  ## dat$status <- ifelse(is.na(dat$status), 0, dat$status)
+  ## dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
+  newIDtime2 <- function(dat, result = "increasing") {
+    if (result == "asis") {
+      tmp <- table(dat$id)
+      dat$id <- rep(1:length(tmp), tmp[match(unique(dat$id), names(tmp))])
+      return(dat)
     } else {
-        if (missing(data)) obj <- eval(formula[[2]], parent.frame())
-        else obj <- eval(formula[[2]], data)
-        if (!is.Recur(obj)) stop("Response must be a `Recur` object.")
-        nX <- length(formula[[3]])
-        isDate <- "Date" %in% obj@time_class
-        if (formula[[3]] == 1) DF <- as.data.frame(obj@.Data)
-        if (formula[[3]] != 1 && nX == 1) {
-            if (missing(data)) DF <- data.frame(obj@.Data, eval(formula[[3]], parent.frame()))
-            if (!missing(data)) DF <- data.frame(obj@.Data, eval(formula[[3]], data))
-            colnames(DF) <- c(colnames(obj@.Data), paste0(formula[[3]], collapse = ""))
-            DF <- as.data.frame(DF)
-        }
-        if (formula[[3]] != 1 && nX > 1) {
-            DF <- as.data.frame(obj@.Data)
-            if (missing(data)) {
-                for (i in 2:nX) {
-                    DF <- cbind(DF, eval(formula[[3]][[i]], parent.frame()))
-                }
-            } else {
-                for (i in 2:nX) {
-                    DF <- cbind(DF, eval(formula[[3]][[i]], data))
-                }
-            }
-            vNames <- attr(terms(formula), "term.labels")
-            colnames(DF) <- c(colnames(obj@.Data), vNames)
-        }
-        vNames <- attr(terms(formula), "term.labels")
-        if (length(vNames) == 0) vNames <- NULL
-    }    
-    ## dat$status <- ifelse(is.na(dat$status), 0, dat$status)
-    ## dat$Yi <- ifelse(is.na(dat$Yi), unlist(lapply(dat$tij, max)), dat$Yi)
-    newIDtime2 <- function(dat, result = "increasing") {
-        if (result == "none") {
-            tmp <- table(dat$id)
-            dat$id <- rep(1:length(tmp), tmp[match(unique(dat$id), names(tmp))])
-            return(dat)
-        } else {
-            dat <- dat[order(dat$id),]
-            ## if (all(dat$origin == 0))
-            if (!calendarTime)
-                tmp <- rank((dat$time2 - dat$origin)[dat$event == 0], ties.method = "first")
-            else
-                tmp <- rank(dat$time2[dat$event == 0], ties.method = "first")
-        }
-        if (result == "decreasing") tmp <- length(tmp) - tmp + 1
-        dat$id <- rep(tmp, table(dat$id))
-        return(dat)
+      dat <- dat[order(dat$id),]
+      ## if (all(dat$origin == 0))
+      if (!calendarTime)
+        tmp <- rank((dat$time2 - dat$origin)[dat$event == 0], ties.method = "first")
+      else
+        tmp <- rank(dat$time2[dat$event == 0], ties.method = "first")
     }
-    if (nX == 0 || formula[[3]] == 1) {
-        DF <- newIDtime2(DF, result = result)
+    if (result == "decreasing") tmp <- length(tmp) - tmp + 1
+    dat$id <- rep(tmp, table(dat$id))
+    return(dat)
+  }
+  if (nX == 0 || formula[[3]] == 1) {
+    DF <- newIDtime2(DF, result = result)
+  } else {
+    DF <- do.call(rbind,
+                  lapply(split(DF, DF[, 7:ncol(DF)], drop = TRUE), newIDtime2, result = result))
+    rownames(DF) <- NULL
+  }
+  if (is.null(ctrl$cex)) sz <- 1 + 8 / (1 + exp(length(unique(DF$id)) / 30)) / max(1, nX)
+  else sz <- ctrl$cex
+  k <- length(unique(DF$event)) - 1 ## exclude event = 0
+  shp.val <- c(ctrl$terminal.shape, rep(ctrl$recurrent.shape, k)) 
+  if (is.null(ctrl$recurrent.color)) 
+    ctrl$recurrent.color <- hcl(h = seq(120, 360, length.out = k), l = 60, alpha = ctrl$alpha)
+  if (length(ctrl$recurrent.color) < k)
+    ctrl$recurrent.color <- alpha(rep(ctrl$recurrent.color, length.out = k), ctrl$alpha)
+  clr.val <- c(alpha(ctrl$terminal.color, ctrl$alpha), ctrl$recurrent.color) 
+  if (k == 0) rec.lab <- NULL
+  else rec.lab <- paste("r", 1:k, sep = "")
+  if (k == 0) shp.lab <- ctrl$terminal.name
+  if (k == 1) shp.lab <- c(ctrl$terminal.name, ctrl$recurrent.name)
+  if (k > 1 & is.null(ctrl$recurrent.type)) {
+    shp.lab <- c(ctrl$terminal.name, paste(ctrl$recurrent.name, 1:k))
+  }
+  if (k > 1 & !is.null(ctrl$recurrent.type)) {
+    if (length(ctrl$recurrent.type) == k) {
+      shp.lab <- c(ctrl$terminal.name, ctrl$recurrent.type)
     } else {
-        DF <- do.call(rbind,
-                      lapply(split(DF, DF[, 7:ncol(DF)], drop = TRUE), newIDtime2, result = result))
-        rownames(DF) <- NULL
+      message('The length of "recurrent.type" mismatched, default names are used.')
+      shp.lab <- c(ctrl$terminal.name, paste(ctrl$recurrent.name, 1:k))            
     }
-    if (is.null(ctrl$cex)) sz <- 1 + 8 / (1 + exp(length(unique(DF$id)) / 30)) / max(1, nX)
-    else sz <- ctrl$cex
-    k <- length(unique(DF$event)) - 1 ## exclude event = 0
-    shp.val <- c(17, rep(19, k))
-    clr.val <- c(alpha("red", ctrl$alpha), hcl(h = seq(120, 360, length.out = k),
-                                               l = 60, alpha = ctrl$alpha))
-    if (k == 0) rec.lab <- NULL
-    else rec.lab <- paste("r", 1:k, sep = "")
-    if (k == 0) shp.lab <- ctrl$terminal.name
-    if (k == 1) shp.lab <- c(ctrl$terminal.name, ctrl$recurrent.name)
-    if (k > 1 & is.null(ctrl$recurrent.type)) {
-        shp.lab <- c(ctrl$terminal.name, paste(ctrl$recurrent.name, 1:k))
-    }
-    if (k > 1 & !is.null(ctrl$recurrent.type)) {
-        if (length(ctrl$recurrent.type) == k) {
-            shp.lab <- c(ctrl$terminal.name, ctrl$recurrent.type)
-        } else {
-            message('The length of "recurrent.type" mismatched, default names are used.')
-            shp.lab <- c(ctrl$terminal.name, paste(ctrl$recurrent.name, 1:k))            
-        }
-    }
-    if (nX > 0) {
-        for (i in vNames) {
-            DF[,i] <- factor(DF[,i], labels = paste(i, "=", unique(DF[,i])))
-        }}
-    names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
-    ## Bars
-    if (calendarTime)
-        gg <- ggplot(DF, aes(xmin = id - .45, xmax = id + .45, ymin = time1, ymax = time2)) +
-            geom_rect(fill = "gray75") + coord_flip()
-    else gg <- ggplot(DF[DF$event == 0,], aes(id, time2 - origin)) +
-             geom_bar(stat = "identity", fill = "gray75") +
-             coord_flip()
-    ## event dots
-    if (!calendarTime) DF$time2 <- DF$time2 - DF$origin
-    if (any(table(DF$id) > 0))
-        gg <- gg + geom_point(data = DF[DF$event > 0,],
-                              aes(id, time2,
-                                  shape = factor(event, labels = rec.lab),
-                                  color = factor(event, labels = rec.lab)),
-                              size = sz)    
-    if (sum(DF$terminal, na.rm = TRUE) > 0)
-        gg <- gg + geom_point(data = DF[DF$terminal > 0,], 
-                              aes(id, time2, shape = "terminal", color = "terminal"),
-                              size = sz)
-    if (nX > 0 && formula[[3]] != 1)        
-        gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
-                              scales = "free", space = "free", switch = "both")
-    ## Add theme and final touch ups
-    if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
-    gg <- gg + scale_shape_manual(name = "", values = shp.val,
-                                  labels = shp.lab, breaks = c("terminal", rec.lab)) +
-        scale_color_manual(name = "", values = clr.val,
-                           labels = shp.lab, breaks = c("terminal", rec.lab)) +
-        theme(panel.background = element_blank(),
-              axis.line = element_line(color = "black"),
-              legend.position = ctrl$legend.position, 
-              legend.key = element_rect(fill = "white", color = "white"),
-              axis.line.y = element_blank(),
-              axis.title.y = element_text(vjust = 0),
-              axis.text.y = element_blank(),
-              axis.ticks.y = element_blank(),
-              plot.title = element_text(size = 2 * ctrl$base_size),
-              strip.text = element_text(size = ctrl$base_size),
-              legend.text = element_text(size = 1.5 * ctrl$base_size),
-              legend.title = element_text(size = 1.5 * ctrl$base_size),
-              axis.text = element_text(size = ctrl$base_size),
-              axis.title = element_text(size = 1.5 * ctrl$base_size)) +
-        scale_x_continuous(expand = c(0, 1)) +
-        labs(x = ctrl$ylab, y = ctrl$xlab) +
-        guides(shape = guide_legend(override.aes = list(size = 2.7)))
-    if (isDate & calendarTime) {
-        xl <- ggplot_build(gg)$layout$panel_params[[1]]$x$breaks
-        xl <- xl[!is.na(xl)]
-        gg <- gg + scale_y_continuous(breaks = xl, labels = as.Date(xl, origin = "1970-01-01"))
-    }
-    gg
+  }
+  if (nX > 0) {
+    for (i in vNames) {
+      DF[,i] <- factor(DF[,i], labels = paste(i, "=", unique(DF[,i])))
+    }}
+  names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
+  ## Bars
+  if (calendarTime)
+    gg <- ggplot(DF, aes(xmin = id - .45 - ctrl$width, xmax = id + .45 + ctrl$width,
+                         ymin = time1, ymax = time2)) +
+      geom_rect(fill = ctrl$bar.color) +
+      coord_flip()
+  else gg <- ggplot(DF[DF$event == 0,], aes(id, time2 - origin)) +
+         geom_bar(stat = "identity", fill = ctrl$bar.color, width = ctrl$width) +
+         coord_flip()
+  ## event dots
+  if (!calendarTime) DF$time2 <- DF$time2 - DF$origin
+  if (any(table(DF$id) > 0))
+    gg <- gg + geom_point(data = DF[DF$event > 0,],
+                          aes(id, time2,
+                              shape = factor(event, labels = rec.lab),
+                              color = factor(event, labels = rec.lab),
+                              stroke = ctrl$recurrent.stroke),
+                          size = sz)
+  if (sum(DF$terminal, na.rm = TRUE) > 0)
+    gg <- gg + geom_point(data = DF[DF$terminal > 0,], 
+                          aes(id, time2, shape = "terminal", color = "terminal",
+                              stroke = ctrl$terminal.stroke),
+                          size = sz)
+  if (!is.null(ctrl$not.terminal.shape))
+    gg <- gg + geom_point(data = DF[DF$terminal == 0,], aes(id, time2),
+                          shape = ctrl$not.terminal.shape,
+                          color = ctrl$not.terminal.color,
+                          stroke = ctrl$terminal.stroke,
+                          size = sz)
+  if (nX > 0 && formula[[3]] != 1)        
+    gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
+                          scales = "free", space = "free", switch = "both")
+  ## Add theme and final touch ups
+  if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
+  gg <- gg + scale_shape_manual(name = "", values = shp.val,
+                                labels = shp.lab, breaks = c("terminal", rec.lab)) +
+    scale_color_manual(name = "", values = clr.val,
+                       labels = shp.lab, breaks = c("terminal", rec.lab)) +
+    theme(panel.background = element_blank(),
+          axis.line = element_line(color = "black"),
+          legend.position = ctrl$legend.position, 
+          legend.key = element_rect(fill = "white", color = "white"),
+          axis.line.y = element_blank(),
+          axis.title.y = element_text(vjust = 0),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          plot.title = element_text(size = 2 * ctrl$base_size),
+          strip.text = element_text(size = ctrl$base_size),
+          legend.text = element_text(size = 1.5 * ctrl$base_size),
+          legend.title = element_text(size = 1.5 * ctrl$base_size),
+          axis.text = element_text(size = ctrl$base_size),
+          axis.title = element_text(size = 1.5 * ctrl$base_size)) +
+    scale_x_continuous(expand = c(0, 1)) +
+    labs(x = ctrl$ylab, y = ctrl$xlab) +
+    guides(shape = guide_legend(override.aes = list(size = 2.7)))
+  if (isDate & calendarTime) {
+    xl <- ggplot_build(gg)$layout$panel_params[[1]]$x$breaks
+    xl <- xl[!is.na(xl)]
+    gg <- gg + scale_y_continuous(breaks = xl, labels = as.Date(xl, origin = "1970-01-01"))
+  }
+  gg
 }
 
 #' Produce Cumulative Sample Mean Function Plots
@@ -1021,7 +1034,23 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #' This argument is passed to the \code{ggplot} theme environment.
 #' The default value is 12.
 #' @param cex a numerical value specifies the size of the points. 
-#' @param alpha a numerical value specifies the transparency of the points. 
+#' @param alpha a numerical value specifies the transparency of the points.
+#' @param width a numerical value specifies the width of the event plot.
+#' By \code{ggplot} default, set to 90% of the resolution of the data.
+#' @param bar.color a numerical value or a character string specifies
+#' color for lines. Default to gray.
+#' @param recurrent.color a numerical value or a character string
+#' specifies color for recurrent events. Default to green.
+#' @param terminal.color a numerical value or a character string
+#' specifies color for terminal events. Default to red.
+#' @param recurrent.shape a numerical value or a character string
+#' specifies shape for recurrent events. Default to circle.
+#' @param terminal.shape a numerical value or a character string
+#' specifies shape for terminal events. Default to triangle.
+#' @param recurrent.stroke a numerical value or a character string
+#' specifies stroke for recurrent events. Default to circle.
+#' @param terminal.stroke a numerical value or a character string
+#' specifies stroke for terminal events. Default to triangle.
 #' 
 #' @seealso \code{\link{plotEvents}}
 #' @export
@@ -1030,18 +1059,43 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                terminal.name = NULL,
                                recurrent.name = NULL, 
                                recurrent.type = NULL, 
-                               legend.position = "top", base_size = 12,
-                               cex = NULL, alpha = .7) {
+                               legend.position = "top",
+                               base_size = 12,
+                               cex = NULL,
+                               width = NULL,
+                               bar.color = NULL,
+                               recurrent.color = NULL,
+                               recurrent.shape = NULL,
+                               recurrent.stroke = NULL,
+                               terminal.color = NULL,
+                               terminal.shape = NULL,
+                               terminal.stroke = NULL,
+                               not.terminal.color = NULL,
+                               not.terminal.shape = NULL,
+                               alpha = .7) {
     if (is.null(ylab)) ylab <- "Subject"
     if (is.null(xlab)) xlab <- "Time"
     if (is.null(main)) main <- ""
-        ## main <- "Recurrent event plot"
+    ## main <- "Recurrent event plot"
     if (is.null(terminal.name)) terminal.name <-  "Terminal event"
     if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
-    list(xlab = xlab, ylab = ylab, main = main, cex = cex,
+    if (is.null(bar.color)) bar.color <- "gray75"
+    if (is.null(terminal.color)) terminal.color <- "red"
+    if (is.null(terminal.shape)) terminal.shape <- 17
+    if (is.null(recurrent.shape)) recurrent.shape <- 19
+    list(xlab = xlab, ylab = ylab, main = main, cex = cex, width = width, 
          terminal.name = terminal.name, recurrent.name = recurrent.name,
          recurrent.type = recurrent.type, alpha = alpha,
-         legend.position = legend.position, base_size = base_size)
+         legend.position = legend.position, base_size = base_size,
+         bar.color = bar.color,
+         recurrent.color = recurrent.color,
+         recurrent.shape = recurrent.shape,
+         recurrent.stroke = recurrent.stroke,
+         not.terminal.color = not.terminal.color,
+         not.terminal.shape = not.terminal.shape,
+         terminal.color = terminal.color,
+         terminal.shape = terminal.shape,
+         terminal.stroke = terminal.stroke)
 }
 
 #' Function used to combine baseline functions in one plot
@@ -1091,3 +1145,4 @@ basebind <- function(..., legend.title, legend.labels, control = list()) {
               axis.text = element_text(size = ctrl$base_size),
               axis.title = element_text(size = 1.5 * ctrl$base_size))
 }
+c

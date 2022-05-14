@@ -1,10 +1,11 @@
+# `reReg` 1.4.4
+  	* Added more graphical controls for event plots
 # `reReg` 1.4.3
 	* Added an option to specify the heuristic constant (numAdj).
 	* Move duplicated Rd files for Recur(), %2% (%to%), and mcf() into reexport.Rd
 # `reReg` 1.4.2
   	* Added an option to perform GMM or EL procedure to improve cox.LWYY.
 	* Added a vignette on CPPL.
-g; typing ?Recur will now be directed to the help page resid in reda.
 # `reReg` 1.4.1
   	* printCoefmat now all has the argument `has.Pvalue = TRUE`
 	* Improved print methods for summary.reReg
