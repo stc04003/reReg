@@ -253,7 +253,8 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
   names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
   ## Bars
   if (calendarTime)
-    gg <- ggplot(DF, aes(xmin = id - .45 - ctrl$width, xmax = id + .45 + ctrl$width,
+    gg <- ggplot(DF, aes(xmin = id - .45 - max(0, ctrl$width),
+                         xmax = id + .45 + max(0, ctrl$width),
                          ymin = time1, ymax = time2)) +
       geom_rect(fill = ctrl$bar.color) +
       coord_flip()
