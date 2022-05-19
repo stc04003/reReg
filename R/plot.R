@@ -252,13 +252,14 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     }}
   names(shp.val) <- names(clr.val) <- c("terminal", rec.lab)
   ## Bars
-  if (calendarTime)
-    gg <- ggplot(DF, aes(xmin = id - .45 - max(0, ctrl$width),
-                         xmax = id + .45 + max(0, ctrl$width),
+  if (calendarTime) {
+    if (is.null(ctrl$width)) ctrl$width <- 0
+    gg <- ggplot(DF, aes(xmin = id - .45 - ctrl$width,
+                         xmax = id + .45 + ctrl$width,
                          ymin = time1, ymax = time2)) +
       geom_rect(fill = ctrl$bar.color) +
       coord_flip()
-  else gg <- ggplot(DF[DF$event == 0,], aes(id, time2 - origin)) +
+  } else gg <- ggplot(DF[DF$event == 0,], aes(id, time2 - origin)) +
          geom_bar(stat = "identity", fill = ctrl$bar.color, width = ctrl$width) +
          coord_flip()
   ## event dots
