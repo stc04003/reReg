@@ -6,7 +6,7 @@ using namespace Rcpp;
 
 // Used for recurrent event processes
 //' @noRd
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::vec reRate(const arma::vec& T,
 		 const arma::vec& Y,
 		 const arma::vec& W,
@@ -41,7 +41,7 @@ arma::mat matvec(arma::mat x, arma::vec y) {
 }
 
 //' @noRd
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::rowvec reLog(const arma::vec& a,
 		   const arma::mat& X,
 		   const arma::vec& T,
@@ -87,8 +87,9 @@ arma::rowvec reLog(const arma::vec& a,
 //   }
 //   return out;
 // }
+
 //' @noRd
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::rowvec re2(const arma::vec& b,
 		 const arma::vec& R,
 		 const arma::mat& X,
@@ -97,7 +98,7 @@ arma::rowvec re2(const arma::vec& b,
 }
 
 //' @noRd
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::rowvec reGehan(const arma::vec& a,
 		  const arma::mat& X,
 		  const arma::vec& T,
@@ -120,7 +121,7 @@ arma::rowvec reGehan(const arma::vec& a,
 
 
 //' @noRd
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::rowvec reGehan_s(const arma::vec& a,
 		       const arma::mat& X,
 		       const arma::vec& T,
@@ -149,7 +150,7 @@ arma::rowvec reGehan_s(const arma::vec& a,
 }
 
 //' @noRd
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::rowvec am1(const arma::vec& a,
 		 const arma::vec& T,
 		 const arma::vec& Y,
@@ -205,7 +206,7 @@ arma::rowvec am1(const arma::vec& a,
 // Used for terminal events
 
 //' @noRd
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::vec temHaz(const arma::vec& a,
 		 const arma::vec& b,
 		 const arma::mat& X,
@@ -238,7 +239,7 @@ arma::vec temHaz(const arma::vec& a,
 
 
 //' @noRd
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::rowvec temScLog(const arma::vec& a,
 		      const arma::vec& b,
 		      const arma::mat& X,
@@ -261,7 +262,7 @@ arma::rowvec temScLog(const arma::vec& a,
                    sum(X % D3, 0) - sum(tmp % D3, 0)) / n;
 }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 Rcpp::NumericVector temScGehan(const arma::vec& a,
 			       const arma::vec& b,
 			       const arma::mat& X,
@@ -284,7 +285,7 @@ Rcpp::NumericVector temScGehan(const arma::vec& a,
   return out / n / n;
 }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 arma::rowvec temLog(const arma::vec& a,
 		    const arma::vec& b,
 		    const arma::mat& X,
@@ -330,7 +331,7 @@ arma::rowvec temLog(const arma::vec& a,
 //   return (sum(X % D2, 0) - sum(tmp % D2, 0)) / n;
 // }
 
-// [[Rcpp::export]]
+// [[Rcpp::export(rng = false)]]
 Rcpp::NumericVector temGehan(const arma::vec& a,
 			     const arma::vec& b,
 			     const arma::mat& X,

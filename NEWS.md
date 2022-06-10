@@ -1,5 +1,6 @@
 # `reReg` 1.4.4
   	* Added more graphical controls for event plots
+	* Used [[Rcpp::export(rng = false)]] because we never call any random number generation in the internals.
 # `reReg` 1.4.3
 	* Added an option to specify the heuristic constant (numAdj).
 	* Move duplicated Rd files for Recur(), %2% (%to%), and mcf() into reexport.Rd
