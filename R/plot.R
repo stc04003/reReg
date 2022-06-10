@@ -1038,7 +1038,7 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #' @param cex a numerical value specifies the size of the points. 
 #' @param alpha a numerical value specifies the transparency of the points.
 #' @param width a numerical value specifies the width of the event plot.
-#' By \code{ggplot} default, set to 90% of the resolution of the data.
+#' By \code{ggplot} default, set to 90\% of the resolution of the data.
 #' @param bar.color a numerical value or a character string specifies
 #' color for lines. Default to gray.
 #' @param recurrent.color a numerical value or a character string

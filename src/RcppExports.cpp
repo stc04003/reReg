@@ -16,7 +16,6 @@ arma::vec reRate(const arma::vec& T, const arma::vec& Y, const arma::vec& W, con
 RcppExport SEXP _reReg_reRate(SEXP TSEXP, SEXP YSEXP, SEXP WSEXP, SEXP T0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type T(TSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type W(WSEXP);
@@ -30,7 +29,6 @@ arma::rowvec reLog(const arma::vec& a, const arma::mat& X, const arma::vec& T, c
 RcppExport SEXP _reReg_reLog(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type T(TSEXP);
@@ -45,7 +43,6 @@ arma::rowvec re2(const arma::vec& b, const arma::vec& R, const arma::mat& X, con
 RcppExport SEXP _reReg_re2(SEXP bSEXP, SEXP RSEXP, SEXP XSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type R(RSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
@@ -59,7 +56,6 @@ arma::rowvec reGehan(const arma::vec& a, const arma::mat& X, const arma::vec& T,
 RcppExport SEXP _reReg_reGehan(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type T(TSEXP);
@@ -74,7 +70,6 @@ arma::rowvec reGehan_s(const arma::vec& a, const arma::mat& X, const arma::vec& 
 RcppExport SEXP _reReg_reGehan_s(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP, SEXP ncSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type T(TSEXP);
@@ -90,7 +85,6 @@ arma::rowvec am1(const arma::vec& a, const arma::vec& T, const arma::vec& Y, con
 RcppExport SEXP _reReg_am1(SEXP aSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP, SEXP XSEXP, SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type T(TSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type Y(YSEXP);
@@ -106,7 +100,6 @@ arma::vec temHaz(const arma::vec& a, const arma::vec& b, const arma::mat& X, con
 RcppExport SEXP _reReg_temHaz(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP, SEXP T0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
@@ -124,7 +117,6 @@ arma::rowvec temScLog(const arma::vec& a, const arma::vec& b, const arma::mat& X
 RcppExport SEXP _reReg_temScLog(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
@@ -141,7 +133,6 @@ Rcpp::NumericVector temScGehan(const arma::vec& a, const arma::vec& b, const arm
 RcppExport SEXP _reReg_temScGehan(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
@@ -158,7 +149,6 @@ arma::rowvec temLog(const arma::vec& a, const arma::vec& b, const arma::mat& X, 
 RcppExport SEXP _reReg_temLog(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
@@ -175,7 +165,6 @@ Rcpp::NumericVector temGehan(const arma::vec& a, const arma::vec& b, const arma:
 RcppExport SEXP _reReg_temGehan(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);

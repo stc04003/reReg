@@ -17,11 +17,13 @@ plotEvents.control(
   width = NULL,
   bar.color = NULL,
   recurrent.color = NULL,
-  terminal.color = NULL,
   recurrent.shape = NULL,
-  terminal.shape = NULL,
   recurrent.stroke = NULL,
+  terminal.color = NULL,
+  terminal.shape = NULL,
   terminal.stroke = NULL,
+  not.terminal.color = NULL,
+  not.terminal.shape = NULL,
   alpha = 0.7
 )
 }
@@ -57,7 +59,7 @@ The default value is 12.}
 \item{cex}{a numerical value specifies the size of the points.}
 
 \item{width}{a numerical value specifies the width of the event plot.
-By \code{ggplot} default, set to 90% of the resolution of the data.}
+By \code{ggplot} default, set to 90\% of the resolution of the data.}
 
 \item{bar.color}{a numerical value or a character string specifies
 color for lines. Default to gray.}
@@ -65,17 +67,17 @@ color for lines. Default to gray.}
 \item{recurrent.color}{a numerical value or a character string
 specifies color for recurrent events. Default to green.}
 
-\item{terminal.color}{a numerical value or a character string
-specifies color for terminal events. Default to red.}
-
 \item{recurrent.shape}{a numerical value or a character string
 specifies shape for recurrent events. Default to circle.}
 
-\item{terminal.shape}{a numerical value or a character string
-specifies shape for terminal events. Default to triangle.}
-
 \item{recurrent.stroke}{a numerical value or a character string
 specifies stroke for recurrent events. Default to circle.}
+
+\item{terminal.color}{a numerical value or a character string
+specifies color for terminal events. Default to red.}
+
+\item{terminal.shape}{a numerical value or a character string
+specifies shape for terminal events. Default to triangle.}
 
 \item{terminal.stroke}{a numerical value or a character string
 specifies stroke for terminal events. Default to triangle.}
