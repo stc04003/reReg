@@ -266,6 +266,7 @@ arma::rowvec reGehan_s(const arma::vec& a,
 
 //' @noRd
 // [[Rcpp::export(rng = false)]]
+
 arma::rowvec am1(const arma::vec& a,
 		 const arma::vec& T,
 		 const arma::vec& Y,
@@ -283,43 +284,107 @@ arma::rowvec am1(const arma::vec& a,
   int mn = m.n_elem;
   for (int i = 0; i < mn; i ++) {
     if (i == 0 && m(i) > 0) {
-      // Wi.subvec(0, m2(i) - 1).fill(W(i));
       Yi.subvec(0, m2(i) - 1).fill(Y(i));
       Xi.submat(0, 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
     }
     if (i > 0 && m(i) > 0) {
-      // Wi.subvec(m2(i - 1), m2(i) - 1).fill(W(i));
       Yi.subvec(m2(i - 1), m2(i) - 1).fill(Y(i));
       Xi.submat(m2(i - 1), 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
     }
   }
   arma::vec texa = log(T) + Xi * a;
-  arma::vec yexa = log(Yi) + Xi * a;  
+  arma::vec yexa = log(Yi) + Xi * a;
   arma::vec Lam(n, arma::fill::zeros);
   arma::vec de(nm, arma::fill::zeros);
-  for (int i = 0; i < nm; i++) {
-    for (int j = 0; j < nm; j++) {
-      if ((texa[i] <= yexa[j]) && (texa[i] >= texa[j])) {
-	// de(i) += Wi[j];
-	de(i) += 1;
+  arma::uvec const idx = arma::sort_index(texa);
+  auto cmp = [](cmp_par const &x, cmp_par const &y){
+	       return x.first <= y.first;
+	     };
+  std::set<cmp_par, decltype(cmp)> indices(cmp);
+  double w_sum{}; 
+  {
+    auto const idx_i = idx[0];
+    indices.emplace(yexa[idx_i], idx_i);
+    w_sum += 1; // W(idx_i);
+    de(idx_i) = w_sum;
+  }
+  auto indices_head = indices.begin();
+  for(arma::uword i = 1; i < nm; ++i) {
+    auto const idx_i = idx[i];
+    indices.emplace(yexa[idx_i], idx_i);
+    if(yexa[idx_i] > indices_head->first)
+      while(indices_head->first < texa[idx_i]){
+        w_sum -= 1; // W(indices_head->second);
+        ++indices_head;
       }
-    }
+    else
+      --indices_head;
+    w_sum += 1; //W(idx_i);
+    de(idx_i) = w_sum;
   }
   for (int k = 0; k < n; k++) {
     for (int i = 0; i < nm; i++) {
-      if (texa[i] >= T0[k] && de(i) > 0) {
-        // Lam[k] += Wi(i) / de(i);
-	Lam[k] += 1 / de(i);
+      if (T[i] >= T0[k] && de(i) > 0) {
+        Lam[k] += 1 / de(i); // W(i) / de(i);
       }
     }
   }
   Lam = exp(-Lam); 
-  arma::vec R = m / Lam;
+  arma::vec R = m / Lam;  
   return ((W % R - mean(W % R))).t() * X / n;
 }
 
-// Used for terminal events
+// arma::rowvec am1(const arma::vec& a,
+// 		 const arma::vec& T,
+// 		 const arma::vec& Y,
+// 		 const arma::vec& W,
+// 		 const arma::mat& X,
+// 		 const arma::vec& m) {
+//   int nm = accu(m);
+//   int n = X.n_rows;
+//   int p = X.n_cols;
+//   arma::vec m2 = cumsum(m); 
+//   arma::mat Xi(nm, p, arma::fill::zeros);
+//   arma::vec Yi(nm, arma::fill::zeros);
+//   // arma::vec Wi(nm, arma::fill::zeros);
+//   arma::vec T0 = log(Y) + X * a;
+//   int mn = m.n_elem;
+//   for (int i = 0; i < mn; i ++) {
+//     if (i == 0 && m(i) > 0) {
+//       Yi.subvec(0, m2(i) - 1).fill(Y(i));
+//       Xi.submat(0, 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
+//     }
+//     if (i > 0 && m(i) > 0) {
+//       Yi.subvec(m2(i - 1), m2(i) - 1).fill(Y(i));
+//       Xi.submat(m2(i - 1), 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
+//     }
+//   }
+//   arma::vec texa = log(T) + Xi * a;
+//   arma::vec yexa = log(Yi) + Xi * a;  
+//   arma::vec Lam(n, arma::fill::zeros);
+//   arma::vec de(nm, arma::fill::zeros);
+//   for (int i = 0; i < nm; i++) {
+//     for (int j = 0; j < nm; j++) {
+//       if ((texa[i] <= yexa[j]) && (texa[i] >= texa[j])) {
+// 	// de(i) += Wi[j];
+// 	de(i) += 1;
+//       }
+//     }
+//   }
+//   for (int k = 0; k < n; k++) {
+//     for (int i = 0; i < nm; i++) {
+//       if (texa[i] >= T0[k] && de(i) > 0) {
+//         // Lam[k] += Wi(i) / de(i);
+// 	Lam[k] += 1 / de(i);
+//       }
+//     }
+//   }
+//   Lam = exp(-Lam); 
+//   arma::vec R = m / Lam;
+//   return ((W % R - mean(W % R))).t() * X / n;
+// }
 
+// Used for terminal events
 //' @noRd
 // [[Rcpp::export(rng = false)]]
 arma::vec temHaz(const arma::vec& a,
