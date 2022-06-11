@@ -134,7 +134,8 @@ arma::vec reLog(const arma::vec& a,
       --indices_head;
     x_col_sum += W(idx_i) * X.col(idx_i);
     w_sum += W(idx_i);
-    out += W(idx_i) * (X.col(idx_i) - x_col_sum / w_sum);
+    if (w_sum > 0) 
+      out += W(idx_i) * (X.col(idx_i) - x_col_sum / w_sum);
   }
   return out;
 }
