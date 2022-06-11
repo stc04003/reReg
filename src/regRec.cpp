@@ -324,7 +324,7 @@ arma::rowvec am1(const arma::vec& a,
   }
   for (int k = 0; k < n; k++) {
     for (int i = 0; i < nm; i++) {
-      if (T[i] >= T0[k] && de(i) > 0) {
+      if (texa[i] >= T0[k] && de(i) > 0) {
         Lam[k] += 1 / de(i); // W(i) / de(i);
       }
     }
