@@ -404,8 +404,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
       ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
       DF2 <- DF[ind,]
       DF2$id <- rep(1:n, clsz[sampled.id])
-      tmp <- regFit(DF2, engine2, NULL)
-      return(c(tmp$par1, tmp$par2, tmp$par3, tmp$par4))
+      return(tryCatch({tmp <- regFit(DF2, engine2, NULL); c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)},
+                      error = function(e) rep(1e3, length(bound))))
     })
     stopCluster(cl)
     bCoef <- t(out)
@@ -422,8 +422,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
       ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
       DF2 <- DF[ind,]
       DF2$id <- rep(1:n, clsz[sampled.id])
-      tmp <- regFit(DF2, engine2, NULL)
-      bCoef[i,] <- c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)
+      bCoef[i,] <- tryCatch({tmp <- regFit(DF2, engine2, NULL); c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)},
+                            error = function(e) rep(1e3, length(bound)))
     }
   }
   tmp <- apply(bCoef, 1, crossprod)
