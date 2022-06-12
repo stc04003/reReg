@@ -889,11 +889,17 @@ eqSolve <- function(par, fn, solver, trace, ...) {
     out <- dfsane(par = par, fn = function(z) fn(z, ...), 
                   alertConvergence = FALSE, quiet = TRUE,
                   control = list(trace = trace))
-    if (max(abs(out$par)) > 10)
+    if (max(abs(out$par)) > 1e3)
       out <- dfsane(par = par, fn = function(z) fn(z, ...), 
                     alertConvergence = FALSE, quiet = TRUE,
                     control = list(trace = trace, M = 50, noimp = 500))
-    if (max(abs(out$par)) > 10) solver <- "BBsolve"
+    if (max(abs(out$par)) > 1e3)
+      out <- dfsane(par = par, fn = function(z) fn(z, ...), 
+                    alertConvergence = FALSE, quiet = TRUE, method = 1)
+    if (max(abs(out$par)) > 1e3)
+      out <- dfsane(par = par, fn = function(z) fn(z, ...), 
+                    alertConvergence = FALSE, quiet = TRUE, method = 3)
+    if (max(abs(out$par)) > 1e3) solver <- "BBsolve"
   }
   if (solver == "BBsolve")
     out <- BBsolve(par = par, fn = fn, ..., quiet = TRUE)
