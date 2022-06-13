@@ -45,17 +45,13 @@ reSC <- function(DF, eqType, solver, par1, par2,
     }
     if (is.null(w1)) w1 <- rep(1, length(m))
     if (is.null(w2)) w2 <- rep(1, length(m))
-    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, rep(w1, m)))
-    ## if (eqType == "logrank")
-    ##     U1 <- function(a) {
-    ##         ## b <- 10^length(a)
-    ##         b <- (drop(crossprod(a)) + 1) * 10
-    ##         if (crossprod(a) > b) return(rep(Inf, length(a)))
-    ##         return(as.numeric(reLog(a, xi, ti, yii, rep(w1, m))))
-    ##     }
-    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, rep(w1, m)))
+    txi <- t(xi)
+    w1i <- rep(w1, m)
+    n <- sum(m)
+    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, txi, ti, yii, w1i))
+    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, txi, ti, yii, w1i))
     if (eqType == "gehan_s") U1 <- function(a)
-        as.numeric(reGehan_s(a, xi, ti, yii, rep(w1, m), length(m)))
+        as.numeric(reGehan_s(a, xi, ti, yii, w1i, length(m)))
     Xi <- as.matrix(cbind(1, df0[,-(1:6)]))
     U2 <- function(b) as.numeric(re2(b, R, Xi, w1))
     if (is.null(solver)) {
@@ -133,8 +129,8 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALSE
         return(list(Lam0.lower = Lam.lower, Lam0.upper = Lam.upper))
     }
     if (is.null(w1)) w1 <- rep(1, length(m))
-    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, xi, ti, yii, rep(w1, m)))
-    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, xi, ti, yii, rep(w1, m)))
+    if (eqType == "logrank") U1 <- function(a) as.numeric(reLog(a, t(xi), ti, yii, rep(w1, m)))
+    if (eqType == "gehan") U1 <- function(a) as.numeric(reGehan(a, t(xi), ti, yii, rep(w1, m)))
     if (is.null(solver)) {
         texa <- log(ti) + xi %*% par1
         yexa2 <- c(log(yi) + as.matrix(df0[,-(1:6)]) %*% par1)

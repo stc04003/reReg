@@ -1,4 +1,5 @@
 # `reReg` 1.4.4
+  	* Improve C code speeds in pairwise comparisons
   	* Added more graphical controls for event plots
 	* Used [[Rcpp::export(rng = false)]] because we never call any random number generation in the internals.
 # `reReg` 1.4.3

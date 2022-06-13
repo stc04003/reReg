@@ -177,7 +177,7 @@ The slots of the `Recur` S4-class are
   - `.Data`: a numerical matrix with columns `time1`, `time2`, `id`, `event`, `terminal`, and `origin`. 
   - `call`: a function call producing the `Recur` object.
   - `ID`: a character string storing the original subject ID.
-  - `ord`: indices that sort the response matrix by rows. Soring is in an increasing order by `id`, `time2`, and `-event`.
+  - `ord`: indices that sort the response matrix by rows. Sorting is in an increasing order by `id`, `time2`, and `-event`.
   - `rev_ord`: indices that revert the increasingly sorted response matrix by `ord` to its original ordering.
   - `first_idx`: indices that indicates the first record of each subject in the sorted matrix.
   - `last_idx`: indices that indicates the last record of each subject in the sorted matrix. 

@@ -1564,7 +1564,7 @@ Recurrent event process:
    Estimate   StdErr z.value p.value    
 x1 -0.88307  0.16423 -5.3771 &lt; 2e-16 ***
 x2 -0.74891  0.19868 -3.7694 0.00016 ***</code></pre>
-<p>For this data set, the standard errors changed from 0.182614 and 0.2343831 to 0.1642281 and 0.1986836, respectively. This acheives a 10.07% and 15.23% efficiency gain, respectively. The above result can be called by updating the original fit, <code>fit</code>, with the <code>update()</code> function, as illustrated in the following.</p>
+<p>For this data set, the standard errors changed from 0.182614 and 0.2343831 to 0.1642281 and 0.1986836, respectively. This achieves a 10.07% and 15.23% efficiency gain, respectively. The above result can be called by updating the original fit, <code>fit</code>, with the <code>update()</code> function, as illustrated in the following.</p>
 <pre class="r"><code>&gt; fit2 &lt;- update(fit, control = list(cppl = &quot;GMM&quot;, cppl.wfun = list(&quot;Gehan&quot;, &quot;cumbase&quot;)))</code></pre>
 <p>The following gives an example of the improved estimation by combining estimating equations via EL with the user-specified function <span class="math inline">\(1 / (x + 1)\)</span> and the Gehan’s weight.</p>
 <pre class="r"><code>&gt; fit3 &lt;- reReg(Recur(t.stop, id, event) ~ x1 + x2, model = &quot;cox.LWYY&quot;, data = dat, 
@@ -1579,7 +1579,7 @@ Recurrent event process:
    Estimate   StdErr z.value p.value    
 x1 -0.90487  0.17677 -5.1189 &lt; 2e-16 ***
 x2 -0.62554  0.19248 -3.2498 0.00115 ** </code></pre>
-<p>For this data set, the standard errors changed from 0.182614 and 0.2343831 to 0.1767699 and 0.1924846, respectively. This acheives a 3.2% and 17.88% efficiency gain, respectively. Although the above example assumes the covariates are time-independent, the proposed approach and the implementation allow time-dependent covariates.</p>
+<p>For this data set, the standard errors changed from 0.182614 and 0.2343831 to 0.1767699 and 0.1924846, respectively. This achieves a 3.2% and 17.88% efficiency gain, respectively. Although the above example assumes the covariates are time-independent, the proposed approach and the implementation allow time-dependent covariates.</p>
 </div>
 <div id="conclusion" class="section level2">
 <h2>Conclusion</h2>

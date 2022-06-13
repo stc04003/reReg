@@ -157,7 +157,7 @@ Recurrent event process:
    Estimate   StdErr z.value p.value    
 x1 -0.88307  0.16423 -5.3771 &lt; 2e-16 ***
 x2 -0.74891  0.19868 -3.7694 0.00016 ***</code></pre>
-<p>For this data set, the standard errors changed from 0.1826138 and 0.234383 to 0.1642281 and 0.1986836, respectively. This acheives a 10.07% and 15.23% efficiency gain, respectively. The above result can be called by updating the original fit, <code>fit</code>, with the <code><a href="https://rdrr.io/r/stats/update.html">update()</a></code> function, as illustrated in the following.</p>
+<p>For this data set, the standard errors changed from 0.1826138 and 0.234383 to 0.1642281 and 0.1986836, respectively. This achieves a 10.07% and 15.23% efficiency gain, respectively. The above result can be called by updating the original fit, <code>fit</code>, with the <code><a href="https://rdrr.io/r/stats/update.html">update()</a></code> function, as illustrated in the following.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="op">&gt;</span><span class="st"> </span>fit2 &lt;-<span class="st"> </span><span class="kw">update</span>(fit, <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">cppl =</span> <span class="st">"GMM"</span>, <span class="dt">cppl.wfun =</span> <span class="kw">list</span>(<span class="st">"Gehan"</span>, <span class="st">"cumbase"</span>)))</span></code></pre></div>
 <p>The following gives an example of the improved estimation by combining estimating equations via EL with the user-specified function <span class="math inline">\(1 / (x + 1)\)</span> and the Gehan’s weight.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="op">&gt;</span><span class="st"> </span>fit3 &lt;-<span class="st"> </span><span class="kw">reReg</span>(<span class="kw">Recur</span>(t.stop, id, event) <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span>x2, <span class="dt">model =</span> <span class="st">"cox.LWYY"</span>, <span class="dt">data =</span> dat, </span>
@@ -172,7 +172,7 @@ Recurrent event process:
    Estimate   StdErr z.value p.value    
 x1 -0.90487  0.17677 -5.1189 &lt; 2e-16 ***
 x2 -0.62554  0.19248 -3.2498 0.00115 ** </code></pre>
-<p>For this data set, the standard errors changed from 0.1826138 and 0.234383 to 0.1767699 and 0.1924846, respectively. This acheives a 3.2% and 17.88% efficiency gain, respectively. Although the above example assumes the covariates are time-independent, the proposed approach and the implementation allow time-dependent covariates.</p>
+<p>For this data set, the standard errors changed from 0.1826138 and 0.234383 to 0.1767699 and 0.1924846, respectively. This achieves a 3.2% and 17.88% efficiency gain, respectively. Although the above example assumes the covariates are time-independent, the proposed approach and the implementation allow time-dependent covariates.</p>
 </div>
 <div id="conclusion" class="section level2">
 <h2 class="hasAnchor">

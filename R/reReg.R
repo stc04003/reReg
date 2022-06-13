@@ -404,8 +404,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
       ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
       DF2 <- DF[ind,]
       DF2$id <- rep(1:n, clsz[sampled.id])
-      tmp <- regFit(DF2, engine2, NULL)
-      return(c(tmp$par1, tmp$par2, tmp$par3, tmp$par4))
+      return(tryCatch({tmp <- regFit(DF2, engine2, NULL); c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)},
+                      error = function(e) rep(1e3, length(bound))))
     })
     stopCluster(cl)
     bCoef <- t(out)
@@ -422,8 +422,8 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
       ind <- unlist(sapply(sampled.id, function(x) which(id == x)))
       DF2 <- DF[ind,]
       DF2$id <- rep(1:n, clsz[sampled.id])
-      tmp <- regFit(DF2, engine2, NULL)
-      bCoef[i,] <- c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)
+      bCoef[i,] <- tryCatch({tmp <- regFit(DF2, engine2, NULL); c(tmp$par1, tmp$par2, tmp$par3, tmp$par4)},
+                            error = function(e) rep(1e3, length(bound)))
     }
   }
   tmp <- apply(bCoef, 1, crossprod)
@@ -889,7 +889,17 @@ eqSolve <- function(par, fn, solver, trace, ...) {
     out <- dfsane(par = par, fn = function(z) fn(z, ...), 
                   alertConvergence = FALSE, quiet = TRUE,
                   control = list(trace = trace))
-    if (max(abs(out$par)) > 10) solver <- "BBsolve"
+    if (max(abs(out$par)) > 1e3)
+      out <- dfsane(par = par, fn = function(z) fn(z, ...), 
+                    alertConvergence = FALSE, quiet = TRUE,
+                    control = list(trace = trace, M = 50, noimp = 500))
+    if (max(abs(out$par)) > 1e3)
+      out <- dfsane(par = par, fn = function(z) fn(z, ...), 
+                    alertConvergence = FALSE, quiet = TRUE, method = 1)
+    if (max(abs(out$par)) > 1e3)
+      out <- dfsane(par = par, fn = function(z) fn(z, ...), 
+                    alertConvergence = FALSE, quiet = TRUE, method = 3)
+    if (max(abs(out$par)) > 1e3) solver <- "BBsolve"
   }
   if (solver == "BBsolve")
     out <- BBsolve(par = par, fn = fn, ..., quiet = TRUE)

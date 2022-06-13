@@ -26,8 +26,8 @@ knitr::opts_chunk$set(prompt = TRUE, comment = "")
 
 The regression model implemented in the __`reReg`__ package accommodate informative censoring 
 via the use of a subject-specific frailty variable.
-In contrast to existing frailty models, the implemented estimation procedure does not require dis-
-tributional information on the frailty variable. Using the borrowing-strength approach in the
+In contrast to existing frailty models, the implemented estimation procedure does not require 
+distributional information on the frailty variable. Using the borrowing-strength approach in the
 estimating procedure, our model allows users to specify any combination of the sub-models
 between the recurrent event process and the terminal events when they are fitted jointly.
 
@@ -253,7 +253,7 @@ plot(fit.CoxAr)
 
 ## Other popular methods
 Some methods that assumes `Z = 1` and requires independent
-censorings are also implemented in `reReg`. 
+censoring are also implemented in `reReg`. 
 These includes the methods proposed by 
 @lin2000semiparametric, @ghosh2002, and @ghosh2003, that can be called by specifying 
 `model = "cox.LWYY"`, `model = "cox.GL"`, and `model = "am.GL"`, respectively.
