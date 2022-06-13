@@ -83,8 +83,6 @@ arma::vec reRate(const arma::vec& T,
 //   return out;
 // }
 
-
-
 arma::mat matvec(arma::mat x, arma::vec y) {
   arma::mat out(x.n_rows, x.n_cols);
   for (size_t i = 0; i < x.n_cols; i++) {
@@ -234,7 +232,6 @@ arma::vec reGehan(const arma::vec& a,
 //   }
 //   return out;
 // }
-
 
 //' @noRd
 // [[Rcpp::export(rng = false)]]
@@ -490,27 +487,6 @@ arma::rowvec temLog(const arma::vec& a,
   r.replace(arma::datum::nan, 0);
   return sum(repmat(ordW % ordD, 1, p) % r, 0) / n;
 }
-
-// arma::rowvec temLog(const arma::vec& a,
-// 		    const arma::vec& b,
-// 		    const arma::mat& X,
-// 		    const arma::vec& Y,
-// 		    const arma::vec& Z,
-// 		    const arma::vec& D,
-// 		    const arma::vec& W) {
-//   int n = Y.n_elem;
-//   arma::vec yexa = Y % exp(X * a);
-//   arma::vec ebax = exp(X * (b - a)); 
-//   arma::mat Iij = arma::conv_to<arma::mat>::from(repmat(yexa, 1, n) <= repmat(yexa, 1, n).t());
-//   // arma::mat nu = Iij * (X % repmat(ebax % Z % W, 1, X.n_cols));
-//   // arma::mat de = Iij * (ebax % Z % W);
-//   arma::mat nu = Iij * (X % repmat(ebax % Z, 1, X.n_cols));
-//   arma::mat de = Iij * (ebax % Z);
-//   arma::mat tmp = nu / repmat(de, 1, nu.n_cols);
-//   tmp.replace(arma::datum::nan, 0);
-//   arma::mat D2 = repmat(D % W, 1, X.n_cols);
-//   return (sum(X % D2, 0) - sum(tmp % D2, 0)) / n;
-// }
 
 // [[Rcpp::export(rng = false)]]
 Rcpp::NumericVector temGehan(const arma::vec& a,

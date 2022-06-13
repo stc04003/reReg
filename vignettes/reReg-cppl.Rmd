@@ -115,7 +115,7 @@ summary(fit2)
 ```
 For this data set, the standard errors changed from `r fit$par1.se[1]` and `r fit$par1.se[2]` 
 to `r fit2$par1.se[1]` and `r fit2$par1.se[2]`, respectively.
-This acheives a `r 100 * round(1 - fit2$par1.se / fit$par1.se, 4)[1]`\% and
+This achieves a `r 100 * round(1 - fit2$par1.se / fit$par1.se, 4)[1]`\% and
 `r 100 * round(1 - fit2$par1.se / fit$par1.se, 4)[2]`\% efficiency gain, respectively.
 The above result can be called by updating the original fit, `fit`, with the `update()` function, 
 as illustrated in the following.
@@ -133,7 +133,7 @@ summary(fit3)
 ```
 For this data set, the standard errors changed from `r fit$par1.se[1]` and `r fit$par1.se[2]` 
 to `r fit3$par1.se[1]` and `r fit3$par1.se[2]`, respectively.
-This acheives a `r 100 * round(1 - fit3$par1.se / fit$par1.se, 4)[1]`\% and
+This achieves a `r 100 * round(1 - fit3$par1.se / fit$par1.se, 4)[1]`\% and
 `r 100 * round(1 - fit3$par1.se / fit$par1.se, 4)[2]`\% efficiency gain, respectively.
 Although the above example assumes the covariates are time-independent, 
 the proposed approach and the implementation allow time-dependent covariates.

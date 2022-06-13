@@ -275,7 +275,7 @@ MathJax.Hub.Config({
   TeX: { equationNumbers: { autoNumber: "AMS" } }
 });
 </script>
-<p>The regression model implemented in the <strong><code>reReg</code></strong> package accommodate informative censoring via the use of a subject-specific frailty variable. In contrast to existing frailty models, the implemented estimation procedure does not require dis- tributional information on the frailty variable. Using the borrowing-strength approach in the estimating procedure, our model allows users to specify any combination of the sub-models between the recurrent event process and the terminal events when they are fitted jointly.</p>
+<p>The regression model implemented in the <strong><code>reReg</code></strong> package accommodate informative censoring via the use of a subject-specific frailty variable. In contrast to existing frailty models, the implemented estimation procedure does not require distributional information on the frailty variable. Using the borrowing-strength approach in the estimating procedure, our model allows users to specify any combination of the sub-models between the recurrent event process and the terminal events when they are fitted jointly.</p>
 <p>In this vignette, we demonstrate how to use the <code>reReg()</code> function in the <strong><code>reReg</code></strong> package to fit semiparametric regression models to recurrent event data.</p>
 <div id="notations" class="section level2">
 <h2>Notations</h2>
@@ -444,7 +444,7 @@ x2  1.26535 0.52876  2.3931 0.01671 * </code></pre>
 </div>
 <div id="other-popular-methods" class="section level2">
 <h2>Other popular methods</h2>
-<p>Some methods that assumes <code>Z = 1</code> and requires independent censorings are also implemented in <code>reReg</code>. These includes the methods proposed by <span class="citation">Lin et al. (2000)</span>, <span class="citation">Ghosh and Lin (2002)</span>, and <span class="citation">Ghosh and Lin (2003)</span>, that can be called by specifying <code>model = &quot;cox.LWYY&quot;</code>, <code>model = &quot;cox.GL&quot;</code>, and <code>model = &quot;am.GL&quot;</code>, respectively.</p>
+<p>Some methods that assumes <code>Z = 1</code> and requires independent censoring are also implemented in <code>reReg</code>. These includes the methods proposed by <span class="citation">Lin et al. (2000)</span>, <span class="citation">Ghosh and Lin (2002)</span>, and <span class="citation">Ghosh and Lin (2003)</span>, that can be called by specifying <code>model = &quot;cox.LWYY&quot;</code>, <code>model = &quot;cox.GL&quot;</code>, and <code>model = &quot;am.GL&quot;</code>, respectively.</p>
 <p>It is also worth noting that methods in multi-state models could also be applied to analyze recurrent events data. See the vignette on <a href="https://cran.r-project.org/web/packages/survival/vignettes/compete.pdf">Multi-state models and competing risks</a> for more details.</p>
 </div>
 <div id="reference" class="section level2 unnumbered">
