@@ -1053,6 +1053,12 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #' specifies stroke for recurrent events. Default to circle.
 #' @param terminal.stroke a numerical value or a character string
 #' specifies stroke for terminal events. Default to triangle.
+#' @param not.terminal.color a numerical value or a character string
+#' specifies color for non-terminal events.
+#' Non-terminal events are not plotted at default. 
+#' @param not.terminal.shape a numerical value or a character string
+#' specifies shape for terminal events.
+#' Non-terminal events are not plotted at default. 
 #' 
 #' @seealso \code{\link{plotEvents}}
 #' @export

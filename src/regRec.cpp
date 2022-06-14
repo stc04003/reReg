@@ -18,7 +18,7 @@ arma::vec reRate(const arma::vec& T,
 		 const arma::vec& W,
 		 const arma::vec& T0) {
   arma::uword const n = Y.n_elem;
-  int m = T0.n_elem;
+  arma::uword const m = T0.n_elem;
   arma::vec out(m, arma::fill::zeros);
   arma::vec de(n, arma::fill::zeros); 
   arma::uvec const idx = arma::sort_index(T);
@@ -47,8 +47,8 @@ arma::vec reRate(const arma::vec& T,
     w_sum += W(idx_i);
     de(idx_i) = w_sum;
   }
-  for (int k = 0; k < m; k++) {
-    for (int i = 0; i < n; i++) {
+  for (arma::uword k = 0; k < m; k++) {
+    for (arma::uword i = 0; i < n; i++) {
       if (T[i] >= T0[k] && de(i) > 0) {
         out[k] += W(i) / de(i);
       }
@@ -271,16 +271,16 @@ arma::rowvec am1(const arma::vec& a,
 		 const arma::vec& W,
 		 const arma::mat& X,
 		 const arma::vec& m) {
-  int nm = accu(m);
-  int n = X.n_rows;
-  int p = X.n_cols;
+  arma::uword const nm = accu(m);
+  arma::uword const n = X.n_rows;
+  arma::uword const p = X.n_cols;
   arma::vec m2 = cumsum(m); 
   arma::mat Xi(nm, p, arma::fill::zeros);
   arma::vec Yi(nm, arma::fill::zeros);
   // arma::vec Wi(nm, arma::fill::zeros);
   arma::vec T0 = log(Y) + X * a;
-  int mn = m.n_elem;
-  for (int i = 0; i < mn; i ++) {
+  arma::uword const mn = m.n_elem;
+  for (arma::uword i = 0; i < mn; i++) {
     if (i == 0 && m(i) > 0) {
       Yi.subvec(0, m2(i) - 1).fill(Y(i));
       Xi.submat(0, 0, m2(i) - 1, p - 1) = repmat(X.row(i), m(i), 1);
@@ -320,8 +320,8 @@ arma::rowvec am1(const arma::vec& a,
     w_sum += 1; //W(idx_i);
     de(idx_i) = w_sum;
   }
-  for (int k = 0; k < n; k++) {
-    for (int i = 0; i < nm; i++) {
+  for (arma::uword k = 0; k < n; k++) {
+    for (arma::uword i = 0; i < nm; i++) {
       if (texa[i] >= T0[k] && de(i) > 0) {
         Lam[k] += 1 / de(i); // W(i) / de(i);
       }

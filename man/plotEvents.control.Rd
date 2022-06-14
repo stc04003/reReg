@@ -82,6 +82,14 @@ specifies shape for terminal events. Default to triangle.}
 \item{terminal.stroke}{a numerical value or a character string
 specifies stroke for terminal events. Default to triangle.}
 
+\item{not.terminal.color}{a numerical value or a character string
+specifies color for non-terminal events.
+Non-terminal events are not plotted at default.}
+
+\item{not.terminal.shape}{a numerical value or a character string
+specifies shape for terminal events.
+Non-terminal events are not plotted at default.}
+
 \item{alpha}{a numerical value specifies the transparency of the points.}
 }
 \description{

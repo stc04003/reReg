@@ -25,7 +25,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // reLog
-arma::rowvec reLog(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
+arma::vec reLog(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
 RcppExport SEXP _reReg_reLog(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -52,7 +52,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // reGehan
-arma::rowvec reGehan(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
+arma::vec reGehan(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
 RcppExport SEXP _reReg_reGehan(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
