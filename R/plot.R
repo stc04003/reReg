@@ -71,27 +71,27 @@ plot.Recur <- function(x, mcf = FALSE,
                        mcf.adjustRiskset = TRUE,
                        mcf.conf.int = FALSE,
                        control = list(), ...) {
-    event.result <- match.arg(event.result)
-    if (!is.Recur(x)) stop("Response must be a `Recur` object.")
-    ctrl <- plotEvents.control()
-    if (mcf & is.null(ctrl$ylab)) ctrl <- ctrl$ylab <- "Cumulative mean"
-    call <- match.call()
-    namc <- names(control)
-    if (!all(namc %in% names(ctrl))) 
-        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control
-    namp <- names(match.call())
-    if (any(namp %in% names(ctrl))) {
-        namp <- namp[namp %in% names(ctrl)]
-        ctrl[namp] <- lapply(namp, function(x) call[[x]])
-    }
-    if (!mcf) {
-        return(plotEvents(x, result = event.result, calendarTime = event.calendarTime, control = ctrl))
-    }
-    if (mcf) {
-        return(plot(mcf(x ~ 1, adjustRiskset = mcf.adjustRiskset), conf.int = mcf.conf.int))
-        ## return(plotMCF(x, adjustRiskset = mcf.adjustRiskset, smooth = mcf.smooth, control = ctrl))
-    }
+  event.result <- match.arg(event.result)
+  if (!is.Recur(x)) stop("Response must be a `Recur` object.")
+  ctrl <- plotEvents.control()
+  if (mcf & is.null(ctrl$ylab)) ctrl <- ctrl$ylab <- "Cumulative mean"
+  call <- match.call()
+  namc <- names(control)
+  if (!all(namc %in% names(ctrl))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+  ctrl[namc] <- control
+  namp <- names(match.call())
+  if (any(namp %in% names(ctrl))) {
+    namp <- namp[namp %in% names(ctrl)]
+    ctrl[namp] <- lapply(namp, function(x) call[[x]])
+  }
+  if (!mcf) {
+    return(plotEvents(x, result = event.result, calendarTime = event.calendarTime, control = ctrl))
+  }
+  if (mcf) {
+    return(plot(mcf(x ~ 1, adjustRiskset = mcf.adjustRiskset), conf.int = mcf.conf.int))
+    ## return(plotMCF(x, adjustRiskset = mcf.adjustRiskset, smooth = mcf.smooth, control = ctrl))
+  }
 }
 
 #' Produce Event Plots
@@ -260,8 +260,8 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
       geom_rect(fill = ctrl$bar.color) +
       coord_flip()
   } else gg <- ggplot(DF[DF$event == 0,], aes(id, time2 - origin)) +
-         geom_bar(stat = "identity", fill = ctrl$bar.color, width = ctrl$width) +
-         coord_flip()
+           geom_bar(stat = "identity", fill = ctrl$bar.color, width = ctrl$width) +
+           coord_flip()
   ## event dots
   if (!calendarTime) DF$time2 <- DF$time2 - DF$origin
   if (any(table(DF$id) > 0))
@@ -370,188 +370,188 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
 #' 
 #' @example inst/examples/ex_plot_MCF.R
 plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE, 
-                     smooth = FALSE, control = list(), ...) {
-    call <- match.call()
-    ctrl <- plotEvents.control()
-    if (is.null(ctrl$ylab)) ctrl$ylab <- "Cumulative mean"
-    namc <- names(control)
-    if (!all(namc %in% names(ctrl))) 
-        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control
-    namp <- names(match.call())
-    if (any(namp %in% names(ctrl))) {
-        namp <- namp[namp %in% names(ctrl)]
-        ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
+                    smooth = FALSE, control = list(), ...) {
+  call <- match.call()
+  ctrl <- plotEvents.control()
+  if (is.null(ctrl$ylab)) ctrl$ylab <- "Cumulative mean"
+  namc <- names(control)
+  if (!all(namc %in% names(ctrl))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+  ctrl[namc] <- control
+  namp <- names(match.call())
+  if (any(namp %in% names(ctrl))) {
+    namp <- namp[namp %in% names(ctrl)]
+    ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
+  }
+  nX <- 0
+  if(is.Recur(formula)) {
+    DF <- as.data.frame(formula@.Data)
+    vNames <- NULL
+  } else {
+    if (missing(data)) obj <- eval(formula[[2]], parent.frame())
+    else obj <- eval(formula[[2]], data)
+    if (!is.Recur(obj)) stop("Response must be a `Recur` object.")
+    DF <- as.data.frame(obj@.Data)
+    nX <- length(formula[[3]])
+    if (formula[[3]] != 1 && nX == 1) {
+      if (missing(data)) DF <- cbind(obj@.Data, tmp = eval(formula[[3]], parent.frame()))
+      if (!missing(data)) DF <- cbind(obj@.Data, tmp = eval(formula[[3]], data))
+      colnames(DF) <-  c(colnames(obj@.Data), paste0(formula[[3]], collapse = ""))
+      DF <- as.data.frame(DF)
     }
-    nX <- 0
-    if(is.Recur(formula)) {
-        DF <- as.data.frame(formula@.Data)
-        vNames <- NULL
-    } else {
-        if (missing(data)) obj <- eval(formula[[2]], parent.frame())
-        else obj <- eval(formula[[2]], data)
-        if (!is.Recur(obj)) stop("Response must be a `Recur` object.")
-        DF <- as.data.frame(obj@.Data)
-        nX <- length(formula[[3]])
-        if (formula[[3]] != 1 && nX == 1) {
-            if (missing(data)) DF <- cbind(obj@.Data, tmp = eval(formula[[3]], parent.frame()))
-            if (!missing(data)) DF <- cbind(obj@.Data, tmp = eval(formula[[3]], data))
-            colnames(DF) <-  c(colnames(obj@.Data), paste0(formula[[3]], collapse = ""))
-            DF <- as.data.frame(DF)
+    if (formula[[3]] != 1 && nX > 1) {
+      DF <- as.data.frame(obj@.Data)
+      if (missing(data)) {
+        for (i in 2:nX) {
+          DF <- cbind(DF, eval(formula[[3]][[i]], parent.frame()))
         }
-        if (formula[[3]] != 1 && nX > 1) {
-            DF <- as.data.frame(obj@.Data)
-            if (missing(data)) {
-                for (i in 2:nX) {
-                    DF <- cbind(DF, eval(formula[[3]][[i]], parent.frame()))
-                }
-            } else {
-                for (i in 2:nX) {
-                    DF <- cbind(DF, eval(formula[[3]][[i]], data))
-                }
-            }
-            colnames(DF) <- c(colnames(obj@.Data), attr(terms(formula), "term.labels"))
+      } else {
+        for (i in 2:nX) {
+          DF <- cbind(DF, eval(formula[[3]][[i]], data))
         }
-        vNames <- attr(terms(formula), "term.labels")
-        if (length(vNames) == 0) vNames <- NULL
-    }   
-    ## dd <- subset(DF, select = c("event", vNames, "time2"))
-    dd <- DF[,c("event", vNames, "time2")]
-    dd <- dd[do.call(order, dd),]
-    nn <- unlist(aggregate(time2~., data = dd, table)$time2)
-    dd <- unique(dd)
-    dd$n <- as.integer(nn)
-    rownames(dd) <- NULL
-    k <- length(unique(dd$event)) - 1    
-    if (!is.null(vNames)) { ## any covariates/stratifications?
-        dd2 <- DF[DF$event == 0, vNames, drop = FALSE]
-        dd2 <- dd2[do.call(order, dd2),,drop = FALSE]
-        nn <- c(t(table(dd2)))
-        dd2 <- unique(dd2)
-        dd2$n <- as.integer(nn) ## tmp2 in the 1st version
-        rownames(dd2) <- NULL
-        dd$GrpInd <- match(apply(dd[,vNames, drop = FALSE], 1, paste, collapse = ""),
-                           apply(dd2[,vNames, drop = FALSE], 1, paste, collapse = ""))
-        tmp1 <- merge(dd, dd2, by = vNames)
-        ## as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":"))))
-        rec0 <- tmp1[tmp1$event == 0,]
-        dat0 <- do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
-            x$adjustRiskset = apply(x, 1, function(y)
-                as.numeric(y['n.y']) - sum(rec0$n.x[as.numeric(y['time2'])> rec0$time2 &
-                                                    rec0$GrpInd == as.numeric(y['GrpInd'])]))
-            return(x)}))
-        dat0$n.x <- dat0$n.x * (dat0$event > 0)
-        rec0$time2 <- rec0$n.x <- 0
-        rec0$adjustRiskset <- 1
-        dat0 <- unique(rbind(dat0, rec0))
-        rownames(dat0) <- NULL
-        ## Number of recurrent types
-        if (k > 1) {
-            tmp <- dat0[dat0$event == 0,]
-            tmp <- tmp[rep(1:NROW(tmp), k),]
-            tmp$event <- rep(1:k, each = sum(dat0$event == 0))
-            dat0 <- rbind(dat0[dat0$event > 0,], tmp)            
-        } else {
-            dat0$event <- dat0$event[1]
-        }
-        dat0 <- dat0[order(dat0$event, dat0$GrpInd, dat0$time2),]
-        if (adjustRiskset) {
-            dat0 <- do.call(rbind, 
-                            lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
-                                x$mu <- x$n.x / x$adjustRiskset
-                                x$MCF <- cumsum(x$mu)
-                                return(x)}))
-        } else {
-            dat0 <- do.call(rbind, 
-                            lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
-                                x$mu <- x$n.x / x$n.y
-                                x$MCF <- cumsum(x$mu) 
-                                return(x)}))
-        }
-    } else { ## no covariates
-        dd$n.y <- length(unique(DF$id))
-        rec0 <- dd[dd$event == 0, ]
-        dd$adjustRiskset <- apply(dd, 1, function(x) x[4] - sum(rec0$n[x[2] > rec0$time2]))
-        dd$n <- dd$n * (dd$event > 0)
-        rec0$time2 <- rec0$n <- 0
-        rec0$adjustRiskset <- 1
-        dat0 <- unique(rbind(dd, rec0))       
-        dat0 <- dat0[order(dat0$time2),]
-        dat0$mu <- dat0$n / (adjustRiskset * dat0$adjustRiskset + (!adjustRiskset) * dat0$n.y)
-        dat0$MCF <- cumsum(dat0$mu)
+      }
+      colnames(DF) <- c(colnames(obj@.Data), attr(terms(formula), "term.labels"))
     }
-    if (k == 1) {
-        dat0$event <- dat0$event[1]
-        dat0$event <- factor(dat0$event, labels = ctrl$recurrent.name)
-    }
+    vNames <- attr(terms(formula), "term.labels")
+    if (length(vNames) == 0) vNames <- NULL
+  }   
+  ## dd <- subset(DF, select = c("event", vNames, "time2"))
+  dd <- DF[,c("event", vNames, "time2")]
+  dd <- dd[do.call(order, dd),]
+  nn <- unlist(aggregate(time2~., data = dd, table)$time2)
+  dd <- unique(dd)
+  dd$n <- as.integer(nn)
+  rownames(dd) <- NULL
+  k <- length(unique(dd$event)) - 1    
+  if (!is.null(vNames)) { ## any covariates/stratifications?
+    dd2 <- DF[DF$event == 0, vNames, drop = FALSE]
+    dd2 <- dd2[do.call(order, dd2),,drop = FALSE]
+    nn <- c(t(table(dd2)))
+    dd2 <- unique(dd2)
+    dd2$n <- as.integer(nn) ## tmp2 in the 1st version
+    rownames(dd2) <- NULL
+    dd$GrpInd <- match(apply(dd[,vNames, drop = FALSE], 1, paste, collapse = ""),
+                       apply(dd2[,vNames, drop = FALSE], 1, paste, collapse = ""))
+    tmp1 <- merge(dd, dd2, by = vNames)
+    ## as.integer(eval(parse(text = paste(attr(terms(formula), "term.labels"), collapse = ":"))))
+    rec0 <- tmp1[tmp1$event == 0,]
+    dat0 <- do.call(rbind, lapply(split(tmp1, tmp1$GrpInd), function(x) {
+      x$adjustRiskset = apply(x, 1, function(y)
+        as.numeric(y['n.y']) - sum(rec0$n.x[as.numeric(y['time2'])> rec0$time2 &
+                                            rec0$GrpInd == as.numeric(y['GrpInd'])]))
+      return(x)}))
+    dat0$n.x <- dat0$n.x * (dat0$event > 0)
+    rec0$time2 <- rec0$n.x <- 0
+    rec0$adjustRiskset <- 1
+    dat0 <- unique(rbind(dat0, rec0))
+    rownames(dat0) <- NULL
+    ## Number of recurrent types
     if (k > 1) {
-        dat00 <- dat0[dat0$event == 0,]
-        dat0 <- dat0[dat0$event > 0,]
-        if (nrow(dat00) > 0) {
-            dat00 <- dat00[rep(1:nrow(dat00), k),]
-            dat00$event <- rep(1:k, each = nrow(dat00) / k)
-            dat0 <- rbind(dat0, dat00)
-        }
-        if (is.null(ctrl$recurrent.type))
-            dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
-        if (!is.null(ctrl$recurrent.type)) {
-            if (length(ctrl$recurrent.type) == k) {
-                dat0$event <- factor(dat0$event, labels = ctrl$recurrent.type)
-            } else {
-                message('The length of "recurrent.type" mismatched, default names are used.')
-                dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
-            }
-        }
-    }
-    if (nX > 0) {
-        for (i in vNames) {
-            dat0[,i] <- factor(dat0[,i], labels = paste(i, "=", unique(dat0[,i])))
-        }}
-    dat0 <- dat0[complete.cases(dat0),]
-    gg <- ggplot(data = dat0, aes(x = time2, y = MCF))
-    if (is.null(vNames) & k == 1) {
-        gg <- gg + geom_step(size = ctrl$lwd)
+      tmp <- dat0[dat0$event == 0,]
+      tmp <- tmp[rep(1:NROW(tmp), k),]
+      tmp$event <- rep(1:k, each = sum(dat0$event == 0))
+      dat0 <- rbind(dat0[dat0$event > 0,], tmp)            
     } else {
-        if (!onePanel & k == 1) gg <- gg + geom_step(size = ctrl$lwd)
-        if (!onePanel & k > 1) 
-            gg <- gg + geom_step(aes(color = event), direction = "hv", size = ctrl$lwd) +
-                guides(color = guide_legend(title = ctrl$recurrent.name))
-        if (onePanel) {
-            dat0$GrpInd <- factor(dat0$GrpInd)
-            levels(dat0$GrpInd) <- apply(unique(dat0[,vNames, drop = FALSE]), 1, paste, collapse = ", ")
-            gg <- gg + geom_step(aes(color = dat0$GrpInd), direction = "hv", size = ctrl$lwd) +
-                guides(color = guide_legend(title = ""))
-        }
+      dat0$event <- dat0$event[1]
     }
-    if (!onePanel && nX > 0 && formula[[3]] != 1) 
-        gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
-                              scales = "free", space = "free", switch = "x")
-    if (!onePanel & k == 1)
-        gg <- gg + theme(legend.position = "none")
-    ## if (onePanel & k == 1)
-    ##     gg <- gg + scale_color_discrete(name = "", labels = levels(interaction(vNames)))
-    ## if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")
-    if (smooth & k == 1 & !onePanel) {
-        if (is.null(dat0$GrpInd)) dat0$GrpInd <- 1
-        dat0 <- do.call(rbind, lapply(split(dat0, dat0$GrpInd), function(x){
-            x$bs <- scam(x$MCF ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
-            return(x)}))       
-        gg <- gg + geom_line(data = dat0, aes(time2, y = bs), color = 4, size = ctrl$lwd)
-        ## geom_smooth(method = "scam", formula = y ~ s(x, k = 10, bs = "mpi"), size = ctrl$lwd, se = FALSE)
+    dat0 <- dat0[order(dat0$event, dat0$GrpInd, dat0$time2),]
+    if (adjustRiskset) {
+      dat0 <- do.call(rbind, 
+                      lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
+                        x$mu <- x$n.x / x$adjustRiskset
+                        x$MCF <- cumsum(x$mu)
+                        return(x)}))
+    } else {
+      dat0 <- do.call(rbind, 
+                      lapply(split(dat0, list(dat0$event, dat0$GrpInd)), function(x) {
+                        x$mu <- x$n.x / x$n.y
+                        x$MCF <- cumsum(x$mu) 
+                        return(x)}))
     }
-    ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
-    if (smooth & k > 1) message('Smoothing only works for data with one recurrent event type.')
-    if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
-    gg + theme(axis.line = element_line(color = "black"),
-               legend.position = ctrl$legend.position,
-               legend.key = element_rect(fill = "white", color = "white"),
-               plot.title = element_text(size = 2 * ctrl$base_size),
-               strip.text = element_text(size = ctrl$base_size),
-               legend.text = element_text(size = 1.5 * ctrl$base_size),
-               legend.title = element_text(size = 1.5 * ctrl$base_size),
-               axis.text = element_text(size = ctrl$base_size),
-               axis.title = element_text(size = 1.5 * ctrl$base_size)) +
-        labs(y = ctrl$ylab, x = ctrl$xlab)
+  } else { ## no covariates
+    dd$n.y <- length(unique(DF$id))
+    rec0 <- dd[dd$event == 0, ]
+    dd$adjustRiskset <- apply(dd, 1, function(x) x[4] - sum(rec0$n[x[2] > rec0$time2]))
+    dd$n <- dd$n * (dd$event > 0)
+    rec0$time2 <- rec0$n <- 0
+    rec0$adjustRiskset <- 1
+    dat0 <- unique(rbind(dd, rec0))       
+    dat0 <- dat0[order(dat0$time2),]
+    dat0$mu <- dat0$n / (adjustRiskset * dat0$adjustRiskset + (!adjustRiskset) * dat0$n.y)
+    dat0$MCF <- cumsum(dat0$mu)
+  }
+  if (k == 1) {
+    dat0$event <- dat0$event[1]
+    dat0$event <- factor(dat0$event, labels = ctrl$recurrent.name)
+  }
+  if (k > 1) {
+    dat00 <- dat0[dat0$event == 0,]
+    dat0 <- dat0[dat0$event > 0,]
+    if (nrow(dat00) > 0) {
+      dat00 <- dat00[rep(1:nrow(dat00), k),]
+      dat00$event <- rep(1:k, each = nrow(dat00) / k)
+      dat0 <- rbind(dat0, dat00)
+    }
+    if (is.null(ctrl$recurrent.type))
+      dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
+    if (!is.null(ctrl$recurrent.type)) {
+      if (length(ctrl$recurrent.type) == k) {
+        dat0$event <- factor(dat0$event, labels = ctrl$recurrent.type)
+      } else {
+        message('The length of "recurrent.type" mismatched, default names are used.')
+        dat0$event <- factor(dat0$event, labels = paste(ctrl$recurrent.name, 1:k))
+      }
+    }
+  }
+  if (nX > 0) {
+    for (i in vNames) {
+      dat0[,i] <- factor(dat0[,i], labels = paste(i, "=", unique(dat0[,i])))
+    }}
+  dat0 <- dat0[complete.cases(dat0),]
+  gg <- ggplot(data = dat0, aes(x = time2, y = MCF))
+  if (is.null(vNames) & k == 1) {
+    gg <- gg + geom_step(size = ctrl$lwd)
+  } else {
+    if (!onePanel & k == 1) gg <- gg + geom_step(size = ctrl$lwd)
+    if (!onePanel & k > 1) 
+      gg <- gg + geom_step(aes(color = event), direction = "hv", size = ctrl$lwd) +
+        guides(color = guide_legend(title = ctrl$recurrent.name))
+    if (onePanel) {
+      dat0$GrpInd <- factor(dat0$GrpInd)
+      levels(dat0$GrpInd) <- apply(unique(dat0[,vNames, drop = FALSE]), 1, paste, collapse = ", ")
+      gg <- gg + geom_step(aes(color = dat0$GrpInd), direction = "hv", size = ctrl$lwd) +
+        guides(color = guide_legend(title = ""))
+    }
+  }
+  if (!onePanel && nX > 0 && formula[[3]] != 1) 
+    gg <- gg + facet_grid(as.formula(paste(formula[3], "~.", collapse = "")),
+                          scales = "free", space = "free", switch = "x")
+  if (!onePanel & k == 1)
+    gg <- gg + theme(legend.position = "none")
+  ## if (onePanel & k == 1)
+  ##     gg <- gg + scale_color_discrete(name = "", labels = levels(interaction(vNames)))
+  ## if (onePanel & k > 1) gg <- gg + scale_color_discrete(name = "")
+  if (smooth & k == 1 & !onePanel) {
+    if (is.null(dat0$GrpInd)) dat0$GrpInd <- 1
+    dat0 <- do.call(rbind, lapply(split(dat0, dat0$GrpInd), function(x){
+      x$bs <- scam(x$MCF ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values
+      return(x)}))       
+    gg <- gg + geom_line(data = dat0, aes(time2, y = bs), color = 4, size = ctrl$lwd)
+    ## geom_smooth(method = "scam", formula = y ~ s(x, k = 10, bs = "mpi"), size = ctrl$lwd, se = FALSE)
+  }
+  ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
+  if (smooth & k > 1) message('Smoothing only works for data with one recurrent event type.')
+  if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
+  gg + theme(axis.line = element_line(color = "black"),
+             legend.position = ctrl$legend.position,
+             legend.key = element_rect(fill = "white", color = "white"),
+             plot.title = element_text(size = 2 * ctrl$base_size),
+             strip.text = element_text(size = ctrl$base_size),
+             legend.text = element_text(size = 1.5 * ctrl$base_size),
+             legend.title = element_text(size = 1.5 * ctrl$base_size),
+             axis.text = element_text(size = ctrl$base_size),
+             axis.title = element_text(size = 1.5 * ctrl$base_size)) +
+    labs(y = ctrl$ylab, x = ctrl$xlab)
 }
 
 #' Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function
@@ -611,57 +611,57 @@ plot.reReg <- function(x,
                        ## type = c("unrestricted", "bounded", "scaled"),
                        smooth = FALSE, newdata = NULL, frailty = NULL, showName = FALSE,
                        control = list(), ...) {
-    baseline <- match.arg(baseline)
-    ## type <- match.arg(type)
-    type <- "unrestricted"
-    if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
-        stop("Baseline functions not yet available for this method.")
-    if (x$typeRec %in% c("cox.LWYY", "cox.HH"))
-        ctrl <- plotEvents.control(ylab = "Rate")
-    if (baseline %in% c("both", "rate"))
-        ctrl <- plotEvents.control(ylab = "Rate")
-    if (baseline == "hazard")
-        ctrl <- plotEvents.control(ylab = "Hazard")
-    namc <- names(control)
-    if (!all(namc %in% names(ctrl))) 
-        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control
-    call <- match.call()
-    namp <- names(match.call())
-    if (any(namp %in% names(ctrl))) {
-        namp <- namp[namp %in% names(ctrl)]
-        ctrl[namp] <- lapply(namp, function(x) call[[x]])
-    }
-    if (!is.reReg(x)) stop("Response must be a `reReg` class")
-    if (baseline == "rate")
-        return(plotRate(x, smooth = smooth, type = type,
-                        newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
-    if (baseline == "hazard")
-        return(plotHaz(x, smooth = smooth,
-                       newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
-    if (x$typeTem == ".") {
-        ## cat(paste("Baseline cumulative hazard function is not available."))
-        ## cat("\nOnly the baseline cumulative rate function is plotted.\n")
-        return(plotRate(x, smooth = smooth, type = type,
-                        newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
-    }
-    g1 <- plotRate(x, smooth = smooth, type = type,
-                   newdata = newdata, frailty = frailty, showName = showName, control = ctrl)
-    g2 <- plotHaz(x, smooth = smooth, type = type,
-                  newdata = newdata, frailty = frailty, showName = showName, control = ctrl)
-    if (ctrl$main != "") g1 <- g1 + ggtitle(ctrl$main) 
-    g1 <- g1 + ylab("Rate") + xlab("") +
-        ## facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative rate")) +
-        theme(axis.title.x = element_blank(),
-              axis.ticks.x = element_blank(),
-              plot.margin = unit(c(0, 0, 0, 0), "cm"))
-    g2 <- g2 + ylab("Hazard") + xlab("Time") + 
-        ## facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative hazard")) +
-        theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))        
-    g1 <- ggplotGrob(g1)
-    g2 <- ggplotGrob(g2)
-    grid.draw(rbind(g1, g2))
-    ## gg + ggtitle(ctrl$main)
+  baseline <- match.arg(baseline)
+  ## type <- match.arg(type)
+  type <- "unrestricted"
+  if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
+    stop("Baseline functions not yet available for this method.")
+  if (x$typeRec %in% c("cox.LWYY", "cox.HH"))
+    ctrl <- plotEvents.control(ylab = "Rate")
+  if (baseline %in% c("both", "rate"))
+    ctrl <- plotEvents.control(ylab = "Rate")
+  if (baseline == "hazard")
+    ctrl <- plotEvents.control(ylab = "Hazard")
+  namc <- names(control)
+  if (!all(namc %in% names(ctrl))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+  ctrl[namc] <- control
+  call <- match.call()
+  namp <- names(match.call())
+  if (any(namp %in% names(ctrl))) {
+    namp <- namp[namp %in% names(ctrl)]
+    ctrl[namp] <- lapply(namp, function(x) call[[x]])
+  }
+  if (!is.reReg(x)) stop("Response must be a `reReg` class")
+  if (baseline == "rate")
+    return(plotRate(x, smooth = smooth, type = type,
+                    newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
+  if (baseline == "hazard")
+    return(plotHaz(x, smooth = smooth,
+                   newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
+  if (x$typeTem == ".") {
+    ## cat(paste("Baseline cumulative hazard function is not available."))
+    ## cat("\nOnly the baseline cumulative rate function is plotted.\n")
+    return(plotRate(x, smooth = smooth, type = type,
+                    newdata = newdata, frailty = frailty, showName = showName, control = ctrl))
+  }
+  g1 <- plotRate(x, smooth = smooth, type = type,
+                 newdata = newdata, frailty = frailty, showName = showName, control = ctrl)
+  g2 <- plotHaz(x, smooth = smooth, type = type,
+                newdata = newdata, frailty = frailty, showName = showName, control = ctrl)
+  if (ctrl$main != "") g1 <- g1 + ggtitle(ctrl$main) 
+  g1 <- g1 + ylab("Rate") + xlab("") +
+    ## facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative rate")) +
+    theme(axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          plot.margin = unit(c(0, 0, 0, 0), "cm"))
+  g2 <- g2 + ylab("Hazard") + xlab("Time") + 
+    ## facet_grid(factor(rep(1, nrow(x$DF)), levels = 1, labels = "Baseline cumulative hazard")) +
+    theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))        
+  g1 <- ggplotGrob(g1)
+  g2 <- ggplotGrob(g2)
+  grid.draw(rbind(g1, g2))
+  ## gg + ggtitle(ctrl$main)
 }
 
 #' Plotting the Baseline Cumulative Rate Function for the Recurrent Event Process
@@ -717,134 +717,134 @@ plot.reReg <- function(x,
 plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE, 
                      type = c("unrestricted", "bounded", "scaled"),
                      smooth = FALSE, control = list(), ...) {
-    if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
-        stop("Baseline cumulative rate function is not available")
-    if (is.null(frailty)) frailty <- exp(x$log.muZ)
-    if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
-        stop("newdata and frailty are different lengths")
-    ## ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
-    ctrl <- plotEvents.control(ylab = "Rate")
-    namc <- names(control)
-    if (!all(namc %in% names(ctrl))) 
-        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control
-    call <- match.call()
-    namp <- names(match.call())
-    if (any(namp %in% names(ctrl))) {
-        namp <- namp[namp %in% names(ctrl)]
-        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+  if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
+    stop("Baseline cumulative rate function is not available")
+  if (is.null(frailty)) frailty <- exp(x$log.muZ)
+  if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
+    stop("newdata and frailty are different lengths")
+  ## ctrl <- plot.reReg.control(main = "Baseline cumulative rate function")
+  ctrl <- plotEvents.control(ylab = "Rate")
+  namc <- names(control)
+  if (!all(namc %in% names(ctrl))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+  ctrl[namc] <- control
+  call <- match.call()
+  namp <- names(match.call())
+  if (any(namp %in% names(ctrl))) {
+    namp <- namp[namp %in% names(ctrl)]
+    ctrl[namp] <- lapply(namp, function(x) call[[x]])
+  }
+  type <- match.arg(type)
+  if (x$typeRec == "nonparametric") {
+    type <- "bounded"
+    ctrl$ylab = "MCF Estimates"
+  }
+  if (!is.reReg(x)) stop("Response must be a `reReg` class")    
+  dat <- x$DF[,"time2",drop = FALSE]
+  if (is.null(newdata)) {    
+    if (type == "unrestricted") dat$Y <- x$Lam0(dat$time2) * exp(x$log.muZ)
+    if (type == "scaled") dat$Y <- x$Lam0(dat$time2) / x$Lam0(max(dat$time2))
+    if (type == "bounded") dat$Y <- x$Lam0(dat$time2)
+    if (!is.null(x$Lam0.upper)) {
+      if (type == "bounded") {
+        dat$Y.upper <- x$Lam0.upper(dat$time2)
+        dat$Y.lower <- x$Lam0.lower(dat$time2)
+      }
+      if (type == "unrestricted") {
+        dat$Y.upper <- x$Lam0.upper(dat$time2) * exp(x$log.muZ)
+        dat$Y.lower <- x$Lam0.lower(dat$time2) * exp(x$log.muZ)
+      }
+      if (type == "scaled") {
+        dat$Y.upper <- x$Lam0.upper(dat$time2) / x$Lam0(max(dat$time2))
+        dat$Y.lower <- x$Lam0.lower(dat$time2) / x$Lam0(max(dat$time2))
+      }
     }
-    type <- match.arg(type)
-    if (x$typeRec == "nonparametric") {
-        type <- "bounded"
-        ctrl$ylab = "MCF Estimates"
+    gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
+      theme(axis.line = element_line(color = "black"))
+    if (smooth) {
+      dat$bs <- scam(dat$Y ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+      gg <- gg + geom_line(aes(x = time2, y = dat$bs), color = 4)
+      if (!is.null(x$Lam0.upper)) {
+        dat$bs.upper <- scam(dat$Y.upper ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+        dat$bs.lower <- scam(dat$Y.lower ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+        gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, lty = 2) + 
+          geom_line(aes(time2, y = dat$bs.lower), color = 4, lty = 2)
+      }
+    } else {
+      gg <- gg + geom_step()
+      if (!is.null(x$Lam0.upper))
+        gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2) +
+          geom_step(aes(x = time2, y = Y.lower), lty = 2)
+    }        
+  }
+  if (!is.null(newdata)) {
+    if (!is.null(x$xlevels)) {
+      for(i in which(names(newdata) %in% names(x$xlevels)))
+        newdata[,i] <- factor(newdata[,i], levels = x$xlevels[[i]])
+      newdata <- model.matrix(~., newdata)
     }
-    if (!is.reReg(x)) stop("Response must be a `reReg` class")    
-    dat <- x$DF[,"time2",drop = FALSE]
-    if (is.null(newdata)) {    
-        if (type == "unrestricted") dat$Y <- x$Lam0(dat$time2) * exp(x$log.muZ)
-        if (type == "scaled") dat$Y <- x$Lam0(dat$time2) / x$Lam0(max(dat$time2))
-        if (type == "bounded") dat$Y <- x$Lam0(dat$time2)
-        if (!is.null(x$Lam0.upper)) {
-            if (type == "bounded") {
-                dat$Y.upper <- x$Lam0.upper(dat$time2)
-                dat$Y.lower <- x$Lam0.lower(dat$time2)
-            }
-            if (type == "unrestricted") {
-                dat$Y.upper <- x$Lam0.upper(dat$time2) * exp(x$log.muZ)
-                dat$Y.lower <- x$Lam0.lower(dat$time2) * exp(x$log.muZ)
-            }
-            if (type == "scaled") {
-                dat$Y.upper <- x$Lam0.upper(dat$time2) / x$Lam0(max(dat$time2))
-                dat$Y.lower <- x$Lam0.lower(dat$time2) / x$Lam0(max(dat$time2))
-            }
-        }
-        gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
-            theme(axis.line = element_line(color = "black"))
-        if (smooth) {
-            dat$bs <- scam(dat$Y ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
-            gg <- gg + geom_line(aes(x = time2, y = dat$bs), color = 4)
-            if (!is.null(x$Lam0.upper)) {
-                dat$bs.upper <- scam(dat$Y.upper ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
-                dat$bs.lower <- scam(dat$Y.lower ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
-                gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, lty = 2) + 
-                    geom_line(aes(time2, y = dat$bs.lower), color = 4, lty = 2)
-            }
-        } else {
-            gg <- gg + geom_step()
-            if (!is.null(x$Lam0.upper))
-                gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2) +
-                    geom_step(aes(x = time2, y = Y.lower), lty = 2)
-        }        
+    X <- as.matrix(unique(newdata[,match(x$varNames, colnames(newdata)), drop = FALSE]))
+    if (ncol(X) != length(x$varNames))
+      stop(paste0("Variables ",
+                  paste(setdiff(x$varNames, colnames(newdata)), collapse = ", "),
+                  " are missing"))
+    p <- ncol(X)
+    exa1 <- exa2 <- 1
+    if (x$typeRec == "cox") exa2 <- exp(X %*% x$par1)
+    if (x$typeRec == "ar") exa1 <- exp(X %*% x$par1)
+    if (x$typeRec == "am") exa1 <- exa2 <- exp(X %*% x$par1)
+    if (x$typeRec == "sc") {
+      exa1 <- exp(X %*% x$par1)
+      exa2 <- exp(X %*% x$par2)
     }
-    if (!is.null(newdata)) {
-        if (!is.null(x$xlevels)) {
-            for(i in which(names(newdata) %in% names(x$xlevels)))
-                newdata[,i] <- factor(newdata[,i], levels = x$xlevels[[i]])
-            newdata <- model.matrix(~., newdata)
-        }
-        X <- as.matrix(unique(newdata[,match(x$varNames, colnames(newdata)), drop = FALSE]))
-        if (ncol(X) != length(x$varNames))
-            stop(paste0("Variables ",
-                        paste(setdiff(x$varNames, colnames(newdata)), collapse = ", "),
-                        " are missing"))
-        p <- ncol(X)
-        exa1 <- exa2 <- 1
-        if (x$typeRec == "cox") exa2 <- exp(X %*% x$par1)
-        if (x$typeRec == "ar") exa1 <- exp(X %*% x$par1)
-        if (x$typeRec == "am") exa1 <- exa2 <- exp(X %*% x$par1)
-        if (x$typeRec == "sc") {
-            exa1 <- exp(X %*% x$par1)
-            exa2 <- exp(X %*% x$par2)
-        }
-        exa1 <- rep(drop(exa1), each = nrow(dat))
-        exa2 <- rep(drop(exa2), each = nrow(dat))        
-        Y <- frailty * x$Lam0(dat$time2 * exa1) * exa2 / exa1
-        if (!is.null(x$Lam0.upper)) {
-            Y.upper <- frailty * x$Lam0.upper(dat$time2 * exa1) * exa2 / exa1
-            Y.lower <- frailty * x$Lam0.lower(dat$time2 * exa1) * exa2 / exa1
-            dat <- data.frame(time2 = dat$time2,
-                              id = rep(rownames(X), each = nrow(dat)),
-                              Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
-        } else
-            dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)), Y = Y)
-        gg <- ggplot(data = dat, aes(x = time2, y = Y, group = id)) +
-            theme(axis.line = element_line(color = "black"))
-        if (smooth) {
-            dat$bs <- unlist(lapply(split(dat, dat$id), function(x)
-                scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
-            gg <- gg + geom_line(aes(x = time2, y = dat$bs, group = id), color = 4)
-            if (!is.null(x$Lam0.upper)) {
-                dat$bs.upper <- unlist(lapply(split(dat, dat$id), function(x)
-                    scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
-                dat$bs.lower <- unlist(lapply(split(dat, dat$id), function(x)
-                    scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
-                gg <- gg +
-                    geom_line(aes(x = time2, y = dat$bs.upper, group = id), color = 4, lty = 2) + 
-                    geom_line(aes(x = time2, y = dat$bs.lower, group = id), color = 4, lty = 2)
-            }
-        } else {
-            gg <- gg + geom_step()
-            if (!is.null(x$Lam0.upper))
-                gg <- gg +
-                    geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) +
-                    geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
-        }
-        if (showName) 
-            gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
-                scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
+    exa1 <- rep(drop(exa1), each = nrow(dat))
+    exa2 <- rep(drop(exa2), each = nrow(dat))        
+    Y <- frailty * x$Lam0(dat$time2 * exa1) * exa2 / exa1
+    if (!is.null(x$Lam0.upper)) {
+      Y.upper <- frailty * x$Lam0.upper(dat$time2 * exa1) * exa2 / exa1
+      Y.lower <- frailty * x$Lam0.lower(dat$time2 * exa1) * exa2 / exa1
+      dat <- data.frame(time2 = dat$time2,
+                        id = rep(rownames(X), each = nrow(dat)),
+                        Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
+    } else
+      dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)), Y = Y)
+    gg <- ggplot(data = dat, aes(x = time2, y = Y, group = id)) +
+      theme(axis.line = element_line(color = "black"))
+    if (smooth) {
+      dat$bs <- unlist(lapply(split(dat, dat$id), function(x)
+        scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
+      gg <- gg + geom_line(aes(x = time2, y = dat$bs, group = id), color = 4)
+      if (!is.null(x$Lam0.upper)) {
+        dat$bs.upper <- unlist(lapply(split(dat, dat$id), function(x)
+          scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
+        dat$bs.lower <- unlist(lapply(split(dat, dat$id), function(x)
+          scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
+        gg <- gg +
+          geom_line(aes(x = time2, y = dat$bs.upper, group = id), color = 4, lty = 2) + 
+          geom_line(aes(x = time2, y = dat$bs.lower, group = id), color = 4, lty = 2)
+      }
+    } else {
+      gg <- gg + geom_step()
+      if (!is.null(x$Lam0.upper))
+        gg <- gg +
+          geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) +
+          geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
     }
-    if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
-    gg <- gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
-        theme(plot.title = element_text(size = 2 * ctrl$base_size),
-              strip.text = element_text(size = ctrl$base_size),
-              legend.text = element_text(size = 1.5 * ctrl$base_size),
-              legend.title = element_text(size = 1.5 * ctrl$base_size),
-              axis.line = element_blank(),
-              axis.text = element_text(size = ctrl$base_size),
-              axis.title = element_text(size = 1.5 * ctrl$base_size))
-    attr(gg, "from") <- "reReg"
-    return(gg)
+    if (showName) 
+      gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
+        scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
+  }
+  if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
+  gg <- gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
+    theme(plot.title = element_text(size = 2 * ctrl$base_size),
+          strip.text = element_text(size = ctrl$base_size),
+          legend.text = element_text(size = 1.5 * ctrl$base_size),
+          legend.title = element_text(size = 1.5 * ctrl$base_size),
+          axis.line = element_blank(),
+          axis.text = element_text(size = ctrl$base_size),
+          axis.title = element_text(size = 1.5 * ctrl$base_size))
+  attr(gg, "from") <- "reReg"
+  return(gg)
 }
 
 #' Plot the Baseline Cumulative Hazard Function for the Terminal Time
@@ -887,128 +887,128 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
                     type = c("unrestricted", "bounded", "scaled"),
                     smooth = FALSE, control = list(), ...) {
-    if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
-        stop("Baseline cumulative hazard function is not available.")
-    if (x$typeTem == ".") {
-        stop("Baseline cumulative hazard function is not available.")
+  if (x$typeRec %in% c("cox.GL", "cox.LWYY", "am.GL"))
+    stop("Baseline cumulative hazard function is not available.")
+  if (x$typeTem == ".") {
+    stop("Baseline cumulative hazard function is not available.")
+  }
+  if (is.null(frailty)) frailty <- exp(x$log.muZ)
+  if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
+    stop("newdata and frailty are different lengths")
+  ## ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
+  ctrl <- plotEvents.control(ylab = "Hazard")
+  namc <- names(control)
+  if (!all(namc %in% names(ctrl))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+  ctrl[namc] <- control
+  call <- match.call()
+  namp <- names(match.call())
+  if (any(namp %in% names(ctrl))) {
+    namp <- namp[namp %in% names(ctrl)]
+    ctrl[namp] <- lapply(namp, function(x) call[[x]])
+  }
+  type <- match.arg(type)
+  if (!is.reReg(x)) stop("Response must be a `reReg` class.")
+  dat <- x$DF[, "time2", drop = FALSE]
+  if (is.null(newdata)) {
+    if (type == "unrestricted") dat$Y <- x$Haz0(dat$time2) * exp(x$log.muZ)
+    if (type == "scaled") dat$Y <- x$Haz0(dat$time2) / x$Haz0(max(dat$time2))
+    if (type == "bounded") dat$Y <- x$Haz0(dat$time2)
+    ## dat$Y <- x$Haz0(dat$time2)
+    if (!is.null(x$Haz0.upper)) {
+      if (type == "bounded") {
+        dat$Y.upper <- x$Haz0.upper(dat$time2)
+        dat$Y.lower <- x$Haz0.lower(dat$time2)
+      }
+      if (type == "unrestricted") {
+        dat$Y.upper <- x$Haz0.upper(dat$time2) * exp(x$log.muZ)
+        dat$Y.lower <- x$Haz0.lower(dat$time2) * exp(x$log.muZ)
+      }
+      if (type == "scaled") {
+        dat$Y.upper <- x$Haz0.upper(dat$time2) / x$Haz0(max(dat$time2))
+        dat$Y.lower <- x$Haz0.lower(dat$time2) / x$Haz0(max(dat$time2))
+      }
     }
-    if (is.null(frailty)) frailty <- exp(x$log.muZ)
-    if (length(frailty) > 1 & !is.null(newdata) && length(frailty) != nrow(newdata))
-        stop("newdata and frailty are different lengths")
-    ## ctrl <- plot.reReg.control(main = "Baseline cumulative hazard function")
-    ctrl <- plotEvents.control(ylab = "Hazard")
-    namc <- names(control)
-    if (!all(namc %in% names(ctrl))) 
-        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control
-    call <- match.call()
-    namp <- names(match.call())
-    if (any(namp %in% names(ctrl))) {
-        namp <- namp[namp %in% names(ctrl)]
-        ctrl[namp] <- lapply(namp, function(x) call[[x]])
+    gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
+      theme(axis.line = element_line(color = "black"))
+    if (smooth) {
+      dat$bs <- scam(dat$Y ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+      gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4)
+      if (!is.null(x$Lam0.upper)) {
+        dat$bs.upper <- scam(dat$Y.upper ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+        dat$bs.lower <- scam(dat$Y.lower ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
+        gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, lty = 2) +
+          geom_line(aes(time2, y = dat$bs.lower), color = 4, lty = 2)
+      }
+    } else {
+      gg <- gg + geom_step()
+      if (!is.null(x$Lam0.upper))
+        gg <- gg + geom_step(aes(x = time2,  y = Y.upper), lty = 2) +
+          geom_step(aes(x = time2,  y = Y.lower), lty = 2)
     }
-    type <- match.arg(type)
-    if (!is.reReg(x)) stop("Response must be a `reReg` class.")
-    dat <- x$DF[, "time2", drop = FALSE]
-    if (is.null(newdata)) {
-        if (type == "unrestricted") dat$Y <- x$Haz0(dat$time2) * exp(x$log.muZ)
-        if (type == "scaled") dat$Y <- x$Haz0(dat$time2) / x$Haz0(max(dat$time2))
-        if (type == "bounded") dat$Y <- x$Haz0(dat$time2)
-        ## dat$Y <- x$Haz0(dat$time2)
-        if (!is.null(x$Haz0.upper)) {
-            if (type == "bounded") {
-                dat$Y.upper <- x$Haz0.upper(dat$time2)
-                dat$Y.lower <- x$Haz0.lower(dat$time2)
-            }
-            if (type == "unrestricted") {
-                dat$Y.upper <- x$Haz0.upper(dat$time2) * exp(x$log.muZ)
-                dat$Y.lower <- x$Haz0.lower(dat$time2) * exp(x$log.muZ)
-            }
-            if (type == "scaled") {
-                dat$Y.upper <- x$Haz0.upper(dat$time2) / x$Haz0(max(dat$time2))
-                dat$Y.lower <- x$Haz0.lower(dat$time2) / x$Haz0(max(dat$time2))
-            }
-        }
-        gg <- ggplot(data = dat, aes(x = time2, y = Y)) +
-            theme(axis.line = element_line(color = "black"))
-        if (smooth) {
-            dat$bs <- scam(dat$Y ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
-            gg <- gg + geom_line(aes(time2, y = dat$bs), color = 4)
-            if (!is.null(x$Lam0.upper)) {
-                dat$bs.upper <- scam(dat$Y.upper ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
-                dat$bs.lower <- scam(dat$Y.lower ~ s(dat$time2, k = 10, bs = "mpi"))$fitted.values
-                gg <- gg + geom_line(aes(time2, y = dat$bs.upper), color = 4, lty = 2) +
-                    geom_line(aes(time2, y = dat$bs.lower), color = 4, lty = 2)
-            }
-        } else {
-            gg <- gg + geom_step()
-            if (!is.null(x$Lam0.upper))
-                gg <- gg + geom_step(aes(x = time2,  y = Y.upper), lty = 2) +
-                    geom_step(aes(x = time2,  y = Y.lower), lty = 2)
-        }
+  }
+  if (!is.null(newdata)) { 
+    X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata)), drop = FALSE]))
+    if (ncol(X) != length(x$varNames))
+      stop(paste0("Variables ",
+                  paste(setdiff(x$varNames, names(newdata)), collapse = ", "),
+                  " are missing"))
+    p <- ncol(X)
+    exb1 <- exb2 <- 1
+    if (x$typeTem == "cox") exb2 <- exp(X %*% x$par3)
+    if (x$typeTem == "ar") exb1 <- exp(X %*% x$par3)
+    if (x$typeTem == "am") exb1 <- exb2 <- exp(X %*% x$par3)
+    if (x$typeTem == "sc") {
+      exb1 <- exp(X %*% x$par3)
+      exb2 <- exp(X %*% x$par4)
     }
-    if (!is.null(newdata)) { 
-        X <- as.matrix(unique(newdata[,match(x$varNames, names(newdata)), drop = FALSE]))
-        if (ncol(X) != length(x$varNames))
-            stop(paste0("Variables ",
-                        paste(setdiff(x$varNames, names(newdata)), collapse = ", "),
-                        " are missing"))
-        p <- ncol(X)
-        exb1 <- exb2 <- 1
-        if (x$typeTem == "cox") exb2 <- exp(X %*% x$par3)
-        if (x$typeTem == "ar") exb1 <- exp(X %*% x$par3)
-        if (x$typeTem == "am") exb1 <- exb2 <- exp(X %*% x$par3)
-        if (x$typeTem == "sc") {
-            exb1 <- exp(X %*% x$par3)
-            exb2 <- exp(X %*% x$par4)
-        }
-        exb1 <- rep(drop(exb1), each = nrow(dat))
-        exb2 <- rep(drop(exb2), each = nrow(dat))        
-        Y <- frailty * x$Haz0(dat$time2 * exb1) * exb2 / exb1
-        if (!is.null(x$Haz0.upper)) {
-            Y.upper <- frailty * x$Haz0.upper(dat$time2 * exb1) * exb2 / exb1
-            Y.lower <- frailty * x$Haz0.lower(dat$time2 * exb1) * exb2 / exb1
-            dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)),
-                              Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
-        } else
-            dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)), Y = Y)
-        gg <- ggplot(data = dat, aes(x = time2, y = Y, group = id)) +
-            theme(axis.line = element_line(color = "black"))
-        if (smooth) {
-            dat$bs <- unlist(lapply(split(dat, dat$id), function(x)
-                scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
-            gg <- gg + geom_line(aes(x = time2, y = dat$bs, group = id), color = 4)
-            if (!is.null(x$Haz0.upper)) {
-                dat$bs.upper <- unlist(lapply(split(dat, dat$id), function(x)
-                    scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
-                dat$bs.lower <- unlist(lapply(split(dat, dat$id), function(x)
-                    scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
-                gg <- gg +
-                    geom_line(aes(x = time2, y = dat$bs.upper, group = id), color = 4, lty = 2) + 
-                    geom_line(aes(x = time2, y = dat$bs.lower, group = id), color = 4, lty = 2)
-            }
-        } else {
-            gg <- gg + geom_step()
-            if (!is.null(x$Haz0.upper))
-                gg <- gg +
-                    geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) +
-                    geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
-        }
-        if (showName) 
-            gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
-                scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
+    exb1 <- rep(drop(exb1), each = nrow(dat))
+    exb2 <- rep(drop(exb2), each = nrow(dat))        
+    Y <- frailty * x$Haz0(dat$time2 * exb1) * exb2 / exb1
+    if (!is.null(x$Haz0.upper)) {
+      Y.upper <- frailty * x$Haz0.upper(dat$time2 * exb1) * exb2 / exb1
+      Y.lower <- frailty * x$Haz0.lower(dat$time2 * exb1) * exb2 / exb1
+      dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)),
+                        Y = Y, Y.upper = Y.upper, Y.lower = Y.lower)
+    } else
+      dat <- data.frame(time2 = dat$time2, id = rep(rownames(X), each = nrow(dat)), Y = Y)
+    gg <- ggplot(data = dat, aes(x = time2, y = Y, group = id)) +
+      theme(axis.line = element_line(color = "black"))
+    if (smooth) {
+      dat$bs <- unlist(lapply(split(dat, dat$id), function(x)
+        scam(x$Y ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
+      gg <- gg + geom_line(aes(x = time2, y = dat$bs, group = id), color = 4)
+      if (!is.null(x$Haz0.upper)) {
+        dat$bs.upper <- unlist(lapply(split(dat, dat$id), function(x)
+          scam(x$Y.upper ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
+        dat$bs.lower <- unlist(lapply(split(dat, dat$id), function(x)
+          scam(x$Y.lower ~ s(x$time2, k = 10, bs = "mpi"))$fitted.values))
+        gg <- gg +
+          geom_line(aes(x = time2, y = dat$bs.upper, group = id), color = 4, lty = 2) + 
+          geom_line(aes(x = time2, y = dat$bs.lower, group = id), color = 4, lty = 2)
+      }
+    } else {
+      gg <- gg + geom_step()
+      if (!is.null(x$Haz0.upper))
+        gg <- gg +
+          geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) +
+          geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
     }
-    if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
-    gg <- gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
-        theme(plot.title = element_text(size = 2 * ctrl$base_size),
-              strip.text = element_text(size = ctrl$base_size),
-              legend.text = element_text(size = 1.5 * ctrl$base_size),
-              legend.title = element_text(size = 1.5 * ctrl$base_size),
-              axis.line = element_blank(),
-              axis.text = element_text(size = ctrl$base_size),
-              axis.title = element_text(size = 1.5 * ctrl$base_size))
-    attr(gg, "from") <- "reReg"
-    return(gg)
+    if (showName) 
+      gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
+        scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
+  }
+  if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
+  gg <- gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
+    theme(plot.title = element_text(size = 2 * ctrl$base_size),
+          strip.text = element_text(size = ctrl$base_size),
+          legend.text = element_text(size = 1.5 * ctrl$base_size),
+          legend.title = element_text(size = 1.5 * ctrl$base_size),
+          axis.line = element_blank(),
+          axis.text = element_text(size = ctrl$base_size),
+          axis.title = element_text(size = 1.5 * ctrl$base_size))
+  attr(gg, "from") <- "reReg"
+  return(gg)
 }
 
 #' Plot options for plotEvents
@@ -1070,6 +1070,7 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                legend.position = "top",
                                base_size = 12,
                                cex = NULL,
+                               alpha = .7,
                                width = NULL,
                                bar.color = NULL,
                                recurrent.color = NULL,
@@ -1079,31 +1080,30 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                terminal.shape = NULL,
                                terminal.stroke = NULL,
                                not.terminal.color = NULL,
-                               not.terminal.shape = NULL,
-                               alpha = .7) {
-    if (is.null(ylab)) ylab <- "Subject"
-    if (is.null(xlab)) xlab <- "Time"
-    if (is.null(main)) main <- ""
-    ## main <- "Recurrent event plot"
-    if (is.null(terminal.name)) terminal.name <-  "Terminal event"
-    if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
-    if (is.null(bar.color)) bar.color <- "gray75"
-    if (is.null(terminal.color)) terminal.color <- "red"
-    if (is.null(terminal.shape)) terminal.shape <- 17
-    if (is.null(recurrent.shape)) recurrent.shape <- 19
-    list(xlab = xlab, ylab = ylab, main = main, cex = cex, width = width, 
-         terminal.name = terminal.name, recurrent.name = recurrent.name,
-         recurrent.type = recurrent.type, alpha = alpha,
-         legend.position = legend.position, base_size = base_size,
-         bar.color = bar.color,
-         recurrent.color = recurrent.color,
-         recurrent.shape = recurrent.shape,
-         recurrent.stroke = recurrent.stroke,
-         not.terminal.color = not.terminal.color,
-         not.terminal.shape = not.terminal.shape,
-         terminal.color = terminal.color,
-         terminal.shape = terminal.shape,
-         terminal.stroke = terminal.stroke)
+                               not.terminal.shape = NULL) {
+  if (is.null(ylab)) ylab <- "Subject"
+  if (is.null(xlab)) xlab <- "Time"
+  if (is.null(main)) main <- ""
+  ## main <- "Recurrent event plot"
+  if (is.null(terminal.name)) terminal.name <-  "Terminal event"
+  if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
+  if (is.null(bar.color)) bar.color <- "gray75"
+  if (is.null(terminal.color)) terminal.color <- "red"
+  if (is.null(terminal.shape)) terminal.shape <- 17
+  if (is.null(recurrent.shape)) recurrent.shape <- 19
+  list(xlab = xlab, ylab = ylab, main = main, cex = cex, width = width, 
+       terminal.name = terminal.name, recurrent.name = recurrent.name,
+       recurrent.type = recurrent.type, alpha = alpha,
+       legend.position = legend.position, base_size = base_size,
+       bar.color = bar.color,
+       recurrent.color = recurrent.color,
+       recurrent.shape = recurrent.shape,
+       recurrent.stroke = recurrent.stroke,
+       not.terminal.color = not.terminal.color,
+       not.terminal.shape = not.terminal.shape,
+       terminal.color = terminal.color,
+       terminal.shape = terminal.shape,
+       terminal.stroke = terminal.stroke)
 }
 
 #' Function used to combine baseline functions in one plot
@@ -1120,37 +1120,37 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
 #' 
 #' @example inst/examples/ex_basebind.R
 basebind <- function(..., legend.title, legend.labels, control = list()) {
-    gglst <- list(...)
-    if (any(sapply(gglst, function(x) attr(x, "from")) != "reReg"))
-        stop("Plots must be created from reReg objects")
-    if (missing(legend.title)) legend.title <- ""
-    ctrl <- plotEvents.control()
-    namc <- names(control)
-    if (!all(namc %in% names(ctrl))) 
-        stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
-    ctrl[namc] <- control
-    if (is.null(ctrl$ylab)) ctrl$ylab <- ""
-    nargs <- length(gglst)
-    if (missing(legend.labels)) legend.labels <- 1:nargs
-    if (length(legend.labels) != nargs) {
-        message('The length of "name" mismatched, default names are used.')
-        legend.labels <- 1:nargs
-    }
-    d <- do.call(rbind, lapply(gglst, function(x) x$data))
-    nobs <- sapply(gglst, function(x) nrow(x$data))
-    d$group <- factor(rep(1:nargs, nobs), labels = legend.labels)
-    gg <- ggplot(data = d, aes(x = time2, y = Y, color = group)) + geom_step()
-    if (!is.null(d$Y.upper)) 
-        gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2) +
-            geom_step(aes(x = time2, y = Y.lower), lty = 2)
-    gg + labs(x = gglst[[1]]$labels$x, y = gglst[[1]]$labels$y, color = legend.title) +
-        theme(plot.title = element_text(size = 2 * ctrl$base_size),
-              strip.text = element_text(size = ctrl$base_size),
-              legend.position = ctrl$legend.position,
-              legend.text = element_text(size = 1.5 * ctrl$base_size),
-              legend.title = element_text(size = 1.5 * ctrl$base_size),
-              axis.line = element_blank(),
-              axis.text = element_text(size = ctrl$base_size),
-              axis.title = element_text(size = 1.5 * ctrl$base_size))
+  gglst <- list(...)
+  if (any(sapply(gglst, function(x) attr(x, "from")) != "reReg"))
+    stop("Plots must be created from reReg objects")
+  if (missing(legend.title)) legend.title <- ""
+  ctrl <- plotEvents.control()
+  namc <- names(control)
+  if (!all(namc %in% names(ctrl))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(ctrl))])
+  ctrl[namc] <- control
+  if (is.null(ctrl$ylab)) ctrl$ylab <- ""
+  nargs <- length(gglst)
+  if (missing(legend.labels)) legend.labels <- 1:nargs
+  if (length(legend.labels) != nargs) {
+    message('The length of "name" mismatched, default names are used.')
+    legend.labels <- 1:nargs
+  }
+  d <- do.call(rbind, lapply(gglst, function(x) x$data))
+  nobs <- sapply(gglst, function(x) nrow(x$data))
+  d$group <- factor(rep(1:nargs, nobs), labels = legend.labels)
+  gg <- ggplot(data = d, aes(x = time2, y = Y, color = group)) + geom_step()
+  if (!is.null(d$Y.upper)) 
+    gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2) +
+      geom_step(aes(x = time2, y = Y.lower), lty = 2)
+  gg + labs(x = gglst[[1]]$labels$x, y = gglst[[1]]$labels$y, color = legend.title) +
+    theme(plot.title = element_text(size = 2 * ctrl$base_size),
+          strip.text = element_text(size = ctrl$base_size),
+          legend.position = ctrl$legend.position,
+          legend.text = element_text(size = 1.5 * ctrl$base_size),
+          legend.title = element_text(size = 1.5 * ctrl$base_size),
+          axis.line = element_blank(),
+          axis.text = element_text(size = ctrl$base_size),
+          axis.title = element_text(size = 1.5 * ctrl$base_size))
 }
-c
+

@@ -14,6 +14,7 @@ plotEvents.control(
   legend.position = "top",
   base_size = 12,
   cex = NULL,
+  alpha = 0.7,
   width = NULL,
   bar.color = NULL,
   recurrent.color = NULL,
@@ -23,8 +24,7 @@ plotEvents.control(
   terminal.shape = NULL,
   terminal.stroke = NULL,
   not.terminal.color = NULL,
-  not.terminal.shape = NULL,
-  alpha = 0.7
+  not.terminal.shape = NULL
 )
 }
 \arguments{
@@ -58,6 +58,8 @@ The default value is 12.}
 
 \item{cex}{a numerical value specifies the size of the points.}
 
+\item{alpha}{a numerical value specifies the transparency of the points.}
+
 \item{width}{a numerical value specifies the width of the event plot.
 By \code{ggplot} default, set to 90\% of the resolution of the data.}
 
@@ -89,8 +91,6 @@ Non-terminal events are not plotted at default.}
 \item{not.terminal.shape}{a numerical value or a character string
 specifies shape for terminal events.
 Non-terminal events are not plotted at default.}
-
-\item{alpha}{a numerical value specifies the transparency of the points.}
 }
 \description{
 This function provides the plotting options for the \code{plotEvents()} function.
