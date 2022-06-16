@@ -959,7 +959,7 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
                           tol = 1e-7, cppl = NULL, cppl.wfun = list(NULL, NULL),
                           init = list(alpha = 0, beta = 0, eta = 0, theta = 0),
                           boot.parallel = FALSE, boot.parCl = NULL,
-                          maxit1 = 100, maxit2 = 10, trace = FALSE, numAdj = 1e-3) {
+                          maxit1 = 100, maxit2 = 10, trace = FALSE, numAdj = 1e-7) {
   if (is.null(boot.parCl)) boot.parCl <- parallel::detectCores() / 2L
   solver <- match.arg(solver)
   if (solver == "nleqslv::nleqslv") solve <- "nleqslv"

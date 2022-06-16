@@ -66,7 +66,7 @@ reSC <- function(DF, eqType, solver, par1, par2,
     }
     R <- m / Lam
     if (numAdj > min(Lam)) {
-      warning("A smaller numAdj is recommended.")
+      ## warning("A smaller numAdj is recommended.")
       numAdj <- numAdj * min(Lam)
     }
     R2 <- (m + numAdj) / (Lam + numAdj)
@@ -91,7 +91,7 @@ reSC <- function(DF, eqType, solver, par1, par2,
     Lam <- exp(-rate)
     R <- m / Lam
     if (numAdj > min(Lam)) {
-      warning("A smaller numAdj is recommended.")
+      ## warning("A smaller numAdj is recommended.")
       numAdj <- numAdj * min(Lam)
     }
     R2 <- (m + numAdj) / (Lam + numAdj)
@@ -151,7 +151,7 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALSE
     }
     R <- m / Lam
     if (numAdj > min(Lam)) {
-      warning("A smaller numAdj is recommended.")
+      ## warning("A smaller numAdj is recommended.")
       numAdj <- numAdj * min(Lam)
     }
     R2 <- (m + numAdj) / (Lam + numAdj)
@@ -167,7 +167,7 @@ reAR <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALSE
     Lam <- exp(-rate)
     R <- m / Lam
     if (numAdj > min(Lam)) {
-      warning("A smaller numAdj is recommended.")
+      ## warning("A smaller numAdj is recommended.")
       numAdj <- numAdj * min(Lam)
     }
     R2 <- (m + numAdj) / (Lam + numAdj)
@@ -217,7 +217,7 @@ reCox <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALS
   }
   R <- m / Lam
   if (numAdj > min(Lam)) {
-    warning("A smaller numAdj is recommended.")
+    ## warning("A smaller numAdj is recommended.")
     numAdj <- numAdj * min(Lam)
   }
   R2 <- (m + numAdj) / (Lam + numAdj) ## Used in borrow strength
@@ -270,7 +270,7 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALSE
     }
     R <- m / Lam
     if (numAdj > min(Lam)) {
-      warning("A smaller numAdj is recommended.")
+      ## warning("A smaller numAdj is recommended.")
       numAdj <- numAdj * min(Lam)
     }
     R2 <- (m + numAdj) / (Lam + numAdj)
@@ -284,7 +284,7 @@ reAM <- function(DF, eqType, solver, par1, Lam0 = NULL, w1 = NULL, trace = FALSE
     Lam <- exp(-rate)
     R <- m / Lam
     if (numAdj > min(Lam)) {
-      warning("A smaller numAdj is recommended.")
+      ## warning("A smaller numAdj is recommended.")
       numAdj <- numAdj * min(Lam)
     }
     R2 <- (m + numAdj) / (Lam + numAdj)
