@@ -11,7 +11,7 @@ plotEvents.control(
   terminal.name = NULL,
   recurrent.name = NULL,
   recurrent.type = NULL,
-  legend.position = "top",
+  legend.position = NULL,
   base_size = 12,
   cex = NULL,
   alpha = 0.7,
@@ -48,9 +48,12 @@ The default value is "Recurrent events 1", "Recurrent events 2", ....}
 
 \item{legend.position}{a character string specifies the position of the legend.
 The available options are "none", "left", "right", "bottom", "top",
+"bottomright", "bottomleft","topleft", "topright",
 or a two-element numeric vector specifies the coordinate of the legend.
-This argument is passed to the \code{ggplot} theme environment.
-The default value is "top".}
+The legend is placed inside of the plotting region when
+\code{legend.position} is specified as one of
+"bottomright", "bottomleft","topleft", "topright".
+Otherwise, the argument is passed to the \code{ggplot} theme environment.}
 
 \item{base_size}{a numerical value to specify the base font size, given in pts.
 This argument is passed to the \code{ggplot} theme environment.

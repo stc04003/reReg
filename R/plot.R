@@ -293,8 +293,6 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
                        labels = shp.lab, breaks = c("terminal", rec.lab)) +
     theme(panel.background = element_blank(),
           axis.line = element_line(color = "black"),
-          legend.position = ctrl$legend.position, 
-          legend.key = element_rect(fill = "white", color = "white"),
           axis.line.y = element_blank(),
           axis.title.y = element_text(vjust = 0),
           axis.text.y = element_blank(),
@@ -308,6 +306,23 @@ plotEvents <- function(formula, data, result = c("increasing", "decreasing", "as
     scale_x_continuous(expand = c(0, 1)) +
     labs(x = ctrl$ylab, y = ctrl$xlab) +
     guides(shape = guide_legend(override.aes = list(size = 2.7)))
+  ## Handle legends
+  if (ctrl$legend.position %in% c("bottomright", "bottomleft","topleft", "topright")) {
+    ## legend inside
+    if (ctrl$legend.position == "bottomright") legendAdj <- c(1, 0)
+    if (ctrl$legend.position == "bottomleft") legendAdj <- c(0, 0)
+    if (ctrl$legend.position == "topright") legendAdj <- c(1, 1)
+    if (ctrl$legend.position == "topleft") legendAdj <- c(0, 1)
+    gg <- gg + theme(
+      legend.position = legendAdj, legend.justification = legendAdj,
+      legend.key = element_rect(fill = "transparent", colour = "transparent"),
+      legend.background = element_rect(fill = alpha(1e-5)))
+    
+  } else {
+    ## legend outside
+    gg <- gg + theme(legend.position = ctrl$legend.position, 
+                     legend.key = element_rect(fill = "white", color = "white"))
+  }
   if (isDate & calendarTime) {
     xl <- ggplot_build(gg)$layout$panel_params[[1]]$x$breaks
     xl <- xl[!is.na(xl)]
@@ -542,16 +557,32 @@ plotMCF <- function(formula, data, adjustRiskset = TRUE, onePanel = FALSE,
   ## gg <- gg + geom_smooth(method = "loess", size = ctrl$lwd, se = FALSE)
   if (smooth & k > 1) message('Smoothing only works for data with one recurrent event type.')
   if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
-  gg + theme(axis.line = element_line(color = "black"),
-             legend.position = ctrl$legend.position,
-             legend.key = element_rect(fill = "white", color = "white"),
-             plot.title = element_text(size = 2 * ctrl$base_size),
-             strip.text = element_text(size = ctrl$base_size),
-             legend.text = element_text(size = 1.5 * ctrl$base_size),
-             legend.title = element_text(size = 1.5 * ctrl$base_size),
-             axis.text = element_text(size = ctrl$base_size),
-             axis.title = element_text(size = 1.5 * ctrl$base_size)) +
+  gg <- gg + theme(axis.line = element_line(color = "black"),
+                   plot.title = element_text(size = 2 * ctrl$base_size),
+                   strip.text = element_text(size = ctrl$base_size),
+                   legend.text = element_text(size = 1.5 * ctrl$base_size),
+                   legend.title = element_text(size = 1.5 * ctrl$base_size),
+                   axis.text = element_text(size = ctrl$base_size),
+                   axis.title = element_text(size = 1.5 * ctrl$base_size)) +
     labs(y = ctrl$ylab, x = ctrl$xlab)
+  ## Handle legends
+  if (ctrl$legend.position %in% c("bottomright", "bottomleft","topleft", "topright")) {
+    ## legend inside
+    if (ctrl$legend.position == "bottomright") legendAdj <- c(1, 0)
+    if (ctrl$legend.position == "bottomleft") legendAdj <- c(0, 0)
+    if (ctrl$legend.position == "topright") legendAdj <- c(1, 1)
+    if (ctrl$legend.position == "topleft") legendAdj <- c(0, 1)
+    gg <- gg + theme(
+      legend.position = legendAdj, legend.justification = legendAdj,
+      legend.key = element_rect(fill = "transparent", colour = "transparent"),
+      legend.background = element_rect(fill = alpha(1e-5)))
+    
+  } else {
+    ## legend outside
+    gg <- gg + theme(legend.position = ctrl$legend.position, 
+                     legend.key = element_rect(fill = "white", color = "white"))
+  }
+  gg  
 }
 
 #' Plot the Baseline Cumulative Rate Function and the Baseline Cumulative Hazard Function
@@ -1029,9 +1060,12 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
 #' The default value is "Recurrent events 1", "Recurrent events 2", ....
 #' @param legend.position a character string specifies the position of the legend.
 #' The available options are "none", "left", "right", "bottom", "top",
+#' "bottomright", "bottomleft","topleft", "topright",
 #' or a two-element numeric vector specifies the coordinate of the legend.
-#' This argument is passed to the \code{ggplot} theme environment.
-#' The default value is "top".
+#' The legend is placed inside of the plotting region when
+#' \code{legend.position} is specified as one of
+#' "bottomright", "bottomleft","topleft", "topright".
+#' Otherwise, the argument is passed to the \code{ggplot} theme environment.
 #' @param base_size a numerical value to specify the base font size, given in pts.
 #' This argument is passed to the \code{ggplot} theme environment.
 #' The default value is 12.
@@ -1067,7 +1101,7 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
                                terminal.name = NULL,
                                recurrent.name = NULL, 
                                recurrent.type = NULL, 
-                               legend.position = "top",
+                               legend.position = NULL, 
                                base_size = 12,
                                cex = NULL,
                                alpha = .7,
@@ -1084,6 +1118,7 @@ plotEvents.control <- function(xlab = NULL, ylab = NULL,
   if (is.null(ylab)) ylab <- "Subject"
   if (is.null(xlab)) xlab <- "Time"
   if (is.null(main)) main <- ""
+  if (is.null(legend.position)) legend.position <- "bottomright"
   ## main <- "Recurrent event plot"
   if (is.null(terminal.name)) terminal.name <-  "Terminal event"
   if (is.null(recurrent.name)) recurrent.name <- "Recurrent events"
@@ -1143,14 +1178,31 @@ basebind <- function(..., legend.title, legend.labels, control = list()) {
   if (!is.null(d$Y.upper)) 
     gg <- gg + geom_step(aes(x = time2, y = Y.upper), lty = 2) +
       geom_step(aes(x = time2, y = Y.lower), lty = 2)
-  gg + labs(x = gglst[[1]]$labels$x, y = gglst[[1]]$labels$y, color = legend.title) +
+  gg <- gg + labs(x = gglst[[1]]$labels$x, y = gglst[[1]]$labels$y, color = legend.title) +
     theme(plot.title = element_text(size = 2 * ctrl$base_size),
           strip.text = element_text(size = ctrl$base_size),
-          legend.position = ctrl$legend.position,
           legend.text = element_text(size = 1.5 * ctrl$base_size),
           legend.title = element_text(size = 1.5 * ctrl$base_size),
           axis.line = element_blank(),
           axis.text = element_text(size = ctrl$base_size),
           axis.title = element_text(size = 1.5 * ctrl$base_size))
+  ## Handle legends
+  if (ctrl$legend.position %in% c("bottomright", "bottomleft","topleft", "topright")) {
+    ## legend inside
+    if (ctrl$legend.position == "bottomright") legendAdj <- c(1, 0)
+    if (ctrl$legend.position == "bottomleft") legendAdj <- c(0, 0)
+    if (ctrl$legend.position == "topright") legendAdj <- c(1, 1)
+    if (ctrl$legend.position == "topleft") legendAdj <- c(0, 1)
+    gg <- gg + theme(
+      legend.position = legendAdj, legend.justification = legendAdj,
+      legend.key = element_rect(fill = "transparent", colour = "transparent"),
+      legend.background = element_rect(fill = alpha(1e-5)))
+    
+  } else {
+    ## legend outside
+    gg <- gg + theme(legend.position = ctrl$legend.position, 
+                     legend.key = element_rect(fill = "white", color = "white"))
+  }
+  gg
 }
 

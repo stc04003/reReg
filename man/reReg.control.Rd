@@ -17,7 +17,7 @@ reReg.control(
   maxit1 = 100,
   maxit2 = 10,
   trace = FALSE,
-  numAdj = 0.001
+  numAdj = 1e-07
 )
 }
 \arguments{
