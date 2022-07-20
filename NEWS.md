@@ -1,3 +1,7 @@
+# `reReg` 1.4.5
+  	* Now requires R 4.2.0
+	* Improved legend location
+	* Removed rounding in summary table
 # `reReg` 1.4.4
   	* Improve C code speeds in pairwise comparisons
   	* Added more graphical controls for event plots
