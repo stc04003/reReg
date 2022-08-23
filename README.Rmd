@@ -86,3 +86,7 @@ devtools::install_github("stc04003/reReg", ref = "main")
    Huang, M.-Y. and Huang, C.Y. (2022)
    Improved semiparametric estimation of the proportional rate model with recurrent event data. 
    **Under revision**.
+   
+   Chiou, S.H., Xu, G., Yan, J. and Huang, C.-Y. (2022)
+   Regression modeling for recurrent events possibly with an informative terminal event using R package reReg
+   **Provisionally accepted**
