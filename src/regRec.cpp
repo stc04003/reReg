@@ -91,6 +91,14 @@ arma::mat matvec(arma::mat x, arma::vec y) {
   return out;
 }
 
+arma::mat matvec2(arma::mat x, arma::vec y) {
+  arma::mat out(x.n_rows, x.n_cols);
+  for (size_t i = 0; i < x.n_rows; i++) {
+    out.row(i) = x.row(i) % y.t();
+  }
+  return out;
+}
+
 // Log-rank estimating equation 
 //' @noRd
 // [[Rcpp::export(rng = false)]]
@@ -489,25 +497,50 @@ arma::rowvec temLog(const arma::vec& a,
 }
 
 // [[Rcpp::export(rng = false)]]
-Rcpp::NumericVector temGehan(const arma::vec& a,
-			     const arma::vec& b,
-			     const arma::mat& X,
-			     const arma::vec& Y,
-			     const arma::vec& Z,
-			     const arma::vec& D,
-			     const arma::vec& W) {
-  int n = Y.n_elem;
-  int p = a.n_elem;
-  Rcpp::NumericVector out(p);
-  arma::mat ebax = repmat(D, 1, n) % repmat(exp(X * (b - a)) % Z, 1, n).t();
-  arma::vec yexa = Y % exp(X * a);
-  arma::mat Iij = arma::conv_to<arma::mat>::from(repmat(yexa, 1, n) <= repmat(yexa, 1, n).t());
-  for (int i = 0; i < p; i++) {
-    arma::mat xdif=arma::conv_to<arma::mat>::from(repmat(W % X.col(i), 1, n) -
-						  repmat(W % X.col(i), 1, n).t()); 
-    out[i] = accu(xdif % ebax % Iij);
+arma::vec temGehan(const arma::vec& a,
+		   const arma::vec& b,
+		   const arma::mat& X,
+		   const arma::vec& Y,
+		   const arma::vec& Z,
+		   const arma::vec& D,
+		   const arma::vec& W) {
+  arma::uword const n = Y.n_elem;
+  arma::uword const p = a.n_elem;
+  arma::vec out(p, arma::fill::zeros);
+  if(n < 1) return out;
+  arma::vec yexa = log(Y) + X.t() * a;
+  yexa.replace(-arma::datum::inf, arma::datum::nan);
+  yexa.replace(arma::datum::nan, yexa.min());
+  arma::vec ebaxZ = Z % exp(X.t() * (b - a));
+  arma::uvec const idx = arma::sort_index(yexa);
+  auto cmp = [](cmp_par const &x, cmp_par const &y){
+    return x.first <= y.first;
+  };
+  std::set<cmp_par, decltype(cmp)> indices(cmp);
+  double w_sum{};
+  arma::vec x_col_sum(p, arma::fill::zeros);
+  {
+    auto const idx_i = idx[0];
+    indices.emplace(yexa[idx_i], idx_i);
+    x_col_sum = sum(matvec2(X, W % ebaxZ), 1);
+    w_sum = sum(W % ebaxZ);
+    out = D(idx_i) * W(idx_i) * (w_sum * X.col(idx_i) - x_col_sum);
+  }
+  auto indices_head = indices.begin();
+  for(arma::uword i = 1; i < n; ++i) {
+    auto const idx_i = idx[i];
+    indices.emplace(yexa[idx_i], idx_i);
+    if(yexa[idx_i] > indices_head->first) {
+      while(yexa[idx_i] > indices_head->first) {
+	x_col_sum -= W(indices_head->second) * ebaxZ(indices_head->second) * X.col(indices_head->second);
+	w_sum -= W(indices_head->second) * ebaxZ(indices_head->second);
+	++indices_head;
+      }
+    }
+    else --indices_head;
+    if (w_sum > 0)
+      out += D(idx_i) * W(idx_i) * (w_sum * X.col(idx_i) - x_col_sum);
   }
   return out / n / n;
 }
 
-// Resampling 

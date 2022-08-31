@@ -161,7 +161,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // temGehan
-Rcpp::NumericVector temGehan(const arma::vec& a, const arma::vec& b, const arma::mat& X, const arma::vec& Y, const arma::vec& Z, const arma::vec& D, const arma::vec& W);
+arma::vec temGehan(const arma::vec& a, const arma::vec& b, const arma::mat& X, const arma::vec& Y, const arma::vec& Z, const arma::vec& D, const arma::vec& W);
 RcppExport SEXP _reReg_temGehan(SEXP aSEXP, SEXP bSEXP, SEXP XSEXP, SEXP YSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

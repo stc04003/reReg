@@ -379,7 +379,7 @@ temAM <- function(DF, eqType, solver, par3, zi, wgt = NULL, trace = FALSE) {
   if (eqType == "logrank")
     U1 <- function(x) as.numeric(temLog(x, x, xi, yi, zi, di, wi))
   if (eqType == "gehan") 
-    U1 <- function(x) as.numeric(temGehan(x, x, xi, yi, zi, di, wi))
+    U1 <- function(x) as.numeric(temGehan(x, x, t(xi), yi, zi, di, wi))
   if (is.null(solver)) return(U1(par3))
   else {
     fit.a <- eqSolve(par3, U1, solver, trace)
@@ -418,7 +418,7 @@ temCox <- function(DF, eqType, solver, par3, zi, wgt = NULL, trace = FALSE) {
   if (eqType == "logrank")
     U1 <- function(x) as.numeric(temLog(rep(0, p), x, xi, yi, zi, di, wi))
   if (eqType == "gehan") 
-    U1 <- function(x) as.numeric(temGehan(rep(0, p), x, xi, yi, zi, di, wi))
+    U1 <- function(x) as.numeric(temGehan(rep(0, p), x, t(xi), yi, zi, di, wi))
   if (is.null(solver)) return(U1(par3))
   else {
     fit.a <- eqSolve(par3, U1, solver, trace)
@@ -455,7 +455,7 @@ temAR <- function(DF, eqType, solver, par3, zi, wgt = NULL, trace = FALSE) {
   if (eqType == "logrank")
     U1 <- function(x) as.numeric(temLog(x, rep(0, p), xi, yi, zi, di, wi))
   if (eqType == "gehan") 
-    U1 <- function(x) as.numeric(temGehan(x, rep(0, p), xi, yi, zi, di, wi))
+    U1 <- function(x) as.numeric(temGehan(x, rep(0, p), t(xi), yi, zi, di, wi))
   if (is.null(solver)) return(U1(par3))
   else {
     fit.a <- eqSolve(par3, U1, solver, trace)
