@@ -46,6 +46,12 @@ arma::vec reRate(const arma::vec& T,
       --indices_head;
     w_sum += W(idx_i);
     de(idx_i) = w_sum;
+    // adjust for ties
+    for(arma::uword j = 1; j <= i; ++j) {
+      if (T[idx_i] == T(idx[i - j]))
+	de(idx[i - j]) = w_sum;
+      else break;
+    }   
   }
   for (arma::uword k = 0; k < m; k++) {
     for (arma::uword i = 0; i < n; i++) {
