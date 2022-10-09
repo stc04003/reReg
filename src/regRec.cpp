@@ -49,7 +49,7 @@ arma::vec reRate(const arma::vec& T,
     // adjust for ties
     for(arma::uword j = 1; j <= i; ++j) {
       if (T[idx_i] == T(idx[i - j]))
-	de(idx[i - j]) = w_sum;
+				de(idx[i - j]) = w_sum;
       else break;
     }   
   }
@@ -109,10 +109,10 @@ arma::mat matvec2(arma::mat x, arma::vec y) {
 //' @noRd
 // [[Rcpp::export(rng = false)]]
 arma::vec reLog(const arma::vec& a,
-		const arma::mat& X,
-		const arma::vec& T,
-		const arma::vec& Y,
-		const arma::vec& W) {
+								const arma::mat& X,
+								const arma::vec& T,
+								const arma::vec& Y,
+								const arma::vec& W) {
   arma::uword const n = Y.n_elem;
   arma::uword const p = a.n_elem;
   arma::vec out(p, arma::fill::zeros);
@@ -121,16 +121,19 @@ arma::vec reLog(const arma::vec& a,
   arma::vec yexa = log(Y) + X.t() * a;
   arma::uvec const idx = arma::sort_index(texa);
   auto cmp = [](cmp_par const &x, cmp_par const &y){
-	       return x.first <= y.first;
-	     };
+		return x.first <= y.first;
+	};
   std::set<cmp_par, decltype(cmp)> indices(cmp);
   double w_sum{};
   arma::vec x_col_sum(p, arma::fill::zeros);
+  arma::vec diff0(p, arma::fill::zeros);
+  arma::vec diff1(p, arma::fill::zeros);
   {
     auto const idx_i = idx[0];
     indices.emplace(yexa[idx_i], idx_i);
     x_col_sum += W(idx_i) * X.col(idx_i);
     w_sum += W(idx_i);
+		diff0 = -x_col_sum / w_sum;
   }
   auto indices_head = indices.begin();
   for(arma::uword i = 1; i < n; ++i) {
@@ -146,8 +149,17 @@ arma::vec reLog(const arma::vec& a,
       --indices_head;
     x_col_sum += W(idx_i) * X.col(idx_i);
     w_sum += W(idx_i);
-    if (w_sum > 0) 
-      out += W(idx_i) * (X.col(idx_i) - x_col_sum / w_sum);
+		if (w_sum > 0) {
+      diff1 = -x_col_sum / w_sum;
+      out += W(idx_i) * (X.col(idx_i) + diff1);
+      // adjust for ties
+      for(arma::uword j = 1; j <= i; ++j) {
+				auto const idx_j = idx[i - j];
+				if (texa[idx_i] == texa[idx_j]) out += W(idx_j) * (diff1 - diff0);
+				else break;
+      }
+      diff0 = diff1;
+    }
   }
   return out;
 }
@@ -185,10 +197,10 @@ arma::rowvec re2(const arma::vec& b,
 //' @noRd
 // [[Rcpp::export(rng = false)]]
 arma::vec reGehan(const arma::vec& a,
-		  const arma::mat& X,
-		  const arma::vec& T,
-		  const arma::vec& Y,
-		  const arma::vec& W) {
+									const arma::mat& X,
+									const arma::vec& T,
+									const arma::vec& Y,
+									const arma::vec& W) {
   arma::uword const n = Y.n_elem;
   arma::uword const p = a.n_elem;
   arma::vec out(p, arma::fill::zeros);
@@ -201,12 +213,18 @@ arma::vec reGehan(const arma::vec& a,
   };
   std::set<cmp_par, decltype(cmp)> indices(cmp);
   double w_sum{};
+	double w_sum0{};
+	double w_sum1{};
   arma::vec x_col_sum(p, arma::fill::zeros);
+  arma::vec x_col_sum0(p, arma::fill::zeros);
+  arma::vec x_col_sum1(p, arma::fill::zeros);
   {
     auto const idx_i = idx[0];
     indices.emplace(yexa[idx_i], idx_i);
     x_col_sum += W(idx_i) * X.col(idx_i);
     w_sum += W(idx_i);
+		w_sum0 = w_sum;
+		x_col_sum0 = x_col_sum;
   }
   auto indices_head = indices.begin();
   for(arma::uword i = 1; i < n; ++i) {
@@ -223,6 +241,17 @@ arma::vec reGehan(const arma::vec& a,
     x_col_sum += W(idx_i) * X.col(idx_i);
     w_sum += W(idx_i);
     out += W(idx_i) * (w_sum * X.col(idx_i) - x_col_sum);
+		w_sum1 = w_sum;
+		x_col_sum1 = x_col_sum;
+		// adjust for ties
+		for(arma::uword j = 1; j <= i; ++j) {
+			auto const idx_j = idx[i - j];
+			if (texa[idx_i] == texa[idx_j])
+				out +=  W(idx_j) * ((w_sum1 - w_sum0) * X.col(idx_j) - (x_col_sum1 -x_col_sum0));
+			else break;
+		}
+		w_sum0 = w_sum1;
+		x_col_sum0 = x_col_sum1;
   }
   return out;
 }
@@ -333,6 +362,11 @@ arma::rowvec am1(const arma::vec& a,
       --indices_head;
     w_sum += 1; //W(idx_i);
     de(idx_i) = w_sum;
+		for(arma::uword j = 1; j <= i; ++j) {
+      if (T[idx_i] == T(idx[i - j]))
+				de(idx[i - j]) = w_sum;
+      else break;
+    }
   }
   for (arma::uword k = 0; k < n; k++) {
     for (arma::uword i = 0; i < nm; i++) {
