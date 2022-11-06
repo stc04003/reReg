@@ -76,7 +76,7 @@ assumes \eqn{X_i} is a two-dimensional vector \eqn{X_i = (X_{i1}, X_{i2}), i = 1
 where \eqn{X_{i1}} is a Bernoulli variable with rate 0.5 and
 \eqn{X_{i2}} is a standard normal variable.
 With the default \code{xmat}, the censoring time $C$ is generated from
-an independent uniform distribution in \eqn{[0, 2\tau X_{i1} + 2Z^2\tau(1 - X_{i1})]}.
+an exponential distribution with mean \eqn{\tau X_{i1} + Z^2\tau(1 - X_{i1})}.
 Thus, the censoring distribution is covariate dependent and
 is informative when \eqn{Z} is not a constant.
 When the \code{frailty} argument is not specified, the frailty variable \eqn{Z} is generated

@@ -46,7 +46,7 @@ inv <- function (t, z, exa, exb, fun, tau) {
 #' where \eqn{X_{i1}} is a Bernoulli variable with rate 0.5 and
 #' \eqn{X_{i2}} is a standard normal variable.
 #' With the default \code{xmat}, the censoring time $C$ is generated from
-#' an independent uniform distribution in \eqn{[0, 2\tau X_{i1} + 2Z^2\tau(1 - X_{i1})]}.
+#' an exponential distribution with mean \eqn{\tau X_{i1} + Z^2\tau(1 - X_{i1})}.
 #' Thus, the censoring distribution is covariate dependent and
 #' is informative when \eqn{Z} is not a constant.
 #' When the \code{frailty} argument is not specified, the frailty variable \eqn{Z} is generated
@@ -101,13 +101,12 @@ simGSC <- function(n, summary = FALSE, para,
   else Z <- frailty
   if (missing(xmat)) {
     X <- cbind(sample(0:1, n, TRUE), rnorm(n, sd = .5))
-    Cen <- runif(n, 0, X[,1] * tau * 2 + (1 - X[,1]) * 2 * Z^2 * tau)
+    Cen <- exp(n, 1 / (X[,1] * tau + (1 - X[,1]) * Z^2 * tau))
   } else {
     if (!missing(censoring)) Cen <- censoring
-    if (missing(censoring)) Cen <- runif(n, 0, 2 * tau)
+    if (missing(censoring)) Cen <- rexp(n, 1 / tau)
     X <- xmat
-  }
-  
+  } 
   p <- ncol(X)
   para0 <- list(alpha = rep(0, p), beta = rep(-1, p), eta = rep(0, p), theta = rep(1, p))
   if (missing(para)) para <- para0

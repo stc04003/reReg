@@ -16,6 +16,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{reda}{\code{\link[reda:Recur-to]{\%2\%}}, \code{\link[reda:Recur-to]{\%to\%}}, \code{\link[reda]{Recur}}, \code{\link[reda]{check_Recur}}, \code{\link[reda]{is.Recur}}, \code{\link[reda]{mcf}}}
+  \item{reda}{\code{\link[reda:Recur-to]{\%2\%}}, \code{\link[reda:Recur-to]{\%to\%}}, \code{\link[reda]{check_Recur}}, \code{\link[reda]{is.Recur}}, \code{\link[reda]{mcf}}, \code{\link[reda]{Recur}}}
 }}
 
