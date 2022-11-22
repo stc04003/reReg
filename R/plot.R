@@ -83,7 +83,7 @@ plot.Recur <- function(x, mcf = FALSE,
   namp <- names(match.call())
   if (any(namp %in% names(ctrl))) {
     namp <- namp[namp %in% names(ctrl)]
-    ctrl[namp] <- lapply(namp, function(x) call[[x]])
+    ctrl[namp] <- lapply(namp, function(x) eval(call[[x]]))
   }
   if (!mcf) {
     return(plotEvents(x, result = event.result, calendarTime = event.calendarTime, control = ctrl))

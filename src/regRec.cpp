@@ -155,7 +155,8 @@ arma::vec reLog(const arma::vec& a,
       // adjust for ties
       for(arma::uword j = 1; j <= i; ++j) {
 				auto const idx_j = idx[i - j];
-				if (texa[idx_i] == texa[idx_j]) out += W(idx_j) * (diff1 - diff0);
+				if (texa[idx_i] == texa[idx_j])
+					out += W(idx_j) * (diff1 - diff0);
 				else break;
       }
       diff0 = diff1;
