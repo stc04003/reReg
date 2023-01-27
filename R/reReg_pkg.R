@@ -13,6 +13,8 @@
 #' simulation from the regression models.
 #'
 #' @aliases reReg-packages
+#' @references Chiou, S.H., Xu, G., Yan, J. and Huang, C.-Y. (2023). Regression Modeling for Recurrent Events Possibly with an Informative Terminal Event Using {R} Package {reReg}.
+#' \emph{Journal of Statistical Software}, \bold{105}(5): 1--34. 
 #' @references Lin, D., Wei, L., Yang, I. and Ying, Z. (2000). Semiparametric Regression for the Mean and Rate Functions of Recurrent Events.
 #' \emph{Journal of the Royal Statistical Society: Series B (Methodological)}, \bold{62}: 711--730.
 #' @references Wang, M.-C., Qin, J., and Chiang, C.-T. (2001). Analyzing Recurrent Event Data with Informative Censoring.
@@ -25,7 +27,7 @@
 #' @references Xu, G., Chiou, S.H., Huang, C.-Y., Wang, M.-C. and Yan, J. (2017).
 #' Joint Scale-change Models for Recurrent Events and Failure Time.
 #' \emph{Journal of the American Statistical Association}, \bold{112}(518): 796--805.
-#' @references Xu, G., Chiou, S.H.,Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
+#' @references Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
 #' Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
 #' 
 #' @importFrom graphics lines par plot title boxplot

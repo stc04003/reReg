@@ -1,17 +1,18 @@
 # `reReg` 1.4.5
   	* Now requires R 4.2.0
+	* Add JSS citation/acknowledgement
 	* Improved legend location
 	* Removed rounding in summary table
 # `reReg` 1.4.4
   	* Improve C code speeds in pairwise comparisons
   	* Added more graphical controls for event plots
-	* Used [[Rcpp::export(rng = false)]] because we never call any random number generation in the internals.
+	* Used [[Rcpp::export(rng = false)]] because we never call any random number generation in the internals
 # `reReg` 1.4.3
-	* Added an option to specify the heuristic constant (numAdj).
+	* Added an option to specify the heuristic constant (numAdj)
 	* Move duplicated Rd files for Recur(), %2% (%to%), and mcf() into reexport.Rd
 # `reReg` 1.4.2
-  	* Added an option to perform GMM or EL procedure to improve cox.LWYY.
-	* Added a vignette on CPPL.
+  	* Added an option to perform GMM or EL procedure to improve `cox.LWYY()`
+	* Added a vignette on CPPL
 # `reReg` 1.4.1
   	* printCoefmat now all has the argument `has.Pvalue = TRUE`
 	* Improved print methods for summary.reReg
@@ -19,11 +20,11 @@
 	* Replace exceeded cat() and print() with message() and warning()
 	* Export reReg.control
 # `reReg` 1.4.0
-  	* `simGSC()` now allows users to specifies design matrix and censoring distribution.
-	* Some name changes (mostly arguments) to match with the JSS submission.
-	* Change names "SC" to "GSC"; this includes the `model` argument and `simSC()` to `simGSC()`.
-	* Added a basebind() function to combine baseline rate/hazard plots.
-	* Temporary disabled sandwich variance estimators for further investigation.
+  	* `simGSC()` now allows users to specifies design matrix and censoring distribution
+	* Some name changes (mostly arguments) to match with the JSS submission
+	* Change names "SC" to "GSC"; this includes the `model` argument and `simSC()` to `simGSC()`
+	* Added a basebind() function to combine baseline rate/hazard plots
+	* Temporary disabled sandwich variance estimators for further investigation
 	* Import `mcf()` from reda.
 	* Event plot can now plot in calendar times.
 	* Updated examples and online vignettes.

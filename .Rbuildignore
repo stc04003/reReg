@@ -12,7 +12,10 @@ skipcheck*
 ^\.git$
 ^appveyor\.yml$
 ^\.travis\.yml$
-^inst$
+^inst/bib
+^inst/examples
+^inst/mcf.R$
+^inst/Recur.R$
 ^CRAN-RELEASE$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$

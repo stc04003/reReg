@@ -101,7 +101,7 @@ simGSC <- function(n, summary = FALSE, para,
   else Z <- frailty
   if (missing(xmat)) {
     X <- cbind(sample(0:1, n, TRUE), rnorm(n, sd = .5))
-    Cen <- exp(n, 1 / (X[,1] * tau + (1 - X[,1]) * Z^2 * tau))
+    Cen <- rexp(n, 1 / (X[,1] * tau + (1 - X[,1]) * Z^2 * tau))
   } else {
     if (!missing(censoring)) Cen <- censoring
     if (missing(censoring)) Cen <- rexp(n, 1 / tau)

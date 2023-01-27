@@ -33,7 +33,7 @@ the generalized method of moments (\code{cppl = "GMM"}) or empirical likelihood 
 This option is only used when \code{model = "cox.HH"}.}
 
 \item{cppl.wfun}{a list of (up to two) weight functions to be combined with the weighted pseudo-partial likelihood scores.
-Avaialble options are \code{"Gehan"} and \code{"cumbase"},
+Available options are \code{"Gehan"} and \code{"cumbase"},
 which correspond to the Gehan's weight and the cumulative baseline hazard function, respectively.
 Alternatively, the weight functions can be specified with function formulas.
 This option is only used when \code{model = "cox.HH"}.}

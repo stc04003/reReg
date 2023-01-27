@@ -1,0 +1,23 @@
+bibentry(bibtype = "Article",
+  title        = "Regression Modeling for Recurrent Events Possibly with an Informative Terminal Event Using {R} Package {reReg}",
+  author       = c(person(given = c("Sy", "Han"),
+                          family = "Chiou",
+                          email = "schiou@utdallas.edu"),
+                   person(given = "Gongjun",
+                          family = "Xu",
+                          email = "gongjun@umich.edu"),
+                   person(given = "Jun",
+                          family = "Yan",
+                          email = "jun.yan@uconn.edu"),
+                   person(given = "Chiung-Yu",
+                          family = "Huang",
+                          email = "ChiungYu.Huang@ucsf.edu")),
+  journal      = "Journal of Statistical Software",
+  year         = "2023",
+  volume       = "105",
+  number       = "5",
+  pages        = "1--34",
+  doi          = "10.18637/jss.v105.i05",
+  header       = "To cite reReg in publications use:"
+)
+
