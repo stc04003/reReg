@@ -26,7 +26,7 @@ knitr::opts_chunk$set(prompt = TRUE, comment = "")
 In this vignette, we demonstrate how to use the `simGSC()` function in __`reReg`__ package
 to simulate recurrent event data from a general scale-change model.
 Since the scale-change model includes the Cox-type model and the
-accelerated mean model as special cases, `simGSC()` can also be used to generate data from these submodels.
+accelerated mean model as special cases, `simGSC()` can also be used to generate data from these sub-models.
 The `simGSC()` function allows the censoring time to be non-informative (independent given covariate)
 or informative about the recurrent event process. 
 
@@ -67,14 +67,13 @@ The function `simGSC` generates the recurrent times from the joint model
     \lambda(t) = \displaystyle Z\lambda_0(te^{X^\top\alpha})e^{X^\top\beta},&\\
     h(t) = \displaystyle Zh_0(te^{X^\top\eta})e^{X^\top\theta}, &t\in[0, \tau],
   \end{cases}
-  (\#eqn:sc|sc)
 \end{equation}
 where $\lambda_0(t)$ is the baseline rate function for the recurrent event process,
 $h_0(t)$ is the baseline hazard function for the failure time, 
 $Z$ is a non-negative subject-specific latent frailty variable.
 The $p$-dimensional regression coefficients
 $(\alpha, \eta)$ and $(\beta, \theta)$
-correspond to the shape and the size parameters, respectively.
+correspond to the **shape** and the **size** parameters, respectively.
 The arguments in `simGSC` are as follow
 ```{r simGSC, message = FALSE}
 args(simGSC)
@@ -85,7 +84,7 @@ The arguments are as follows
 * `summary` is a logical value indicating whether a brief data summary will be printed.
 * `para` is a list of regression parameters. 
 The list members `alpha`, `beta`, `eta`, and `theta` 
-correspond to $\alpha$, $\beta$, $\eta$, and $\theta$ in \@ref(eqn:sc|sc), respectively.
+correspond to $\alpha$, $\beta$, $\eta$, and $\theta$ in (1), respectively.
 * `xmat` is the $n\times p$ design matrix. 
 * `censoring` is a $n$-dimensional numerical vector to specify the independent censoring time, $C$.
 * `frailty` is a $n$-dimensional numerical vector to specify the frailty variable, $Z$.

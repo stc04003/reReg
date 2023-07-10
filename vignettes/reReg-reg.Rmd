@@ -165,7 +165,7 @@ the derivative-free Barzilai-Borwein spectral approach for solving nonlinear equ
 implemented in `dfsane()` from the package `BB` [@Vara:Gilb:BB:2009].
 Setting `solver = "BB::BBsolve"` calls the wrapper function
 `BBsolve()` in the `BB` package to locate a root with different
-Barzilai-Borwein steplengths, non-monotonicity parameters, and initialization approaches.
+Barzilai-Borwein step-lengths, non-monotonicity parameters, and initialization approaches.
 Based on our observation, the `"BB::BBsolve"` algorithm generally exhibited
 more reliable convergence but the `solver = "BB::dfsane"` algorithm provides a
 better balance between convergence and speed.

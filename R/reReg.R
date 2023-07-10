@@ -973,7 +973,8 @@ reReg.control <- function(eqType = c("logrank", "gehan", "gehan_s"),
   if (solver == "dfoptim::mads") solver <- "mads"
   eqType <- match.arg(eqType)
   if (!is.null(cppl) && !(cppl %in% c("GMM", "EL"))) stop("Invalid 'cppl' method.")
-  list(tol = tol, eqType = eqType, solver = solver, cppl = cppl, cppl.wfun = cppl.wfun, numAdj = numAdj, 
+  list(tol = tol, eqType = eqType, solver = solver,
+       cppl = cppl, cppl.wfun = cppl.wfun, numAdj = numAdj, 
        par1 = init$alpha, par2 = init$beta, par3 = init$eta, par4 = init$theta,
        parallel = boot.parallel, parCl = boot.parCl,
        maxit1 = maxit1, maxit2 = maxit2, trace = trace)

@@ -302,7 +302,43 @@ mcf2 <- reReg(Recur(t.start %2% t.stop, id, event, death) ~ 1, subset = sex == "
 mcf3 <- update(mcf2, subset = sex == "Male")
 g1 <- plot(mcf2)
 g2 <- plot(mcf3)
-basebind(g1, g2, legend.title = "Sex", legend.labels = c("Female", "Male"), control = list(base_size = 7))
+basebind(g1, g2, legend.title = "Sex", legend.labels = c("Female", "Male"), 
+         control = list(base_size = 7, legend.position = "topleft"))
 ```
+
+## Linking with `ggplot` 
+
+We will take the following `readmission` data for example. 
+```{r, message = FALSE, echo = FALSE}
+library(ggplot2)
+```
+```{r chemo0, fig.cap="Figure 10: Event plot grouped by `chemo`."}
+library(ggplot2)
+(f <- plotEvents(Recur(t.stop, id, event, death) ~ chemo, data = readmission))
+```
+
+#### Add axis breaks
+```{r chemo1, fig.cap="Figure 11: Add axis breaks"}
+f + scale_y_continuous(breaks = seq(0, 2000, 100)) + ylab("Days since surgery")
+```
+
+#### Replace labeling strip in event plot
+```{r chemo2, fig.cap="Figure 12: Replace labeling strip in event plot"}
+labels <- c("chemo = Treated" = "Yes",
+            "chemo = NonTreated" = "No")
+f + facet_grid(chemo ~., scales = "free", space = "free", switch = "both",
+               labeller = labeller(chemo = labels)) +
+  xlab("Received chemo?")
+```
+
+#### Customize bar style
+```{r chemo3, fig.cap="Figure 12: Replace labeling strip in event plot"}
+f + geom_rect(xmin = f$data$id - .45, # bar height
+              xmax = f$data$id + .45, # bar height
+              ymin = 0, ymax = f$data$time2, # bar width
+              fill = 1 + as.numeric(f$data$chemo), # bar color
+              alpha = .25) # transparency
+```
+
 
 ## Reference
