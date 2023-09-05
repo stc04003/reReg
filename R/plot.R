@@ -861,9 +861,9 @@ plotRate <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
           geom_step(aes(x = time2, y = Y.upper, group = id), lty = 2) +
           geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
     }
-    if (showName) 
-      gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
-        scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
+    if (showName)
+        gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "right.polygons") +
+            scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
   }
   if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 
   gg <- gg + labs(x = ctrl$xlab, y = ctrl$ylab) +
@@ -1026,7 +1026,7 @@ plotHaz <- function(x, newdata = NULL, frailty = NULL, showName = FALSE,
           geom_step(aes(x = time2, y = Y.lower, group = id), lty = 2)
     }
     if (showName) 
-      gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "last.bumpup") +
+      gg <- gg + geom_dl(aes(label = paste(" Obs. =", id)), method = "right.polygons") +
         scale_x_continuous(limits = c(0, max(dat$time2) * 1.1))
   }
   if (ctrl$main != "") gg <- gg + ggtitle(ctrl$main) 

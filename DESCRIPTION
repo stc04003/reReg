@@ -1,8 +1,8 @@
 Package: reReg
 Title: Recurrent Event Regression
-Version: 1.4.5
+Version: 1.4.6
 Authors@R: c(person(given = "Sy Han (Steven)", family = "Chiou",
-	   email = "schiou@utdallas.edu",
+	   email = "schiou@smu.edu",
 	   role = c("aut", "cre")),
 	   person(given = "Chiung-Yu", family = " Huang",
 	   email = "ChiungYu.Huang@ucsf.edu", role = "aut"))
@@ -31,4 +31,4 @@ Imports:
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.2.1
 NeedsCompilation: yes
-Packaged: 2023-01-24 12:11:22 UTC; schiou
+Packaged: 2023-09-01 12:11:22 UTC; schiou
