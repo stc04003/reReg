@@ -53,7 +53,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Sy Han (Steven) Chiou \email{schiou@utdallas.edu}
+\strong{Maintainer}: Sy Han (Steven) Chiou \email{schiou@smu.edu}
 
 Authors:
 \itemize{

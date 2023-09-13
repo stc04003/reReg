@@ -714,9 +714,15 @@ reReg <- function(formula, data, subset,
   mm <- stats::model.matrix(formula, data = mf)
   obj <- stats::model.extract(mf, "response")
   DF <- cbind(obj, mm)
+  ## Should I scale variables for a stable result?
+  scl.mm <- scale(mm, center = FALSE)
+  scaled <- names(which(attr(scl.mm, "scaled:scale") > 100))
+  if (length(scaled) > 0) {
+    DF[,scaled] <- scl.mm[,scaled]
+  }
   DF <- as.data.frame(DF)
   DF <- DF[,colnames(DF) != "(Intercept)"]
-  if (!is.Recur(obj)) stop("Response must be a `Recur` object")
+  if (!is.Recur(obj)) stop("Response must be a 'Recur' object")
   formula[[2]] <- NULL
   if (formula == ~ 1) DF$zero = 0 
   ctrl <- reReg.control()
@@ -853,7 +859,7 @@ reReg <- function(formula, data, subset,
     fit$typeTem <- typeTem
   } else {
     fit <- regFit(DF = DF, engine = engine, stdErr = stdErr)
-  }    
+  }
   fit$DF <- DF
   fit$call <- Call
   fit$varNames <- names(DF)[-(1:6)]
@@ -866,9 +872,51 @@ reReg <- function(formula, data, subset,
   ##     fit$par2.vcov <- fit$par2.vcov[-1, -1, drop = FALSE]
   ## }
   if (se != "NULL" & engine@typeRec == "cox") fit$par1.se <- fit$par1.se[-1]
+  if (length(scaled) > 0) {
+    fit$DF[,scaled] <- mm[,scaled]
+    scaleBy <- attr(scl.mm, "scaled:scale")
+    scaleBy <- scaleBy[names(scaleBy) != "(Intercept)"]
+    fit$par1 <- unscalePE(fit$par1, fit$varNames, scaled, scaleBy)
+    fit$par1.vcov <- unscaleVCOV(fit$par1.vcov, fit$varNames, scaled, scaleBy)
+    fit$par1.se <- unscaleSE(fit$par1.se, fit$varNames, scaled, scaleBy)
+    if (!is.null(fit$par2)) {
+      fit$par2 <- unscalePE(fit$par2, fit$varNames, scaled, scaleBy)
+      fit$par2.vcov <- unscaleVCOV(fit$par2.vcov, fit$varNames, scaled, scaleBy)
+      fit$par2.se <- unscaleSE(fit$par2.se, fit$varNames, scaled, scaleBy)
+    }
+    if (!is.null(fit$par3)) {
+      fit$par3 <- unscalePE(fit$par3, fit$varNames, scaled, scaleBy)
+      fit$par3.vcov <- unscaleVCOV(fit$par3.vcov, fit$varNames, scaleBy)
+      fit$par3.se <- unscaleSE(fit$par3.se, fit$varNames, scaled, scaleBy)
+    }
+    if (!is.null(fit$par4)) {
+      fit$par4 <- unscalePE(fit$par4, fit$varNames, scaled, scaleBy)
+      fit$par4.vcov <- unscaleVCOV(fit$par4.vcov, fit$varNames, scaleBy)
+      fit$par4.se <- unscaleSE(fit$par4.se, fit$varNames, scaled, scaleBy)
+    }    
+  }
   fit <- fit[order(names(fit))]
   class(fit) <- "reReg"
   return(fit)
+}
+
+#' Functions used to unscale
+#' @noRd
+unscalePE <- function(pe, varNames, scaleNames, scaleBy) {
+  unscaled <- varNames %in% scaleNames
+  pe[unscaled] <- pe[unscaled] / scaleBy[unscaled]
+  return(pe)
+}
+unscaleVCOV <- function(varcov, varNames, scaleNames, scaleBy) {
+  unscaled <- varNames %in% scaleNames
+  varcov[,unscaled] <- varcov[,unscaled] / scaleBy[unscaled]
+  varcov[unscaled,] <- varcov[unscaled,] / scaleBy[unscaled]
+  return(varcov)
+}
+unscaleSE <- function(se, varNames, scaleNames, scaleBy) {
+  unscaled <- varNames %in% scaleNames
+  se[unscaled] <- se[unscaled] / scaleBy[unscaled]
+  return(se)
 }
 
 #' Equation wrapper
