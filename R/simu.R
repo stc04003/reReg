@@ -10,8 +10,8 @@ inv <- function (t, z, exa, exb, fun, tau) {
   mapply(t, FUN = function(u) {
     uf <- function(x) u - fun(x, z, exa, exb)
     if (uf(0) * uf(tau) > 0) return(tau)
-    r1 <- dfsane(par = 1, function(y) uf(y), quiet = TRUE)
-    if (!r1$convergence) {
+    r1 <- dfsane(par = 1, function(y) uf(y), quiet = TRUE, alertConvergence = FALSE)
+    if (r1$convergence != 0) {
       r2 <- exp(spg(par = 1, fn = function(y) uf(exp(y))^2, quiet = TRUE)$par)
       if (uf(r1$par) <= uf(r2)) return(r1$par)
       if (uf(r1$par) > uf(r2)) return(r2)
