@@ -42,6 +42,12 @@ You can install reReg from github with:
 devtools::install_github("stc04003/reReg", ref = "main")
 ```
 
+### Citation
+Cite ***reReg*** with `citation("reReg")`.
+```{R}
+citation("reReg")
+```
+
 ### Online documentation 
 [Online document](https://www.sychiou.com/reReg/index.html) includes:
 
