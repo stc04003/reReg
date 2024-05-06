@@ -12,7 +12,7 @@ version](https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg)](https://cran.r-
 Status](https://ci.appveyor.com/api/projects/status/github/stc04003/reReg?branch=master&svg=true)](https://ci.appveyor.com/project/stc04003/reReg)
 [![Travis-CI Build
 Status](https://travis-ci.org/stc04003/reReg.svg?branch=master)](https://travis-ci.org/stc04003/reReg)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2024--05--04-yellowgreen.svg)](/commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2024--05--06-yellowgreen.svg)](/commits/master)
 <!-- [![Build Status](https://travis-ci.org/user/pkg.svg?branch=master)](https://travis-ci.org/user/pkg) -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -112,9 +112,9 @@ Generalized Scale-Change Models for Recurrent Event Processes under
 Informative Censoring. *Statistica Sinica* **30**, 1773–1795.
 
 Huang, M.-Y. and Huang, C.Y. (2022) Improved semiparametric estimation
-of the proportional rate model with recurrent event data. **Under
-revision**.
+of the proportional rate model with recurrent event data. *Biometrics*
+**79(3)**, 1686–1700.
 
 Chiou, S.H., Xu, G., Yan, J. and Huang, C.-Y. (2022) Regression modeling
-for recurrent events possibly with an informative terminal event using R
-package reReg **Provisionally accepted**
+for recurrent events possibly with an informative terminal event using
+`R` package `reReg`. *Journal of Statistical Software* **105**, 1–34.
