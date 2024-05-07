@@ -685,7 +685,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' @references Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
 #' Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
 #' @references Huang, M.-Y. and Huang, C.-Y. (2022). Improved semiparametric estimation of the proportional rate model with recurrent event data.
-#' \emph{In revision}.
+#' \emph{Biometrics}, \bold{79}{3}: 1686--1700.
 #'
 #' @importFrom stats approxfun optim model.response 
 #' @importFrom stats .getXlevels 

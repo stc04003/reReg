@@ -184,7 +184,7 @@ Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Sca
 Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
 
 Huang, M.-Y. and Huang, C.-Y. (2022). Improved semiparametric estimation of the proportional rate model with recurrent event data.
-\emph{In revision}.
+\emph{Biometrics}, \bold{79}{3}: 1686--1700.
 }
 \seealso{
 \code{\link{Recur}}, \code{\link{simGSC}}
