@@ -3,7 +3,6 @@
 \docType{package}
 \name{reReg-package}
 \alias{reReg-package}
-\alias{_PACKAGE}
 \alias{reReg-packages}
 \title{reReg: Recurrent Event Regression}
 \description{
@@ -57,7 +56,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Chiung-Yu  Huang \email{ChiungYu.Huang@ucsf.edu}
+  \item Chiung-Yu Huang \email{ChiungYu.Huang@ucsf.edu}
 }
 
 }
