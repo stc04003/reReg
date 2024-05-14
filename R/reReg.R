@@ -134,7 +134,7 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
   Y <- rep(DF$time2[event == 0], mt + 1)
   X0 <- X[event == 0,,drop = FALSE]
   fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X0)
-  cumHaz <- basehaz(fit.coxph)
+  cumHaz <- basehaz(fit.coxph, center = FALSE)
   ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
   wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
     approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1,
