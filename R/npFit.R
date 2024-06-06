@@ -1,7 +1,7 @@
 #' Functions used for nonparametric estiamtion
 #' This function gives a point estimates assuming one type of event
 #' @noRd
-npFit0 <- function(DF, typeTem = ".") {
+npFit0 <- function(DF, typeTem = ".", numAdj = 1e-3) {
     df0 <- DF[DF$event == 0,]
     df1 <- DF[DF$event > 0,]
     rownames(df0) <- rownames(df1) <- NULL
@@ -18,7 +18,10 @@ npFit0 <- function(DF, typeTem = ".") {
     keep <- !duplicated(yi)
     Lam0 <- approxfun(yi[keep], Lam[keep],
                       yleft = min(Lam), yright = max(Lam))
-    zi <- (m + 0.01) / (Lam + 0.01)    
+    if (numAdj > min(Lam)) {
+      numAdj <- numAdj * min(Lam)
+    }
+    zi <- (m + numAdj) / (Lam + numAdj)
     if (typeTem != ".") {
         Haz <- c(temHaz(rep(0, p), rep(0, p), xi, yi, zi, di, wi, yi2))
         Haz0 <- approxfun(yi2, Haz, yleft = min(Haz), yright = max(Haz))
