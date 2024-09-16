@@ -116,7 +116,7 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
   out$typeRec <- engine@typeRec
   out$typeTem <- engine@typeTem
   out$log.muZ <- 0
-  Lam0 <- basehaz(fit.coxph, center = FALSE)
+  Lam0 <- basehaz(fit.coxph, centered = FALSE)
   out$Lam0 <- function(x) approx(x = Lam0$time, y = Lam0$hazard, xout = x, yleft = 0)$y 
   return(out)
 }
@@ -134,7 +134,7 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
   Y <- rep(DF$time2[event == 0], mt + 1)
   X0 <- X[event == 0,,drop = FALSE]
   fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X0)
-  cumHaz <- basehaz(fit.coxph, center = FALSE)
+  cumHaz <- basehaz(fit.coxph, centered = FALSE)
   ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
   wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
     approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1,
@@ -685,7 +685,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' @references Xu, G., Chiou, S.H., Yan, J., Marr, K., and Huang, C.-Y. (2019). Generalized Scale-Change Models for Recurrent Event
 #' Processes under Informative Censoring. \emph{Statistica Sinica}, \bold{30}: 1773--1795.
 #' @references Huang, M.-Y. and Huang, C.-Y. (2022). Improved semiparametric estimation of the proportional rate model with recurrent event data.
-#' \emph{Biometrics}, \bold{79}{3}: 1686--1700.
+#' \emph{Biometrics}, \bold{79} 3: 1686--1700.
 #'
 #' @importFrom stats approxfun optim model.response 
 #' @importFrom stats .getXlevels 
