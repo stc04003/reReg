@@ -39,7 +39,7 @@ void glU2(int *n, int *p, int *start, int *M,
       }
     }
   }
-  Free(nu);
+  R_Free(nu);
 }
 
 // \code{glRate} gives rates in GL (2003) [the integral term in \hat R_0].
@@ -131,8 +131,8 @@ void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
       ik_idx++;
     }
   }
-  Free(nu);
-  Free(e);
+  R_Free(nu);
+  R_Free(e);
 }
 
 /* void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz, */
@@ -204,7 +204,7 @@ void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
       }
     }
   }
-  Free(nu);
+  R_Free(nu);
 }
 
 
