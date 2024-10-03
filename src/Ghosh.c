@@ -1,6 +1,7 @@
 #include <R.h>
 #include <Rmath.h>
 #include <math.h>
+#include <stdlib.h>
 
 // \code{glU2} gives equation U2 in GL (2003) [eq. 4].
 //
@@ -16,7 +17,7 @@ void glU2(int *n, int *p, int *start, int *M,
 	  double *yi, double *tij, double *X,
 	  double *weight, double *result) {
   int i, j, k, r;
-  double *nu = Calloc(*p, double); 
+  double *nu = R_Calloc(*p, double); 
   double de;
   for (i = 0; i < *n; i++) {
     for (k = 0; k < M[i]; k++) {
@@ -94,7 +95,7 @@ void glHaz(int *n, int *status, int *ny0, double *yi, double *y0, double *result
 void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
 		int *n, int *p, int *N, double *weights, double *gw, double *sn) {
   int i, j, k, l, ik_idx = 0, jl_idx, r;
-  double *e = Calloc(*N, double), *nu = Calloc(*p, double);
+  double *e = R_Calloc(*N, double), *nu = R_Calloc(*p, double);
   double de = 0.0;
   for (i = 0; i < *N; i++) {
     e[i] = 0.0;
@@ -137,7 +138,7 @@ void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
 /* void lwyy(double *Tik, double *Y, double *X, double *wgt, int *cl, int *clsz, */
 /* 	  int *n, int *p, double *res) { */
 /*   int i, j, k, r; */
-/*   double *nu = Calloc(*p, double); */
+/*   double *nu = R_Calloc(*p, double); */
 /*   double de; */
 /*   for (i = 0; i < *n; i++) { */
 /*     for (k = 0; k < cl[i]; k++) { */
@@ -175,7 +176,7 @@ void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
 void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
 	   int *len_Tik, int *cl, int *clsz, int *n, int *p, double *res) {
   int i, j, k, r;
-  double *nu = Calloc(*p, double);
+  double *nu = R_Calloc(*p, double);
   double de;
   for (i = 0; i < *n; i++) {
     for (k = 0; k < cl[i]; k++) {

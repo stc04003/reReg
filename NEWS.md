@@ -1,3 +1,5 @@
+# `reReg` 1.4.7
+        * Changed Calloc to R_Calloc
 # `reReg` 1.4.6
 	* Changed maintainer email
 	* Changed last.bumpup to right.polygons in geom_dl() when showName is specified
