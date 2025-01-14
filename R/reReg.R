@@ -121,7 +121,7 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
   return(out)
 }
 
-#' This is also the ARF in Luo
+#' This is also the ARF in Luo and IPSW in Ghosh and Lin (2002)
 #' @importFrom survival basehaz
 #' @noRd
 regFit.cox.GL <- function(DF, engine, stdErr) {

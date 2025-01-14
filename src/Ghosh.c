@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 // \code{glU2} gives equation U2 in GL (2003) [eq. 4].
+// AM model
 //
 // n: the number of id
 // p: the dimension of X
@@ -169,8 +170,10 @@ void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
 /*   Free(nu); */
 /* } */
 
-// Equation 8 of Ghosh & Lin (2002); Marginal regression models for recurrent and terminal events.
-// IPSW estimator (ARF in Luo et al (2015)
+// Estimating equation in Ghosh & Lin (2002); Marginal regression models for recurrent and terminal events.
+//
+// The weight argument *wgt can be either IPCW or IPSW
+// 
 // The weight 'matrix', w_i(t_ij), is a n by length(m) matrix.
 // The ith column gives w_i and the jth row evaluates w_i at t_ij
 void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
