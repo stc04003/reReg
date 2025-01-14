@@ -87,7 +87,7 @@ For example, specifying \code{model = "cox"} is equivalent to \code{model = "cox
 Some models that assumes \code{Z = 1} and requires independent
 censoring are also implemented in \code{reReg};
 these includes \code{model = "cox.LWYY"} for Lin et al. (2000),
-\code{model = "cox.GL"} for Ghosh and Lin (2002),
+\code{model = "cox.GLIPCW"} and \code{model = "cox.GLIPSW"} for Ghosh and Lin (2002),
 and \code{model = "am.GL"} for Ghosh and Lin (2003).
 Additionally, an improved estimation of the proportional rate model
 (Huang and Huang 2022) can be called by \code{model = "cox.HH"} with

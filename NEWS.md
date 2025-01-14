@@ -1,3 +1,5 @@
+# `reReg` 1.4.8
+        * Add Ghosh and Lin (2002), IPSW and IPCW
 # `reReg` 1.4.7
         * Changed Calloc to R_Calloc
 # `reReg` 1.4.6

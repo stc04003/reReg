@@ -171,8 +171,6 @@ void log_ns_est(double *beta, double *Y, double *X, double *delta, int *clsize,
 /* } */
 
 // Estimating equation in Ghosh & Lin (2002); Marginal regression models for recurrent and terminal events.
-//
-// The weight argument *wgt can be either IPCW or IPSW
 // 
 // The weight 'matrix', w_i(t_ij), is a n by length(m) matrix.
 // The ith column gives w_i and the jth row evaluates w_i at t_ij
@@ -189,7 +187,8 @@ void coxGL(double *Tik, double *Y, double *X, double *xb, double *wgt,
 	  nu[r] = 0;
 	}
 	for (j = 0; j < *n; j++) {
-	  if (Y[j] >= Tik[clsz[i] + k]) {
+	  if (wgt[j * *len_Tik + clsz[i] + k] > 0) {
+	  // if (Y[j] >= Tik[clsz[i] + k]) { // This takes care of I(X > t) in weights
 	    for (r = 0; r < *p; r++) {
 	      nu[r] += X[j + r * *n] * wgt[j * *len_Tik + clsz[i] + k] * xb[j];
 	    }

@@ -124,7 +124,7 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
 #' This is also the ARF in Luo and IPSW in Ghosh and Lin (2002)
 #' @importFrom survival basehaz
 #' @noRd
-regFit.cox.GL <- function(DF, engine, stdErr) {
+regFit.cox.GLIPSW <- function(DF, engine, stdErr) {
   id <- DF$id
   event <- DF$event
   X <- as.matrix(DF[,-c(1:6)])
@@ -140,13 +140,59 @@ regFit.cox.GL <- function(DF, engine, stdErr) {
     approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1,
               yright = min(exp(-cumHaz$hazard * x)),
               method = "constant")(T))
-  wgt <- 1 / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
+  wgt <- outer(T, Y[event == 0], "<=") / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
   wgt <- ifelse(wgt > 1e5, 1e5, wgt)
   out <- dfsane(par = engine@par1, fn = coxGLeq, wgt = wgt, 
                 X = as.matrix(X[!event, ]),
                 Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                 alertConvergence = FALSE, quiet = TRUE,
                 control = list(trace = engine@trace))
+  out <- list(par1 = out$par,
+              par3 = coef(fit.coxph),
+              par3.se = sqrt(diag(vcov(fit.coxph))))
+  T0 <- sort(unique(c(T, Y)))  
+  Lam0 <- coxGLRate(out$par1,
+                    X = as.matrix(X[!event, ]),
+                    Y = Y[!event], T = ifelse(T == Y, 1e5, T),
+                    cl = mt + 1, wgt = wgt, T0)
+  out$Lam0 <- function(x) approx(x = T0, y = Lam0, xout = x, yleft = 0)$y
+  out$typeRec <- engine@typeRec
+  out$typeTem <- engine@typeTem
+  return(out)
+}
+
+
+#' This is also the ARF and IPCW in Ghosh and Lin (2002)
+#' @importFrom survival basehaz
+#' @noRd
+regFit.cox.GLIPCW <- function(DF, engine, stdErr) {
+  id <- DF$id
+  event <- DF$event
+  X <- as.matrix(DF[,-c(1:6)])
+  p <- ncol(X)
+  T <- DF$time2
+  mt <- aggregate(event ~ id, data = DF, sum)$event
+  Y <- rep(DF$time2[event == 0], mt + 1)
+  X0 <- X[event == 0,,drop = FALSE]
+  Y0 <- Y[event == 0]
+  D0 <- DF$terminal[event == 0]
+  cenDist <- coxph(Surv(Y0, 1 - D0) ~ X0)
+  cencumHaz <- basehaz(cenDist, centered = FALSE)
+  ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
+  wgt <- sapply(1:nrow(X0), function(i) {
+    xb <- sum(exp(X0[i,] * coef(cenDist)))
+    sc <- approxfun(cencumHaz$time, exp(-cencumHaz$hazard * xb), yleft = 1,
+                    yright = min(exp(-cencumHaz$hazard * xb)),
+                    method = "constant")
+    (D0[i] + (1 - D0[i]) * (Y0[i] >= T)) * sc(T) / sc(pmin(Y0[i], T))
+  })
+  wgt <- ifelse(wgt > 1e5, 1e5, wgt)
+  out <- dfsane(par = engine@par1, fn = coxGLeq, wgt = wgt, 
+                X = as.matrix(X[!event, ]),
+                Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
+                alertConvergence = FALSE, quiet = TRUE,
+                control = list(trace = engine@trace))
+  fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X0)
   out <- list(par1 = out$par,
               par3 = coef(fit.coxph),
               par3.se = sqrt(diag(vcov(fit.coxph))))
@@ -508,7 +554,9 @@ setClass("cox.HH",
          contains = "Engine")
 setClass("am.GL", contains = "Engine")
 ## setClass("gsc.XCYH", representation(muZ = "numeric"), prototype(muZ = 0), contains = "Engine")
-setClass("cox.GL",
+setClass("cox.GLIPSW",
+         representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
+setClass("cox.GLIPCW",
          representation(wgt = "matrix"), prototype(wgt = matrix(0)), contains = "Engine")
 
 setClass("stdErr",
@@ -533,8 +581,10 @@ setMethod("regFit", signature(engine = "cox.LWYY", stdErr = "sand"), regFit.cox.
 setMethod("regFit", signature(engine = "cox.HH", stdErr = "NULL"), regFit.cox.HH)
 setMethod("regFit", signature(engine = "cox.HH", stdErr = "boot"), regFit.cox.HH)
 setMethod("regFit", signature(engine = "cox.HH", stdErr = "sand"), regFit.cox.HH)
-setMethod("regFit", signature(engine = "cox.GL", stdErr = "NULL"), regFit.cox.GL)
-setMethod("regFit", signature(engine = "cox.GL", stdErr = "sand"), regFit.cox.GL)
+setMethod("regFit", signature(engine = "cox.GLIPCW", stdErr = "NULL"), regFit.cox.GLIPCW)
+setMethod("regFit", signature(engine = "cox.GLIPCW", stdErr = "sand"), regFit.cox.GLIPCW)
+setMethod("regFit", signature(engine = "cox.GLIPSW", stdErr = "NULL"), regFit.cox.GLIPSW)
+setMethod("regFit", signature(engine = "cox.GLIPSW", stdErr = "sand"), regFit.cox.GLIPSW)
 setMethod("regFit", signature(engine = "am.GL", stdErr = "NULL"), regFit.am.GL)
 setMethod("regFit", signature(engine = "Engine", stdErr = "boot"),
           regFit.Engine.boot)
@@ -588,7 +638,7 @@ setMethod("regFit", signature(engine = "am.GL", stdErr = "sand"),
 #' Some models that assumes \code{Z = 1} and requires independent
 #' censoring are also implemented in \code{reReg};
 #' these includes \code{model = "cox.LWYY"} for Lin et al. (2000),
-#' \code{model = "cox.GL"} for Ghosh and Lin (2002),
+#' \code{model = "cox.GLIPCW"} and \code{model = "cox.GLIPSW"} for Ghosh and Lin (2002),
 #' and \code{model = "am.GL"} for Ghosh and Lin (2003).
 #' Additionally, an improved estimation of the proportional rate model
 #' (Huang and Huang 2022) can be called by \code{model = "cox.HH"} with
@@ -753,7 +803,8 @@ reReg <- function(formula, data, subset,
   DF <- DF[order(DF$id, DF$time2), ]
   allModel <- apply(expand.grid(c("cox", "am", "gsc", "ar"),
                                 c("cox", "am", "gsc", "ar", ".")), 1, paste, collapse = "|")
-  allModel <- c(allModel, "cox.LWYY", "cox.HH", "cox.GL", "cox.HW", "am.GL", "am.XCHWY", "gsc.XCYH")
+  allModel <- c(allModel, "cox.LWYY", "cox.HH", "cox.GLIPSW", "cox.GLIPCW", "cox.HW",
+                "am.GL", "am.XCHWY", "gsc.XCYH")
   model <- match.arg(model, c("cox", "am", "gsc", "ar", allModel))
   typeRec <- typeTem <- NULL
   if (grepl("|", model, fixed = TRUE)) {
@@ -788,7 +839,8 @@ reReg <- function(formula, data, subset,
     typeRec <- "cox.HH"
     typeTem <- "."
   }
-  if (model == "cox.GL") typeRec <- typeTem <- "cox.GL"
+  if (model == "cox.GLIPSW") typeRec <- typeTem <- "cox.GL"
+  if (model == "cox.GLIPCW") typeRec <- typeTem <- "cox.GL"
   if (model == "am.GL") typeRec <- typeTem <- "am.GL"
   if (length(unique(DF$time2[DF$event == 0])) == 1 & typeTem != ".") {
     typeTem <- "."
@@ -809,7 +861,7 @@ reReg <- function(formula, data, subset,
   }
   ## initial values
   p <- ncol(DF) - ncol(mf[[1]])
-  if (model %in% c("cox.GL", "am.GL")) {
+  if (model %in% c("cox.GLIPSW", "cox.GLIPCW", "am.GL")) {
     if (length(engine@par1) == 1) engine@par1 <- rep(engine@par1, p)
     if (length(engine@par1) != p)
       stop("The length of initial value does not match with the number of covariates.")

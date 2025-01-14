@@ -1,6 +1,6 @@
 Package: reReg
 Title: Recurrent Event Regression
-Version: 1.4.7
+Version: 1.4.8
 Authors@R: c(person(given = "Sy Han (Steven)", family = "Chiou",
 	   email = "schiou@smu.edu",
 	   role = c("aut", "cre")),
@@ -29,6 +29,6 @@ Imports:
     Rcpp,
     rootSolve
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 NeedsCompilation: yes
 Packaged: 2023-09-01 12:11:22 UTC; schiou
