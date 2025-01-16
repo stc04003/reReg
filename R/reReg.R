@@ -122,7 +122,7 @@ regFit.cox.LWYY <- function(DF, engine, stdErr) {
 }
 
 #' This is also the ARF in Luo and IPSW in Ghosh and Lin (2002)
-#' @importFrom survival basehaz
+#' @importFrom survival coxph.fit coxsurv.fit
 #' @noRd
 regFit.cox.GLIPSW <- function(DF, engine, stdErr) {
   id <- DF$id
@@ -133,23 +133,35 @@ regFit.cox.GLIPSW <- function(DF, engine, stdErr) {
   mt <- aggregate(event ~ id, data = DF, sum)$event
   Y <- rep(DF$time2[event == 0], mt + 1)
   X0 <- X[event == 0,,drop = FALSE]
-  fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X0)
-  cumHaz <- basehaz(fit.coxph, centered = FALSE)
-  ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
-  wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
-    approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1,
-              yright = min(exp(-cumHaz$hazard * x)),
-              method = "constant")(T))
+  fit.terminal <- coxph.fit(X0, Surv(T[event == 0], DF$terminal[event == 0]), strata = NULL,
+                            offset = double(sum(T >= 0 & !event)),
+                            init = NULL, 
+                            control = coxph.control(), weights = NULL,
+                            method = "efron", rownames = NULL, resid = FALSE, nocenter = -1:1)
+  xb <- drop(X0 %*% fit.terminal$coef)
+  baseline.terminal <- coxsurv.fit(ctype = 2, stype = 2, se.fit = FALSE, varmat = fit$var, cluster = NULL, 
+                                   y = Surv(T[event == 0], DF$terminal[event == 0]), x = X0,
+                                   wt = NULL, risk = exp(xb), position = NULL, strata = NULL,
+                                   oldid = NULL, x2 = 0, risk2 = 1)
+  baseline.terminal$cumhaz <- c(0, baseline.terminal$cumhaz)
+  wgt <- baseline.terminal$cumhaz[findInterval(T, baseline.terminal$time) + 1]
+  wgt <- sapply(exp(xb), function(x) exp(-x * wgt))  
+  ## fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X0)
+  ## cumHaz <- basehaz(fit.coxph, centered = FALSE)
+  ## wgt <- sapply(exp(X0 %*% coef(fit.coxph)), function(x)
+  ##   approxfun(cumHaz$time, exp(-cumHaz$hazard * x), yleft = 1,
+  ##             yright = min(exp(-cumHaz$hazard * x)),
+  ##             method = "constant")(T))
   wgt <- outer(T, Y[event == 0], "<=") / wgt ## ifelse(wgt == 0, 1 / sort(c(wgt))[2], 1 / wgt)
-  wgt <- ifelse(wgt > 1e5, 1e5, wgt)
+  wgt <- ifelse(wgt > 1e5, 1e5, wgt)  
   out <- dfsane(par = engine@par1, fn = coxGLeq, wgt = wgt, 
                 X = as.matrix(X[!event, ]),
                 Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                 alertConvergence = FALSE, quiet = TRUE,
                 control = list(trace = engine@trace))
   out <- list(par1 = out$par,
-              par3 = coef(fit.coxph),
-              par3.se = sqrt(diag(vcov(fit.coxph))))
+              par3 = coef(fit.terminal),
+              par3.se = sqrt(diag(fit.terminal$var)))
   T0 <- sort(unique(c(T, Y)))  
   Lam0 <- coxGLRate(out$par1,
                     X = as.matrix(X[!event, ]),
@@ -176,13 +188,20 @@ regFit.cox.GLIPCW <- function(DF, engine, stdErr) {
   X0 <- X[event == 0,,drop = FALSE]
   Y0 <- Y[event == 0]
   D0 <- DF$terminal[event == 0]
-  cenDist <- coxph(Surv(Y0, 1 - D0) ~ X0)
-  cencumHaz <- basehaz(cenDist, centered = FALSE)
-  ## cumHaz$hazard <- cumHaz$hazard / max(cumHaz$hazard)
+  fit.cen <- coxph.fit(X0, Surv(Y0, 1 - D0), strata = NULL,
+                       offset = double(sum(T >= 0 & !event)),
+                       init = NULL, 
+                       control = coxph.control(), weights = NULL,
+                       method = "efron", rownames = NULL, resid = FALSE, nocenter = -1:1)
+  xb <- drop(X0 %*% fit.cen$coef)
+  baseline.cen <- coxsurv.fit(ctype = 2, stype = 2, se.fit = FALSE, varmat = fit$var, cluster = NULL, 
+                              y = Surv(Y0, 1 - D0), x = X0,
+                              wt = NULL, risk = exp(xb), position = NULL, strata = NULL,
+                              oldid = NULL, x2 = 0, risk2 = 1)
   wgt <- sapply(1:nrow(X0), function(i) {
-    xb <- sum(exp(X0[i,] * coef(cenDist)))
-    sc <- approxfun(cencumHaz$time, exp(-cencumHaz$hazard * xb), yleft = 1,
-                    yright = min(exp(-cencumHaz$hazard * xb)),
+    xb <- sum(exp(X0[i,] * coef(fit.cen)))
+    sc <- approxfun(baseline.cen$time, exp(-baseline.cen$cumhaz * xb), yleft = 1,
+                    yright = min(exp(-baseline.cen$cumhaz * xb)),
                     method = "constant")
     (D0[i] + (1 - D0[i]) * (Y0[i] >= T)) * sc(T) / sc(pmin(Y0[i], T))
   })
@@ -191,11 +210,11 @@ regFit.cox.GLIPCW <- function(DF, engine, stdErr) {
                 X = as.matrix(X[!event, ]),
                 Y = Y[!event], T = ifelse(T == Y, 1e5, T), cl = mt + 1,
                 alertConvergence = FALSE, quiet = TRUE,
-                control = list(trace = engine@trace))
-  fit.coxph <- coxph(Surv(T[event == 0], DF$terminal[event == 0]) ~ X0)
+                control = list(trace = engine@trace))  
+  fit.terminal <- coxph(Surv(Y0, D0) ~ X0)
   out <- list(par1 = out$par,
-              par3 = coef(fit.coxph),
-              par3.se = sqrt(diag(vcov(fit.coxph))))
+              par3 = coef(fit.terminal),
+              par3.se = sqrt(diag(vcov(fit.terminal))))
   T0 <- sort(unique(c(T, Y)))  
   Lam0 <- coxGLRate(out$par1,
                     X = as.matrix(X[!event, ]),
