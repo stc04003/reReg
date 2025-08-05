@@ -106,11 +106,11 @@ arma::vec reRateGhosh(const arma::vec& tij,
     for (int i = 0; i < nevent; ++i) {
       if (tij[i] == t_m) {
         unsigned int subj = id[i] - 1;  // subject index (0-based)
-        double num = w(subj, m);    // weight for subject at time t_m
+        double num = w(subj, i);    // weight for subject at time t_m
         double denom = 0.0;
         for (int j = 0; j < n; ++j) {
           if (yi[j] >= t_m) {
-            denom += w(j, m);
+            denom += w(j, i);
           }
         }
         if (denom > 0.0) {
