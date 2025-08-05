@@ -1,5 +1,5 @@
 # `reReg` 1.4.8
-        * Add Ghosh and Lin (2002), IPSW and IPCW
+        * Add IPSW and IPCW from Ghosh and Lin (2002); covers both regression and nonparametric settings
 # `reReg` 1.4.7
         * Changed Calloc to R_Calloc
 # `reReg` 1.4.6

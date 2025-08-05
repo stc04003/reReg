@@ -1,4 +1,5 @@
 ## globalVariables("DF") ## global variables for reReg
+globalVariables("fit")
 
 ##############################################################################
 ## Functions for different models
@@ -548,7 +549,7 @@ regFit.Engine.boot <- function(DF, engine, stdErr) {
 }
 
 ##############################################################################
-                                        # Class Definition
+## Class Definition
 ##############################################################################
 
 setClass("Engine",
@@ -859,7 +860,7 @@ reReg <- function(formula, data, subset,
     typeTem <- "."
   }
   if (model == "cox.GLIPSW") typeRec <- typeTem <- "cox.GL"
-  if (model == "cox.GLIPCW") typeRec <- typeTem <- "cox.GL"
+  if (model == "cox.GLIPCW") typeRec <- typeTem <- "cox.GL" 
   if (model == "am.GL") typeRec <- typeTem <- "am.GL"
   if (length(unique(DF$time2[DF$event == 0])) == 1 & typeTem != ".") {
     typeTem <- "."
@@ -932,8 +933,14 @@ reReg <- function(formula, data, subset,
   }
   engine@baseSE <- B > 0
   if (formula == ~1) {
-    if (engine@baseSE) fit <- npFit(DF, B, typeTem)
-    else fit <- npFit(DF, 0, typeTem)
+    if (engine@baseSE) fit <- npFit(DF, B, typeTem, model)
+    else fit <- npFit(DF, 0, typeTem, model)
+    ## need to clean this up in a later version
+    if (engine@typeRec == "cox.LWYY") {
+      tmp <- regFit(DF, engine, stdErr)
+      fit$Lam0 <- tmp$Lam0
+      fit$log.muZ <- 0
+    }
     fit$typeRec <- "nonparametric"
     fit$typeTem <- typeTem
   } else {

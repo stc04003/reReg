@@ -24,6 +24,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// reRateGhosh
+arma::vec reRateGhosh(const arma::vec& tij, const arma::vec& yi, const arma::uvec& id, const arma::vec& tt, const arma::mat& w);
+RcppExport SEXP _reReg_reRateGhosh(SEXP tijSEXP, SEXP yiSEXP, SEXP idSEXP, SEXP ttSEXP, SEXP wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type tij(tijSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type yi(yiSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type id(idSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tt(ttSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
+    rcpp_result_gen = Rcpp::wrap(reRateGhosh(tij, yi, id, tt, w));
+    return rcpp_result_gen;
+END_RCPP
+}
 // reLog
 arma::vec reLog(const arma::vec& a, const arma::mat& X, const arma::vec& T, const arma::vec& Y, const arma::vec& W);
 RcppExport SEXP _reReg_reLog(SEXP aSEXP, SEXP XSEXP, SEXP TSEXP, SEXP YSEXP, SEXP WSEXP) {

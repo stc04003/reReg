@@ -7,6 +7,11 @@ reRate <- function(T, Y, W, T0) {
 }
 
 #' @noRd
+reRateGhosh <- function(tij, yi, id, tt, w) {
+    .Call('_reReg_reRateGhosh', PACKAGE = 'reReg', tij, yi, id, tt, w)
+}
+
+#' @noRd
 reLog <- function(a, X, T, Y, W) {
     .Call('_reReg_reLog', PACKAGE = 'reReg', a, X, T, Y, W)
 }

@@ -27,8 +27,8 @@ Axb <- function(A, b) {
 #' Generalized printCoefmat for printing in summary.reReg
 #' @noRd
 printCoefmat2 <- function(tab) 
-    printCoefmat(as.data.frame(tab), P.values = TRUE,
-                 has.Pvalue = TRUE, signif.legend = FALSE)
+  printCoefmat(as.data.frame(tab), P.values = TRUE,
+               has.Pvalue = TRUE, signif.legend = FALSE)
 
 #' Computes (generalized) inverse of a matrix from svd
 #' This guard against error in applying solve(A) on a matrix whose inverse doesn't exist
